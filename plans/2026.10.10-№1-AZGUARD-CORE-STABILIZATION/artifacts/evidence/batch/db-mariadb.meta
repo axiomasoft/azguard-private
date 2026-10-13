@@ -1,0 +1,1 @@
+{"name":"db-mariadb","cmd":"composer test:db -- mariadb --parallel","exit":0,"started":"2026-10-13T18:18:37Z","finished":"2026-10-13T18:32:56Z","head":"cc44ce7c9c609d9ffa8f3fb81aeff30a14e8ddd6"}

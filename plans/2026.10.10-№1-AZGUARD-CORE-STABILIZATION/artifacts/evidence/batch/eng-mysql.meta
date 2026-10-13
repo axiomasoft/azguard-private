@@ -1,0 +1,1 @@
+{"name":"eng-mysql","cmd":"composer test:db -- mysql --engines","exit":0,"started":"2026-10-13T17:40:27Z","finished":"2026-10-13T17:54:33Z","head":"cc44ce7c9c609d9ffa8f3fb81aeff30a14e8ddd6"}

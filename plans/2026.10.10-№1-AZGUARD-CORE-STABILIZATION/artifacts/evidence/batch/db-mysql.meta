@@ -1,0 +1,1 @@
+{"name":"db-mysql","cmd":"composer test:db -- mysql --parallel","exit":0,"started":"2026-10-13T17:54:42Z","finished":"2026-10-13T18:18:37Z","head":"cc44ce7c9c609d9ffa8f3fb81aeff30a14e8ddd6"}

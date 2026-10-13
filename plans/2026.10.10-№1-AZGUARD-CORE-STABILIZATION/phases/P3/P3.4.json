@@ -2,7 +2,7 @@
   "$schema": "urn:swissknifeman:task:plan:item:v1",
   "id": "P3.4",
   "title": "Module PSR-4 roots and relocation of the existing Scopes and Audit files",
-  "status": "in_progress",
+  "status": "done_with_deviations",
   "summary": "`packages/core/composer.json` gains the PSR-4 roots `AzGuard\\Scopes\\ → modules/scopes/src/` and `AzGuard\\Audit\\ → modules/audit/src/` (`AzGuard\\DevTools\\ → modules/devtools/src/` with P3.7); every file under `src/Scopes`, `src/Audit`, `src/Plugins/Audit` and the module-owned files in core directories move to their oracle `target_path` (FQCN changes only where the oracle row says so); the core guarded-query classes move to `Authorization\\Internal\\Query`. I5 allowlist becomes empty.",
   "why": "One autoload owner per FQCN (I5) and the phase deliverable 'modules/scopes, modules/audit with explicit PSR-4 roots'. Hard risk: Composer resolves the longest prefix but falls back to `AzGuard\\ → src/`; a leftover `src/Scopes/...` file would be loaded by the core root — the directories must be empty and deleted; and the path-repository install needs `composer update` before the new roots are visible.",
   "scope": {
@@ -270,12 +270,67 @@
   },
   "result": {
     "started_at": "2026-10-13T15:43:18Z",
+    "finished_at": "2026-10-13T18:33:22Z",
     "executor": {
       "provider": "claude-code",
       "model": "claude-opus-5-5",
-      "effort": "high",
-      "session": "6489227b-678c-4234-b409-ba5159d2c195"
-    }
+      "effort": "high"
+    },
+    "registered_by": {
+      "provider": "claude-code",
+      "model": "claude-sonnet-5-5",
+      "effort": "high"
+    },
+    "notes": "V1–V6 green on the final tree; V2 green only with P3.6 code as predicted. Review: Grok 4.7 high round 1 GREEN, no findings.",
+    "deviations": [
+      "Module move: scripted FQCN rewrite instead of RenameClassRector; snapshot tests read every PSR-4 root; doctor-checks.json regenerated (see journal). Shared long runs on c3e2c07a recorded for all four items; pint --test packages tests bin instead of bare lint:check (owner var/perf); items committed as 3e389a77 (P3.4, carries shared files incl. P3.5/P3.6 code), 2d87811a (P3.5), 7413da0b (P3.6 json only), c3e2c07a (P3.7); Grok 4.7 review round 1 GREEN (cc44ce7c)."
+    ],
+    "checks": [
+      {
+        "id": "V1",
+        "exit": 0,
+        "at": "2026-10-13T18:33:22Z",
+        "evidence": "plans/2026.10.10-№1-AZGUARD-CORE-STABILIZATION/artifacts/evidence/P3.4/V1.json"
+      },
+      {
+        "id": "V2",
+        "exit": 0,
+        "at": "2026-10-13T18:33:22Z",
+        "evidence": "plans/2026.10.10-№1-AZGUARD-CORE-STABILIZATION/artifacts/evidence/P3.4/V2.json"
+      },
+      {
+        "id": "V3",
+        "exit": 0,
+        "at": "2026-10-13T18:33:22Z",
+        "evidence": "plans/2026.10.10-№1-AZGUARD-CORE-STABILIZATION/artifacts/evidence/P3.4/V3.json"
+      },
+      {
+        "id": "V4",
+        "exit": 0,
+        "at": "2026-10-13T18:33:22Z",
+        "evidence": "plans/2026.10.10-№1-AZGUARD-CORE-STABILIZATION/artifacts/evidence/P3.4/V4.json"
+      },
+      {
+        "id": "V5",
+        "exit": 0,
+        "at": "2026-10-13T18:33:22Z",
+        "evidence": "plans/2026.10.10-№1-AZGUARD-CORE-STABILIZATION/artifacts/evidence/P3.4/V5.json"
+      },
+      {
+        "id": "V6",
+        "exit": 0,
+        "at": "2026-10-13T18:33:22Z",
+        "evidence": "plans/2026.10.10-№1-AZGUARD-CORE-STABILIZATION/artifacts/evidence/P3.4/V6.json"
+      }
+    ],
+    "evidence": [
+      "plans/2026.10.10-№1-AZGUARD-CORE-STABILIZATION/artifacts/evidence/P3.4/V1.json",
+      "plans/2026.10.10-№1-AZGUARD-CORE-STABILIZATION/artifacts/evidence/P3.4/V2.json",
+      "plans/2026.10.10-№1-AZGUARD-CORE-STABILIZATION/artifacts/evidence/P3.4/V3.json",
+      "plans/2026.10.10-№1-AZGUARD-CORE-STABILIZATION/artifacts/evidence/P3.4/V4.json",
+      "plans/2026.10.10-№1-AZGUARD-CORE-STABILIZATION/artifacts/evidence/P3.4/V5.json",
+      "plans/2026.10.10-№1-AZGUARD-CORE-STABILIZATION/artifacts/evidence/P3.4/V6.json"
+    ]
   },
-  "updated_at": "2026-10-13T15:43:18Z"
+  "updated_at": "2026-10-13T18:33:22Z"
 }
