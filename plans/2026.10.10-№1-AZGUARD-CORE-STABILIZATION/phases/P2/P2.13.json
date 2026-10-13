@@ -2,7 +2,7 @@
   "$schema": "urn:swissknifeman:task:plan:item:v1",
   "id": "P2.13",
   "title": "Console support SPI, uniform exit codes and config section registration",
-  "status": "todo",
+  "status": "in_progress",
   "summary": "`Laravel\\Console\\CommandSupport` (Spi(Call) trait) and `Laravel\\Console\\InvalidCommandInput` give every AzGuard command one exit-code mapping (0 success, 2 input/panel/tenant/identity, 1 other) and panel selection; core grant helpers become `Laravel\\Internal\\Console\\GrantCommandSupport`; every command — core, generators, install, stubs, audit prune — runs through `attempt()`; `Configuration\\ConfigSections` lets an owner register its config root section (core registers `scaffold` on behalf of DevTools until P3).",
   "why": "Module commands depend on the internal console trait for exit codes and panel selection (R15); identities fix one exit-code contract for all commands (D16), which 0.7.0 applied only partly; core config validation must stop knowing module keys while still rejecting unknown roots (architecture#ownership). Hard risk: commands.json changes are intended and must match the identities rule exactly, nothing else.",
   "scope": {
@@ -180,6 +180,14 @@
     "need": "none",
     "status": "not_needed"
   },
-  "result": null,
-  "updated_at": "2026-10-11T16:12:48Z"
+  "result": {
+    "started_at": "2026-10-13T05:08:51Z",
+    "executor": {
+      "provider": "claude-code",
+      "model": "claude-opus-5-5",
+      "effort": "high",
+      "session": "f49906af-be96-4080-a159-0586585c6205"
+    }
+  },
+  "updated_at": "2026-10-13T05:08:51Z"
 }

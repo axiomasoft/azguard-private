@@ -6,7 +6,7 @@ namespace AzGuard\Laravel\Console\Commands;
 
 use AzGuard\Audit\AuditOptions;
 use AzGuard\Changes\ChangePipeline;
-use AzGuard\Laravel\Console\Concerns\InteractsWithAzGuard;
+use AzGuard\Laravel\Console\CommandSupport;
 use AzGuard\Panels\Panel;
 use AzGuard\Panels\PanelRegistry;
 use Carbon\CarbonImmutable;
@@ -19,7 +19,7 @@ use Illuminate\Console\Command;
  */
 final class AuditPruneCommand extends Command
 {
-    use InteractsWithAzGuard;
+    use CommandSupport;
 
     /** @var string */
     protected $signature = 'azguard:audit:prune

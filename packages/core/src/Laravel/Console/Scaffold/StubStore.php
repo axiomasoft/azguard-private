@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace AzGuard\Laravel\Console\Scaffold;
 
-use AzGuard\Laravel\Console\Concerns\InvalidCommandInput;
+use AzGuard\Laravel\Console\InvalidCommandInput;
 use Illuminate\Filesystem\Filesystem;
 
 /**

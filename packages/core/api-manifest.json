@@ -4662,6 +4662,51 @@
             ]
         },
         {
+            "name": "AzGuard\\Configuration\\ConfigSections",
+            "publication": "spi-call",
+            "since": "1.0",
+            "kind": "class",
+            "final": true,
+            "abstract": false,
+            "readonly": false,
+            "parent": null,
+            "interfaces": [],
+            "namedArguments": true,
+            "contracts": [],
+            "constants": [],
+            "properties": [],
+            "methods": [
+                {
+                    "name": "own",
+                    "visibility": "public",
+                    "static": false,
+                    "abstract": false,
+                    "final": false,
+                    "parameters": [
+                        {
+                            "name": "root",
+                            "type": "string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "validate",
+                            "type": "Closure",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "void",
+                    "namedArguments": true,
+                    "contracts": [
+                        "@param Closure(array<string, mixed>): void $validate throws `InvalidConfigurationException` for an invalid section"
+                    ]
+                }
+            ]
+        },
+        {
             "name": "AzGuard\\Context\\AssignmentScopeDeclaration",
             "publication": "api",
             "since": "1.0",
@@ -18958,6 +19003,176 @@
                     "contracts": []
                 }
             ]
+        },
+        {
+            "name": "AzGuard\\Laravel\\Console\\CommandSupport",
+            "publication": "spi-call",
+            "since": "1.0",
+            "kind": "trait",
+            "final": false,
+            "abstract": false,
+            "readonly": false,
+            "parent": null,
+            "interfaces": [],
+            "namedArguments": true,
+            "contracts": [],
+            "constants": [],
+            "properties": [],
+            "methods": [
+                {
+                    "name": "attempt",
+                    "visibility": "protected",
+                    "static": false,
+                    "abstract": false,
+                    "final": false,
+                    "parameters": [
+                        {
+                            "name": "body",
+                            "type": "Closure",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "int",
+                    "namedArguments": true,
+                    "contracts": []
+                },
+                {
+                    "name": "confirmIrreversible",
+                    "visibility": "protected",
+                    "static": false,
+                    "abstract": false,
+                    "final": false,
+                    "parameters": [
+                        {
+                            "name": "what",
+                            "type": "string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "force",
+                            "type": "bool",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "void",
+                    "namedArguments": true,
+                    "contracts": []
+                },
+                {
+                    "name": "dateOption",
+                    "visibility": "protected",
+                    "static": false,
+                    "abstract": false,
+                    "final": false,
+                    "parameters": [
+                        {
+                            "name": "name",
+                            "type": "string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "?DateTimeImmutable",
+                    "namedArguments": true,
+                    "contracts": []
+                },
+                {
+                    "name": "printJson",
+                    "visibility": "protected",
+                    "static": false,
+                    "abstract": false,
+                    "final": false,
+                    "parameters": [
+                        {
+                            "name": "data",
+                            "type": "array",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "void",
+                    "namedArguments": true,
+                    "contracts": [
+                        "@param array<string, mixed> $data"
+                    ]
+                },
+                {
+                    "name": "selectPanel",
+                    "visibility": "protected",
+                    "static": false,
+                    "abstract": false,
+                    "final": false,
+                    "parameters": [],
+                    "return": "AzGuard\\Panels\\Panel",
+                    "namedArguments": true,
+                    "contracts": []
+                },
+                {
+                    "name": "stringArgument",
+                    "visibility": "protected",
+                    "static": false,
+                    "abstract": false,
+                    "final": false,
+                    "parameters": [
+                        {
+                            "name": "name",
+                            "type": "string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "string",
+                    "namedArguments": true,
+                    "contracts": []
+                },
+                {
+                    "name": "stringOption",
+                    "visibility": "protected",
+                    "static": false,
+                    "abstract": false,
+                    "final": false,
+                    "parameters": [
+                        {
+                            "name": "name",
+                            "type": "string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "?string",
+                    "namedArguments": true,
+                    "contracts": []
+                }
+            ]
+        },
+        {
+            "name": "AzGuard\\Laravel\\Console\\InvalidCommandInput",
+            "publication": "spi-call",
+            "since": "1.0",
+            "kind": "class",
+            "final": true,
+            "abstract": false,
+            "readonly": false,
+            "parent": "RuntimeException",
+            "interfaces": [
+                "Stringable",
+                "Throwable"
+            ],
+            "namedArguments": true,
+            "contracts": [],
+            "constants": [],
+            "properties": [],
+            "methods": []
         },
         {
             "name": "AzGuard\\Laravel\\Gate\\GateBridge",

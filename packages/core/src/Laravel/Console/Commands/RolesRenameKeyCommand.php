@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace AzGuard\Laravel\Console\Commands;
 
 use AzGuard\Changes\RoleKeyMigration;
-use AzGuard\Laravel\Console\Concerns\InteractsWithAzGuard;
+use AzGuard\Laravel\Internal\Console\GrantCommandSupport;
 use Carbon\CarbonImmutable;
 use DateTimeZone;
 use Illuminate\Console\Command;
@@ -17,7 +17,7 @@ use Illuminate\Console\Command;
  */
 final class RolesRenameKeyCommand extends Command
 {
-    use InteractsWithAzGuard;
+    use GrantCommandSupport;
 
     /** @var string */
     protected $signature = 'azguard:roles:rename-key
@@ -36,7 +36,7 @@ final class RolesRenameKeyCommand extends Command
         return $this->attempt(function () use ($migration): int {
             $former = $this->stringArgument('role');
             $current = $this->stringArgument('new');
-            $panel = $this->selectPanel(roles: [$former, $current]);
+            $panel = $this->panelFor(roles: [$former, $current]);
             $from = str_contains($former, ':') ? explode(':', $former, 2)[1] : $former;
             $tenant = $this->tenantOf($panel);
 

@@ -927,6 +927,15 @@
             "owner": "core"
         },
         {
+            "fqcn": "AzGuard\\Laravel\\Console\\InvalidCommandInput",
+            "kinds": [
+                "exception"
+            ],
+            "target": "AzGuard\\Laravel\\Console\\InvalidCommandInput",
+            "action": "move",
+            "owner": "core"
+        },
+        {
             "fqcn": "AzGuard\\Laravel\\Http\\DecisionFailedException",
             "kinds": [
                 "exception"
@@ -1130,16 +1139,6 @@
             "action": "move",
             "owner": "core",
             "note": "stateless Kernel helper, not a value; moved under Kernel\\Internal (P3)."
-        },
-        {
-            "fqcn": "AzGuard\\Laravel\\Console\\Concerns\\InvalidCommandInput",
-            "kinds": [
-                "exception"
-            ],
-            "target": "AzGuard\\Laravel\\Console\\InvalidCommandInput",
-            "action": "move",
-            "owner": "core",
-            "note": "internal console exception; moved to Laravel\\Console (P2). Never leaves a command."
         },
         {
             "fqcn": "AzGuard\\Testing\\Contracts\\ContractPermission",

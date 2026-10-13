@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace AzGuard\Laravel\Console\Commands;
 
 use AzGuard\Changes\ChangeResult;
-use AzGuard\Laravel\Console\Concerns\InteractsWithAzGuard;
+use AzGuard\Laravel\Internal\Console\GrantCommandSupport;
 use AzGuard\Panels\PanelResolver;
 use Illuminate\Console\Command;
 
@@ -15,7 +15,7 @@ use Illuminate\Console\Command;
  */
 final class PermissionsCreateCommand extends Command
 {
-    use InteractsWithAzGuard;
+    use GrantCommandSupport;
 
     /** @var string */
     protected $signature = 'azguard:permissions:create
@@ -32,7 +32,7 @@ final class PermissionsCreateCommand extends Command
     {
         return $this->attempt(function () use ($resolver): int {
             $name = $this->stringArgument('name');
-            $panel = $this->selectPanel(permissions: [$name]);
+            $panel = $this->panelFor(permissions: [$name]);
             $local = $resolver->pattern($panel, $name)->local();
             $access = $this->access($panel);
             $label = $this->stringOption('label');

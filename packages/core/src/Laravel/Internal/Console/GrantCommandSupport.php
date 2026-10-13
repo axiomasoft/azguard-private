@@ -2,28 +2,22 @@
 
 declare(strict_types=1);
 
-namespace AzGuard\Laravel\Console\Concerns;
+namespace AzGuard\Laravel\Internal\Console;
 
 use AzGuard\AzGuard;
 use AzGuard\Changes\ActingActor;
 use AzGuard\Changes\ChangeResult;
 use AzGuard\Changes\GrantRecord;
 use AzGuard\Contracts\PanelAccess;
-use AzGuard\Exceptions\AmbiguousPanelException;
-use AzGuard\Exceptions\AzGuardException;
-use AzGuard\Exceptions\ConflictingPanelException;
-use AzGuard\Exceptions\InvalidIdentityException;
-use AzGuard\Exceptions\InvalidPanelIdException;
-use AzGuard\Exceptions\PanelNotResolvedException;
-use AzGuard\Exceptions\SubjectNotAcceptedException;
 use AzGuard\Exceptions\TenantMismatchException;
 use AzGuard\Exceptions\TenantRequiredException;
-use AzGuard\Exceptions\UnknownPanelException;
 use AzGuard\Kernel\Identity\ActorRef;
 use AzGuard\Kernel\Identity\AssignmentScopeRef;
 use AzGuard\Kernel\Identity\IdentityCodec;
 use AzGuard\Kernel\Identity\SubjectRef;
 use AzGuard\Kernel\Identity\TenantRef;
+use AzGuard\Laravel\Console\CommandSupport;
+use AzGuard\Laravel\Console\InvalidCommandInput;
 use AzGuard\Panels\Panel;
 use AzGuard\Panels\PanelRegistry;
 use AzGuard\Panels\PanelResolver;
@@ -31,53 +25,22 @@ use AzGuard\Tenancy\TenantMode;
 use Closure;
 use DateTimeImmutable;
 use DateTimeZone;
-use Exception;
 use Illuminate\Console\Command;
 use Illuminate\Database\Eloquent\Model;
-use Throwable;
 
 /**
- * @internal Input and output rules shared by the AzGuard commands.
+ * @internal Rules of the core commands that read and change grants, on top of `CommandSupport`.
  *
- * - The panel is picked only by the panel resolver, from `--panel`, full names and the subject; an unresolved panel is
- *   an error, never a guess.
+ * - The panel is picked only by the panel resolver, from `--panel`, full names and the subject.
  * - `{subject}` is `type:id`, or a bare id when the panels in question have one subject model.
  * - A panel with tenants needs `--tenant=type:id` before anything is read or written; no command works across tenants.
  * - Changes run as the system actor whose reason is the command name.
- * - `--force` is required for irreversible changes in production.
- * - Exit codes: 0 success, 1 a refused or failed operation, 2 invalid input (panel, tenant, subject, option, a missing
- *   `--force`).
  *
  * @phpstan-require-extends Command
  */
-trait InteractsWithAzGuard
+trait GrantCommandSupport
 {
-    /**
-     * Runs the body of a command and turns its failure into an error line and an exit code.
-     *
-     * @param  Closure(): int  $body
-     */
-    protected function attempt(Closure $body): int
-    {
-        try {
-            return $body();
-        } catch (InvalidCommandInput|PanelNotResolvedException|UnknownPanelException|AmbiguousPanelException|ConflictingPanelException
-            |InvalidPanelIdException|TenantRequiredException|TenantMismatchException|InvalidIdentityException|SubjectNotAcceptedException $error) {
-                $this->components->error($error->getMessage());
-
-                return Command::INVALID;
-            } catch (AzGuardException $error) {
-                $this->components->error(class_basename($error).': '.$error->getMessage());
-
-                return Command::FAILURE;
-            } catch (Throwable $error) {
-                // A database or framework message may carry connection details; it is shown on request only.
-                $this->components->error('The command failed with '.$error::class
-                    .($this->output->isVerbose() ? ': '.$error->getMessage() : '. Run it with -v to see the message.'));
-
-                return Command::FAILURE;
-            }
-    }
+    use CommandSupport;
 
     /**
      * The panel of the command by the rule of the panel resolver: `--panel`, full names of permissions and roles, the
@@ -86,7 +49,7 @@ trait InteractsWithAzGuard
      * @param  list<string>  $permissions
      * @param  list<string>  $roles
      */
-    protected function selectPanel(?SubjectRef $subject = null, array $permissions = [], array $roles = []): Panel
+    protected function panelFor(?SubjectRef $subject = null, array $permissions = [], array $roles = []): Panel
     {
         $panel = $this->stringOption('panel');
 
@@ -173,33 +136,6 @@ trait InteractsWithAzGuard
         return AssignmentScopeRef::of($type, $id);
     }
 
-    /** An ISO-8601 date or date-time of an option; a time without an offset is UTC. */
-    protected function dateOption(string $name): ?DateTimeImmutable
-    {
-        $input = $this->stringOption($name);
-
-        if ($input === null) {
-            return null;
-        }
-
-        if (preg_match('/\A\d{4}-\d{2}-\d{2}(?:[T ]\d{2}:\d{2}(?::\d{2}(?:\.\d{1,6})?)?(?:Z|[+-]\d{2}:?\d{2})?)?\z/', $input) !== 1) {
-            throw new InvalidCommandInput('--'.$name.' must be an ISO-8601 date or date-time such as 2026-12-31T18:00:00Z.');
-        }
-
-        try {
-            $date = new DateTimeImmutable($input, new DateTimeZone('UTC'));
-        } catch (Exception) {
-            $date = null;
-        }
-
-        // A day or hour out of range is rolled over by PHP with a warning; such a date is refused, not shifted.
-        if ($date === null || DateTimeImmutable::getLastErrors() !== false) {
-            throw new InvalidCommandInput('--'.$name.' must be an ISO-8601 date or date-time; '.$input.' does not exist.');
-        }
-
-        return $date->setTimezone(new DateTimeZone('UTC'));
-    }
-
     /**
      * Grant fields of the repeatable `--field=key=value`; a key given twice is a list. Values stay strings: the field
      * schema of the panel validates and casts them.
@@ -237,14 +173,6 @@ trait InteractsWithAzGuard
     protected function asSystem(Closure $change): mixed
     {
         return app(ActingActor::class)->run(ActorRef::system((string) $this->getName()), $change);
-    }
-
-    /** Refuses an irreversible change in production unless `--force` is given. */
-    protected function confirmIrreversible(string $what, bool $force): void
-    {
-        if ($this->laravel->environment('production') && ! $force) {
-            throw new InvalidCommandInput($what.' cannot be undone: pass --force to run it in production.');
-        }
     }
 
     /**
@@ -297,39 +225,14 @@ trait InteractsWithAzGuard
         return Command::SUCCESS;
     }
 
-    /** @param array<mixed> $data */
-    protected function printJson(array $data): void
+    /**
+     * A list as pretty JSON, with the flags of `printJson()`.
+     *
+     * @param  list<mixed>  $list
+     */
+    protected function printJsonList(array $list): void
     {
-        $this->line(json_encode($data, JSON_THROW_ON_ERROR | JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_INVALID_UTF8_SUBSTITUTE));
-    }
-
-    protected function stringOption(string $name): ?string
-    {
-        if (! $this->hasOption($name)) {
-            return null;
-        }
-        $value = $this->option($name);
-
-        if ($value === null) {
-            return null;
-        }
-
-        if (! is_string($value) || trim($value) === '') {
-            throw new InvalidCommandInput('--'.$name.' needs a value.');
-        }
-
-        return $value;
-    }
-
-    protected function stringArgument(string $name): string
-    {
-        $value = $this->argument($name);
-
-        if (! is_string($value) || trim($value) === '') {
-            throw new InvalidCommandInput('The argument '.$name.' needs a value.');
-        }
-
-        return $value;
+        $this->line(json_encode($list, JSON_THROW_ON_ERROR | JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_INVALID_UTF8_SUBSTITUTE));
     }
 
     /** @return array{string, string} */

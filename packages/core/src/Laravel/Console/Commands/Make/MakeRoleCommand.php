@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace AzGuard\Laravel\Console\Commands\Make;
 
 use AzGuard\Kernel\Grammar\PermissionGrammar;
-use AzGuard\Laravel\Console\Concerns\InvalidCommandInput;
+use AzGuard\Laravel\Console\InvalidCommandInput;
 use AzGuard\Laravel\Console\Scaffold\GeneratedFile;
 use AzGuard\Laravel\Console\Scaffold\Layout;
 use AzGuard\Laravel\Console\Scaffold\StubStore;

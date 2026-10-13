@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace AzGuard\Laravel\Console\Commands;
 
-use AzGuard\Laravel\Console\Concerns\InteractsWithAzGuard;
+use AzGuard\Laravel\Internal\Console\GrantCommandSupport;
 use AzGuard\Schema\RoleSchema;
 use AzGuard\Sources\Database\DatabaseSource;
 use Carbon\CarbonImmutable;
@@ -16,7 +16,7 @@ use Illuminate\Console\Command;
  */
 final class RolesListCommand extends Command
 {
-    use InteractsWithAzGuard;
+    use GrantCommandSupport;
 
     /** @var string */
     protected $signature = 'azguard:roles:list

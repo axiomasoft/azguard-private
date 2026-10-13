@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace AzGuard\Laravel\Console\Commands\Make;
 
 use AzGuard\Configuration\AzGuardConfig;
-use AzGuard\Laravel\Console\Concerns\InteractsWithAzGuard;
-use AzGuard\Laravel\Console\Concerns\InvalidCommandInput;
+use AzGuard\Laravel\Console\CommandSupport;
+use AzGuard\Laravel\Console\InvalidCommandInput;
 use AzGuard\Laravel\Console\Scaffold\GeneratedFile;
 use AzGuard\Laravel\Console\Scaffold\Layout;
 use AzGuard\Laravel\Console\Scaffold\Place;
@@ -25,7 +25,7 @@ use Symfony\Component\Console\Output\OutputInterface;
  */
 abstract class MakeCommand extends GeneratorCommand
 {
-    use InteractsWithAzGuard;
+    use CommandSupport;
 
     /** @var string */
     protected $type = 'Class';

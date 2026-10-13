@@ -75,6 +75,14 @@ your code. Each line is `Find: <grep pattern> → Replace: <new form>`.
 - Find: `'azguard.system'` (the system actor type, `ActorRef::SYSTEM_TYPE`) → Replace: `'azguard:system'`; rows a 0.7.0 install stored with the old value
   need `UPDATE {prefix}role_grants SET actor_type = 'azguard:system' WHERE actor_type = 'azguard.system'` (also `{prefix}permission_grants` and
   `{prefix}audit_log`), otherwise reading such a grant's actor raises `InvalidIdentityException`.
+- Find: `AzGuard\Laravel\Console\Concerns\InteractsWithAzGuard` in your own command → Replace: `use AzGuard\Laravel\Console\CommandSupport;`
+  (`attempt()`, `selectPanel()`, `stringOption()`, `stringArgument()`, `dateOption()`, `confirmIrreversible()`, `printJson()`); the grant helpers
+  of the old trait are internal.
+- Find: `AzGuard\Laravel\Console\Concerns\InvalidCommandInput` → Replace: `AzGuard\Laravel\Console\InvalidCommandInput` (now a `RuntimeException`, not an `InvalidArgumentException`).
+- Find: a script that checks the exit code of `azguard:explain` (malformed or missing subject, malformed `--tenant`/`--context`) or of
+  `azguard:storage:migration` (`default` or an unknown storage) for `1` → Replace: `2`; input errors of every command exit with 2.
+- Find: a package that adds a root key to `config/azguard.php` → Replace: register it from your provider's `register()` with
+  `app(AzGuard\Configuration\ConfigSections::class)->own('<root>', fn (array $section) => …)`; an unregistered root key is rejected.
 
 ## From 0.3 to 0.7.0
 

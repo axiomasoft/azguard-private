@@ -6,7 +6,7 @@ namespace AzGuard\Laravel\Console\Scaffold;
 
 use AzGuard\Configuration\AzGuardConfig;
 use AzGuard\Kernel\Grammar\PermissionGrammar;
-use AzGuard\Laravel\Console\Concerns\InvalidCommandInput;
+use AzGuard\Laravel\Console\InvalidCommandInput;
 use Illuminate\Support\Str;
 
 /**

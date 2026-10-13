@@ -4,6 +4,12 @@ This page is generated from `php artisan list azguard --format=json` (AzGuard 0.
 `php artisan help <command>` shows the same text. A subject is written as `type:id`, where the type is the morph alias.
 `azguard:filament:generate` comes from `axiomasoft/azguard-filament`.
 
+Every AzGuard command exits with `0` on success, `2` on an input, panel, tenant or identity error (a malformed or
+missing argument or option, an unknown panel, storage or subject, a missing `--tenant`, a missing `--force` in
+production) and `1` on any other error. A command of your own gets the same rules from the trait
+`AzGuard\Laravel\Console\CommandSupport`: run its body through `attempt()` and throw
+`AzGuard\Laravel\Console\InvalidCommandInput` for invalid input.
+
 ## Setup
 
 ### `azguard:doctor`

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace AzGuard\Laravel\Console\Commands;
 
-use AzGuard\Laravel\Console\Concerns\InteractsWithAzGuard;
+use AzGuard\Laravel\Console\CommandSupport;
 use AzGuard\Laravel\Console\Scaffold\StubStore;
 use Illuminate\Console\Command;
 use Illuminate\Filesystem\Filesystem;
@@ -15,7 +15,7 @@ use Illuminate\Filesystem\Filesystem;
  */
 final class StubsCommand extends Command
 {
-    use InteractsWithAzGuard;
+    use CommandSupport;
 
     /** @var string */
     protected $signature = 'azguard:stubs

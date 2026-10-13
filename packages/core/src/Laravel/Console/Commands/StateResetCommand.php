@@ -6,7 +6,7 @@ namespace AzGuard\Laravel\Console\Commands;
 
 use AzGuard\Changes\ChangePipeline;
 use AzGuard\Kernel\Decision\StateToken;
-use AzGuard\Laravel\Console\Concerns\InteractsWithAzGuard;
+use AzGuard\Laravel\Internal\Console\GrantCommandSupport;
 use AzGuard\Panels\PanelResolver;
 use Illuminate\Console\Command;
 
@@ -17,7 +17,7 @@ use Illuminate\Console\Command;
  */
 final class StateResetCommand extends Command
 {
-    use InteractsWithAzGuard;
+    use GrantCommandSupport;
 
     /** @var string */
     protected $signature = 'azguard:state:reset

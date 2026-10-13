@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace AzGuard\Laravel\Console\Commands;
 
 use AzGuard\Configuration\AzGuardConfig;
-use AzGuard\Laravel\Console\Concerns\InteractsWithAzGuard;
-use AzGuard\Laravel\Console\Concerns\InvalidCommandInput;
+use AzGuard\Laravel\Console\CommandSupport;
+use AzGuard\Laravel\Console\InvalidCommandInput;
 use AzGuard\Laravel\Console\Scaffold\Layout;
 use AzGuard\Laravel\Console\Scaffold\ProviderRegistration;
 use Illuminate\Console\Command;
@@ -27,7 +27,7 @@ use Symfony\Component\Process\Process;
  */
 final class InstallCommand extends Command
 {
-    use InteractsWithAzGuard;
+    use CommandSupport;
 
     private const array HOST_KEYS = ['string', 'bigint', 'uuid', 'ulid'];
 

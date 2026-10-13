@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace AzGuard\Laravel\Console\Commands;
 
 use AzGuard\Changes\ChangeResult;
-use AzGuard\Laravel\Console\Concerns\InteractsWithAzGuard;
+use AzGuard\Laravel\Internal\Console\GrantCommandSupport;
 use Illuminate\Console\Command;
 
 /**
@@ -13,7 +13,7 @@ use Illuminate\Console\Command;
  */
 final class RolesGrantCommand extends Command
 {
-    use InteractsWithAzGuard;
+    use GrantCommandSupport;
 
     /** @var string */
     protected $signature = 'azguard:roles:grant
@@ -34,7 +34,7 @@ final class RolesGrantCommand extends Command
         return $this->attempt(function (): int {
             $subject = $this->subjectRef($this->stringArgument('subject'));
             $role = $this->stringArgument('role');
-            $panel = $this->selectPanel($subject, roles: [$role]);
+            $panel = $this->panelFor($subject, roles: [$role]);
             $access = $this->access($panel, $this->originOption())->for($subject);
             $context = $this->contextOption();
             $until = $this->dateOption('until');

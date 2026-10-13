@@ -7,8 +7,8 @@ namespace AzGuard\Laravel\Console\Commands;
 use AzGuard\Changes\ChangePipeline;
 use AzGuard\Kernel\Identity\ActorRef;
 use AzGuard\Kernel\Identity\TenantRef;
-use AzGuard\Laravel\Console\Concerns\InteractsWithAzGuard;
-use AzGuard\Laravel\Console\Concerns\InvalidCommandInput;
+use AzGuard\Laravel\Console\InvalidCommandInput;
+use AzGuard\Laravel\Internal\Console\GrantCommandSupport;
 use AzGuard\Panels\Panel;
 use AzGuard\Panels\PanelRegistry;
 use AzGuard\Sources\Database\DatabaseSource;
@@ -23,7 +23,7 @@ use Illuminate\Console\Command;
  */
 final class GrantsPruneCommand extends Command
 {
-    use InteractsWithAzGuard;
+    use GrantCommandSupport;
 
     /** @var string */
     protected $signature = 'azguard:grants:prune

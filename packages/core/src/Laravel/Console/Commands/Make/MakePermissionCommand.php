@@ -7,7 +7,7 @@ namespace AzGuard\Laravel\Console\Commands\Make;
 use AzGuard\Concerns\SubjectAccess;
 use AzGuard\Kernel\Grammar\PermissionGrammar;
 use AzGuard\Kernel\Identity\AssignmentScopeRef;
-use AzGuard\Laravel\Console\Concerns\InvalidCommandInput;
+use AzGuard\Laravel\Console\InvalidCommandInput;
 use AzGuard\Laravel\Console\Scaffold\EnumSource;
 use AzGuard\Laravel\Console\Scaffold\GeneratedFile;
 use AzGuard\Laravel\Console\Scaffold\Layout;

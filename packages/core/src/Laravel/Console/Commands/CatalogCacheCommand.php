@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace AzGuard\Laravel\Console\Commands;
 
 use AzGuard\Catalog\CatalogCache;
+use AzGuard\Laravel\Console\CommandSupport;
 use AzGuard\Panels\PanelRegistry;
 use Illuminate\Console\Command;
 
@@ -13,6 +14,8 @@ use Illuminate\Console\Command;
  */
 final class CatalogCacheCommand extends Command
 {
+    use CommandSupport;
+
     /** @var string */
     protected $signature = 'azguard:catalog:cache';
 
@@ -21,10 +24,12 @@ final class CatalogCacheCommand extends Command
 
     public function handle(PanelRegistry $registry, CatalogCache $cache): int
     {
-        $cache->write($registry->buildId(), $registry->snapshot());
+        return $this->attempt(function () use ($registry, $cache): int {
+            $cache->write($registry->buildId(), $registry->snapshot());
 
-        $this->components->info('AzGuard catalogs cached to '.$cache->path().'.');
+            $this->components->info('AzGuard catalogs cached to '.$cache->path().'.');
 
-        return self::SUCCESS;
+            return self::SUCCESS;
+        });
     }
 }

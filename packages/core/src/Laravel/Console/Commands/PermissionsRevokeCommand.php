@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace AzGuard\Laravel\Console\Commands;
 
 use AzGuard\Changes\ChangeResult;
-use AzGuard\Laravel\Console\Concerns\InteractsWithAzGuard;
+use AzGuard\Laravel\Internal\Console\GrantCommandSupport;
 use Illuminate\Console\Command;
 
 /**
@@ -14,7 +14,7 @@ use Illuminate\Console\Command;
  */
 final class PermissionsRevokeCommand extends Command
 {
-    use InteractsWithAzGuard;
+    use GrantCommandSupport;
 
     /** @var string */
     protected $signature = 'azguard:permissions:revoke
@@ -33,7 +33,7 @@ final class PermissionsRevokeCommand extends Command
         return $this->attempt(function (): int {
             $subject = $this->subjectRef($this->stringArgument('subject'));
             $permission = $this->stringArgument('permission');
-            $panel = $this->selectPanel($subject, [$permission]);
+            $panel = $this->panelFor($subject, [$permission]);
             $access = $this->access($panel, $this->originOption())->for($subject);
             $context = $this->contextOption();
 

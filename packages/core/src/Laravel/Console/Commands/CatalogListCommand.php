@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace AzGuard\Laravel\Console\Commands;
 
-use AzGuard\Laravel\Console\Concerns\InteractsWithAzGuard;
+use AzGuard\Laravel\Internal\Console\GrantCommandSupport;
 use AzGuard\Schema\PermissionSchema;
 use Illuminate\Console\Command;
 
@@ -14,7 +14,7 @@ use Illuminate\Console\Command;
  */
 final class CatalogListCommand extends Command
 {
-    use InteractsWithAzGuard;
+    use GrantCommandSupport;
 
     /** @var string */
     protected $signature = 'azguard:catalog:list

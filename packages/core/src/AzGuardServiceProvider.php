@@ -10,6 +10,7 @@ use AzGuard\Authorization\Cache\PermissionSetCache;
 use AzGuard\Catalog\CatalogCache;
 use AzGuard\Changes\ActingActor;
 use AzGuard\Configuration\AzGuardConfig;
+use AzGuard\Configuration\ConfigSections;
 use AzGuard\Context\Internal\CurrentContext;
 use AzGuard\Context\Internal\WithinContext;
 use AzGuard\Contracts\Panels\PanelRegistry as PanelRegistryContract;
@@ -80,9 +81,13 @@ final class AzGuardServiceProvider extends ServiceProvider
     {
         $this->mergeConfigFrom(__DIR__.'/../config/azguard.php', 'azguard');
 
+        $this->app->singletonIf(ConfigSections::class);
+        // DevTools owns the scaffold section; core registers it on its behalf until the module has its provider (P3).
+        $this->app->make(ConfigSections::class)->own('scaffold', AzGuardConfig::validateScaffold(...));
+
         $this->app->singleton(
             AzGuardConfig::class,
-            static fn (Application $app): AzGuardConfig => AzGuardConfig::fromRepository($app->make('config')),
+            static fn (Application $app): AzGuardConfig => AzGuardConfig::fromRepository($app->make('config'), $app->make(ConfigSections::class)),
         );
 
         $this->app->singleton(StorageRegistry::class, static fn (Application $app): StorageRegistry => new StorageRegistry(

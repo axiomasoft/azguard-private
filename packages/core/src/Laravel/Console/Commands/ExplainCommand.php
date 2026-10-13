@@ -10,12 +10,14 @@ use AzGuard\Kernel\Decision\AccessRequest;
 use AzGuard\Kernel\Identity\AssignmentScopeRef;
 use AzGuard\Kernel\Identity\SubjectRef;
 use AzGuard\Kernel\Identity\TenantRef;
+use AzGuard\Laravel\Console\CommandSupport;
+use AzGuard\Laravel\Console\InvalidCommandInput;
 use Illuminate\Console\Command;
-use InvalidArgumentException;
-use Throwable;
 
 final class ExplainCommand extends Command
 {
+    use CommandSupport;
+
     /** @var string */
     protected $signature = 'azguard:explain
         {subject : type:id}
@@ -30,14 +32,15 @@ final class ExplainCommand extends Command
 
     public function handle(Authorizer $authorizer, ModelSubjectResolver $subjects): int
     {
-        try {
+        return $this->attempt(function () use ($authorizer, $subjects): int {
             [$type, $id] = $this->identity($this->argument('subject'));
             $subject = SubjectRef::of($type, $id);
             [$panel, $permission] = $authorizer->resolve($subject, (string) $this->argument('permission'), $this->option('panel'));
 
             if ($subjects->resolve($panel, $subject) === null) {
-                throw new InvalidArgumentException('Subject does not exist in the selected panel.');
+                throw new InvalidCommandInput('The subject does not exist in panel '.$panel->id().'.');
             }
+
             $request = AccessRequest::for($subject, $permission);
 
             if ($this->option('tenant') !== null) {
@@ -49,6 +52,7 @@ final class ExplainCommand extends Command
                 [$type, $id] = $this->identity($this->option('context'));
                 $request = $request->on(AssignmentScopeRef::of($type, $id));
             }
+
             $explanation = $authorizer->explain($panel, $request);
 
             if ($this->option('json')) {
@@ -62,19 +66,14 @@ final class ExplainCommand extends Command
             }
 
             return self::SUCCESS;
-        } catch (Throwable $error) {
-            // Input failures precede trace redaction; do not print untrusted exception payloads.
-            $this->components->error('Cannot explain the request: '.$error::class.'. Check subject, panel, permission and scope identities.');
-
-            return self::FAILURE;
-        }
+        });
     }
 
     /** @return array{string, string} */
     private function identity(mixed $input): array
     {
         if (! is_string($input) || ! str_contains($input, ':')) {
-            throw new InvalidArgumentException('Identity must have the form type:id.');
+            throw new InvalidCommandInput('An identity has the form type:id.');
         }
 
         [$type, $id] = explode(':', $input, 2);

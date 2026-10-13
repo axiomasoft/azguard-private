@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace AzGuard\Laravel\Console\Commands;
 
 use AzGuard\Diagnostics\PanelOverview;
-use AzGuard\Laravel\Console\Concerns\InteractsWithAzGuard;
+use AzGuard\Laravel\Internal\Console\GrantCommandSupport;
 use Illuminate\Console\Command;
 
 /**
@@ -16,7 +16,7 @@ use Illuminate\Console\Command;
  */
 final class PanelsListCommand extends Command
 {
-    use InteractsWithAzGuard;
+    use GrantCommandSupport;
 
     /** @var string */
     protected $signature = 'azguard:panels:list
@@ -34,7 +34,7 @@ final class PanelsListCommand extends Command
             $panels = $overview->all($this->option('settings') === true, $this->option('sources') === true, $this->option('schema') === true);
 
             if ($this->option('json') === true) {
-                $this->printJson($panels);
+                $this->printJsonList($panels);
 
                 return self::SUCCESS;
             }

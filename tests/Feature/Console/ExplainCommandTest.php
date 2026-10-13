@@ -34,10 +34,14 @@ it('prints redacted steps as JSON and as a table', function (bool $json): void {
     expect(Artisan::output())->toContain('[redacted]', 'contribution')->not->toContain('operator-secret');
 })->with([false, true]);
 
-it('fails invalid or missing subject and scope identities without exposing input exceptions', function (array $arguments): void {
+it('fails an invalid or missing identity with exit 2 and an unknown permission with exit 1, naming the problem', function (array $arguments, int $exit, string $message): void {
     GateWorld::compile(new GeneratedSource);
-    expect(Artisan::call('azguard:explain', [...['subject' => 'user:1', 'permission' => 'admin:orders.view'], ...$arguments]))->toBe(1);
-    expect(Artisan::output())->toContain('Cannot explain');
+    expect(Artisan::call('azguard:explain', [...['subject' => 'user:1', 'permission' => 'admin:orders.view'], ...$arguments]))->toBe($exit);
+    expect(Artisan::output())->toContain($message)->not->toContain('Stack trace');
 })->with([
-    [['subject' => 'user:999']], [['subject' => 'missing-colon']], [['--tenant' => 'missing-colon']], [['--context' => 'missing-colon']], [['permission' => 'admin:orders.unknown']],
+    'missing subject' => [['subject' => 'user:999'], 2, 'The subject does not exist in panel admin.'],
+    'malformed subject' => [['subject' => 'missing-colon'], 2, 'An identity has the form type:id.'],
+    'malformed tenant' => [['--tenant' => 'missing-colon'], 2, 'An identity has the form type:id.'],
+    'malformed context' => [['--context' => 'missing-colon'], 2, 'An identity has the form type:id.'],
+    'unknown permission' => [['permission' => 'admin:orders.unknown'], 1, 'UnknownPermissionException: Permission "admin:orders.unknown" is not in the catalog'],
 ]);

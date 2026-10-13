@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace AzGuard\Laravel\Console\Commands;
 
 use AzGuard\Catalog\CatalogCache;
+use AzGuard\Laravel\Console\CommandSupport;
 use Illuminate\Console\Command;
 
 /**
@@ -12,6 +13,8 @@ use Illuminate\Console\Command;
  */
 final class CatalogClearCommand extends Command
 {
+    use CommandSupport;
+
     /** @var string */
     protected $signature = 'azguard:catalog:clear';
 
@@ -20,10 +23,12 @@ final class CatalogClearCommand extends Command
 
     public function handle(CatalogCache $cache): int
     {
-        $cache->clear();
+        return $this->attempt(function () use ($cache): int {
+            $cache->clear();
 
-        $this->components->info('AzGuard catalog cache cleared.');
+            $this->components->info('AzGuard catalog cache cleared.');
 
-        return self::SUCCESS;
+            return self::SUCCESS;
+        });
     }
 }

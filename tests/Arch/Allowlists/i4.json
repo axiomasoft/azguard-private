@@ -28,13 +28,6 @@
         "owner_phase": "P3"
     },
     {
-        "file": "packages/core/src/Laravel/Console/Commands/InstallCommand.php",
-        "reference": "AzGuard\\Laravel\\Console\\Concerns\\InvalidCommandInput",
-        "kind": "type",
-        "invariant": "I4",
-        "owner_phase": "P3"
-    },
-    {
         "file": "packages/core/src/Laravel/Console/Commands/Make/MakeCommand.php",
         "reference": "AzGuard\\Configuration\\AzGuardConfig",
         "kind": "type",
@@ -42,71 +35,8 @@
         "owner_phase": "P3"
     },
     {
-        "file": "packages/core/src/Laravel/Console/Commands/Make/MakeCommand.php",
-        "reference": "AzGuard\\Laravel\\Console\\Concerns\\InvalidCommandInput",
-        "kind": "type",
-        "invariant": "I4",
-        "owner_phase": "P3"
-    },
-    {
-        "file": "packages/core/src/Laravel/Console/Commands/Make/MakeModelsCommand.php",
-        "reference": "AzGuard\\Laravel\\Console\\Concerns\\InvalidCommandInput",
-        "kind": "type",
-        "invariant": "I4",
-        "owner_phase": "P3"
-    },
-    {
-        "file": "packages/core/src/Laravel/Console/Commands/Make/MakeModelsCommand.php",
-        "reference": "AzGuard\\Storage\\StorageRegistry",
-        "kind": "type",
-        "invariant": "I4",
-        "owner_phase": "P3"
-    },
-    {
-        "file": "packages/core/src/Laravel/Console/Commands/Make/MakePanelCommand.php",
-        "reference": "AzGuard\\Laravel\\Console\\Concerns\\InvalidCommandInput",
-        "kind": "type",
-        "invariant": "I4",
-        "owner_phase": "P3"
-    },
-    {
-        "file": "packages/core/src/Laravel/Console/Commands/Make/MakePermissionCommand.php",
-        "reference": "AzGuard\\Laravel\\Console\\Concerns\\InvalidCommandInput",
-        "kind": "type",
-        "invariant": "I4",
-        "owner_phase": "P3"
-    },
-    {
-        "file": "packages/core/src/Laravel/Console/Commands/Make/MakePolicyCommand.php",
-        "reference": "AzGuard\\Laravel\\Console\\Concerns\\InvalidCommandInput",
-        "kind": "type",
-        "invariant": "I4",
-        "owner_phase": "P3"
-    },
-    {
-        "file": "packages/core/src/Laravel/Console/Commands/Make/MakeRoleCommand.php",
-        "reference": "AzGuard\\Laravel\\Console\\Concerns\\InvalidCommandInput",
-        "kind": "type",
-        "invariant": "I4",
-        "owner_phase": "P3"
-    },
-    {
         "file": "packages/core/src/Laravel/Console/Scaffold/Layout.php",
         "reference": "AzGuard\\Configuration\\AzGuardConfig",
-        "kind": "type",
-        "invariant": "I4",
-        "owner_phase": "P3"
-    },
-    {
-        "file": "packages/core/src/Laravel/Console/Scaffold/Layout.php",
-        "reference": "AzGuard\\Laravel\\Console\\Concerns\\InvalidCommandInput",
-        "kind": "type",
-        "invariant": "I4",
-        "owner_phase": "P3"
-    },
-    {
-        "file": "packages/core/src/Laravel/Console/Scaffold/StubStore.php",
-        "reference": "AzGuard\\Laravel\\Console\\Concerns\\InvalidCommandInput",
         "kind": "type",
         "invariant": "I4",
         "owner_phase": "P3"

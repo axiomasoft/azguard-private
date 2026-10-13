@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace AzGuard\Laravel\Console\Commands;
 
 use AzGuard\Changes\GrantFilter;
-use AzGuard\Laravel\Console\Concerns\InteractsWithAzGuard;
+use AzGuard\Laravel\Internal\Console\GrantCommandSupport;
 use AzGuard\Sources\Database\DatabaseSource;
 use Carbon\CarbonImmutable;
 use Illuminate\Console\Command;
@@ -16,7 +16,7 @@ use Illuminate\Console\Command;
  */
 final class GrantsListCommand extends Command
 {
-    use InteractsWithAzGuard;
+    use GrantCommandSupport;
 
     /** @var string */
     protected $signature = 'azguard:grants:list
@@ -32,7 +32,7 @@ final class GrantsListCommand extends Command
     {
         return $this->attempt(function (): int {
             $subject = $this->subjectRef($this->stringArgument('subject'));
-            $panel = $this->selectPanel($subject);
+            $panel = $this->panelFor($subject);
             $access = $this->access($panel);
             $tenant = $this->tenantOf($panel);
             $writer = $panel->writerSource();

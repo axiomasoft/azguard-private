@@ -18,8 +18,8 @@ use ReflectionMethod;
  */
 final readonly class AzGuardConfig
 {
-    /** Keys of the root of `config/azguard.php`. */
-    private const array ROOT_KEYS = ['panels', 'storages', 'ids', 'sources', 'defaults', 'gate', 'schedule', 'catalog', 'discovery', 'scaffold', 'decision_sets'];
+    /** Root keys of `config/azguard.php` core validates itself; other roots belong to the owners of `ConfigSections`. */
+    private const array ROOT_KEYS = ['panels', 'storages', 'ids', 'sources', 'defaults', 'gate', 'schedule', 'catalog', 'discovery', 'decision_sets'];
 
     private const array PANELS_KEYS = ['providers'];
 
@@ -96,9 +96,25 @@ final readonly class AzGuardConfig
     /**
      * @throws InvalidConfigurationException
      */
-    public static function fromRepository(Repository $config): self
+    public static function fromRepository(Repository $config, ?ConfigSections $sections = null): self
     {
-        self::assertKnownKeys('', self::section('', $config->get('azguard', [])), self::ROOT_KEYS);
+        $owned = ($sections ?? app(ConfigSections::class))->owned();
+        $claimed = array_intersect(array_keys($owned), self::ROOT_KEYS);
+
+        if ($claimed !== []) {
+            throw new InvalidConfigurationException('The section azguard.'.implode(', azguard.', $claimed).' belongs to core and cannot have another owner.');
+        }
+        self::assertKnownKeys('', self::section('', $config->get('azguard', [])), [...self::ROOT_KEYS, ...array_keys($owned)]);
+
+        foreach ($owned as $root => $validate) {
+            $section = self::section($root, $config->get('azguard.'.$root, []));
+            $map = [];
+
+            foreach ($section as $key => $value) {
+                $map[is_string($key) ? $key : throw new InvalidConfigurationException('azguard.'.$root.' must be a map of named keys.')] = $value;
+            }
+            $validate($map);
+        }
         $panels = self::section('panels', $config->get('azguard.panels', []));
         self::assertKnownKeys('panels', $panels, self::PANELS_KEYS);
         $catalog = self::section('catalog', $config->get('azguard.catalog', []));
@@ -112,8 +128,8 @@ final readonly class AzGuardConfig
         self::assertKnownKeys('gate', $gate, self::GATE_KEYS);
         $schedule = self::section('schedule', $config->get('azguard.schedule', []));
         self::assertKnownKeys('schedule', $schedule, self::SCHEDULE_KEYS);
+        // Read here until DevTools owns its section (P3); validated by the owner registered in ConfigSections.
         $scaffold = self::section('scaffold', $config->get('azguard.scaffold', []));
-        self::assertKnownKeys('scaffold', $scaffold, self::SCAFFOLD_KEYS);
         $sets = self::section('decision_sets', $config->get('azguard.decision_sets', []));
         self::assertKnownKeys('decision_sets', $sets, self::DECISION_SETS_KEYS);
 
@@ -204,6 +220,20 @@ final readonly class AzGuardConfig
     public function scaffoldPath(): string
     {
         return $this->scaffoldPath;
+    }
+
+    /**
+     * @internal Validates the `scaffold` section, which core registers in `ConfigSections` on behalf of DevTools.
+     *
+     * @param  array<string, mixed>  $section
+     *
+     * @throws InvalidConfigurationException
+     */
+    public static function validateScaffold(array $section): void
+    {
+        self::assertKnownKeys('scaffold', $section, self::SCAFFOLD_KEYS);
+        self::namespaceFrom($section['namespace'] ?? 'App\\Guards');
+        self::pathFrom($section['path'] ?? 'app/Guards');
     }
 
     /**

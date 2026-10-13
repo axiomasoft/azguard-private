@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace AzGuard\Laravel\Console\Commands;
 
 use AzGuard\Configuration\AzGuardConfig;
-use AzGuard\Laravel\Console\Concerns\InteractsWithAzGuard;
+use AzGuard\Laravel\Internal\Console\GrantCommandSupport;
 use AzGuard\Panels\PanelRecipe;
 use AzGuard\Panels\PanelRegistry;
 use AzGuard\Sources\SourceManager;
@@ -19,7 +19,7 @@ use Illuminate\Console\Command;
  */
 final class SourcesListCommand extends Command
 {
-    use InteractsWithAzGuard;
+    use GrantCommandSupport;
 
     /** @var string */
     protected $signature = 'azguard:sources:list {--json : Print JSON}';
@@ -53,7 +53,7 @@ final class SourcesListCommand extends Command
             ], $names);
 
             if ($this->option('json') === true) {
-                $this->printJson($list);
+                $this->printJsonList($list);
 
                 return self::SUCCESS;
             }

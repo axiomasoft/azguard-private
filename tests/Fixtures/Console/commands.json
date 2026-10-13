@@ -40,8 +40,8 @@
         "synopsis": "[--panel [PANEL]] [--tenant [TENANT]] [--context [CONTEXT]] [--json] [--] <subject> <permission>",
         "exit_codes": {
             "success": 0,
-            "unknown subject": 1,
-            "malformed subject": 1
+            "unknown subject": 2,
+            "malformed subject": 2
         }
     },
     "azguard:filament:generate": {
@@ -228,8 +228,8 @@
         "synopsis": "<name>",
         "exit_codes": {
             "success": 0,
-            "default storage": 1,
-            "unknown storage": 1
+            "default storage": 2,
+            "unknown storage": 2
         }
     },
     "azguard:stubs": {

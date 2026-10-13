@@ -347,6 +347,7 @@ forbidDependencies(
     'configuration depends only on the kernel, exceptions and the framework',
     ['AzGuard\Configuration'],
     array_values(array_diff(AZGUARD_OUTER_ZONES, ['AzGuard\Configuration'])),
+    AZGUARD_PUBLICATION_MARKERS,
 );
 
 forbidDependencies(

@@ -4,15 +4,15 @@ declare(strict_types=1);
 
 namespace AzGuard\Laravel\Console\Commands\Make;
 
-use AzGuard\Exceptions\InvalidConfigurationException;
-use AzGuard\Laravel\Console\Concerns\InvalidCommandInput;
+use AzGuard\AzGuard;
+use AzGuard\Laravel\Console\InvalidCommandInput;
 use AzGuard\Laravel\Console\Scaffold\GeneratedFile;
 use AzGuard\Laravel\Console\Scaffold\Layout;
 use AzGuard\Laravel\Console\Scaffold\StubStore;
 use AzGuard\Schema\Field;
 use AzGuard\Storage\Models\PermissionGrant;
 use AzGuard\Storage\Models\RoleGrant;
-use AzGuard\Storage\StorageRegistry;
+use AzGuard\Storage\StorageDescriptor;
 use Illuminate\Support\Str;
 
 /**
@@ -41,10 +41,10 @@ final class MakeModelsCommand extends MakeCommand
         $place = $layout->existingPanel($panel)->in('Models');
         $storage = $this->stringOption('storage') ?? 'default';
 
-        try {
-            $this->laravel->make(StorageRegistry::class)->get($storage);
-        } catch (InvalidConfigurationException $error) {
-            throw new InvalidCommandInput($error->getMessage());
+        $known = array_map(static fn (StorageDescriptor $descriptor): string => $descriptor->id, $this->laravel->make(AzGuard::class)->storages());
+
+        if (! in_array($storage, $known, true)) {
+            throw new InvalidCommandInput('Unknown storage '.$storage.': configure it under azguard.storages first.');
         }
         $files = [];
         foreach (['RoleGrant' => RoleGrant::class, 'PermissionGrant' => PermissionGrant::class] as $name => $base) {

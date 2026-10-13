@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace AzGuard\Laravel\Console\Commands;
 
-use AzGuard\Laravel\Console\Concerns\InteractsWithAzGuard;
+use AzGuard\Laravel\Internal\Console\GrantCommandSupport;
 use DateTimeZone;
 use Illuminate\Console\Command;
 
@@ -14,7 +14,7 @@ use Illuminate\Console\Command;
  */
 final class PermissionsShowCommand extends Command
 {
-    use InteractsWithAzGuard;
+    use GrantCommandSupport;
 
     /** @var string */
     protected $signature = 'azguard:permissions:show
@@ -31,7 +31,7 @@ final class PermissionsShowCommand extends Command
     {
         return $this->attempt(function (): int {
             $subject = $this->subjectRef($this->stringArgument('subject'));
-            $panel = $this->selectPanel($subject);
+            $panel = $this->panelFor($subject);
             $context = $this->contextOption();
             $access = $this->access($panel)->for($subject);
             $set = $access->permissionSet($context);
