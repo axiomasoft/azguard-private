@@ -11,7 +11,7 @@ use AzGuard\Exceptions\TenantRequiredException;
 use AzGuard\Exceptions\UnknownRoleException;
 use AzGuard\Kernel\Identity\AssignmentScopeRef;
 use AzGuard\Kernel\Identity\TenantRef;
-use AzGuard\Panels\CurrentPanel;
+use AzGuard\Panels\Internal\CurrentPanel;
 use AzGuard\Tests\Fixtures\Changes\ChangeWorld;
 use AzGuard\Tests\Fixtures\Crm\CrmWorld;
 use AzGuard\Tests\Fixtures\Crm\Guards\Crm\Permissions\Clients\ClientPermission;

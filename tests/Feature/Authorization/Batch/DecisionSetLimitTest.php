@@ -2,8 +2,8 @@
 
 declare(strict_types=1);
 
-use AzGuard\Authorization\Authorizer;
-use AzGuard\Configuration\AzGuardConfig;
+use AzGuard\Authorization\Internal\Authorizer;
+use AzGuard\Configuration\Internal\AzGuardConfig;
 use AzGuard\Exceptions\DecisionSetTooLargeException;
 use AzGuard\Exceptions\InvalidConfigurationException;
 use AzGuard\Kernel\Decision\AccessRequest;

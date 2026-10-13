@@ -119,6 +119,9 @@ your code. Each line is `Find: <grep pattern> → Replace: <new form>`.
 - Find: `app(StorageRegistry::class)->get(` or `use AzGuard\Storage\StorageRegistry;` in `stubs/azguard/models-migration.stub` or a migration
   `azguard:make:models` generated → Replace: `$storage = app(AzGuard\AzGuard::class)->storage('<storage>')`, `Schema::connection($storage->connection)`
   and `$storage->prefix.'role_grants'`; the registry is internal (republish the stubs with `azguard:stubs --force`).
+- Find: `AzGuard\Kernel\Grammar\PatternMatcher` → Replace: `AzGuard\Kernel\Identity\PermissionPattern`; the matcher is now internal.
+- Find: `AzGuard\Directories\ModelSubjectDirectory` or `AzGuard\Directories\ModelTenantDirectory` → Replace: depend on `AzGuard\Contracts\Subjects\SubjectDirectory` / `AzGuard\Contracts\Tenancy\TenantDirectory`; the model directories are now internal.
+- Find: `AzGuard\Storage\Storage` → Replace: `AzGuard\Storage\StorageDescriptor`; the class is now internal.
 
 ## From 0.3 to 0.7.0
 

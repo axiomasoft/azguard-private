@@ -6,7 +6,7 @@ use AzGuard\Changes\Change;
 use AzGuard\Changes\ChangeResult;
 use AzGuard\Exceptions\ChangeCancelledException;
 use AzGuard\Exceptions\StaleSelectionException;
-use AzGuard\Panels\PanelRegistry;
+use AzGuard\Panels\Internal\PanelRegistry;
 use AzGuard\Storage\Schema\StorageSchema;
 use AzGuard\Tests\Engines\Support\CacheEngineWorld;
 use AzGuard\Tests\Engines\Support\Processes;

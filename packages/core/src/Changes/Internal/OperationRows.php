@@ -6,8 +6,8 @@ namespace AzGuard\Changes\Internal;
 
 use AzGuard\Contracts\Changes\OwnedRowsWriter;
 use AzGuard\Exceptions\UnsupportedDirectWriteException;
+use AzGuard\Storage\Internal\StorageMutation;
 use AzGuard\Storage\StorageDescriptor;
-use AzGuard\Storage\StorageMutation;
 
 /**
  * @internal The `OwnedRowsWriter` of one participant in one operation: it appends to the tables that participant

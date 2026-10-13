@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 use AzGuard\Changes\Change;
 use AzGuard\Changes\ChangeResult;
-use AzGuard\Changes\PanelManagers;
+use AzGuard\Changes\Internal\PanelManagers;
 use AzGuard\Exceptions\StaleSelectionException;
 use AzGuard\Exceptions\UnknownRoleException;
 use AzGuard\Storage\Schema\StorageSchema;

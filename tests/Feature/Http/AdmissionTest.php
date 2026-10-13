@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-use AzGuard\Authorization\Authorizer;
+use AzGuard\Authorization\Internal\Authorizer;
 use AzGuard\Contracts\Authorization\EvaluationContext;
 use AzGuard\Kernel\Decision\AccessRequest;
 use AzGuard\Kernel\Decision\BeforeResult;
 use AzGuard\Kernel\Identity\PermissionKey;
 use AzGuard\Kernel\Identity\SubjectRef;
-use AzGuard\Panels\CurrentPanel;
+use AzGuard\Panels\Internal\CurrentPanel;
 use AzGuard\Panels\PanelBuilder;
 use AzGuard\Sources\Relation\RelationSource;
 use AzGuard\Tests\Fixtures\Crm\CrmWorld;

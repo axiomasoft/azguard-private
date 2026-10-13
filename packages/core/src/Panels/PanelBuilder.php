@@ -23,6 +23,7 @@ use AzGuard\Kernel\Decision\BeforeResult;
 use AzGuard\Kernel\Decision\Decision;
 use AzGuard\Kernel\Grammar\PermissionGrammar;
 use AzGuard\Panels\Internal\CanonicalMetadata;
+use AzGuard\Panels\Internal\PanelRecipe;
 use AzGuard\Policies\PolicyBinding;
 use AzGuard\Roles\BaseRole;
 use AzGuard\Schema\Field;

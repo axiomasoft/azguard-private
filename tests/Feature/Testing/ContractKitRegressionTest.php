@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 use AzGuard\Changes\Change;
 use AzGuard\Changes\ChangeResult;
-use AzGuard\Testing\Contracts\ContractWorld;
-use AzGuard\Testing\Contracts\WriteLog;
+use AzGuard\Testing\Internal\Contracts\ContractWorld;
+use AzGuard\Testing\Internal\Contracts\WriteLog;
 use AzGuard\Tests\Fixtures\Contracts\Probes\HookProbe;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Foundation\Testing\DatabaseMigrations;

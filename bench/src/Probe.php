@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace AzGuardBench\Load;
 
-use AzGuard\Storage\StorageReadSession;
+use AzGuard\Storage\Internal\StorageReadSession;
 use Illuminate\Database\Connection;
 use Illuminate\Database\Events\QueryExecuted;
 use Illuminate\Database\Events\TransactionCommitted;

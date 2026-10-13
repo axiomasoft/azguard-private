@@ -10,13 +10,14 @@ use AzGuard\Context\AssignmentScopeRuntime;
 use AzGuard\Contracts\Scopes\AssignmentScopeDirectory;
 use AzGuard\Contracts\Subjects\SubjectDirectory;
 use AzGuard\Contracts\Tenancy\TenantDirectory;
+use AzGuard\Directories\Internal\DirectoryResolver;
 use AzGuard\Exceptions\AzGuardException;
 use AzGuard\Exceptions\DefinitionException;
 use AzGuard\Exceptions\SubjectNotAcceptedException;
 use AzGuard\Kernel\Identity\AccessScope;
 use AzGuard\Kernel\Identity\AssignmentScopeRef;
+use AzGuard\Panels\Internal\PanelRegistry;
 use AzGuard\Panels\Panel;
-use AzGuard\Panels\PanelRegistry;
 use AzGuard\Roles\BaseRole;
 use Illuminate\Contracts\Container\Container;
 

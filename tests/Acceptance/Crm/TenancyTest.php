@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 use AzGuard\Kernel\Decision\DecisionReason;
-use AzGuard\Panels\PanelRegistry;
+use AzGuard\Panels\Internal\PanelRegistry;
 use AzGuard\Tests\Fixtures\Crm\CrmWorld as World;
 use AzGuard\Tests\Fixtures\Crm\Guards\Crm\Permissions\Clients\ClientPermission as Action;
 use AzGuard\Tests\Fixtures\Crm\Models\Client;

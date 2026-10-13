@@ -2,8 +2,8 @@
 
 declare(strict_types=1);
 
-use AzGuard\Authorization\Authorizer;
-use AzGuard\Authorization\EvaluationFrame;
+use AzGuard\Authorization\Internal\Authorizer;
+use AzGuard\Authorization\Internal\EvaluationFrame;
 use AzGuard\Kernel\Decision\CodeStateToken;
 use AzGuard\Kernel\Decision\DecisionReason;
 use AzGuard\Kernel\Decision\RoleContribution;
@@ -13,7 +13,7 @@ use AzGuard\Kernel\Identity\AssignmentScopeRef;
 use AzGuard\Kernel\Identity\RoleKey;
 use AzGuard\Kernel\Identity\SubjectRef;
 use AzGuard\Kernel\Identity\TenantRef;
-use AzGuard\Sources\PanelSources;
+use AzGuard\Sources\Internal\PanelSources;
 use AzGuard\Tests\Fixtures\Authorization\ExternalAutomaticRole;
 use AzGuard\Tests\Fixtures\Authorization\GeneratedSource;
 use AzGuard\Tests\Fixtures\Guards\Shop\Roles\SellerRole;

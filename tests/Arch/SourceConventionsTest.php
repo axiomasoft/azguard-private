@@ -98,13 +98,13 @@ it('publishes every contract by attribute, except the ones P2 still moves or ret
 const AZGUARD_PANEL_SELECTION_METHODS = ['defaultFor', 'forModel', 'azguardDefaultPanel'];
 
 const AZGUARD_PANEL_SELECTION_OWNERS = [
-    'defaultFor' => ['packages/core/src/Panels/PanelResolver.php', 'packages/core/src/Panels/PanelRegistry.php'],
-    'forModel' => ['packages/core/src/Panels/PanelResolver.php', 'packages/core/src/Panels/PanelRegistry.php'],
-    'azguardDefaultPanel' => ['packages/core/src/Panels/PanelResolver.php'],
+    'defaultFor' => ['packages/core/src/Panels/Internal/PanelResolver.php', 'packages/core/src/Panels/Internal/PanelRegistry.php'],
+    'forModel' => ['packages/core/src/Panels/Internal/PanelResolver.php', 'packages/core/src/Panels/Internal/PanelRegistry.php'],
+    'azguardDefaultPanel' => ['packages/core/src/Panels/Internal/PanelResolver.php'],
     'CurrentPanel' => [
-        'packages/core/src/Panels/PanelResolver.php', 'packages/core/src/Panels/CurrentPanel.php',
+        'packages/core/src/Panels/Internal/PanelResolver.php', 'packages/core/src/Panels/Internal/CurrentPanel.php',
         'packages/core/src/AzGuardServiceProvider.php', 'packages/core/src/AzGuard.php',
-        'packages/core/src/Laravel/Http/Middleware/EnterPanel.php', 'packages/core/src/Laravel/Queue/PanelContext.php',
+        'packages/core/src/Laravel/Internal/Http/Middleware/EnterPanel.php', 'packages/core/src/Laravel/Internal/Queue/PanelContext.php',
     ],
 ];
 
@@ -146,7 +146,7 @@ it('finds panel selection calls and the request panel class but not declarations
     $code = <<<'PHP'
         <?php
         namespace AzGuard\X;
-        use AzGuard\Panels\CurrentPanel;
+        use AzGuard\Panels\Internal\CurrentPanel;
         final class Entry
         {
             public function __construct(private CurrentPanel $current) {}

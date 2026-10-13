@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace AzGuard\Tests\Fixtures\Parity;
 
-use AzGuard\Authorization\Authorizer;
+use AzGuard\Authorization\Internal\Authorizer;
 use AzGuard\Changes\ChangeResult;
 use AzGuard\Concerns\SubjectAccess;
 use AzGuard\Exceptions\AzGuardException;
@@ -15,8 +15,8 @@ use AzGuard\Kernel\Identity\AssignmentScopeRef;
 use AzGuard\Kernel\Identity\PermissionKey;
 use AzGuard\Kernel\Identity\SubjectRef;
 use AzGuard\Kernel\Identity\TenantRef;
+use AzGuard\Panels\Internal\PanelRegistry;
 use AzGuard\Panels\PanelProvider;
-use AzGuard\Panels\PanelRegistry;
 use AzGuard\Storage\Schema\StorageSchema;
 use AzGuard\Tests\Fixtures\Crm\CrmWorld;
 use AzGuard\Tests\Fixtures\Crm\Guards\Crm\Filters\ActiveProjects;

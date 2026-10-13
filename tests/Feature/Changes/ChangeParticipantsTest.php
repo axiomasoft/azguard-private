@@ -13,7 +13,7 @@ use AzGuard\Exceptions\DefinitionException;
 use AzGuard\Exceptions\UnsupportedDirectWriteException;
 use AzGuard\Panels\Panel;
 use AzGuard\Panels\PanelBuilder;
-use AzGuard\Testing\Contracts\ContractWorld;
+use AzGuard\Testing\Internal\Contracts\ContractWorld;
 use AzGuard\Tests\Fixtures\Changes\ChangeWorld as W;
 use AzGuard\Tests\Fixtures\Crm\CrmWorld;
 use AzGuard\Tests\Fixtures\Events\EventWorld;

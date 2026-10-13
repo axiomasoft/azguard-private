@@ -6,7 +6,7 @@ namespace AzGuard\Tests\Fixtures\Http;
 
 use AzGuard\Panels\Panel;
 use AzGuard\Panels\PanelBuilder;
-use AzGuard\Storage\StorageMutation;
+use AzGuard\Storage\Internal\StorageMutation;
 use AzGuard\Tests\Fixtures\Crm\CrmWorld;
 use AzGuard\Tests\Fixtures\Crm\Models\Organization;
 use AzGuard\Tests\Fixtures\Crm\Models\User;

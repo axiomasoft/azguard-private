@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 require dirname(__DIR__, 3).'/vendor/autoload.php';
 
-use AzGuard\Storage\StorageMutation;
-use AzGuard\Storage\StorageRegistry;
+use AzGuard\Storage\Internal\StorageMutation;
+use AzGuard\Storage\Internal\StorageRegistry;
 use AzGuard\Tests\TestCase;
 use Illuminate\Database\Events\TransactionBeginning;
 use Illuminate\Database\Events\TransactionCommitting;

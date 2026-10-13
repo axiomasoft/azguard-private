@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-use AzGuard\Configuration\AzGuardConfig;
+use AzGuard\Configuration\Internal\AzGuardConfig;
 use AzGuard\Exceptions\InvalidConfigurationException;
 use AzGuard\Exceptions\StorageMismatchException;
-use AzGuard\Storage\Storage;
-use AzGuard\Storage\StorageRegistry;
+use AzGuard\Storage\Internal\Storage;
+use AzGuard\Storage\Internal\StorageRegistry;
 use Illuminate\Config\Repository;
 
 it('provides a singleton registry and rejects aliases of physical storage', function (): void {

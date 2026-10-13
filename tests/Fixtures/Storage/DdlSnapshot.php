@@ -6,9 +6,9 @@ namespace AzGuard\Tests\Fixtures\Storage;
 
 use AzGuard\Audit\Internal\AuditSchema;
 use AzGuard\AzGuard;
+use AzGuard\Storage\Internal\Storage;
+use AzGuard\Storage\Internal\StorageRegistry;
 use AzGuard\Storage\Schema\StorageSchema;
-use AzGuard\Storage\Storage;
-use AzGuard\Storage\StorageRegistry;
 
 final class DdlSnapshot
 {

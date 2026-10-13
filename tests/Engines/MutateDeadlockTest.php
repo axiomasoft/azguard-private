@@ -2,8 +2,8 @@
 
 declare(strict_types=1);
 
+use AzGuard\Storage\Internal\StorageRegistry;
 use AzGuard\Storage\Schema\StorageSchema;
-use AzGuard\Storage\StorageRegistry;
 use AzGuard\Tests\Engines\Support\Processes;
 use Illuminate\Database\Schema\Blueprint;
 

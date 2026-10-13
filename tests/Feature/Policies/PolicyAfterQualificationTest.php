@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-use AzGuard\Authorization\Authorizer;
+use AzGuard\Authorization\Internal\Authorizer;
 use AzGuard\Kernel\Decision\Decision;
 use AzGuard\Kernel\Decision\DecisionReason;
-use AzGuard\Panels\PanelRegistry;
+use AzGuard\Panels\Internal\PanelRegistry;
 use AzGuard\Tests\Fixtures\Guards\Orders\OrderGrantSource;
 use AzGuard\Tests\Fixtures\Guards\Orders\OrderWorld;
 use AzGuard\Tests\Fixtures\Guards\Orders\Permissions\OrderPermission;

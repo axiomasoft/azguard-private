@@ -9,7 +9,7 @@ use AzGuard\Kernel\Decision\CodeStateToken;
 use AzGuard\Kernel\Decision\DecisionReason;
 use AzGuard\Panels\PanelBuilder;
 use AzGuard\Sources\Database\DatabaseSource;
-use AzGuard\Storage\StorageRegistry;
+use AzGuard\Storage\Internal\StorageRegistry;
 use AzGuard\Tests\Fixtures\Crm\CrmWorld as World;
 use AzGuard\Tests\Fixtures\Crm\Guards\Crm\Permissions\Clients\ClientPermission as Action;
 use Illuminate\Support\Facades\DB;

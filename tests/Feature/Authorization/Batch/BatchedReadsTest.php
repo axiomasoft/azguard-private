@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use AzGuard\Configuration\AzGuardConfig;
+use AzGuard\Configuration\Internal\AzGuardConfig;
 use AzGuard\Kernel\Decision\AccessRequest;
 use AzGuard\Kernel\Decision\DecisionReason;
 use AzGuard\Kernel\Identity\PermissionKey;

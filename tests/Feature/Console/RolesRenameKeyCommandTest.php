@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-use AzGuard\Authorization\Authorizer;
+use AzGuard\Authorization\Internal\Authorizer;
 use AzGuard\Events\RoleGrantUpdated;
 use AzGuard\Kernel\Decision\DecisionReason;
-use AzGuard\Panels\PanelRegistry;
+use AzGuard\Panels\Internal\PanelRegistry;
 use AzGuard\Tests\Feature\Changes\Managers\ManagerWorld as M;
 use AzGuard\Tests\Fixtures\Changes\ChangeWorld as W;
 use AzGuard\Tests\Fixtures\Changes\Roles\AuditorRole;

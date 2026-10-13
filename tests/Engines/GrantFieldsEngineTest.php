@@ -3,10 +3,10 @@
 declare(strict_types=1);
 
 use AzGuard\Schema\FieldTarget;
-use AzGuard\Storage\GrantFields;
+use AzGuard\Storage\Internal\GrantFields;
+use AzGuard\Storage\Internal\StorageMutation;
+use AzGuard\Storage\Internal\StorageRegistry;
 use AzGuard\Storage\Schema\StorageSchema;
-use AzGuard\Storage\StorageMutation;
-use AzGuard\Storage\StorageRegistry;
 use AzGuard\Tests\Fixtures\Storage\AdminRoleGrant;
 use AzGuard\Tests\Fixtures\Storage\SchemaAssertions;
 use Illuminate\Database\Schema\Blueprint;

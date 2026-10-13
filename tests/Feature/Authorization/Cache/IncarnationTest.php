@@ -5,8 +5,8 @@ declare(strict_types=1);
 use AzGuard\Kernel\Decision\DecisionReason;
 use AzGuard\Panels\StateRefresh;
 use AzGuard\Sources\Database\DatabaseSource;
+use AzGuard\Storage\Internal\StorageMutation;
 use AzGuard\Storage\Schema\StorageSchema;
-use AzGuard\Storage\StorageMutation;
 use AzGuard\Tests\Fixtures\Authorization\Cache\CacheWorld;
 use AzGuard\Tests\Fixtures\Sources\Database\DatabaseWorld;
 

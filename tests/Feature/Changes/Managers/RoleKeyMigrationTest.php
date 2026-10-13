@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 use AzGuard\Audit\AuditPlugin;
-use AzGuard\Authorization\Authorizer;
+use AzGuard\Authorization\Internal\Authorizer;
 use AzGuard\Changes\Change;
 use AzGuard\Changes\ChangeResult;
 use AzGuard\Changes\ChangeType;
@@ -11,7 +11,7 @@ use AzGuard\Changes\EffectKind;
 use AzGuard\Changes\GrantDetails;
 use AzGuard\Changes\GrantFilter;
 use AzGuard\Changes\GrantRecord;
-use AzGuard\Changes\RoleKeyMigration;
+use AzGuard\Changes\Internal\RoleKeyMigration;
 use AzGuard\Events\RoleGrantUpdated;
 use AzGuard\Events\RoleRevoked;
 use AzGuard\Exceptions\AssignmentScopeNotAcceptedException;

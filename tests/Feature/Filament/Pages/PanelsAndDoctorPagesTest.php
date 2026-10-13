@@ -5,7 +5,7 @@ declare(strict_types=1);
 use AzGuard\Diagnostics\Doctor;
 use AzGuard\Diagnostics\DoctorFinding;
 use AzGuard\Diagnostics\PanelOverview;
-use AzGuard\Filament\Editors\TargetSelector;
+use AzGuard\Filament\Internal\Editors\TargetSelector;
 use AzGuard\Filament\Pages\DoctorPage;
 use AzGuard\Filament\Pages\PanelsPage;
 use AzGuard\Tests\Fixtures\Diagnostics\ProbeCheck;

@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace AzGuard\Tests\Fixtures\Authorization\Cache;
 
-use AzGuard\Authorization\Authorizer;
+use AzGuard\Authorization\Internal\Authorizer;
 use AzGuard\Contracts\Sources\Source;
+use AzGuard\Panels\Internal\PanelRegistry;
 use AzGuard\Panels\Panel;
 use AzGuard\Panels\PanelBuilder;
-use AzGuard\Panels\PanelRegistry;
 use AzGuard\Panels\Reads;
 use AzGuard\Panels\StateRefresh;
 use AzGuard\Policies\PolicyBinding;

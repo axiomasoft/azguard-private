@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-use AzGuard\Catalog\CacheState;
-use AzGuard\Catalog\CatalogCache;
+use AzGuard\Catalog\Internal\CacheState;
+use AzGuard\Catalog\Internal\CatalogCache;
 use AzGuard\Exceptions\UnknownPanelException;
-use AzGuard\Panels\CurrentPanel;
+use AzGuard\Panels\Internal\CurrentPanel;
+use AzGuard\Panels\Internal\PanelRegistry;
+use AzGuard\Panels\Internal\PanelResolver;
 use AzGuard\Panels\PanelBuilder;
-use AzGuard\Panels\PanelRegistry;
-use AzGuard\Panels\PanelResolver;
 use AzGuard\Tests\Fixtures\Panels\AdminPanel;
 use AzGuard\Tests\Fixtures\Panels\AnyIdPanel;
 use AzGuard\Tests\Fixtures\Panels\FixturePanel;

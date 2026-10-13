@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-use AzGuard\Catalog\CatalogCache;
+use AzGuard\Catalog\Internal\CatalogCache;
 use AzGuard\Exceptions\DuplicateRoleException;
+use AzGuard\Panels\Internal\PanelRegistry;
 use AzGuard\Panels\PanelBuilder;
-use AzGuard\Panels\PanelRegistry;
 use AzGuard\Sources\Folder\FolderSource;
 use AzGuard\Tests\Fixtures\Modules\Blog\Guards\Permissions\Posts\PostPermission;
 use AzGuard\Tests\Fixtures\Modules\Blog\Guards\Roles\BlogEditorRole;

@@ -3,14 +3,14 @@
 declare(strict_types=1);
 
 use AzGuard\Audit\AuditPlugin;
-use AzGuard\Authorization\Authorizer;
-use AzGuard\Authorization\Cache\PermissionSetCache;
+use AzGuard\Authorization\Internal\Authorizer;
+use AzGuard\Authorization\Internal\Cache\PermissionSetCache;
 use AzGuard\Events\PanelStateTouched;
 use AzGuard\Exceptions\InvalidConfigurationException;
 use AzGuard\Facades\AzGuard;
 use AzGuard\Kernel\Decision\DecisionReason;
+use AzGuard\Panels\Internal\PanelRegistry;
 use AzGuard\Panels\PanelBuilder;
-use AzGuard\Panels\PanelRegistry;
 use AzGuard\Tests\Fixtures\Changes\ChangeWorld as W;
 use AzGuard\Tests\Fixtures\Crm\CrmWorld;
 use AzGuard\Tests\Support\AuditTable;

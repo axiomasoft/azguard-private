@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
+use AzGuard\Storage\Internal\Storage;
+use AzGuard\Storage\Internal\StorageMutation;
+use AzGuard\Storage\Internal\StorageRegistry;
 use AzGuard\Storage\Schema\StorageSchema;
-use AzGuard\Storage\Storage;
-use AzGuard\Storage\StorageMutation;
-use AzGuard\Storage\StorageRegistry;
 use AzGuard\Tests\Engines\Support\Processes;
 
 it('isolates storage locks and reads only committed state', function (): void {

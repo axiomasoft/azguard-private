@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace AzGuard\Tests\Fixtures\Queue;
 
 use AzGuard\Facades\AzGuard;
-use AzGuard\Panels\CurrentPanel;
-use AzGuard\Panels\PanelResolver;
+use AzGuard\Panels\Internal\CurrentPanel;
+use AzGuard\Panels\Internal\PanelResolver;
 use AzGuard\Tests\Fixtures\Crm\Models\Client;
 use AzGuard\Tests\Fixtures\Crm\Models\User;
 use Illuminate\Bus\Queueable;

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace AzGuard\Tests\Fixtures\Authorization;
 
-use AzGuard\Authorization\Authorizer;
+use AzGuard\Authorization\Internal\Authorizer;
 use AzGuard\Context\AssignmentScopeDeclaration;
 use AzGuard\Context\AssignmentScopeMode;
 use AzGuard\Contracts\Scopes\ResolvedAssignmentScope;
@@ -18,10 +18,10 @@ use AzGuard\Kernel\Identity\PermissionPattern;
 use AzGuard\Kernel\Identity\RoleKey;
 use AzGuard\Kernel\Identity\SubjectRef;
 use AzGuard\Kernel\Identity\TenantRef;
+use AzGuard\Panels\Internal\PanelRegistry;
+use AzGuard\Panels\Internal\PanelResolver;
 use AzGuard\Panels\Panel;
 use AzGuard\Panels\PanelBuilder;
-use AzGuard\Panels\PanelRegistry;
-use AzGuard\Panels\PanelResolver;
 use AzGuard\Policies\PolicyBinding;
 use AzGuard\Scopes\Internal\ScopeEvaluator;
 use AzGuard\Tenancy\TenantPolicy;

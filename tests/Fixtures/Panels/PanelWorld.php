@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace AzGuard\Tests\Fixtures\Panels;
 
-use AzGuard\Panels\CurrentPanel;
+use AzGuard\Panels\Internal\CurrentPanel;
+use AzGuard\Panels\Internal\PanelRegistry;
+use AzGuard\Panels\Internal\PanelResolver;
 use AzGuard\Panels\PanelBuilder;
-use AzGuard\Panels\PanelRegistry;
-use AzGuard\Panels\PanelResolver;
 use Closure;
 
 /**

@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace AzGuard\Attributes;
 
 use Attribute;
-use AzGuard\Attributes\Concerns\DescribesPermissionCheck;
-use AzGuard\Laravel\Http\Middleware\CheckPermission as CheckPermissionMiddleware;
+use AzGuard\Attributes\Internal\DescribesPermissionCheck;
+use AzGuard\Laravel\Internal\Http\Middleware\CheckPermission as CheckPermissionMiddleware;
 use Illuminate\Routing\Attributes\Controllers\Middleware;
 use UnitEnum;
 

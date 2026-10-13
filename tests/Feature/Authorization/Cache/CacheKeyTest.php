@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use AzGuard\Authorization\Cache\PermissionSetCache;
+use AzGuard\Authorization\Internal\Cache\PermissionSetCache;
 use AzGuard\Kernel\Decision\CodeStateToken;
 use AzGuard\Kernel\Decision\StateToken;
 use AzGuard\Kernel\Identity\AccessScope;

@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-use AzGuard\Authorization\Authorizer;
+use AzGuard\Authorization\Internal\Authorizer;
 use AzGuard\Changes\GrantDetails;
 use AzGuard\Changes\GrantFilter;
 use AzGuard\Changes\GrantRecord;
-use AzGuard\Changes\PanelManagers;
-use AzGuard\Changes\RoleKeyMigration;
+use AzGuard\Changes\Internal\PanelManagers;
+use AzGuard\Changes\Internal\RoleKeyMigration;
 use AzGuard\Contracts\Changes\GrantManager;
 use AzGuard\Contracts\Roles\RoleCatalog;
 use AzGuard\Exceptions\AssignmentScopeNotAcceptedException;
@@ -18,8 +18,8 @@ use AzGuard\Exceptions\UnknownRoleException;
 use AzGuard\Kernel\Decision\Decision;
 use AzGuard\Kernel\Decision\DecisionReason;
 use AzGuard\Kernel\Decision\PermissionAuthority;
+use AzGuard\Panels\Internal\PanelRegistry;
 use AzGuard\Panels\Panel;
-use AzGuard\Panels\PanelRegistry;
 use AzGuard\Schema\PermissionSchema;
 use AzGuard\Sources\Relation\RelationSource;
 use AzGuard\Tests\Feature\Changes\Managers\ManagerWorld as M;

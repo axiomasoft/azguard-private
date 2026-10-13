@@ -7,13 +7,13 @@ use AzGuard\Kernel\Identity\ActorRef;
 use AzGuard\Kernel\Identity\PermissionKey;
 use AzGuard\Kernel\Identity\PermissionPattern;
 use AzGuard\Kernel\Identity\TenantRef;
+use AzGuard\Storage\Internal\Storage;
+use AzGuard\Storage\Internal\StorageMutation;
+use AzGuard\Storage\Internal\StorageRegistry;
 use AzGuard\Storage\Models\Permission;
 use AzGuard\Storage\Models\PermissionGrant;
 use AzGuard\Storage\Models\RoleGrant;
 use AzGuard\Storage\Schema\StorageSchema;
-use AzGuard\Storage\Storage;
-use AzGuard\Storage\StorageMutation;
-use AzGuard\Storage\StorageRegistry;
 use Carbon\CarbonImmutable;
 
 beforeEach(function (): void {

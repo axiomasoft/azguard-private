@@ -6,7 +6,7 @@ namespace AzGuard\Sources;
 
 use AzGuard\Attributes\Api;
 use AzGuard\Attributes\AsSource;
-use AzGuard\Configuration\AzGuardConfig;
+use AzGuard\Configuration\Internal\AzGuardConfig;
 use AzGuard\Contracts\Sources\Source;
 use AzGuard\Exceptions\DefinitionException;
 use AzGuard\Exceptions\UnknownSourceException;

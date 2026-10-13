@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use AzGuard\Configuration\AzGuardConfig;
+use AzGuard\Configuration\Internal\AzGuardConfig;
 use AzGuard\Exceptions\AzGuardException;
 use AzGuard\Exceptions\DefaultPanelConflictException;
 use AzGuard\Exceptions\DuplicatePermissionException;
@@ -18,18 +18,18 @@ use AzGuard\Exceptions\UnknownPanelException;
 use AzGuard\Exceptions\UnknownRoleException;
 use AzGuard\Exceptions\UnknownSourceException;
 use AzGuard\Exceptions\WriterConflictException;
+use AzGuard\Panels\Internal\PanelCompiler;
+use AzGuard\Panels\Internal\PanelRecipe;
+use AzGuard\Panels\Internal\PanelRegistry;
 use AzGuard\Panels\PanelBuilder;
-use AzGuard\Panels\PanelCompiler;
-use AzGuard\Panels\PanelRecipe;
-use AzGuard\Panels\PanelRegistry;
 use AzGuard\Policies\PolicyBinding;
 use AzGuard\Scopes\ScopesPlugin;
 use AzGuard\Sources\Database\DatabaseSource;
 use AzGuard\Sources\Relation\RelationSource;
+use AzGuard\Storage\Internal\Storage;
+use AzGuard\Storage\Internal\StorageRegistry;
 use AzGuard\Storage\Models\PermissionGrant;
 use AzGuard\Storage\Schema\StorageSchema;
-use AzGuard\Storage\Storage;
-use AzGuard\Storage\StorageRegistry;
 use AzGuard\Tenancy\TenantPolicy;
 use AzGuard\Tests\Fixtures\Configuration\AttributedConnectionRoleGrant;
 use AzGuard\Tests\Fixtures\Configuration\AttributedTableRoleGrant;

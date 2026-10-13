@@ -12,14 +12,14 @@ it('proves the authorization source boundary RED against a scratch copy', functi
     $directory = sys_get_temp_dir().'/azguard-authority-arch-'.bin2hex(random_bytes(4));
     mkdir($directory);
     $file = $directory.'/InjectedSource.php';
-    file_put_contents($file, "<?php\nnamespace AzGuard\\Sources\\Probe;\nuse AzGuard\\Authorization\\Authorizer;\nfinal class InjectedSource { public function __construct(Authorizer \$engine) {} }\n");
+    file_put_contents($file, "<?php\nnamespace AzGuard\\Sources\\Probe;\nuse AzGuard\\Authorization\\Internal\\Authorizer;\nfinal class InjectedSource { public function __construct(Authorizer \$engine) {} }\n");
     $dependencies = ['AzGuard\\Authorization'];
     expect(SourceScan::restrictedReferencesIn([$file], $dependencies, []))->not->toBe([])
         ->and(SourceScan::restrictedReferencesIn(SourceScan::files('packages/core/src/Sources'), $dependencies, []))->toBe([]);
 });
 
 it('keeps the coordinator provenance exception read only', function (): void {
-    expect(SourceScan::transactionCalls(dirname(__DIR__, 2).'/packages/core/src/Authorization/Pipeline/Stages/AuthorityStage.php'))->toBe([]);
+    expect(SourceScan::transactionCalls(dirname(__DIR__, 2).'/packages/core/src/Authorization/Internal/Pipeline/Stages/AuthorityStage.php'))->toBe([]);
 });
 
 /**
@@ -78,15 +78,14 @@ function concreteSourceChecks(array $files): array
 it('keeps concrete-source branches out of the decision stages, query composition and Visibility (D5)', function (): void {
     $root = dirname(__DIR__, 2).'/packages/core/src/Authorization';
     $files = [
-        ...SourceScan::files('packages/core/src/Authorization/Pipeline/Stages'),
-        ...SourceScan::files('packages/core/src/Authorization/Query'),
+        ...SourceScan::files('packages/core/src/Authorization/Internal/Pipeline/Stages'),
         ...SourceScan::files('packages/core/src/Authorization/Internal/Query'),
         $root.'/Visibility.php',
     ];
 
     expect(concreteSourceChecks($files))->toBe([])
         // The coordinator keeps its database mechanics, so the scan finds them there.
-        ->and(concreteSourceChecks([$root.'/ReadAttempt.php']))->not->toBe([]);
+        ->and(concreteSourceChecks([$root.'/Internal/ReadAttempt.php']))->not->toBe([]);
 });
 
 it('proves the concrete-source branch rule RED against a scratch copy', function (): void {

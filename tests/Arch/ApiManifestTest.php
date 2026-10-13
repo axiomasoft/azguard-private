@@ -274,7 +274,7 @@ it('I4: reports an unsupported core type and a member the manifest does not list
     file_put_contents($file, <<<'PHP'
         <?php
         namespace AzGuard\Scopes;
-        use AzGuard\Changes\ChangePipeline;
+        use AzGuard\Changes\Internal\ChangePipeline;
         use AzGuard\Kernel\Identity\TenantRef;
         use AzGuard\Kernel\Identity\SubjectRef;
         final class Probe {
@@ -290,7 +290,7 @@ it('I4: reports an unsupported core type and a member the manifest does not list
         'methods' => array_map(static fn (string $m): array => ['name' => $m], $methods)];
     $oracle = Ownership::of([
         apiOracleRow('AzGuard\Scopes\Probe', 'Api', ['current_path' => 'packages/core/src/Scopes/Probe.php', 'owner' => 'scopes', 'action' => 'relocate', 'phase' => 'P3']),
-        apiOracleRow('AzGuard\Changes\ChangePipeline', 'internal', ['action' => 'move', 'phase' => 'P3']),
+        apiOracleRow('AzGuard\Changes\Internal\ChangePipeline', 'internal', ['action' => 'move', 'phase' => 'P3']),
         apiOracleRow('AzGuard\Kernel\Identity\TenantRef', 'Api'),
         apiOracleRow('AzGuard\Kernel\Identity\SubjectRef', 'Api'),
     ]);
@@ -311,7 +311,7 @@ it('I4: reports an unsupported core type and a member the manifest does not list
     }
 
     expect(array_map(static fn (array $v): string => implode(' ', [$v['invariant'], $v['file'], $v['kind'], $v['reference'], $v['owner_phase']]), $violations))->toBe([
-        'I4 packages/core/src/Scopes/Probe.php type AzGuard\Changes\ChangePipeline P3',
+        'I4 packages/core/src/Scopes/Probe.php type AzGuard\Changes\Internal\ChangePipeline P3',
         'I4 packages/core/src/Scopes/Probe.php member AzGuard\Kernel\Identity\SubjectRef::key P3',
         'I4 packages/core/src/Scopes/Probe.php member AzGuard\Kernel\Identity\TenantRef::of P3',
     ]);

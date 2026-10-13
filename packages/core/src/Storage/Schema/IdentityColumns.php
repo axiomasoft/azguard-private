@@ -6,6 +6,7 @@ namespace AzGuard\Storage\Schema;
 
 use AzGuard\Attributes\Spi;
 use AzGuard\Attributes\SpiKind;
+use AzGuard\Storage\Internal\Schema\HostKeyColumns;
 use AzGuard\Storage\StorageDescriptor;
 use Illuminate\Database\Connection;
 use Illuminate\Database\DatabaseManager;

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace AzGuardBench\Load;
 
-use AzGuard\Kernel\Support\Narrow;
+use AzGuard\Kernel\Internal\Narrow;
 use AzGuard\Tests\TestCase;
 use AzGuardBench\Load\Profiles\DecisionSetSize;
 use Illuminate\Contracts\Console\Kernel;

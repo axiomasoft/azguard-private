@@ -6,9 +6,9 @@ namespace AzGuard\Diagnostics;
 
 use AzGuard\Attributes\Spi;
 use AzGuard\Attributes\SpiKind;
-use AzGuard\Configuration\AzGuardConfig;
+use AzGuard\Configuration\Internal\AzGuardConfig;
 use AzGuard\Panels\Panel;
-use AzGuard\Storage\Storage;
+use AzGuard\Storage\Internal\Storage;
 
 /**
  * What one run of `azguard:doctor` inspects: the selected panels and storages, whether the run checks a production

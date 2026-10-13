@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use AzGuard\Authorization\Cache\PermissionSetCache;
+use AzGuard\Authorization\Internal\Cache\PermissionSetCache;
 use AzGuard\Contracts\Sources\Volatility;
 use AzGuard\Kernel\Decision\DecisionReason;
 use AzGuard\Kernel\Decision\RoleContribution;

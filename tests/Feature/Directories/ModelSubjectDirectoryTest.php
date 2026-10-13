@@ -3,8 +3,8 @@
 declare(strict_types=1);
 
 use AzGuard\Context\AssignmentScopePhase;
-use AzGuard\Directories\DirectoryResolver;
-use AzGuard\Directories\ModelSubjectDirectory;
+use AzGuard\Directories\Internal\DirectoryResolver;
+use AzGuard\Directories\Internal\ModelSubjectDirectory;
 use AzGuard\Exceptions\DefinitionException;
 use AzGuard\Kernel\Identity\SubjectRef;
 use AzGuard\Panels\Panel;

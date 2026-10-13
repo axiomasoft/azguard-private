@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use AzGuard\Configuration\AzGuardConfig;
+use AzGuard\Configuration\Internal\AzGuardConfig;
 use AzGuard\Exceptions\DefinitionException;
 use AzGuard\Exceptions\InvalidConfigurationException;
 use AzGuard\Exceptions\UnknownSourceException;

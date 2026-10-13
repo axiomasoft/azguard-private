@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 use AzGuard\Exceptions\PermissionNotGrantableException;
 use AzGuard\Facades\AzGuard;
-use AzGuard\Filament\Editors\GrantEditor;
-use AzGuard\Filament\Editors\TargetSelector;
+use AzGuard\Filament\Internal\Editors\GrantEditor;
+use AzGuard\Filament\Internal\Editors\TargetSelector;
 use AzGuard\Filament\Resources\PermissionGrantResource\Pages\ListPermissionGrants;
 use AzGuard\Filament\Resources\RoleGrantResource\Pages\ListRoleGrants;
 use AzGuard\Kernel\Decision\AccessRequest;

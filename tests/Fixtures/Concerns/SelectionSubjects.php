@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace AzGuard\Tests\Fixtures\Concerns;
 
-use AzGuard\Authorization\Authorizer;
+use AzGuard\Authorization\Internal\Authorizer;
 use AzGuard\Concerns\SubjectAccess;
-use AzGuard\Panels\CurrentPanel;
+use AzGuard\Panels\Internal\CurrentPanel;
+use AzGuard\Panels\Internal\PanelRegistry;
+use AzGuard\Panels\Internal\PanelResolver;
 use AzGuard\Panels\PanelBuilder;
-use AzGuard\Panels\PanelRegistry;
-use AzGuard\Panels\PanelResolver;
 use AzGuard\Tests\Fixtures\Panels\AdminPanel;
 use AzGuard\Tests\Fixtures\Panels\CabinetPanel;
 use AzGuard\Tests\Fixtures\Panels\InvoicePermission;

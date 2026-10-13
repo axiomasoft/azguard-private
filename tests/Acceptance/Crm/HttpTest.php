@@ -2,16 +2,16 @@
 
 declare(strict_types=1);
 
-use AzGuard\Authorization\Authorizer;
+use AzGuard\Authorization\Internal\Authorizer;
 use AzGuard\Context\Internal\CurrentContext;
 use AzGuard\Contracts\Authorization\EvaluationContext;
 use AzGuard\Exceptions\PermissionNotGrantableException;
 use AzGuard\Facades\AzGuard;
 use AzGuard\Kernel\Decision\AccessRequest;
 use AzGuard\Kernel\Decision\BeforeResult;
-use AzGuard\Panels\CurrentPanel;
+use AzGuard\Panels\Internal\CurrentPanel;
+use AzGuard\Panels\Internal\PanelRegistry;
 use AzGuard\Panels\PanelBuilder;
-use AzGuard\Panels\PanelRegistry;
 use AzGuard\Tests\Fixtures\Changes\ChangeWorld as W;
 use AzGuard\Tests\Fixtures\Crm\CrmWorld as World;
 use AzGuard\Tests\Fixtures\Crm\Guards\Crm\Permissions\Clients\ClientPermission;

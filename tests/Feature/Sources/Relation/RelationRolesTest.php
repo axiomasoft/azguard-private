@@ -2,8 +2,8 @@
 
 declare(strict_types=1);
 
-use AzGuard\Authorization\Pipeline\Stages\AuthorityStage;
-use AzGuard\Authorization\Pipeline\Trace;
+use AzGuard\Authorization\Internal\Pipeline\Stages\AuthorityStage;
+use AzGuard\Authorization\Internal\Pipeline\Trace;
 use AzGuard\Exceptions\InvalidSourceContributionException;
 use AzGuard\Kernel\Decision\DecisionReason;
 use AzGuard\Kernel\Identity\AccessScope;

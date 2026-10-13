@@ -2,8 +2,8 @@
 
 declare(strict_types=1);
 
-use AzGuard\Catalog\CatalogCache;
-use AzGuard\Configuration\AzGuardConfig;
+use AzGuard\Catalog\Internal\CatalogCache;
+use AzGuard\Configuration\Internal\AzGuardConfig;
 use AzGuard\Panels\PanelBuilder;
 use AzGuard\Tests\Fixtures\Crm\CrmWorld;
 use AzGuard\Tests\Fixtures\Diagnostics\DoctorWorld;

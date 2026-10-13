@@ -406,10 +406,10 @@ it('still rejects the change pipeline or another class of changes in sources and
         rmdir($directory);
     }
 })->with([
-    'pipeline in the database source' => ['AzGuard\\Sources\\Database', 'AzGuard\\Changes\\ChangePipeline', 'use AzGuard\\Changes\\ChangePipeline;'],
-    'pipeline in contracts' => ['AzGuard\\Contracts\\Sources', 'AzGuard\\Changes\\ChangePipeline', 'use AzGuard\\Changes\\ChangePipeline;'],
-    'qualified actor in the database source' => ['AzGuard\\Sources\\Database', 'AzGuard\\Changes\\ActingActor', 'function probe(\\AzGuard\\Changes\\ActingActor $a): void {}'],
-    'manager implementation in contracts' => ['AzGuard\\Contracts\\Changes', 'AzGuard\\Changes\\ScopedGrantManager', 'use AzGuard\\Changes\\ScopedGrantManager;'],
+    'pipeline in the database source' => ['AzGuard\\Sources\\Database', 'AzGuard\\Changes\\Internal\\ChangePipeline', 'use AzGuard\\Changes\\Internal\\ChangePipeline;'],
+    'pipeline in contracts' => ['AzGuard\\Contracts\\Sources', 'AzGuard\\Changes\\Internal\\ChangePipeline', 'use AzGuard\\Changes\\Internal\\ChangePipeline;'],
+    'qualified actor in the database source' => ['AzGuard\\Sources\\Database', 'AzGuard\\Changes\\Internal\\ActingActor', 'function probe(\\AzGuard\\Changes\\Internal\\ActingActor $a): void {}'],
+    'manager implementation in contracts' => ['AzGuard\\Contracts\\Changes', 'AzGuard\\Changes\\Internal\\ScopedGrantManager', 'use AzGuard\\Changes\\Internal\\ScopedGrantManager;'],
     'filter-prefixed class in the database source' => ['AzGuard\\Sources\\Database', 'AzGuard\\Changes\\GrantFilterBuilder', 'use AzGuard\\Changes\\GrantFilterBuilder;'],
 ]);
 
@@ -433,14 +433,14 @@ it('only storage and database sources call storage models statically', function 
 });
 
 it('only storage database sources change pipeline its participant writer and testing use storage mutation', function (): void {
-    expect(SourceScan::restrictedReferencesIn(SourceScan::files(), ['AzGuard\Storage\StorageMutation'], [
-        'AzGuard\Storage', 'AzGuard\Sources\Database', 'AzGuard\Changes\ChangePipeline', 'AzGuard\Changes\Internal\OperationRows', 'AzGuard\Testing',
+    expect(SourceScan::restrictedReferencesIn(SourceScan::files(), ['AzGuard\Storage\Internal\StorageMutation'], [
+        'AzGuard\Storage', 'AzGuard\Sources\Database', 'AzGuard\Changes\Internal\ChangePipeline', 'AzGuard\Changes\Internal\OperationRows', 'AzGuard\Testing',
     ]))->toBe([]);
 });
 
 it('only storage uses storage concerns and the guarded builder', function (): void {
     expect(SourceScan::restrictedReferencesIn(SourceScan::files(), [
-        'AzGuard\Storage\Concerns', 'AzGuard\Storage\WriteGuardedBuilder',
+        'AzGuard\Storage\Concerns', 'AzGuard\Storage\Internal\WriteGuardedBuilder',
     ], ['AzGuard\Storage']))->toBe([]);
 });
 
@@ -495,26 +495,26 @@ it('resolves grouped mutation imports and fully qualified internal dependencies'
     $code = <<<'PHP'
         <?php
         namespace AzGuard\Sources\Folder;
-        use AzGuard\Storage\{StorageMutation as Mutation, WriteGuardedBuilder};
+        use AzGuard\Storage\Internal\{StorageMutation as Mutation, WriteGuardedBuilder};
         final class Lookup {
-            use \AzGuard\Storage\Concerns\BelongsToStorage;
+            use \AzGuard\Storage\Internal\Concerns\BelongsToStorage;
             public function bad(Mutation $mutation): WriteGuardedBuilder {}
         }
         PHP;
     file_put_contents($file, $code);
 
     try {
-        expect(azguardZoneImports($file, ['AzGuard\Storage\StorageMutation']))->toBe(['AzGuard\Storage\StorageMutation'])
-            ->and(SourceScan::restrictedReferencesIn([$file], ['AzGuard\Storage\StorageMutation'], ['AzGuard\Storage']))->toHaveCount(1)
-            ->and(SourceScan::restrictedReferencesIn([$file], ['AzGuard\Storage\Concerns', 'AzGuard\Storage\WriteGuardedBuilder'], ['AzGuard\Storage']))->toHaveCount(2);
+        expect(azguardZoneImports($file, ['AzGuard\Storage\Internal\StorageMutation']))->toBe(['AzGuard\Storage\Internal\StorageMutation'])
+            ->and(SourceScan::restrictedReferencesIn([$file], ['AzGuard\Storage\Internal\StorageMutation'], ['AzGuard\Storage']))->toHaveCount(1)
+            ->and(SourceScan::restrictedReferencesIn([$file], ['AzGuard\Storage\Internal\Concerns', 'AzGuard\Storage\Internal\WriteGuardedBuilder'], ['AzGuard\Storage']))->toHaveCount(2);
         file_put_contents($file, str_replace(
             ['namespace AzGuard\Sources\Folder;', 'final class Lookup'],
-            ['namespace AzGuard\Changes;', 'final class ChangePipeline'],
+            ['namespace AzGuard\Changes\Internal;', 'final class ChangePipeline'],
             $code,
         ));
-        expect(SourceScan::restrictedReferencesIn([$file], ['AzGuard\Storage\StorageMutation'], ['AzGuard\Changes\ChangePipeline']))->toBe([]);
-        file_put_contents($file, str_replace('final class Lookup', 'final class ChangePipelineOther', str_replace('namespace AzGuard\Sources\Folder;', 'namespace AzGuard\Changes;', $code)));
-        expect(SourceScan::restrictedReferencesIn([$file], ['AzGuard\Storage\StorageMutation'], ['AzGuard\Changes\ChangePipeline']))->toHaveCount(1);
+        expect(SourceScan::restrictedReferencesIn([$file], ['AzGuard\Storage\Internal\StorageMutation'], ['AzGuard\Changes\Internal\ChangePipeline']))->toBe([]);
+        file_put_contents($file, str_replace('final class Lookup', 'final class ChangePipelineOther', str_replace('namespace AzGuard\Sources\Folder;', 'namespace AzGuard\Changes\Internal;', $code)));
+        expect(SourceScan::restrictedReferencesIn([$file], ['AzGuard\Storage\Internal\StorageMutation'], ['AzGuard\Changes\Internal\ChangePipeline']))->toHaveCount(1);
     } finally {
         unlink($file);
         rmdir($directory);
@@ -531,11 +531,11 @@ forbidDependencies(
 arch('grants are stored only through the change pipeline, the database source or test helpers')
     ->expect('AzGuard\Contracts\Sources\StoresGrants')
     ->toOnlyBeUsedIn([
-        'AzGuard\Changes\ChangePipeline', 'AzGuard\Sources\Database', 'AzGuard\Testing',
-        'AzGuard\Panels\Panel', 'AzGuard\Sources\PanelSources',
-        'AzGuard\Authorization\Pipeline\Stages\AuthorityStage', // read-only provenance check; no transaction calls
-        'AzGuard\Authorization\Authorizer', // internal supported root helper; delegates to DatabaseSource
-        'AzGuard\Diagnostics\Checks\PanelsSources', // doctor counts writers in the source descriptions; stores nothing
+        'AzGuard\Changes\Internal\ChangePipeline', 'AzGuard\Sources\Database', 'AzGuard\Testing',
+        'AzGuard\Panels\Panel', 'AzGuard\Sources\Internal\PanelSources',
+        'AzGuard\Authorization\Internal\Pipeline\Stages\AuthorityStage', // read-only provenance check; no transaction calls
+        'AzGuard\Authorization\Internal\Authorizer', // internal supported root helper; delegates to DatabaseSource
+        'AzGuard\Diagnostics\Internal\Checks\PanelsSources', // doctor counts writers in the source descriptions; stores nothing
 
     ])
     ->ignoring('AzGuard\Tests');
@@ -600,5 +600,5 @@ it('rejects a StoresGrants transaction() call copied into the panel zone', funct
 
     expect(SourceScan::transactionCalls($copy))->toBe(['transaction'])
         ->and(SourceScan::transactionCalls($root.'/packages/core/src/Panels/Panel.php'))->toBe([])
-        ->and(SourceScan::transactionCalls($root.'/packages/core/src/Sources/PanelSources.php'))->toBe([]);
+        ->and(SourceScan::transactionCalls($root.'/packages/core/src/Sources/Internal/PanelSources.php'))->toBe([]);
 });

@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-use AzGuard\Configuration\AzGuardConfig;
+use AzGuard\Configuration\Internal\AzGuardConfig;
 use AzGuard\Exceptions\InvalidConfigurationException;
 use AzGuard\Exceptions\PluginConflictException;
+use AzGuard\Panels\Internal\PanelCompiler;
+use AzGuard\Panels\Internal\PanelRecipe;
+use AzGuard\Panels\Internal\PanelRegistry;
 use AzGuard\Panels\PanelBuilder;
-use AzGuard\Panels\PanelCompiler;
-use AzGuard\Panels\PanelRecipe;
-use AzGuard\Panels\PanelRegistry;
 use AzGuard\Panels\PanelSettings;
 use AzGuard\Panels\Reads;
 use AzGuard\Tests\Fixtures\Panels\AdminPanel;

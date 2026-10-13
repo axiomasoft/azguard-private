@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use AzGuard\Authorization\EvaluationFrame;
+use AzGuard\Authorization\Internal\EvaluationFrame;
 use AzGuard\Changes\Change;
 use AzGuard\Changes\ChangeResult;
 use AzGuard\Contracts\Authorization\EvaluationContext;
@@ -48,7 +48,7 @@ it('rejects a closure that does not match the contract when the panel compiles, 
     'before, too many parameters' => ['before', static fn (AccessRequest $r, EvaluationContext $c, Decision $d): BeforeResult => BeforeResult::Continue, 'it takes 3 parameters'],
     'before, untyped parameter' => ['before', static fn ($r, EvaluationContext $c): BeforeResult => BeforeResult::Continue, 'parameter 1 has no declared type'],
     'before, wrong parameter type' => ['before', static fn (AccessRequest $r, stdClass $c): BeforeResult => BeforeResult::Continue, 'parameter 2 is declared stdClass'],
-    'before, a narrower parameter type' => ['before', static fn (AccessRequest $r, EvaluationFrame $c): BeforeResult => BeforeResult::Continue, 'parameter 2 is declared AzGuard\Authorization\EvaluationFrame'],
+    'before, a narrower parameter type' => ['before', static fn (AccessRequest $r, EvaluationFrame $c): BeforeResult => BeforeResult::Continue, 'parameter 2 is declared AzGuard\Authorization\Internal\EvaluationFrame'],
     'before, no return type' => ['before', static fn (AccessRequest $r, EvaluationContext $c) => BeforeResult::Continue, 'the return type is not declared'],
     'before, boolean return type' => ['before', static fn (AccessRequest $r, EvaluationContext $c): bool => true, 'the return type is bool'],
     'before, nullable return type' => ['before', static fn (AccessRequest $r, EvaluationContext $c): ?BeforeResult => null, 'the return type is ?AzGuard\Kernel\Decision\BeforeResult'],

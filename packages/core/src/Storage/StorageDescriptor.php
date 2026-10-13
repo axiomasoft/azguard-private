@@ -6,7 +6,7 @@ namespace AzGuard\Storage;
 
 use AzGuard\Attributes\Api;
 use AzGuard\Exceptions\InvalidIdentityException;
-use AzGuard\Storage\Schema\HostKeyColumns;
+use AzGuard\Storage\Internal\Schema\HostKeyColumns;
 
 /**
  * What identifies one AzGuard storage: its id, the database connection (null for the default one), the table prefix

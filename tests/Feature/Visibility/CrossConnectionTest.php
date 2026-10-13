@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 use AzGuard\Exceptions\VisibilityNotSupportedException;
 use AzGuard\Sources\Database\DatabaseSource;
+use AzGuard\Storage\Internal\Storage;
+use AzGuard\Storage\Internal\StorageMutation;
 use AzGuard\Storage\Schema\StorageSchema;
-use AzGuard\Storage\Storage;
-use AzGuard\Storage\StorageMutation;
 use AzGuard\Tests\Fixtures\Sources\Database\DatabaseWorld;
 use AzGuard\Tests\Fixtures\Visibility\VisibilityProject;
 use AzGuard\Tests\Fixtures\Visibility\VisibilitySource;

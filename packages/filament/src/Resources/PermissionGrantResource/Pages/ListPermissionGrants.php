@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace AzGuard\Filament\Resources\PermissionGrantResource\Pages;
 
-use AzGuard\Filament\Editors\ListGrants;
+use AzGuard\Filament\Internal\Editors\ListGrants;
 use AzGuard\Filament\Resources\PermissionGrantResource;
 
 /**

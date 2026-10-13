@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use AzGuard\Catalog\PanelCatalog;
+use AzGuard\Catalog\Internal\PanelCatalog;
 use AzGuard\Contracts\Scopes\AssignmentScopeDefinition;
 use AzGuard\Contracts\Scopes\ResolvedAssignmentScope;
 use AzGuard\Exceptions\DefinitionException;

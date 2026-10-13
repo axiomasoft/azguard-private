@@ -3,12 +3,12 @@
 declare(strict_types=1);
 
 use AzGuard\AzGuardServiceProvider;
-use AzGuard\Configuration\AzGuardConfig;
+use AzGuard\Configuration\Internal\AzGuardConfig;
 use AzGuard\DevTools\Internal\ScaffoldConfig;
 use AzGuard\Exceptions\InvalidConfigurationException;
+use AzGuard\Panels\Internal\PanelCompiler;
+use AzGuard\Panels\Internal\PanelRecipe;
 use AzGuard\Panels\PanelBuilder;
-use AzGuard\Panels\PanelCompiler;
-use AzGuard\Panels\PanelRecipe;
 use AzGuard\Tests\Fixtures\Baseline070\Formats\FormatSnapshot;
 use AzGuard\Tests\Fixtures\Configuration\BootsWithConfiguration;
 use AzGuard\Tests\Fixtures\Panels\FixedScopeResolver;
@@ -120,7 +120,7 @@ it('reports a missing cron parser as a configuration error in an illuminate-only
             }
         });
         try {
-            AzGuard\Configuration\AzGuardConfig::fromRepository(new Illuminate\Config\Repository([
+            AzGuard\Configuration\Internal\AzGuardConfig::fromRepository(new Illuminate\Config\Repository([
                 'azguard' => ['schedule' => ['prune_expired' => '0 3 * * *']],
             ]));
             exit(2);

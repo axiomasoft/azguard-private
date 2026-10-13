@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace AzGuard\Tests\Fixtures\Changes;
 
-use AzGuard\Changes\ChangePipeline;
 use AzGuard\Changes\ChangeResult;
+use AzGuard\Changes\Internal\ChangePipeline;
 use AzGuard\Changes\PermissionDetails;
 use AzGuard\Kernel\Identity\ActorRef;
 use AzGuard\Kernel\Identity\AnyAssignmentScope;

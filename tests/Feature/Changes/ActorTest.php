@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-use AzGuard\Changes\ActingActor;
 use AzGuard\Changes\Change;
 use AzGuard\Changes\ChangeResult;
+use AzGuard\Changes\Internal\ActingActor;
 use AzGuard\Context\AssignmentScopeRuntime;
 use AzGuard\Exceptions\AssignmentScopeNotAcceptedException;
 use AzGuard\Kernel\Identity\ActorRef;

@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace AzGuard\Sources\Relation;
 
 use AzGuard\Attributes\Api;
-use AzGuard\Catalog\PanelCatalog;
+use AzGuard\Catalog\Internal\PanelCatalog;
 use AzGuard\Contracts\Authorization\EvaluationContext;
 use AzGuard\Contracts\Scopes\AssignmentScopeDefinition;
 use AzGuard\Contracts\Scopes\QueryableAssignmentScopeDefinition;
@@ -28,6 +28,8 @@ use AzGuard\Kernel\Identity\RoleKey;
 use AzGuard\Kernel\Identity\SubjectRef;
 use AzGuard\Kernel\Identity\TenantRef;
 use AzGuard\Panels\Panel;
+use AzGuard\Sources\Relation\Internal\RelationBinding;
+use AzGuard\Sources\Relation\Internal\RelationScopeQuery;
 use AzGuard\Support\ModelKey;
 use Closure;
 use Illuminate\Database\Eloquent\Builder;

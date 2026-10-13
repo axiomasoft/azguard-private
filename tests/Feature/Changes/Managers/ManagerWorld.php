@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace AzGuard\Tests\Feature\Changes\Managers;
 
-use AzGuard\Changes\PanelManagers;
+use AzGuard\Changes\Internal\PanelManagers;
 use AzGuard\Panels\Panel;
-use AzGuard\Storage\StorageMutation;
+use AzGuard\Storage\Internal\StorageMutation;
 use AzGuard\Tests\Fixtures\Changes\ChangeWorld;
 use AzGuard\Tests\Fixtures\Crm\CrmWorld;
 

@@ -35,8 +35,8 @@
     },
     "named_audit_migration": "<date>_create_azguard_<storage>_audit_log.php",
     "middleware_aliases": {
-        "azguard.panel": "AzGuard\\Laravel\\Http\\Middleware\\EnterPanel",
-        "azguard.can": "AzGuard\\Laravel\\Http\\Middleware\\CheckPermission"
+        "azguard.panel": "AzGuard\\Laravel\\Internal\\Http\\Middleware\\EnterPanel",
+        "azguard.can": "AzGuard\\Laravel\\Internal\\Http\\Middleware\\CheckPermission"
     },
     "container_alias": {
         "azguard": "AzGuard\\AzGuard",

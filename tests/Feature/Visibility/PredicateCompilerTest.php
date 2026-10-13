@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use AzGuard\Authorization\Query\PredicateCompiler;
+use AzGuard\Authorization\Internal\Query\PredicateCompiler;
 use AzGuard\Contracts\Authorization\EvaluationContext;
 use AzGuard\Contracts\Authorization\FiltersAccessQueries;
 use AzGuard\Exceptions\DefinitionException;

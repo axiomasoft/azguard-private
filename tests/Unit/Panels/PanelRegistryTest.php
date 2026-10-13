@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use AzGuard\Configuration\AzGuardConfig;
+use AzGuard\Configuration\Internal\AzGuardConfig;
 use AzGuard\Contracts\Panels\PanelRegistry as PanelRegistryContract;
 use AzGuard\Exceptions\DefaultPanelConflictException;
 use AzGuard\Exceptions\DefinitionException;
@@ -10,9 +10,9 @@ use AzGuard\Exceptions\DuplicatePanelException;
 use AzGuard\Exceptions\InvalidPanelIdException;
 use AzGuard\Exceptions\RegistryFrozenException;
 use AzGuard\Exceptions\UnknownPanelException;
+use AzGuard\Panels\Internal\PanelRecipe;
+use AzGuard\Panels\Internal\PanelRegistry;
 use AzGuard\Panels\PanelBuilder;
-use AzGuard\Panels\PanelRecipe;
-use AzGuard\Panels\PanelRegistry;
 use AzGuard\Scopes\ScopesPlugin;
 use AzGuard\Tests\Fixtures\Panels\AdminPanel;
 use AzGuard\Tests\Fixtures\Panels\AdminReplacementPanel;

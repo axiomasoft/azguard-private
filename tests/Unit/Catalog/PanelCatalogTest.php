@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use AzGuard\Catalog\PanelCatalog;
+use AzGuard\Catalog\Internal\PanelCatalog;
 use AzGuard\Catalog\PermissionDefinition;
 use AzGuard\Exceptions\DefinitionException;
 use AzGuard\Exceptions\DuplicatePermissionException;
@@ -15,8 +15,8 @@ use AzGuard\Exceptions\UnknownPermissionException;
 use AzGuard\Exceptions\UnknownSourceException;
 use AzGuard\Kernel\Decision\PermissionAuthority;
 use AzGuard\Kernel\Identity\PermissionKey;
+use AzGuard\Panels\Internal\PanelRegistry;
 use AzGuard\Panels\PanelBuilder;
-use AzGuard\Panels\PanelRegistry;
 use AzGuard\Policies\PolicyBinding;
 use AzGuard\Tests\Fixtures\Panels\AdminPanel;
 use AzGuard\Tests\Fixtures\Panels\ArraySource;

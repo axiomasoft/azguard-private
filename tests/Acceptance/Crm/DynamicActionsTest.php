@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use AzGuard\Authorization\Authorizer;
+use AzGuard\Authorization\Internal\Authorizer;
 use AzGuard\Changes\ChangeType;
 use AzGuard\Exceptions\PanelNotWritableException;
 use AzGuard\Exceptions\UnknownPermissionException;
@@ -12,8 +12,8 @@ use AzGuard\Kernel\Decision\DecisionReason;
 use AzGuard\Kernel\Decision\PermissionAuthority;
 use AzGuard\Kernel\Identity\PermissionKey;
 use AzGuard\Kernel\Identity\SubjectRef;
+use AzGuard\Panels\Internal\PanelRegistry;
 use AzGuard\Panels\Panel;
-use AzGuard\Panels\PanelRegistry;
 use AzGuard\Tests\Fixtures\Changes\ChangeWorld as W;
 use AzGuard\Tests\Fixtures\Crm\CrmWorld as World;
 use AzGuard\Tests\Fixtures\Crm\Guards\Crm\Permissions\Clients\ClientPermission as Action;

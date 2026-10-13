@@ -3,8 +3,8 @@
 declare(strict_types=1);
 
 use AzGuard\Exceptions\InvalidPermissionKeyException;
-use AzGuard\Kernel\Grammar\PatternMatcher;
 use AzGuard\Kernel\Grammar\PermissionGrammar;
+use AzGuard\Kernel\Internal\PatternMatcher;
 use AzGuard\Tests\Fixtures\Concerns\SubjectWorld;
 
 it('rejects bare wildcards as a permission key and as a grant pattern', function (string $wildcard): void {

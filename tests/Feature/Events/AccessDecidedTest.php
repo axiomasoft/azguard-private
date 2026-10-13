@@ -2,16 +2,16 @@
 
 declare(strict_types=1);
 
-use AzGuard\Authorization\Authorizer;
+use AzGuard\Authorization\Internal\Authorizer;
 use AzGuard\Events\AccessDecided;
 use AzGuard\Kernel\Decision\AccessRequest;
 use AzGuard\Kernel\Decision\Effect;
 use AzGuard\Kernel\Identity\ActorRef;
 use AzGuard\Kernel\Identity\PermissionKey;
 use AzGuard\Kernel\Identity\SubjectRef;
+use AzGuard\Panels\Internal\PanelCompiler;
+use AzGuard\Panels\Internal\PanelRegistry;
 use AzGuard\Panels\Panel;
-use AzGuard\Panels\PanelCompiler;
-use AzGuard\Panels\PanelRegistry;
 use AzGuard\Tests\Fixtures\Changes\ChangeWorld as W;
 use AzGuard\Tests\Fixtures\Crm\CrmWorld;
 use AzGuard\Tests\Fixtures\Crm\Guards\Backoffice\BackofficePanelProvider;

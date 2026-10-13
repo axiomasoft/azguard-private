@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 use AzGuard\Audit\Internal\AuditSchema;
 use AzGuard\Facades\AzGuard;
+use AzGuard\Storage\Internal\Storage;
+use AzGuard\Storage\Internal\StorageRegistry;
 use AzGuard\Storage\Schema\StorageSchema;
-use AzGuard\Storage\Storage;
-use AzGuard\Storage\StorageRegistry;
 use AzGuard\Tests\Fixtures\Storage\DdlSnapshot;
 use AzGuard\Tests\Fixtures\Storage\SchemaAssertions;
 

@@ -11,7 +11,7 @@ use AzGuard\Contracts\Sources\SourceDescription;
 use AzGuard\Kernel\Identity\TenantRef;
 use AzGuard\Panels\Panel;
 use AzGuard\Policies\PolicyBinding;
-use AzGuard\Sources\PanelSources;
+use AzGuard\Sources\Internal\PanelSources;
 use BackedEnum;
 use Illuminate\Database\Eloquent\Model;
 

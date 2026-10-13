@@ -6,6 +6,7 @@ namespace AzGuard\Changes;
 
 use AzGuard\Attributes\Spi;
 use AzGuard\Attributes\SpiKind;
+use AzGuard\Changes\Internal\ChangeFrame;
 use AzGuard\Exceptions\ChangeCancelledException;
 use AzGuard\Exceptions\InvalidChangeFieldsException;
 use AzGuard\Exceptions\InvalidConfigurationException;

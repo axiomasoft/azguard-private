@@ -2,8 +2,8 @@
 
 declare(strict_types=1);
 
-use AzGuard\Authorization\Authorizer;
-use AzGuard\Authorization\EvaluationFrame;
+use AzGuard\Authorization\Internal\Authorizer;
+use AzGuard\Authorization\Internal\EvaluationFrame;
 use AzGuard\Contracts\Authorization\EvaluationContext;
 use AzGuard\Contracts\Authorization\GrantCondition;
 use AzGuard\Exceptions\InvalidConfigurationException;

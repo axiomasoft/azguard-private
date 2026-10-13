@@ -2,21 +2,21 @@
 
 declare(strict_types=1);
 
-use AzGuard\Directories\ModelSubjectDirectory;
-use AzGuard\Directories\ModelTenantDirectory;
+use AzGuard\Directories\Internal\ModelSubjectDirectory;
+use AzGuard\Directories\Internal\ModelTenantDirectory;
 use AzGuard\Exceptions\TenantMismatchException;
 use AzGuard\Kernel\Decision\PermissionAuthority;
 use AzGuard\Kernel\Identity\TenantRef;
+use AzGuard\Panels\Internal\PanelRegistry;
 use AzGuard\Panels\Panel;
 use AzGuard\Panels\PanelBuilder;
-use AzGuard\Panels\PanelRegistry;
 use AzGuard\Policies\PolicyBinding;
 use AzGuard\Schema\Field;
 use AzGuard\Schema\FieldTarget;
+use AzGuard\Schema\Internal\SchemaBuilder;
 use AzGuard\Schema\PanelSchema;
 use AzGuard\Schema\PermissionSchema;
 use AzGuard\Schema\RoleSchema;
-use AzGuard\Schema\SchemaBuilder;
 use AzGuard\Scopes\Internal\QueryScopeDirectory;
 use AzGuard\Sources\Database\DatabaseSource;
 use AzGuard\Tests\Fixtures\Changes\ChangeWorld as W;

@@ -12,7 +12,7 @@ use AzGuard\Kernel\Identity\AssignmentScopeRef;
 use AzGuard\Kernel\Identity\SubjectRef;
 use AzGuard\Kernel\Identity\TenantRef;
 use AzGuard\Kernel\Permissions\PermissionSet;
-use AzGuard\Panels\PanelResolver;
+use AzGuard\Panels\Internal\PanelResolver;
 use AzGuard\Support\ModelKey;
 use DateTimeInterface;
 use Illuminate\Database\Eloquent\Model;

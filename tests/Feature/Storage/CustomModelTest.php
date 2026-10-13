@@ -3,12 +3,12 @@
 declare(strict_types=1);
 
 use AzGuard\Exceptions\StorageMismatchException;
+use AzGuard\Storage\Internal\Storage;
+use AzGuard\Storage\Internal\StorageRegistry;
 use AzGuard\Storage\Models\Permission;
 use AzGuard\Storage\Models\PermissionGrant;
 use AzGuard\Storage\Models\RoleGrant;
 use AzGuard\Storage\Schema\StorageSchema;
-use AzGuard\Storage\Storage;
-use AzGuard\Storage\StorageRegistry;
 use Illuminate\Database\Eloquent\Attributes\Connection;
 use Illuminate\Database\Eloquent\Attributes\Table;
 use Illuminate\Database\Eloquent\Casts\AsArrayObject;

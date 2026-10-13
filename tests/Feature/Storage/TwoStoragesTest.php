@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
+use AzGuard\Storage\Internal\Storage;
+use AzGuard\Storage\Internal\StorageMutation;
+use AzGuard\Storage\Internal\StorageRegistry;
 use AzGuard\Storage\Schema\StorageSchema;
-use AzGuard\Storage\Storage;
-use AzGuard\Storage\StorageMutation;
-use AzGuard\Storage\StorageRegistry;
 
 it('migrates writes and drops two prefixed storages independently', function (): void {
     $registry = app(StorageRegistry::class);

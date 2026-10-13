@@ -3,11 +3,11 @@
 declare(strict_types=1);
 
 use AzGuard\Audit\AuditPlugin;
-use AzGuard\Changes\ActingActor;
 use AzGuard\Changes\Change;
 use AzGuard\Changes\ChangeResult;
 use AzGuard\Changes\ChangeStatus;
 use AzGuard\Changes\GrantDetails;
+use AzGuard\Changes\Internal\ActingActor;
 use AzGuard\Context\AssignmentScopePhase;
 use AzGuard\Events\RoleRevoked;
 use AzGuard\Exceptions\AssignmentScopeNotAcceptedException;
@@ -17,11 +17,11 @@ use AzGuard\Exceptions\PermissionNotGrantableException;
 use AzGuard\Exceptions\TenantMismatchException;
 use AzGuard\Kernel\Decision\DecisionReason;
 use AzGuard\Kernel\Identity\ActorRef;
+use AzGuard\Panels\Internal\PanelRegistry;
 use AzGuard\Panels\PanelBuilder;
-use AzGuard\Panels\PanelRegistry;
 use AzGuard\Schema\Field;
 use AzGuard\Schema\FieldTarget;
-use AzGuard\Storage\StorageTouched;
+use AzGuard\Storage\Internal\StorageTouched;
 use AzGuard\Tests\Fixtures\Changes\ChangeWorld as W;
 use AzGuard\Tests\Fixtures\Changes\DelegationPipe;
 use AzGuard\Tests\Fixtures\Changes\HostFencePipe;

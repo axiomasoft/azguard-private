@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-use AzGuard\Configuration\AzGuardConfig;
+use AzGuard\Configuration\Internal\AzGuardConfig;
 use AzGuard\Exceptions\PluginConflictException;
+use AzGuard\Panels\Internal\PanelCompiler;
+use AzGuard\Panels\Internal\PanelRegistry;
 use AzGuard\Panels\PanelBuilder;
-use AzGuard\Panels\PanelCompiler;
-use AzGuard\Panels\PanelRegistry;
 use AzGuard\Tests\Fixtures\Panels\AdminPanel;
 use AzGuard\Tests\Fixtures\Panels\BootsPanels;
 use AzGuard\Tests\Fixtures\Panels\FixturePanel;

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace AzGuard\Testing;
 
 use AzGuard\Attributes\Api;
+use AzGuard\Testing\Internal\FakeSubjectBuilder;
 use Illuminate\Auth\Authenticatable;
 use Illuminate\Contracts\Auth\Authenticatable as AuthenticatableContract;
 use Illuminate\Database\Eloquent\Model;

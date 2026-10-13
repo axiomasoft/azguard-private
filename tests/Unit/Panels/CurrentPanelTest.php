@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-use AzGuard\Panels\CurrentPanel;
+use AzGuard\Panels\Internal\CurrentPanel;
+use AzGuard\Panels\Internal\PanelCompiler;
+use AzGuard\Panels\Internal\PanelRecipe;
 use AzGuard\Panels\Panel;
-use AzGuard\Panels\PanelCompiler;
-use AzGuard\Panels\PanelRecipe;
 
 function currentPanelFixture(string $id): Panel
 {

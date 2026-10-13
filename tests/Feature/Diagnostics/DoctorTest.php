@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use AzGuard\Configuration\AzGuardConfig;
+use AzGuard\Configuration\Internal\AzGuardConfig;
 use AzGuard\Contracts\Sources\ChecksHealth;
 use AzGuard\Diagnostics\Doctor;
 use AzGuard\Diagnostics\DoctorContext;
@@ -13,7 +13,7 @@ use AzGuard\Exceptions\InvalidConfigurationException;
 use AzGuard\Exceptions\UnknownPanelException;
 use AzGuard\Panels\PanelBuilder;
 use AzGuard\Sources\Database\DatabaseSource;
-use AzGuard\Storage\StorageRegistry;
+use AzGuard\Storage\Internal\StorageRegistry;
 use AzGuard\Tests\Fixtures\Diagnostics\CheckingPlugin;
 use AzGuard\Tests\Fixtures\Diagnostics\DoctorWorld;
 use AzGuard\Tests\Fixtures\Diagnostics\ExplodingCheck;

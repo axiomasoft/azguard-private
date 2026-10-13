@@ -261,7 +261,7 @@
             "type": "crm.organization",
             "label": "Organization",
             "model": "AzGuard\\Tests\\Fixtures\\Crm\\Models\\Organization",
-            "directory": "AzGuard\\Directories\\ModelTenantDirectory"
+            "directory": "AzGuard\\Directories\\Internal\\ModelTenantDirectory"
         }
     ],
     "scopes": [
@@ -278,7 +278,7 @@
             "type": "crm.user",
             "label": "User",
             "guard": "web",
-            "directory": "AzGuard\\Directories\\ModelSubjectDirectory"
+            "directory": "AzGuard\\Directories\\Internal\\ModelSubjectDirectory"
         }
     ]
 }

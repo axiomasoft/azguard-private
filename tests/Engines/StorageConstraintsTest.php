@@ -2,8 +2,8 @@
 
 declare(strict_types=1);
 
+use AzGuard\Storage\Internal\StorageRegistry;
 use AzGuard\Storage\Schema\StorageSchema;
-use AzGuard\Storage\StorageRegistry;
 use AzGuard\Tests\Fixtures\Storage\SchemaAssertions;
 
 it('enforces byte identities and tenant context pair constraints on the engine', function (): void {

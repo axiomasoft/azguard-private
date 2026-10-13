@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use AzGuard\Authorization\EvaluationFrame;
+use AzGuard\Authorization\Internal\EvaluationFrame;
 use AzGuard\Contracts\Authorization\EvaluationContext;
 use AzGuard\Kernel\Decision\AccessRequest;
 use AzGuard\Kernel\Decision\CodeStateToken;
@@ -13,9 +13,9 @@ use AzGuard\Kernel\Identity\PermissionKey;
 use AzGuard\Kernel\Identity\PermissionPattern;
 use AzGuard\Kernel\Identity\SubjectRef;
 use AzGuard\Kernel\Identity\TenantRef;
-use AzGuard\Panels\PanelCompiler;
-use AzGuard\Panels\PanelRecipe;
-use AzGuard\Policies\RuntimeInvoker;
+use AzGuard\Panels\Internal\PanelCompiler;
+use AzGuard\Panels\Internal\PanelRecipe;
+use AzGuard\Policies\Internal\RuntimeInvoker;
 use AzGuard\Tests\Fixtures\Panels\User;
 
 function unitEvaluationFrame(): EvaluationFrame

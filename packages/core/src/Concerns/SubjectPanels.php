@@ -9,8 +9,8 @@ use AzGuard\Exceptions\TenantRequiredException;
 use AzGuard\Exceptions\UnknownPanelException;
 use AzGuard\Kernel\Identity\SubjectRef;
 use AzGuard\Kernel\Permissions\PermissionSet;
+use AzGuard\Panels\Internal\PanelResolver;
 use AzGuard\Panels\Panel;
-use AzGuard\Panels\PanelResolver;
 use AzGuard\Tenancy\TenantMode;
 use Illuminate\Database\Eloquent\Model;
 

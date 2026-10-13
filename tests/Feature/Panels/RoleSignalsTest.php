@@ -5,7 +5,7 @@ declare(strict_types=1);
 use AzGuard\Exceptions\AmbiguousPanelException;
 use AzGuard\Exceptions\ConflictingPanelException;
 use AzGuard\Exceptions\UnknownRoleException;
-use AzGuard\Panels\PanelResolver;
+use AzGuard\Panels\Internal\PanelResolver;
 use AzGuard\Tests\Fixtures\Concerns\Roles\AuditorRole;
 use AzGuard\Tests\Fixtures\Concerns\Roles\EditorRole;
 use AzGuard\Tests\Fixtures\Concerns\Roles\ManagerRole;

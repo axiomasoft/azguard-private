@@ -3,8 +3,8 @@
 declare(strict_types=1);
 
 use AzGuard\Exceptions\ConfigurationException;
-use AzGuard\Filament\Authorization\FilamentKey;
 use AzGuard\Filament\AzGuardPlugin;
+use AzGuard\Filament\Internal\Authorization\FilamentKey;
 use AzGuard\Tests\Fixtures\Filament\FilamentFixture;
 use AzGuard\Tests\Fixtures\Filament\Models\Order;
 use AzGuard\Tests\Fixtures\Filament\Pages\ProbePage;

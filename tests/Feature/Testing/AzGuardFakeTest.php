@@ -3,8 +3,8 @@
 declare(strict_types=1);
 
 use AzGuard\Events\AccessEvent;
-use AzGuard\Events\EventObservers;
 use AzGuard\Events\EventType;
+use AzGuard\Events\Internal\EventObservers;
 use AzGuard\Facades\AzGuard;
 use AzGuard\Kernel\Decision\DecisionReason;
 use AzGuard\Kernel\Decision\Effect;

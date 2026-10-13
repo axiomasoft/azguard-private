@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use AzGuard\Directories\ModelSubjectDirectory;
+use AzGuard\Directories\Internal\ModelSubjectDirectory;
 use AzGuard\Tests\Feature\Directories\Support\Lookups;
 use AzGuard\Tests\Feature\Directories\Support\Person;
 use AzGuard\Tests\Fixtures\Changes\ChangeWorld;

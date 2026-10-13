@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace AzGuard\Tests\Fixtures\Storage;
 
-use AzGuard\Storage\Storage;
+use AzGuard\Storage\Internal\Storage;
 use Illuminate\Database\QueryException;
 
 final class SchemaAssertions

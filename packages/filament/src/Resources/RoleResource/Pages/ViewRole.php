@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace AzGuard\Filament\Resources\RoleResource\Pages;
 
-use AzGuard\Filament\Editors\TargetSelector;
+use AzGuard\Filament\Internal\Editors\TargetSelector;
 use AzGuard\Filament\Resources\RoleResource;
 use Filament\Infolists\Components\IconEntry;
 use Filament\Infolists\Components\RepeatableEntry;

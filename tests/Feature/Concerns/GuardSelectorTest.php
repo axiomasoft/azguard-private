@@ -5,7 +5,7 @@ declare(strict_types=1);
 use AzGuard\Concerns\HasAzGuard;
 use AzGuard\Concerns\SubjectAccess;
 use AzGuard\Exceptions\UnknownPanelException;
-use AzGuard\Panels\CurrentPanel;
+use AzGuard\Panels\Internal\CurrentPanel;
 use AzGuard\Tests\Fixtures\Concerns\CustomGuardMember;
 use AzGuard\Tests\Fixtures\Concerns\Member;
 use AzGuard\Tests\Fixtures\Concerns\SubjectWorld;

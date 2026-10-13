@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace AzGuard\Tests\Fixtures\Guards\Orders;
 
-use AzGuard\Authorization\Authorizer;
+use AzGuard\Authorization\Internal\Authorizer;
 use AzGuard\Kernel\Decision\AccessRequest;
 use AzGuard\Kernel\Decision\Decision;
 use AzGuard\Kernel\Decision\Grant;
@@ -13,7 +13,7 @@ use AzGuard\Kernel\Identity\PermissionKey;
 use AzGuard\Kernel\Identity\PermissionPattern;
 use AzGuard\Kernel\Identity\SubjectRef;
 use AzGuard\Kernel\Identity\TenantRef;
-use AzGuard\Panels\PanelRegistry;
+use AzGuard\Panels\Internal\PanelRegistry;
 use AzGuard\Sources\Folder\FolderSource;
 use AzGuard\Tests\Fixtures\Guards\Orders\Permissions\OrderPermission;
 use AzGuard\Tests\Fixtures\Guards\Orders\Policies\OrderPolicy;

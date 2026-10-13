@@ -9,6 +9,8 @@ use AzGuard\Attributes\SpiKind;
 use AzGuard\Contracts\Plugins\Plugin;
 use AzGuard\Panels\PanelBuilder;
 use AzGuard\Plugins\PluginContext;
+use AzGuard\Testing\Internal\Contracts\ContractWorld;
+use AzGuard\Testing\Internal\Contracts\ObservedPlugin;
 use Closure;
 use PHPUnit\Framework\Attributes\Test;
 

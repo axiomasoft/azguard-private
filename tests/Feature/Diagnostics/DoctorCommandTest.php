@@ -2,8 +2,8 @@
 
 declare(strict_types=1);
 
-use AzGuard\Catalog\CatalogCache;
-use AzGuard\Configuration\AzGuardConfig;
+use AzGuard\Catalog\Internal\CatalogCache;
+use AzGuard\Configuration\Internal\AzGuardConfig;
 use AzGuard\Diagnostics\DoctorFinding;
 use AzGuard\Panels\PanelBuilder;
 use AzGuard\Sources\Database\DatabaseSource;

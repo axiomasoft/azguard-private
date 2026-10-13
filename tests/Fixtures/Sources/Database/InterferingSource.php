@@ -8,7 +8,7 @@ use AzGuard\Contracts\Authorization\EvaluationContext;
 use AzGuard\Contracts\Sources\ProvidesGrants;
 use AzGuard\Contracts\Sources\Volatility;
 use AzGuard\Kernel\Identity\SubjectRef;
-use AzGuard\Storage\StorageMutation;
+use AzGuard\Storage\Internal\StorageMutation;
 
 final class InterferingSource implements ProvidesGrants
 {

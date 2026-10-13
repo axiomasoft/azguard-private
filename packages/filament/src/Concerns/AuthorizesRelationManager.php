@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace AzGuard\Filament\Concerns;
 
 use AzGuard\Attributes\Api;
-use AzGuard\Filament\Authorization\FilamentContext;
 use AzGuard\Filament\Authorization\FilamentGate;
+use AzGuard\Filament\Internal\Authorization\FilamentContext;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Tables\Table;
 use Illuminate\Auth\Access\Response;

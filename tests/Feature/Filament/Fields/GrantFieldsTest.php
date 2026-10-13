@@ -12,7 +12,7 @@ use AzGuard\Filament\Resources\RoleGrantResource\Pages\ListRoleGrants;
 use AzGuard\Kernel\Identity\TenantRef;
 use AzGuard\Schema\FieldTarget;
 use AzGuard\Schema\PanelSchema;
-use AzGuard\Storage\StorageRegistry;
+use AzGuard\Storage\Internal\StorageRegistry;
 use AzGuard\Tests\Fixtures\Filament\EditorWorld;
 use AzGuard\Tests\Fixtures\Filament\Fields\DepartmentTreeExtension;
 use AzGuard\Tests\Fixtures\Filament\Fields\ReasonExtension;

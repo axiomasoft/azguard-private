@@ -8,6 +8,7 @@ use AzGuard\Attributes\Api;
 use AzGuard\Exceptions\InvalidConfigurationException;
 use AzGuard\Exceptions\UnknownPermissionException;
 use AzGuard\Exceptions\VisibilityNotSupportedException;
+use AzGuard\Filament\Internal\Authorization\FilamentContext;
 use AzGuard\Kernel\Decision\AccessRequest;
 use AzGuard\Kernel\Identity\PermissionKey;
 use AzGuard\Laravel\Gate\GateBridge;

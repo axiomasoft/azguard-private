@@ -12,6 +12,15 @@
             "owner": "core"
         },
         {
+            "fqcn": "AzGuard\\Catalog\\Internal\\CacheState",
+            "kinds": [
+                "enum"
+            ],
+            "target": "AzGuard\\Catalog\\Internal\\CacheState",
+            "action": "move",
+            "owner": "core"
+        },
+        {
             "fqcn": "AzGuard\\Changes\\ChangeStatus",
             "kinds": [
                 "enum"
@@ -108,6 +117,15 @@
             ],
             "target": "AzGuard\\Events\\GrantExpired",
             "action": "keep",
+            "owner": "core"
+        },
+        {
+            "fqcn": "AzGuard\\Events\\Internal\\EventObservers",
+            "kinds": [
+                "event"
+            ],
+            "target": "AzGuard\\Events\\Internal\\EventObservers",
+            "action": "move",
             "owner": "core"
         },
         {
@@ -678,6 +696,15 @@
             "owner": "filament"
         },
         {
+            "fqcn": "AzGuard\\Filament\\Internal\\Authorization\\FilamentSurface",
+            "kinds": [
+                "enum"
+            ],
+            "target": "AzGuard\\Filament\\Internal\\Authorization\\FilamentSurface",
+            "action": "move",
+            "owner": "filament"
+        },
+        {
             "fqcn": "AzGuard\\Kernel\\Decision\\AccessPredicate",
             "kinds": [
                 "kernel_value"
@@ -918,6 +945,24 @@
             "owner": "core"
         },
         {
+            "fqcn": "AzGuard\\Kernel\\Internal\\Narrow",
+            "kinds": [
+                "kernel_value"
+            ],
+            "target": "AzGuard\\Kernel\\Internal\\Narrow",
+            "action": "move",
+            "owner": "core"
+        },
+        {
+            "fqcn": "AzGuard\\Kernel\\Internal\\PatternMatcher",
+            "kinds": [
+                "kernel_value"
+            ],
+            "target": "AzGuard\\Kernel\\Internal\\PatternMatcher",
+            "action": "move",
+            "owner": "core"
+        },
+        {
             "fqcn": "AzGuard\\Kernel\\Permissions\\PermissionSet",
             "kinds": [
                 "kernel_value"
@@ -1087,78 +1132,25 @@
             "target": "AzGuard\\Testing\\FakeSubject",
             "action": "keep",
             "owner": "core"
-        }
-    ],
-    "reported": [
-        {
-            "fqcn": "AzGuard\\Catalog\\CacheState",
-            "kinds": [
-                "enum"
-            ],
-            "target": "AzGuard\\Catalog\\Internal\\CacheState",
-            "action": "move",
-            "owner": "core",
-            "note": "internal enum of the catalog cache; the type map moves it under Catalog\\Internal (P3). A host does not store it; listed because it is an enum."
         },
         {
-            "fqcn": "AzGuard\\Events\\EventObservers",
-            "kinds": [
-                "event"
-            ],
-            "target": "AzGuard\\Events\\Internal\\EventObservers",
-            "action": "move",
-            "owner": "core",
-            "note": "internal observer registry in the Events namespace, not an event; moved under Events\\Internal (P3). Listed by the Events-namespace rule only."
-        },
-        {
-            "fqcn": "AzGuard\\Filament\\Authorization\\FilamentSurface",
-            "kinds": [
-                "enum"
-            ],
-            "target": "AzGuard\\Filament\\Internal\\Authorization\\FilamentSurface",
-            "action": "move",
-            "owner": "filament",
-            "note": "internal Filament enum; moved under Filament\\Internal (P3)."
-        },
-        {
-            "fqcn": "AzGuard\\Kernel\\Grammar\\PatternMatcher",
-            "kinds": [
-                "kernel_value"
-            ],
-            "target": "AzGuard\\Kernel\\Internal\\PatternMatcher",
-            "action": "move",
-            "owner": "core",
-            "note": "stateless Kernel helper, not a value; moved under Kernel\\Internal (P3)."
-        },
-        {
-            "fqcn": "AzGuard\\Kernel\\Support\\Narrow",
-            "kinds": [
-                "kernel_value"
-            ],
-            "target": "AzGuard\\Kernel\\Internal\\Narrow",
-            "action": "move",
-            "owner": "core",
-            "note": "stateless Kernel helper, not a value; moved under Kernel\\Internal (P3)."
-        },
-        {
-            "fqcn": "AzGuard\\Testing\\Contracts\\ContractPermission",
+            "fqcn": "AzGuard\\Testing\\Internal\\Contracts\\ContractPermission",
             "kinds": [
                 "enum"
             ],
             "target": "AzGuard\\Testing\\Internal\\Contracts\\ContractPermission",
             "action": "move",
-            "owner": "core",
-            "note": "contract-suite fixture enum; moved under Testing\\Internal (P3)."
+            "owner": "core"
         },
         {
-            "fqcn": "AzGuard\\Testing\\Contracts\\OtherPermission",
+            "fqcn": "AzGuard\\Testing\\Internal\\Contracts\\OtherPermission",
             "kinds": [
                 "enum"
             ],
             "target": "AzGuard\\Testing\\Internal\\Contracts\\OtherPermission",
             "action": "move",
-            "owner": "core",
-            "note": "contract-suite fixture enum; moved under Testing\\Internal (P3)."
+            "owner": "core"
         }
-    ]
+    ],
+    "reported": []
 }

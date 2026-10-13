@@ -3,10 +3,10 @@
 declare(strict_types=1);
 
 use AzGuard\Kernel\Identity\TenantRef;
-use AzGuard\Panels\PanelRegistry;
+use AzGuard\Panels\Internal\PanelRegistry;
 use AzGuard\Schema\FieldTarget;
+use AzGuard\Schema\Internal\SchemaBuilder;
 use AzGuard\Schema\PermissionSchema;
-use AzGuard\Schema\SchemaBuilder;
 use AzGuard\Tests\Fixtures\Schema\SchemaAssertions;
 use AzGuard\Tests\Fixtures\Sources\LdapSource;
 use AzGuard\Tests\Fixtures\Sources\Relation\RelationWorld;

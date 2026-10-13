@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 use AzGuard\Exceptions\StorageMismatchException;
-use AzGuard\Storage\StorageRegistry;
+use AzGuard\Storage\Internal\StorageRegistry;
 use AzGuard\Tests\Fixtures\Changes\ChangeWorld as W;
 use AzGuard\Tests\Fixtures\Crm\CrmWorld;
 

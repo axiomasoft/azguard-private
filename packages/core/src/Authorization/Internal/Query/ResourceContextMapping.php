@@ -4,8 +4,7 @@ declare(strict_types=1);
 
 namespace AzGuard\Authorization\Internal\Query;
 
-use AzGuard\Authorization\EvaluationFrame;
-use AzGuard\Authorization\Query\PredicateCompiler;
+use AzGuard\Authorization\Internal\EvaluationFrame;
 use AzGuard\Context\AssignmentScopeRuntime;
 use AzGuard\Context\Internal\ContextIdentity;
 use AzGuard\Contracts\Authorization\FiltersAccessQueries;
@@ -17,7 +16,7 @@ use AzGuard\Kernel\Decision\AccessPredicate as P;
 use AzGuard\Kernel\Decision\AccessRequest;
 use AzGuard\Kernel\Identity\AccessScope;
 use AzGuard\Kernel\Identity\AssignmentScopeRef;
-use AzGuard\Kernel\Support\Narrow;
+use AzGuard\Kernel\Internal\Narrow;
 use AzGuard\Support\ModelKey;
 use Illuminate\Contracts\Container\Container;
 use Illuminate\Database\Eloquent\Builder;

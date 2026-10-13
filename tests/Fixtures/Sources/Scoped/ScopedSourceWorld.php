@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace AzGuard\Tests\Fixtures\Sources\Scoped;
 
-use AzGuard\Authorization\Authorizer;
+use AzGuard\Authorization\Internal\Authorizer;
 use AzGuard\Contracts\Authorization\EvaluationContext;
 use AzGuard\Contracts\Authorization\GrantCondition;
 use AzGuard\Contracts\Scopes\ResolvedAssignmentScope;
@@ -20,16 +20,16 @@ use AzGuard\Kernel\Identity\AssignmentScopeRef;
 use AzGuard\Kernel\Identity\PermissionKey;
 use AzGuard\Kernel\Identity\SubjectRef;
 use AzGuard\Kernel\Identity\TenantRef;
+use AzGuard\Panels\Internal\PanelRegistry;
 use AzGuard\Panels\Panel;
 use AzGuard\Panels\PanelBuilder;
-use AzGuard\Panels\PanelRegistry;
 use AzGuard\Panels\StateRefresh;
 use AzGuard\Roles\BaseRole;
 use AzGuard\Scopes\ScopesPlugin;
 use AzGuard\Sources\Database\DatabaseSource;
 use AzGuard\Sources\Relation\RelationSource;
+use AzGuard\Storage\Internal\StorageMutation;
 use AzGuard\Storage\Schema\StorageSchema;
-use AzGuard\Storage\StorageMutation;
 use AzGuard\Tenancy\ModelTenantDefinition;
 use AzGuard\Tenancy\TenantPolicy;
 use AzGuard\Tests\Fixtures\Panels\AdminPanel;

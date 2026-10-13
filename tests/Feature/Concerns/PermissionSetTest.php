@@ -2,16 +2,16 @@
 
 declare(strict_types=1);
 
-use AzGuard\Authorization\Authorizer;
+use AzGuard\Authorization\Internal\Authorizer;
 use AzGuard\Exceptions\TenantRequiredException;
 use AzGuard\Kernel\Identity\AccessScope;
 use AzGuard\Kernel\Identity\PermissionKey;
 use AzGuard\Kernel\Identity\PermissionPattern;
 use AzGuard\Kernel\Identity\TenantRef;
+use AzGuard\Panels\Internal\PanelRegistry;
 use AzGuard\Panels\PanelBuilder;
-use AzGuard\Panels\PanelRegistry;
-use AzGuard\Storage\StorageMutation;
-use AzGuard\Storage\StorageRegistry;
+use AzGuard\Storage\Internal\StorageMutation;
+use AzGuard\Storage\Internal\StorageRegistry;
 use AzGuard\Tenancy\TenantPolicy;
 use AzGuard\Tests\Fixtures\Concerns\EveryoneMember;
 use AzGuard\Tests\Fixtures\Concerns\LockedRestriction;

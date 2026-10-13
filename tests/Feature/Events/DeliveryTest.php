@@ -20,7 +20,7 @@ use AzGuard\Events\RoleRevoked;
 use AzGuard\Exceptions\ChangeCancelledException;
 use AzGuard\Kernel\Decision\StateToken;
 use AzGuard\Kernel\Identity\ActorRef;
-use AzGuard\Storage\StorageMutation;
+use AzGuard\Storage\Internal\StorageMutation;
 use AzGuard\Tests\Fixtures\Changes\ChangeWorld as W;
 use AzGuard\Tests\Fixtures\Crm\CrmWorld;
 use AzGuard\Tests\Fixtures\Events\EventWorld;

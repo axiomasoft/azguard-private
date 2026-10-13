@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 use AzGuard\Exceptions\DefinitionException;
-use AzGuard\Panels\PanelRegistry;
+use AzGuard\Panels\Internal\PanelRegistry;
 use AzGuard\Schema\Field;
 use AzGuard\Tests\Arch\Ownership;
 use AzGuard\Tests\Fixtures\Baseline070\Formats\FormatSnapshot;

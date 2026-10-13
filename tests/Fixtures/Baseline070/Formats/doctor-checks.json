@@ -12,7 +12,7 @@
                 "uses_key": true
             }
         },
-        "AzGuard\\Diagnostics\\Checks\\CacheStore": {
+        "AzGuard\\Diagnostics\\Internal\\Checks\\CacheStore": {
             "key": "cache.store",
             "finding_ids": {
                 "literal": [
@@ -21,21 +21,21 @@
                 "uses_key": false
             }
         },
-        "AzGuard\\Diagnostics\\Checks\\CatalogBuildId": {
+        "AzGuard\\Diagnostics\\Internal\\Checks\\CatalogBuildId": {
             "key": "catalog.build_id",
             "finding_ids": {
                 "literal": [],
                 "uses_key": true
             }
         },
-        "AzGuard\\Diagnostics\\Checks\\CatalogCached": {
+        "AzGuard\\Diagnostics\\Internal\\Checks\\CatalogCached": {
             "key": "catalog.cached",
             "finding_ids": {
                 "literal": [],
                 "uses_key": true
             }
         },
-        "AzGuard\\Diagnostics\\Checks\\CatalogCollisions": {
+        "AzGuard\\Diagnostics\\Internal\\Checks\\CatalogCollisions": {
             "key": "catalog.collisions",
             "finding_ids": {
                 "literal": [
@@ -44,7 +44,7 @@
                 "uses_key": true
             }
         },
-        "AzGuard\\Diagnostics\\Checks\\ConfigValid": {
+        "AzGuard\\Diagnostics\\Internal\\Checks\\ConfigValid": {
             "key": "config.valid",
             "finding_ids": {
                 "literal": [
@@ -53,7 +53,7 @@
                 "uses_key": true
             }
         },
-        "AzGuard\\Diagnostics\\Checks\\ConsistencyReads": {
+        "AzGuard\\Diagnostics\\Internal\\Checks\\ConsistencyReads": {
             "key": "consistency.reads",
             "finding_ids": {
                 "literal": [
@@ -62,14 +62,14 @@
                 "uses_key": false
             }
         },
-        "AzGuard\\Diagnostics\\Checks\\DecisionFieldsInMeta": {
+        "AzGuard\\Diagnostics\\Internal\\Checks\\DecisionFieldsInMeta": {
             "key": "fields.meta",
             "finding_ids": {
                 "literal": [],
                 "uses_key": true
             }
         },
-        "AzGuard\\Diagnostics\\Checks\\DirectWrites": {
+        "AzGuard\\Diagnostics\\Internal\\Checks\\DirectWrites": {
             "key": "direct_writes",
             "finding_ids": {
                 "literal": [
@@ -78,7 +78,7 @@
                 "uses_key": false
             }
         },
-        "AzGuard\\Diagnostics\\Checks\\DiscoveryCached": {
+        "AzGuard\\Diagnostics\\Internal\\Checks\\DiscoveryCached": {
             "key": "panels.policies",
             "finding_ids": {
                 "literal": [
@@ -87,21 +87,21 @@
                 "uses_key": false
             }
         },
-        "AzGuard\\Diagnostics\\Checks\\GrantsDead": {
+        "AzGuard\\Diagnostics\\Internal\\Checks\\GrantsDead": {
             "key": "grants.dead",
             "finding_ids": {
                 "literal": [],
                 "uses_key": true
             }
         },
-        "AzGuard\\Diagnostics\\Checks\\ModelColumns": {
+        "AzGuard\\Diagnostics\\Internal\\Checks\\ModelColumns": {
             "key": "storage.schema",
             "finding_ids": {
                 "literal": [],
                 "uses_key": true
             }
         },
-        "AzGuard\\Diagnostics\\Checks\\PanelsPlugins": {
+        "AzGuard\\Diagnostics\\Internal\\Checks\\PanelsPlugins": {
             "key": "panels.plugins",
             "finding_ids": {
                 "literal": [
@@ -110,7 +110,7 @@
                 "uses_key": false
             }
         },
-        "AzGuard\\Diagnostics\\Checks\\PanelsPolicies": {
+        "AzGuard\\Diagnostics\\Internal\\Checks\\PanelsPolicies": {
             "key": "panels.policies",
             "finding_ids": {
                 "literal": [
@@ -119,7 +119,7 @@
                 "uses_key": false
             }
         },
-        "AzGuard\\Diagnostics\\Checks\\PanelsRelations": {
+        "AzGuard\\Diagnostics\\Internal\\Checks\\PanelsRelations": {
             "key": "panels.relations",
             "finding_ids": {
                 "literal": [
@@ -128,7 +128,7 @@
                 "uses_key": false
             }
         },
-        "AzGuard\\Diagnostics\\Checks\\PanelsSources": {
+        "AzGuard\\Diagnostics\\Internal\\Checks\\PanelsSources": {
             "key": "panels.sources",
             "finding_ids": {
                 "literal": [
@@ -137,7 +137,7 @@
                 "uses_key": false
             }
         },
-        "AzGuard\\Diagnostics\\Checks\\PanelsValid": {
+        "AzGuard\\Diagnostics\\Internal\\Checks\\PanelsValid": {
             "key": "panels.valid",
             "finding_ids": {
                 "literal": [
@@ -146,7 +146,7 @@
                 "uses_key": false
             }
         },
-        "AzGuard\\Diagnostics\\Checks\\PoliciesComplete": {
+        "AzGuard\\Diagnostics\\Internal\\Checks\\PoliciesComplete": {
             "key": "policies.complete",
             "finding_ids": {
                 "literal": [
@@ -155,7 +155,7 @@
                 "uses_key": false
             }
         },
-        "AzGuard\\Diagnostics\\Checks\\RolesKeys": {
+        "AzGuard\\Diagnostics\\Internal\\Checks\\RolesKeys": {
             "key": "roles.keys",
             "finding_ids": {
                 "literal": [
@@ -164,35 +164,35 @@
                 "uses_key": false
             }
         },
-        "AzGuard\\Diagnostics\\Checks\\RolesOrphaned": {
+        "AzGuard\\Diagnostics\\Internal\\Checks\\RolesOrphaned": {
             "key": "roles.orphaned",
             "finding_ids": {
                 "literal": [],
                 "uses_key": true
             }
         },
-        "AzGuard\\Diagnostics\\Checks\\RoutesChecks": {
+        "AzGuard\\Diagnostics\\Internal\\Checks\\RoutesChecks": {
             "key": "routes.checks",
             "finding_ids": {
                 "literal": [],
                 "uses_key": true
             }
         },
-        "AzGuard\\Diagnostics\\Checks\\StorageMigrated": {
+        "AzGuard\\Diagnostics\\Internal\\Checks\\StorageMigrated": {
             "key": "storage.migrated",
             "finding_ids": {
                 "literal": [],
                 "uses_key": true
             }
         },
-        "AzGuard\\Diagnostics\\Checks\\StorageSchema": {
+        "AzGuard\\Diagnostics\\Internal\\Checks\\StorageSchema": {
             "key": "storage.schema",
             "finding_ids": {
                 "literal": [],
                 "uses_key": true
             }
         },
-        "AzGuard\\Diagnostics\\Checks\\StorageSqlite": {
+        "AzGuard\\Diagnostics\\Internal\\Checks\\StorageSqlite": {
             "key": "storage.sqlite",
             "finding_ids": {
                 "literal": [],

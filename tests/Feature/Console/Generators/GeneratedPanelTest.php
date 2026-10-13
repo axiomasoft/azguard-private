@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 use AzGuard\AzGuard;
 use AzGuard\Exceptions\InvalidPolicyStructureException;
-use AzGuard\Panels\PanelRegistry;
+use AzGuard\Panels\Internal\PanelRegistry;
 use AzGuard\Sources\SourceManager;
 use AzGuard\Storage\Schema\StorageSchema;
 use AzGuard\Tests\Fixtures\Console\GeneratedApp;

@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 use AzGuard\Exceptions\InvalidConfigurationException;
 use AzGuard\Panels\Reads;
+use AzGuard\Storage\Internal\Storage;
 use AzGuard\Storage\Schema\StorageSchema;
-use AzGuard\Storage\Storage;
 
 it('refuses authority snapshots on SQLite handles configured for dirty reads', function (): void {
     $file = tempnam(sys_get_temp_dir(), 'azguard-dirty-read-');

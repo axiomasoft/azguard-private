@@ -2,8 +2,8 @@
 
 declare(strict_types=1);
 
-use AzGuard\Authorization\Authorizer;
-use AzGuard\Authorization\EvaluationFrame;
+use AzGuard\Authorization\Internal\Authorizer;
+use AzGuard\Authorization\Internal\EvaluationFrame;
 use AzGuard\Contracts\Authorization\EvaluationContext;
 use AzGuard\Kernel\Decision\AccessRequest;
 use AzGuard\Kernel\Decision\BeforeResult;
@@ -15,8 +15,8 @@ use AzGuard\Kernel\Identity\SubjectRef;
 use AzGuard\Kernel\Identity\TenantRef;
 use AzGuard\Panels\Reads;
 use AzGuard\Sources\Database\DatabaseSource;
+use AzGuard\Storage\Internal\StorageMutation;
 use AzGuard\Storage\Schema\StorageSchema;
-use AzGuard\Storage\StorageMutation;
 use AzGuard\Tests\Fixtures\Sources\Database\ConcurrentWriter;
 use AzGuard\Tests\Fixtures\Sources\Database\DatabaseWorld;
 use AzGuard\Tests\Fixtures\Sources\Database\InterferingSource;

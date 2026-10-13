@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use AzGuard\Authorization\Cache\PermissionSetCache;
+use AzGuard\Authorization\Internal\Cache\PermissionSetCache;
 use AzGuard\Contracts\Sources\Volatility;
 use AzGuard\Kernel\Decision\AccessRequest;
 use AzGuard\Kernel\Decision\CodeStateToken;
@@ -10,8 +10,8 @@ use AzGuard\Kernel\Decision\DecisionReason;
 use AzGuard\Kernel\Identity\SubjectRef;
 use AzGuard\Panels\PanelBuilder;
 use AzGuard\Sources\Database\DatabaseSource;
+use AzGuard\Storage\Internal\Storage;
 use AzGuard\Storage\Schema\StorageSchema;
-use AzGuard\Storage\Storage;
 use AzGuard\Tests\Fixtures\Authorization\AuthorizationWorld;
 use AzGuard\Tests\Fixtures\Authorization\Cache\CacheSource;
 use AzGuard\Tests\Fixtures\Authorization\Cache\CacheWorld;

@@ -3,8 +3,8 @@
 declare(strict_types=1);
 
 use AzGuard\Panels\Reads;
+use AzGuard\Storage\Internal\StorageRegistry;
 use AzGuard\Storage\Schema\StorageSchema;
-use AzGuard\Storage\StorageRegistry;
 use AzGuard\Tests\Fixtures\Concerns\SubjectWorld;
 use Illuminate\Support\Facades\DB;
 

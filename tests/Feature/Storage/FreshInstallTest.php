@@ -3,12 +3,12 @@
 declare(strict_types=1);
 
 use AzGuard\Audit\AuditPlugin;
-use AzGuard\Configuration\AzGuardConfig;
+use AzGuard\Configuration\Internal\AzGuardConfig;
 use AzGuard\Facades\AzGuard;
 use AzGuard\Kernel\Identity\SubjectRef;
 use AzGuard\Panels\PanelBuilder;
 use AzGuard\Sources\Database\DatabaseSource;
-use AzGuard\Storage\StorageRegistry;
+use AzGuard\Storage\Internal\StorageRegistry;
 use AzGuard\Tests\Fixtures\Diagnostics\DoctorWorld;
 use AzGuard\Tests\Fixtures\Panels\OrderPermission;
 use AzGuard\Tests\Fixtures\Panels\TestPanel;

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace AzGuard\Authorization\Internal\Query;
 
-use AzGuard\Kernel\Support\Narrow;
+use AzGuard\Kernel\Internal\Narrow;
 use Closure;
 use Illuminate\Contracts\Database\Query\Expression;
 use Illuminate\Database\Eloquent\Builder;

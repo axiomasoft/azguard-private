@@ -9,7 +9,7 @@ use AzGuard\Kernel\Decision\DecisionReason;
 use AzGuard\Kernel\Identity\AccessScope;
 use AzGuard\Kernel\Identity\AssignmentScopeRef;
 use AzGuard\Kernel\Identity\TenantRef;
-use AzGuard\Storage\StorageMutation;
+use AzGuard\Storage\Internal\StorageMutation;
 use AzGuard\Tests\Engines\Support\AuthorityProcess;
 use AzGuard\Tests\Engines\Support\BatchEngineWorld;
 use AzGuard\Tests\Engines\Support\CacheEngineWorld;

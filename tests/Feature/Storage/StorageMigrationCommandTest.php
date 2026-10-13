@@ -3,9 +3,9 @@
 declare(strict_types=1);
 
 use AzGuard\AzGuardServiceProvider;
-use AzGuard\Configuration\AzGuardConfig;
+use AzGuard\Configuration\Internal\AzGuardConfig;
+use AzGuard\Storage\Internal\StorageRegistry;
 use AzGuard\Storage\Schema\StorageSchema;
-use AzGuard\Storage\StorageRegistry;
 use Illuminate\Support\ServiceProvider;
 
 it('uses the same template for default and host migrations', function (): void {

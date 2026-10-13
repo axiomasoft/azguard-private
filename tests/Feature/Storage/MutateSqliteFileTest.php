@@ -2,8 +2,8 @@
 
 declare(strict_types=1);
 
+use AzGuard\Storage\Internal\StorageRegistry;
 use AzGuard\Storage\Schema\StorageSchema;
-use AzGuard\Storage\StorageRegistry;
 use AzGuard\Tests\Engines\Support\Processes;
 
 it('serializes file-backed SQLite mutations from two processes', function (): void {

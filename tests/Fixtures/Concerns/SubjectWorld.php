@@ -4,15 +4,15 @@ declare(strict_types=1);
 
 namespace AzGuard\Tests\Fixtures\Concerns;
 
-use AzGuard\Authorization\Authorizer;
-use AzGuard\Panels\CurrentPanel;
+use AzGuard\Authorization\Internal\Authorizer;
+use AzGuard\Panels\Internal\CurrentPanel;
+use AzGuard\Panels\Internal\PanelRegistry;
+use AzGuard\Panels\Internal\PanelResolver;
 use AzGuard\Panels\PanelBuilder;
-use AzGuard\Panels\PanelRegistry;
-use AzGuard\Panels\PanelResolver;
 use AzGuard\Policies\PolicyBinding;
 use AzGuard\Sources\Database\DatabaseSource;
+use AzGuard\Storage\Internal\StorageRegistry;
 use AzGuard\Storage\Schema\StorageSchema;
-use AzGuard\Storage\StorageRegistry;
 use AzGuard\Tests\Fixtures\Concerns\Roles\AuditorRole;
 use AzGuard\Tests\Fixtures\Concerns\Roles\EditorRole;
 use AzGuard\Tests\Fixtures\Concerns\Roles\ManagerRole;

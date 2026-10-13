@@ -24,7 +24,7 @@ use AzGuard\Schema\Field;
 use AzGuard\Schema\FieldTarget;
 use AzGuard\Schema\WriterSchema;
 use AzGuard\Sources\Database\DatabaseSource;
-use AzGuard\Sources\PanelSources;
+use AzGuard\Sources\Internal\PanelSources;
 use AzGuard\Tenancy\TenantPolicy;
 use Closure;
 use Illuminate\Database\Eloquent\Model;

@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace AzGuard\Tests\Fixtures\Parity;
 
-use AzGuard\Authorization\Authorizer;
-use AzGuard\Changes\ChangePipeline;
+use AzGuard\Authorization\Internal\Authorizer;
+use AzGuard\Changes\Internal\ChangePipeline;
 use AzGuard\Context\AssignmentScopePhase;
 use AzGuard\Directories\LookupContext;
 use AzGuard\Exceptions\AzGuardException;
@@ -19,7 +19,7 @@ use AzGuard\Kernel\Identity\PermissionKey;
 use AzGuard\Kernel\Identity\RoleKey;
 use AzGuard\Kernel\Identity\SubjectRef;
 use AzGuard\Kernel\Identity\TenantRef;
-use AzGuard\Panels\PanelRegistry;
+use AzGuard\Panels\Internal\PanelRegistry;
 use AzGuard\Tests\Fixtures\Changes\Roles\AuditorRole;
 use AzGuard\Tests\Fixtures\Crm\CrmWorld;
 use AzGuard\Tests\Fixtures\Crm\Guards\Crm\Roles\AnalystRole;

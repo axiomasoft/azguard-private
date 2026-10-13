@@ -5,11 +5,11 @@ declare(strict_types=1);
 namespace AzGuard\Filament;
 
 use AzGuard\Attributes\Api;
-use AzGuard\Filament\Authorization\AuthorizesActions;
 use AzGuard\Filament\Authorization\FilamentGate;
-use AzGuard\Filament\Authorization\RefusesEditableColumns;
-use AzGuard\Filament\Commands\FilamentGenerateCommand;
-use AzGuard\Filament\Exports\AuthorizesExports;
+use AzGuard\Filament\Internal\Authorization\AuthorizesActions;
+use AzGuard\Filament\Internal\Authorization\RefusesEditableColumns;
+use AzGuard\Filament\Internal\Console\FilamentGenerateCommand;
+use AzGuard\Filament\Internal\Exports\AuthorizesExports;
 use Filament\Actions\Action;
 use Filament\Actions\Events\ActionCalling;
 use Illuminate\Contracts\Auth\Access\Gate;

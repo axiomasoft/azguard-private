@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 use AzGuard\Authorization\Visibility;
 use AzGuard\Changes\GrantFilter;
-use AzGuard\Concerns\ScopedPanelAccess;
+use AzGuard\Concerns\Internal\ScopedPanelAccess;
 use AzGuard\Concerns\SubjectAccess;
 use AzGuard\Context\Internal\CurrentContext;
 use AzGuard\Context\Internal\WithinContext;

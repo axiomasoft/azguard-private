@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use AzGuard\Authorization\Pipeline\Trace;
+use AzGuard\Authorization\Internal\Pipeline\Trace;
 use AzGuard\Exceptions\InvalidConfigurationException;
 use Illuminate\Support\Facades\Log;
 

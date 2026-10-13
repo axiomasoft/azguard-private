@@ -7,15 +7,15 @@ use AzGuard\Kernel\Decision\DecisionReason;
 use AzGuard\Kernel\Decision\StateToken;
 use AzGuard\Kernel\Identity\PermissionKey;
 use AzGuard\Kernel\Identity\SubjectRef;
+use AzGuard\Panels\Internal\PanelRegistry;
 use AzGuard\Panels\PanelBuilder;
-use AzGuard\Panels\PanelRegistry;
 use AzGuard\Panels\Reads;
 use AzGuard\Panels\StateRefresh;
 use AzGuard\Policies\PolicyBinding;
 use AzGuard\Sources\Database\DatabaseSource;
+use AzGuard\Storage\Internal\Storage;
+use AzGuard\Storage\Internal\StorageMutation;
 use AzGuard\Storage\Schema\StorageSchema;
-use AzGuard\Storage\Storage;
-use AzGuard\Storage\StorageMutation;
 use AzGuard\Tests\Fixtures\Authorization\Cache\CacheWorld;
 use AzGuard\Tests\Fixtures\Panels\AdminPanel;
 use AzGuard\Tests\Fixtures\Panels\CabinetPanel;
@@ -86,7 +86,7 @@ it('AC5 decides every subject of a set at one snapshot while another connection 
     // The decisions after the commit see the move.
     expect($engine->decideMany([snapshotRequest(1), snapshotRequest(2)])->get(1)->reason)->toBe(DecisionReason::Granted);
 })->with(['cold' => [false], 'warm cache for one subject' => [true]]);
-use AzGuard\Authorization\Authorizer;
+use AzGuard\Authorization\Internal\Authorizer;
 
 it('shares one physical snapshot across logical stores and read modes', function (bool $separateStore, Reads $reads): void {
     $storage = DatabaseWorld::storage();

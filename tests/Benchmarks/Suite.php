@@ -16,7 +16,7 @@ declare(strict_types=1);
 require dirname(__DIR__, 2).'/vendor/autoload.php';
 
 use AzGuard\Facades\AzGuard;
-use AzGuard\Panels\PanelRegistry;
+use AzGuard\Panels\Internal\PanelRegistry;
 use AzGuard\Tests\TestCase;
 use AzGuardBench\BenchPanelProvider;
 use AzGuardBench\Post;
@@ -259,7 +259,7 @@ PHP);
         file_put_contents("{$dir}/BenchPanelProvider.php", $head.<<<PHP
 use AzGuard\\Panels\\PanelBuilder;
 use AzGuard\\Panels\\PanelProvider;
-use AzGuard\\Panels\\PanelRegistry;
+use AzGuard\\Panels\\Internal\\PanelRegistry;
 use AzGuard\\Policies\\PolicyBinding;
 use AzGuard\\Sources\\Database\\DatabaseSource;
 

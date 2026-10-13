@@ -7,9 +7,9 @@ use AzGuard\Exceptions\StorageMismatchException;
 use AzGuard\Kernel\Identity\IdentityCodec;
 use AzGuard\Kernel\Identity\TenantRef;
 use AzGuard\Sources\Database\DatabaseSource;
+use AzGuard\Storage\Internal\Storage;
+use AzGuard\Storage\Internal\StorageRegistry;
 use AzGuard\Storage\Schema\StorageSchema;
-use AzGuard\Storage\Storage;
-use AzGuard\Storage\StorageRegistry;
 use AzGuard\Tests\Fixtures\Sources\Database\DatabaseWorld;
 
 it('reuses a configured physical storage and checks its host key contract', function (): void {

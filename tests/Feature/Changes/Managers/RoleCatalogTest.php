@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-use AzGuard\Catalog\CodeRoleCatalog;
+use AzGuard\Catalog\Internal\CodeRoleCatalog;
 use AzGuard\Changes\Change;
 use AzGuard\Changes\ChangeResult;
 use AzGuard\Changes\GrantDetails;
 use AzGuard\Contracts\Roles\RoleCatalog;
 use AzGuard\Exceptions\StaleSelectionException;
+use AzGuard\Schema\Internal\SchemaBuilder;
 use AzGuard\Schema\RoleSchema;
-use AzGuard\Schema\SchemaBuilder;
 use AzGuard\Tests\Feature\Changes\Managers\ManagerWorld as M;
 use AzGuard\Tests\Fixtures\Changes\ChangeWorld as W;
 use AzGuard\Tests\Fixtures\Changes\Roles\AuditorRole;

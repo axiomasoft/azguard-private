@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use AzGuard\Changes\ChangePipeline;
+use AzGuard\Changes\Internal\ChangePipeline;
 use AzGuard\Exceptions\UnknownPermissionException;
 use AzGuard\Exceptions\UnknownRoleException;
 use AzGuard\Tests\Fixtures\Changes\ChangeWorld;

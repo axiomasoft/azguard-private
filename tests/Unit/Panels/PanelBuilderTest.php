@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 use AzGuard\Exceptions\DefinitionException;
 use AzGuard\Exceptions\RegistryFrozenException;
+use AzGuard\Panels\Internal\PanelRecipe;
 use AzGuard\Panels\PanelBuilder;
-use AzGuard\Panels\PanelRecipe;
 use AzGuard\Tests\Fixtures\Panels\ArraySource;
 use AzGuard\Tests\Fixtures\Panels\FixedResourceScopeResolver;
 use AzGuard\Tests\Fixtures\Panels\FixedScopeResolver;

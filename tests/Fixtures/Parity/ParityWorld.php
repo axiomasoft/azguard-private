@@ -5,15 +5,15 @@ declare(strict_types=1);
 namespace AzGuard\Tests\Fixtures\Parity;
 
 use AzGuard\Audit\AuditPlugin;
-use AzGuard\Authorization\Authorizer;
+use AzGuard\Authorization\Internal\Authorizer;
 use AzGuard\Context\AssignmentScopeDeclaration;
 use AzGuard\Context\AssignmentScopeMode;
 use AzGuard\Kernel\Identity\AccessScope;
 use AzGuard\Kernel\Identity\TenantRef;
+use AzGuard\Panels\Internal\PanelRegistry;
 use AzGuard\Panels\PanelBuilder;
-use AzGuard\Panels\PanelRegistry;
 use AzGuard\Scopes\Internal\ScopeEvaluator;
-use AzGuard\Storage\StorageMutation;
+use AzGuard\Storage\Internal\StorageMutation;
 use AzGuard\Tenancy\TenantPolicy;
 use AzGuard\Tests\Fixtures\Changes\Roles\AuditorRole;
 use AzGuard\Tests\Fixtures\Changes\Roles\SupportRole;

@@ -2,18 +2,18 @@
 
 declare(strict_types=1);
 
-use AzGuard\Authorization\Authorizer;
-use AzGuard\Authorization\Cache\PermissionSetCache;
+use AzGuard\Authorization\Internal\Authorizer;
+use AzGuard\Authorization\Internal\Cache\PermissionSetCache;
 use AzGuard\AzGuard;
-use AzGuard\Catalog\CatalogCache;
-use AzGuard\Changes\ActingActor;
+use AzGuard\Catalog\Internal\CatalogCache;
+use AzGuard\Changes\Internal\ActingActor;
 use AzGuard\Context\Internal\CurrentContext;
 use AzGuard\Context\Internal\WithinContext;
 use AzGuard\Kernel\Identity\SubjectRef;
-use AzGuard\Panels\CurrentPanel;
-use AzGuard\Panels\PanelRegistry;
+use AzGuard\Panels\Internal\CurrentPanel;
+use AzGuard\Panels\Internal\PanelRegistry;
 use AzGuard\Sources\SourceManager;
-use AzGuard\Storage\StorageRegistry;
+use AzGuard\Storage\Internal\StorageRegistry;
 use AzGuard\Tests\Fixtures\Panels\PanelWorld;
 use AzGuard\Tests\Fixtures\Panels\User;
 use AzGuard\Tests\Fixtures\Scopes\ScopeSource;

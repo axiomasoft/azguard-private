@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace AzGuard\Tests\Fixtures\Parity\Dataset;
 
-use AzGuard\Authorization\Authorizer;
+use AzGuard\Authorization\Internal\Authorizer;
 use AzGuard\Changes\PermissionDetails;
 use AzGuard\Facades\AzGuard;
 use AzGuard\Kernel\Identity\AssignmentScopeRef;
 use AzGuard\Kernel\Identity\TenantRef;
-use AzGuard\Panels\PanelRegistry;
+use AzGuard\Panels\Internal\PanelRegistry;
 use AzGuard\Sources\Database\DatabaseSource;
 use AzGuard\Tests\Fixtures\Crm\CrmPermissionGrant;
 use AzGuard\Tests\Fixtures\Crm\CrmSchema;

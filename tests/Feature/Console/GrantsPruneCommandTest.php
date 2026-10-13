@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 use AzGuard\AzGuardServiceProvider;
-use AzGuard\Configuration\AzGuardConfig;
+use AzGuard\Configuration\Internal\AzGuardConfig;
 use AzGuard\Events\GrantExpired;
 use AzGuard\Events\RoleRevoked;
 use AzGuard\Tests\Fixtures\Changes\ChangeWorld as W;

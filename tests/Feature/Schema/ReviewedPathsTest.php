@@ -3,11 +3,11 @@
 declare(strict_types=1);
 
 use AzGuard\Kernel\Identity\TenantRef;
+use AzGuard\Panels\Internal\PanelRegistry;
 use AzGuard\Panels\PanelBuilder;
-use AzGuard\Panels\PanelRegistry;
 use AzGuard\Schema\Field;
 use AzGuard\Schema\FieldSchema;
-use AzGuard\Schema\SchemaBuilder;
+use AzGuard\Schema\Internal\SchemaBuilder;
 use AzGuard\Scopes\ScopesPlugin;
 use AzGuard\Tests\Fixtures\Authorization\GeneratedSource;
 use AzGuard\Tests\Fixtures\Schema\SchemaAssertions;

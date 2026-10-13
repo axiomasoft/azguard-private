@@ -2,8 +2,8 @@
 
 declare(strict_types=1);
 
-use AzGuard\Authorization\Authorizer;
-use AzGuard\Authorization\EvaluationFrame;
+use AzGuard\Authorization\Internal\Authorizer;
+use AzGuard\Authorization\Internal\EvaluationFrame;
 use AzGuard\Contracts\Sources\Volatility;
 use AzGuard\Exceptions\DefinitionException;
 use AzGuard\Kernel\Decision\CodeStateToken;
@@ -18,7 +18,7 @@ use AzGuard\Kernel\Identity\TenantRef;
 use AzGuard\Permissions\GrantedToAll;
 use AzGuard\Permissions\PolicyOnly;
 use AzGuard\Permissions\RequiresGrant;
-use AzGuard\Sources\PanelSources;
+use AzGuard\Sources\Internal\PanelSources;
 use AzGuard\Tests\Fixtures\Authorization\GeneratedSource;
 use AzGuard\Tests\Fixtures\Guards\Shop\ShopWorld;
 use AzGuard\Tests\Fixtures\Panels\AdminPanel;

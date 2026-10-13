@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use AzGuard\Authorization\ModelSubjectResolver;
+use AzGuard\Authorization\Internal\ModelSubjectResolver;
 use AzGuard\Contracts\Authorization\EvaluationContext;
 use AzGuard\Exceptions\SubjectNotAcceptedException;
 use AzGuard\Exceptions\UnknownPermissionException;

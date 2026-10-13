@@ -7,7 +7,7 @@ use AzGuard\Changes\Change;
 use AzGuard\Changes\ChangeResult;
 use AzGuard\Changes\ChangeStatus;
 use AzGuard\Changes\ChangeType;
-use AzGuard\Changes\PanelManagers;
+use AzGuard\Changes\Internal\PanelManagers;
 use AzGuard\Exceptions\ChangeCancelledException;
 use AzGuard\Exceptions\StaleSelectionException;
 use AzGuard\Exceptions\UnknownPermissionException;

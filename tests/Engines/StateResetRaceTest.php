@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-use AzGuard\Authorization\Authorizer;
+use AzGuard\Authorization\Internal\Authorizer;
 use AzGuard\Kernel\Decision\DecisionReason;
+use AzGuard\Panels\Internal\PanelRegistry;
 use AzGuard\Panels\PanelBuilder;
-use AzGuard\Panels\PanelRegistry;
 use AzGuard\Tests\Engines\Support\CacheEngineWorld;
 use AzGuard\Tests\Engines\Support\Processes;
 use AzGuard\Tests\Fixtures\Changes\ChangeWorld as W;

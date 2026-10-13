@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-use AzGuard\Catalog\CacheState;
-use AzGuard\Catalog\CatalogCache;
+use AzGuard\Catalog\Internal\CacheState;
+use AzGuard\Catalog\Internal\CatalogCache;
+use AzGuard\Panels\Internal\PanelRegistry;
 use AzGuard\Panels\PanelBuilder;
-use AzGuard\Panels\PanelRegistry;
 use AzGuard\Policies\PolicyBinding;
 use AzGuard\Scopes\ScopesPlugin;
 use AzGuard\Tests\Fixtures\Panels\AdminPanel;

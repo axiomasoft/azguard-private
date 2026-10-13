@@ -921,14 +921,14 @@
                     "parameters": [
                         {
                             "name": "registry",
-                            "type": "AzGuard\\Panels\\PanelRegistry",
+                            "type": "AzGuard\\Panels\\Internal\\PanelRegistry",
                             "byRef": false,
                             "variadic": false,
                             "hasDefault": false
                         },
                         {
                             "name": "subjects",
-                            "type": "AzGuard\\Authorization\\ModelSubjectResolver",
+                            "type": "AzGuard\\Authorization\\Internal\\ModelSubjectResolver",
                             "byRef": false,
                             "variadic": false,
                             "hasDefault": false
@@ -9590,7 +9590,7 @@
                         },
                         {
                             "name": "config",
-                            "type": "AzGuard\\Configuration\\AzGuardConfig",
+                            "type": "AzGuard\\Configuration\\Internal\\AzGuardConfig",
                             "byRef": false,
                             "variadic": false,
                             "hasDefault": false
@@ -9618,7 +9618,7 @@
                     "abstract": false,
                     "final": false,
                     "parameters": [],
-                    "return": "AzGuard\\Configuration\\AzGuardConfig",
+                    "return": "AzGuard\\Configuration\\Internal\\AzGuardConfig",
                     "namedArguments": true,
                     "contracts": []
                 },
@@ -9980,7 +9980,7 @@
                     "parameters": [
                         {
                             "name": "registry",
-                            "type": "AzGuard\\Panels\\PanelRegistry",
+                            "type": "AzGuard\\Panels\\Internal\\PanelRegistry",
                             "byRef": false,
                             "variadic": false,
                             "hasDefault": false
@@ -19229,21 +19229,21 @@
                     "parameters": [
                         {
                             "name": "authorizer",
-                            "type": "AzGuard\\Authorization\\Authorizer",
+                            "type": "AzGuard\\Authorization\\Internal\\Authorizer",
                             "byRef": false,
                             "variadic": false,
                             "hasDefault": false
                         },
                         {
                             "name": "resolver",
-                            "type": "AzGuard\\Panels\\PanelResolver",
+                            "type": "AzGuard\\Panels\\Internal\\PanelResolver",
                             "byRef": false,
                             "variadic": false,
                             "hasDefault": false
                         },
                         {
                             "name": "registry",
-                            "type": "AzGuard\\Panels\\PanelRegistry",
+                            "type": "AzGuard\\Panels\\Internal\\PanelRegistry",
                             "byRef": false,
                             "variadic": false,
                             "hasDefault": false
@@ -24978,7 +24978,7 @@
                     "parameters": [
                         {
                             "name": "storage",
-                            "type": "AzGuard\\Storage\\Storage|string",
+                            "type": "AzGuard\\Storage\\Internal\\Storage|string",
                             "byRef": false,
                             "variadic": false,
                             "hasDefault": false
@@ -25057,14 +25057,14 @@
                     "parameters": [
                         {
                             "name": "discovery",
-                            "type": "AzGuard\\Sources\\Folder\\DiscoverySnapshot",
+                            "type": "AzGuard\\Sources\\Folder\\Internal\\DiscoverySnapshot",
                             "byRef": false,
                             "variadic": false,
                             "hasDefault": false
                         },
                         {
                             "name": "recipe",
-                            "type": "AzGuard\\Panels\\PanelRecipe",
+                            "type": "AzGuard\\Panels\\Internal\\PanelRecipe",
                             "byRef": false,
                             "variadic": false,
                             "hasDefault": false
@@ -25111,7 +25111,7 @@
                     "parameters": [
                         {
                             "name": "recipe",
-                            "type": "AzGuard\\Panels\\PanelRecipe",
+                            "type": "AzGuard\\Panels\\Internal\\PanelRecipe",
                             "byRef": false,
                             "variadic": false,
                             "hasDefault": false
@@ -25887,7 +25887,7 @@
                     "parameters": [
                         {
                             "name": "storage",
-                            "type": "AzGuard\\Storage\\Storage",
+                            "type": "AzGuard\\Storage\\Internal\\Storage",
                             "byRef": false,
                             "variadic": false,
                             "hasDefault": false
@@ -26522,7 +26522,7 @@
                     "abstract": false,
                     "final": true,
                     "parameters": [],
-                    "return": "AzGuard\\Storage\\Storage",
+                    "return": "AzGuard\\Storage\\Internal\\Storage",
                     "namedArguments": true,
                     "contracts": []
                 },
@@ -26758,7 +26758,7 @@
                     "parameters": [
                         {
                             "name": "storage",
-                            "type": "AzGuard\\Storage\\Storage",
+                            "type": "AzGuard\\Storage\\Internal\\Storage",
                             "byRef": false,
                             "variadic": false,
                             "hasDefault": false
@@ -27409,7 +27409,7 @@
                     "abstract": false,
                     "final": true,
                     "parameters": [],
-                    "return": "AzGuard\\Storage\\Storage",
+                    "return": "AzGuard\\Storage\\Internal\\Storage",
                     "namedArguments": true,
                     "contracts": []
                 },
@@ -27656,7 +27656,7 @@
                     "parameters": [
                         {
                             "name": "storage",
-                            "type": "AzGuard\\Storage\\Storage",
+                            "type": "AzGuard\\Storage\\Internal\\Storage",
                             "byRef": false,
                             "variadic": false,
                             "hasDefault": false
@@ -28307,7 +28307,7 @@
                     "abstract": false,
                     "final": true,
                     "parameters": [],
-                    "return": "AzGuard\\Storage\\Storage",
+                    "return": "AzGuard\\Storage\\Internal\\Storage",
                     "namedArguments": true,
                     "contracts": []
                 },
@@ -28672,7 +28672,7 @@
                     "parameters": [
                         {
                             "name": "storages",
-                            "type": "AzGuard\\Storage\\StorageRegistry",
+                            "type": "AzGuard\\Storage\\Internal\\StorageRegistry",
                             "byRef": false,
                             "variadic": false,
                             "hasDefault": false
@@ -31247,7 +31247,7 @@
                             "hasDefault": false
                         }
                     ],
-                    "return": "AzGuard\\Testing\\FakeSubjectBuilder",
+                    "return": "AzGuard\\Testing\\Internal\\FakeSubjectBuilder",
                     "namedArguments": true,
                     "contracts": []
                 },

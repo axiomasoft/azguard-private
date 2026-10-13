@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 use AzGuard\Exceptions\DefinitionException;
 use AzGuard\Kernel\Identity\SubjectRef;
+use AzGuard\Panels\Internal\PanelRegistry;
 use AzGuard\Panels\PanelBuilder;
-use AzGuard\Panels\PanelRegistry;
 use AzGuard\Panels\SubjectDescriptor;
 use AzGuard\Tests\Fixtures\Panels\AdminPanel;
 use AzGuard\Tests\Fixtures\Panels\FixturePanel;

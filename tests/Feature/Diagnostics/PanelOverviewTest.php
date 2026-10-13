@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 use AzGuard\Audit\AuditPlugin;
 use AzGuard\Diagnostics\PanelOverview;
+use AzGuard\Panels\Internal\PanelRegistry;
 use AzGuard\Panels\PanelBuilder;
-use AzGuard\Panels\PanelRegistry;
 use AzGuard\Tests\Fixtures\Changes\ChangeWorld as W;
 use AzGuard\Tests\Fixtures\Crm\CrmWorld;
 use Illuminate\Support\Facades\Artisan;

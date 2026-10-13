@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use AzGuard\Filament\Editors\TargetSelector;
+use AzGuard\Filament\Internal\Editors\TargetSelector;
 use AzGuard\Filament\Resources\PermissionResource\Pages\ListPermissions;
 use AzGuard\Filament\Resources\RoleResource\Pages\ListRoles;
 use AzGuard\Filament\Resources\RoleResource\Pages\ViewRole;

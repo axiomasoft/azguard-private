@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace AzGuard\Tests\Fixtures\Http;
 
-use AzGuard\Laravel\Http\Middleware\CheckPermission;
+use AzGuard\Laravel\Internal\Http\Middleware\CheckPermission;
 use Closure;
 use Illuminate\Http\Request;
 

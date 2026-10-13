@@ -8,9 +8,9 @@ use AzGuard\Attributes\Api;
 use AzGuard\AzGuard;
 use AzGuard\Contracts\Sources\SourceDescription;
 use AzGuard\Kernel\Identity\TenantRef;
+use AzGuard\Panels\Internal\PanelRecipe;
+use AzGuard\Panels\Internal\PanelRegistry;
 use AzGuard\Panels\Panel;
-use AzGuard\Panels\PanelRecipe;
-use AzGuard\Panels\PanelRegistry;
 use AzGuard\Sources\Database\DatabaseSource;
 use BackedEnum;
 

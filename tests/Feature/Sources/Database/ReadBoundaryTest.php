@@ -2,16 +2,16 @@
 
 declare(strict_types=1);
 
-use AzGuard\Authorization\Authorizer;
-use AzGuard\Configuration\AzGuardConfig;
+use AzGuard\Authorization\Internal\Authorizer;
+use AzGuard\Configuration\Internal\AzGuardConfig;
 use AzGuard\Contracts\Authorization\EvaluationContext;
 use AzGuard\Kernel\Decision\AccessRequest;
 use AzGuard\Kernel\Decision\BeforeResult;
 use AzGuard\Kernel\Decision\Decision;
 use AzGuard\Kernel\Decision\DecisionReason;
 use AzGuard\Sources\Database\DatabaseSource;
+use AzGuard\Storage\Internal\StorageReadSession;
 use AzGuard\Storage\Schema\StorageSchema;
-use AzGuard\Storage\StorageReadSession;
 use AzGuard\Tests\Fixtures\Sources\Database\ConcurrentWriter;
 use AzGuard\Tests\Fixtures\Sources\Database\DatabaseWorld;
 use Illuminate\Database\Connection;

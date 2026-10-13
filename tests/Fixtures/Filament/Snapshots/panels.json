@@ -701,7 +701,7 @@
                     "type": "user",
                     "label": "User",
                     "guard": "web",
-                    "directory": "AzGuard\\Directories\\ModelSubjectDirectory"
+                    "directory": "AzGuard\\Directories\\Internal\\ModelSubjectDirectory"
                 }
             ]
         }
@@ -869,7 +869,7 @@
                     "type": "user",
                     "label": "User",
                     "guard": "web",
-                    "directory": "AzGuard\\Directories\\ModelSubjectDirectory"
+                    "directory": "AzGuard\\Directories\\Internal\\ModelSubjectDirectory"
                 }
             ]
         }
@@ -1051,7 +1051,7 @@
                     "type": "user",
                     "label": "User",
                     "guard": "web",
-                    "directory": "AzGuard\\Directories\\ModelSubjectDirectory"
+                    "directory": "AzGuard\\Directories\\Internal\\ModelSubjectDirectory"
                 }
             ]
         }
@@ -1539,7 +1539,7 @@
                     "type": "team",
                     "label": "Team",
                     "model": "AzGuard\\Tests\\Fixtures\\Filament\\Models\\Team",
-                    "directory": "AzGuard\\Directories\\ModelTenantDirectory"
+                    "directory": "AzGuard\\Directories\\Internal\\ModelTenantDirectory"
                 }
             ],
             "scopes": [],
@@ -1549,7 +1549,7 @@
                     "type": "user",
                     "label": "User",
                     "guard": "web",
-                    "directory": "AzGuard\\Directories\\ModelSubjectDirectory"
+                    "directory": "AzGuard\\Directories\\Internal\\ModelSubjectDirectory"
                 }
             ]
         }
@@ -1662,7 +1662,7 @@
                     "type": "user",
                     "label": "User",
                     "guard": "web",
-                    "directory": "AzGuard\\Directories\\ModelSubjectDirectory"
+                    "directory": "AzGuard\\Directories\\Internal\\ModelSubjectDirectory"
                 }
             ]
         }

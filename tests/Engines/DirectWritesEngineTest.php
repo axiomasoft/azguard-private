@@ -3,9 +3,9 @@
 declare(strict_types=1);
 
 use AzGuard\Exceptions\UnsupportedDirectWriteException;
+use AzGuard\Storage\Internal\StorageMutation;
+use AzGuard\Storage\Internal\StorageRegistry;
 use AzGuard\Storage\Schema\StorageSchema;
-use AzGuard\Storage\StorageMutation;
-use AzGuard\Storage\StorageRegistry;
 use AzGuard\Tests\Fixtures\Storage\SchemaAssertions;
 
 it('blocks server Eloquent write paths before changing rows or panel version', function (): void {

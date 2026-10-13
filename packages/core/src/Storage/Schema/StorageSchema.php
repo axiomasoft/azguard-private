@@ -5,8 +5,9 @@ declare(strict_types=1);
 namespace AzGuard\Storage\Schema;
 
 use AzGuard\Attributes\Api;
-use AzGuard\Storage\Storage;
-use AzGuard\Storage\StorageRegistry;
+use AzGuard\Storage\Internal\Schema\HostKeyColumns;
+use AzGuard\Storage\Internal\Storage;
+use AzGuard\Storage\Internal\StorageRegistry;
 use Illuminate\Database\Schema\Blueprint;
 
 /**

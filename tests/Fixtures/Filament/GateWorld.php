@@ -6,8 +6,8 @@ namespace AzGuard\Tests\Fixtures\Filament;
 
 use AzGuard\Facades\AzGuard;
 use AzGuard\Filament\AzGuardPlugin;
-use AzGuard\Panels\CurrentPanel;
-use AzGuard\Panels\PanelRegistry;
+use AzGuard\Panels\Internal\CurrentPanel;
+use AzGuard\Panels\Internal\PanelRegistry;
 use AzGuard\Tests\Fixtures\Filament\Guards\ArchivedOrderPermission;
 use AzGuard\Tests\Fixtures\Filament\Guards\GrantedMemberRole;
 use AzGuard\Tests\Fixtures\Filament\Guards\OrderPermission;

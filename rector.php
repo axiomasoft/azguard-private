@@ -63,7 +63,7 @@ return RectorConfig::configure()
         // Drops `@var class-string` narrowing that PHPStan needs on a string built from a regex match.
         RemoveNonExistingVarAnnotationRector::class,
         // Configuration names default storage models as strings on purpose: the zone rule forbids it to depend on Storage.
-        StringClassNameToClassConstantRector::class => [__DIR__.'/packages/core/src/Configuration/AzGuardConfig.php'],
+        StringClassNameToClassConstantRector::class => [__DIR__.'/packages/core/src/Configuration/Internal/AzGuardConfig.php'],
         // PredicateQuery is cloned and re-bound to a new guard; readonly breaks the clone (NativeBuilderTest).
         ReadOnlyPropertyRector::class => [__DIR__.'/packages/core/src/Authorization/Internal/Query/PredicateQuery.php'],
     ]);

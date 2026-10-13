@@ -279,11 +279,11 @@ $app = Orchestra\Testbench\Foundation\Application::create(null, static function 
         }
     });
 }, ['extra' => ['providers' => [AzGuard\AzGuardServiceProvider::class, AzGuard\Audit\AuditServiceProvider::class, AzGuard\DevTools\DevToolsServiceProvider::class]], 'enabled_package_discoveries' => false]);
-$storage = $app->make(AzGuard\Storage\StorageRegistry::class)->get('default');
+$storage = $app->make(AzGuard\Storage\Internal\StorageRegistry::class)->get('default');
 (require PACKAGE_MIGRATION)->up();
 $result = ['pid' => getmypid(), 'command' => $argv[1], 'connection' => $storage->connectionName(), 'host_keys' => $storage->hostKeys(),
     'subject_column' => $storage->connection()->getSchemaBuilder()->getColumnType('azg_role_grants', 'subject_id'),
-    'panels' => array_values(array_map(static fn ($panel): string => $panel->id(), $app->make(AzGuard\Panels\PanelRegistry::class)->all()))];
+    'panels' => array_values(array_map(static fn ($panel): string => $panel->id(), $app->make(AzGuard\Panels\Internal\PanelRegistry::class)->all()))];
 file_put_contents(__DIR__.'/observed-'.$argv[1].'.json', json_encode($result, JSON_THROW_ON_ERROR));
 } catch (Throwable $error) {
     fwrite(STDERR, $error->getMessage());

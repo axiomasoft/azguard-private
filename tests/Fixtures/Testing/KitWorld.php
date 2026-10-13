@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace AzGuard\Tests\Fixtures\Testing;
 
-use AzGuard\Authorization\Authorizer;
+use AzGuard\Authorization\Internal\Authorizer;
+use AzGuard\Panels\Internal\PanelRegistry;
 use AzGuard\Panels\Panel;
 use AzGuard\Panels\PanelBuilder;
-use AzGuard\Panels\PanelRegistry;
 use Closure;
 
 /** Compiles the seller panel of the kit tests into a fresh registry, over the schema the test migrated. */

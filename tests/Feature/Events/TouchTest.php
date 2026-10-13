@@ -14,7 +14,7 @@ use AzGuard\Exceptions\InvalidIdentityException;
 use AzGuard\Exceptions\PanelNotWritableException;
 use AzGuard\Kernel\Identity\ActorRef;
 use AzGuard\Kernel\Identity\TenantRef;
-use AzGuard\Storage\StorageMutation;
+use AzGuard\Storage\Internal\StorageMutation;
 use AzGuard\Tests\Fixtures\Changes\ChangeWorld as W;
 use AzGuard\Tests\Fixtures\Crm\CrmWorld;
 use AzGuard\Tests\Fixtures\Events\EventWorld;

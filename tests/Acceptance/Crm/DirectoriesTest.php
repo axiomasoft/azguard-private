@@ -5,7 +5,7 @@ declare(strict_types=1);
 use AzGuard\Context\AssignmentScopePhase;
 use AzGuard\Context\AssignmentScopeRuntime;
 use AzGuard\Contracts\Scopes\AssignmentScopeDirectory;
-use AzGuard\Directories\DirectoryResolver;
+use AzGuard\Directories\Internal\DirectoryResolver;
 use AzGuard\Kernel\Identity\AssignmentScopeRef;
 use AzGuard\Panels\Panel;
 use AzGuard\Scopes\Internal\QueryScopeDirectory;

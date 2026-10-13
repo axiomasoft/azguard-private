@@ -4,15 +4,15 @@ declare(strict_types=1);
 
 namespace AzGuard\Tests\Fixtures\Diagnostics;
 
-use AzGuard\Authorization\Authorizer;
-use AzGuard\Catalog\CatalogCache;
+use AzGuard\Authorization\Internal\Authorizer;
+use AzGuard\Catalog\Internal\CatalogCache;
 use AzGuard\Diagnostics\Doctor;
 use AzGuard\Diagnostics\DoctorFinding;
+use AzGuard\Panels\Internal\PanelCompiler;
+use AzGuard\Panels\Internal\PanelRegistry;
 use AzGuard\Panels\PanelBuilder;
-use AzGuard\Panels\PanelCompiler;
-use AzGuard\Panels\PanelRegistry;
+use AzGuard\Storage\Internal\StorageRegistry;
 use AzGuard\Storage\Schema\StorageSchema;
-use AzGuard\Storage\StorageRegistry;
 use AzGuard\Tests\Fixtures\Diagnostics\Guards\Notes\NotesGuardPanelProvider;
 use AzGuard\Tests\Fixtures\Panels\FixturePanel;
 use AzGuard\Tests\Fixtures\Panels\PanelWorld;

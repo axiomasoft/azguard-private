@@ -2,8 +2,8 @@
 
 declare(strict_types=1);
 
-use AzGuard\Catalog\CatalogCache;
-use AzGuard\Catalog\PanelCatalog;
+use AzGuard\Catalog\Internal\CatalogCache;
+use AzGuard\Catalog\Internal\PanelCatalog;
 use AzGuard\Panels\PanelBuilder;
 use AzGuard\Tests\Fixtures\Panels\AdminPanel;
 use AzGuard\Tests\Fixtures\Panels\PanelWorld;

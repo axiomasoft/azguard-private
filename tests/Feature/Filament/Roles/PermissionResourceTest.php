@@ -5,7 +5,7 @@ declare(strict_types=1);
 use AzGuard\Events\PermissionCreated;
 use AzGuard\Exceptions\UnknownPermissionException;
 use AzGuard\Facades\AzGuard;
-use AzGuard\Filament\Editors\TargetSelector;
+use AzGuard\Filament\Internal\Editors\TargetSelector;
 use AzGuard\Filament\Resources\PermissionResource;
 use AzGuard\Filament\Resources\PermissionResource\Pages\ListPermissions;
 use AzGuard\Kernel\Identity\ActorRef;

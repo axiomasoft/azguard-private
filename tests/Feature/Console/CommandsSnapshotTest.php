@@ -3,10 +3,10 @@
 declare(strict_types=1);
 
 use AzGuard\Audit\AuditPlugin;
-use AzGuard\Catalog\CatalogCache;
-use AzGuard\Configuration\AzGuardConfig;
+use AzGuard\Catalog\Internal\CatalogCache;
+use AzGuard\Configuration\Internal\AzGuardConfig;
 use AzGuard\Panels\PanelBuilder;
-use AzGuard\Storage\StorageRegistry;
+use AzGuard\Storage\Internal\StorageRegistry;
 use AzGuard\Tests\Fixtures\Baseline070\Formats\FormatSnapshot;
 use AzGuard\Tests\Fixtures\Changes\ChangeWorld as W;
 use AzGuard\Tests\Fixtures\Console\GeneratedApp;

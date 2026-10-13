@@ -3,9 +3,9 @@
 declare(strict_types=1);
 
 use AzGuard\Panels\Reads;
+use AzGuard\Storage\Internal\Storage;
+use AzGuard\Storage\Internal\StorageReadSession;
 use AzGuard\Storage\Schema\StorageSchema;
-use AzGuard\Storage\Storage;
-use AzGuard\Storage\StorageReadSession;
 
 it('reads the real transaction state of a SQLite handle on every PHP version', function (): void {
     $pdo = new PDO('sqlite::memory:', options: [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]);

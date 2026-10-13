@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-use AzGuard\Configuration\AzGuardConfig;
+use AzGuard\Configuration\Internal\AzGuardConfig;
 use AzGuard\Exceptions\StorageMismatchException;
+use AzGuard\Storage\Internal\StorageRegistry;
 use AzGuard\Storage\Schema\StorageSchema;
-use AzGuard\Storage\StorageRegistry;
 
 it('rejects absent or incompatible storage state before work starts', function (string $changed): void {
     $storage = app(StorageRegistry::class)->get('default');

@@ -5,7 +5,7 @@ declare(strict_types=1);
 use AzGuard\Kernel\Decision\DecisionReason;
 use AzGuard\Panels\PanelBuilder;
 use AzGuard\Panels\StateRefresh;
-use AzGuard\Storage\StorageMutation;
+use AzGuard\Storage\Internal\StorageMutation;
 use AzGuard\Tests\Fixtures\Crm\CrmWorld as World;
 use Illuminate\Support\Carbon;
 

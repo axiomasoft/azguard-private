@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-use AzGuard\Authorization\EvaluationFrame;
-use AzGuard\Authorization\Pipeline\Stages\AuthorityStage;
-use AzGuard\Authorization\Pipeline\Trace;
+use AzGuard\Authorization\Internal\EvaluationFrame;
+use AzGuard\Authorization\Internal\Pipeline\Stages\AuthorityStage;
+use AzGuard\Authorization\Internal\Pipeline\Trace;
 use AzGuard\Contracts\Authorization\EvaluationContext;
 use AzGuard\Contracts\Authorization\GrantCondition;
 use AzGuard\Contracts\Scopes\ResolvedAssignmentScope;
@@ -21,8 +21,8 @@ use AzGuard\Kernel\Identity\PermissionKey;
 use AzGuard\Kernel\Identity\RoleKey;
 use AzGuard\Kernel\Identity\SubjectRef;
 use AzGuard\Kernel\Identity\TenantRef;
+use AzGuard\Panels\Internal\PanelRegistry;
 use AzGuard\Panels\PanelBuilder;
-use AzGuard\Panels\PanelRegistry;
 use AzGuard\Policies\PolicyBinding;
 use AzGuard\Tenancy\TenantPolicy;
 use AzGuard\Tests\Fixtures\Authorization\AuthorizationWorld;

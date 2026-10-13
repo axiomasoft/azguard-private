@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 use AzGuard\Exceptions\PanelNotResolvedException;
 use AzGuard\Exceptions\UnknownPanelException;
-use AzGuard\Panels\CurrentPanel;
-use AzGuard\Panels\PanelResolver;
+use AzGuard\Panels\Internal\CurrentPanel;
+use AzGuard\Panels\Internal\PanelResolver;
 use AzGuard\Tests\Fixtures\Crm\CrmWorld;
 use AzGuard\Tests\Fixtures\Http\HttpWorld;
 use AzGuard\Tests\Fixtures\Queue\PanelProbeJob;

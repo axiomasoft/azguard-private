@@ -2,17 +2,17 @@
 
 declare(strict_types=1);
 
-use AzGuard\Configuration\AzGuardConfig;
+use AzGuard\Configuration\Internal\AzGuardConfig;
 use AzGuard\Exceptions\DefinitionException;
 use AzGuard\Exceptions\InvalidChangeFieldsException;
 use AzGuard\Exceptions\InvalidConfigurationException;
 use AzGuard\Schema\Field;
 use AzGuard\Schema\FieldTarget;
-use AzGuard\Storage\GrantFields;
+use AzGuard\Storage\Internal\GrantFields;
+use AzGuard\Storage\Internal\StorageMutation;
+use AzGuard\Storage\Internal\StorageRegistry;
 use AzGuard\Storage\Models\PermissionGrant;
 use AzGuard\Storage\Schema\StorageSchema;
-use AzGuard\Storage\StorageMutation;
-use AzGuard\Storage\StorageRegistry;
 use AzGuard\Tests\Fixtures\Storage\AdminRoleGrant;
 use AzGuard\Tests\Fixtures\Storage\SchemaAssertions;
 use AzGuard\Tests\Fixtures\Storage\Weekday;

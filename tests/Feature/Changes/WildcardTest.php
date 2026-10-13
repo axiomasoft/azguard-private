@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use AzGuard\Authorization\Authorizer;
+use AzGuard\Authorization\Internal\Authorizer;
 use AzGuard\Exceptions\InvalidPermissionKeyException;
 use AzGuard\Exceptions\InvalidRoleKeyException;
 use AzGuard\Exceptions\UnknownRoleException;

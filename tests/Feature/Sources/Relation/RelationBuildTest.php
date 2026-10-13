@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use AzGuard\Catalog\CatalogCache;
+use AzGuard\Catalog\Internal\CatalogCache;
 use AzGuard\Contracts\Sources\DescribesSchema;
 use AzGuard\Contracts\Sources\FiltersQueries;
 use AzGuard\Contracts\Sources\ProvidesRoleGrants;
@@ -13,7 +13,7 @@ use AzGuard\Kernel\Identity\AccessScope;
 use AzGuard\Kernel\Identity\AssignmentScopeRef;
 use AzGuard\Kernel\Identity\SubjectRef;
 use AzGuard\Kernel\Identity\TenantRef;
-use AzGuard\Panels\PanelRegistry;
+use AzGuard\Panels\Internal\PanelRegistry;
 use AzGuard\Sources\Relation\RelationSource;
 use AzGuard\Tests\Fixtures\Panels\AdminPanel;
 use AzGuard\Tests\Fixtures\Sources\Relation\EditorRole;

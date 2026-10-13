@@ -694,7 +694,7 @@
                             "hasDefault": false
                         }
                     ],
-                    "return": "AzGuard\\Filament\\Authorization\\FilamentKeys",
+                    "return": "AzGuard\\Filament\\Internal\\Authorization\\FilamentKeys",
                     "namedArguments": true,
                     "contracts": []
                 },
