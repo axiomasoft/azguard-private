@@ -2,15 +2,11 @@
 
 declare(strict_types=1);
 
-use AzGuard\Context\AssignmentScopeDeclaration;
-use AzGuard\Context\AssignmentScopeMode;
 use AzGuard\Context\AssignmentScopePhase;
 use AzGuard\Context\AssignmentScopeRuntime;
 use AzGuard\Kernel\Decision\DecisionReason;
 use AzGuard\Kernel\Identity\ActorRef;
-use AzGuard\Panels\PanelBuilder;
 use AzGuard\Roles\BaseRole;
-use AzGuard\Scopes\Internal\ScopeEvaluator;
 use AzGuard\Tests\Fixtures\Crm\CrmWorld as World;
 use AzGuard\Tests\Fixtures\Crm\Guards\Crm\Filters\ActiveProjects;
 use AzGuard\Tests\Fixtures\Crm\Guards\Crm\Permissions\Clients\ClientPermission as Action;
@@ -21,7 +17,8 @@ use AzGuard\Tests\Fixtures\Crm\Models\User;
 it('R47 R67 V109 V111 V113 DI receives live Access target and actor without global model bindings', function (): void {
     InjectedSellerFilter::$constructed = 0;
     InjectedSellerFilter::$observed = [];
-    $panel = World::compile(fn (PanelBuilder $p) => $p->assignmentScopes(new AssignmentScopeDeclaration(AssignmentScopeMode::Inherit, [ProjectScope::make()->filter(InjectedSellerFilter::class)], evaluator: ScopeEvaluator::class)));
+    World::$projectScope = ProjectScope::make()->filter(new ActiveProjects)->filter(InjectedSellerFilter::class);
+    $panel = World::compile();
     $constructed = InjectedSellerFilter::$constructed;
     World::assertDecision(World::decide($panel, actor: ActorRef::of('crm.user', 2)), true, DecisionReason::Granted);
     $first = InjectedSellerFilter::$observed[0];

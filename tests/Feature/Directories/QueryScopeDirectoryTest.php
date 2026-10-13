@@ -22,6 +22,7 @@ use AzGuard\Tests\Feature\Directories\Support\Lookups;
 use AzGuard\Tests\Feature\Directories\Support\UnboundRole;
 use AzGuard\Tests\Fixtures\Crm\CrmWorld as World;
 use AzGuard\Tests\Fixtures\Crm\ExternalProjectScope;
+use AzGuard\Tests\Fixtures\Crm\Guards\Crm\Filters\ActiveProjects;
 use AzGuard\Tests\Fixtures\Crm\Guards\Crm\Filters\SellerProjects;
 use AzGuard\Tests\Fixtures\Crm\Guards\Crm\Roles\AnalystRole;
 use AzGuard\Tests\Fixtures\Crm\Guards\Crm\Roles\SellerRole;
@@ -61,10 +62,11 @@ function callbackScope(): ModelAssignmentScopeDefinition
     return ModelAssignmentScopeDefinition::make(Project::class, fn (Model $project): TenantRef => TenantRef::of('crm.organization', (string) $project->getAttribute('organization_id')), 'crm.cproject');
 }
 
+/** The stand's `crm.project` again (one alias has one definition) and the callback-owned `crm.cproject`. */
 function callbackPanel(?Closure $configure = null): Panel
 {
     return World::compile(fn (PanelBuilder $p) => $p->assignmentScopes(new AssignmentScopeDeclaration(AssignmentScopeMode::Inherit,
-        [ProjectScope::make(), $configure === null ? callbackScope() : $configure(callbackScope())], ['crm.cproject' => QueryScopeDirectory::class], ScopeEvaluator::class)));
+        [ProjectScope::make()->filter(new ActiveProjects), $configure === null ? callbackScope() : $configure(callbackScope())], ['crm.cproject' => QueryScopeDirectory::class], ScopeEvaluator::class)));
 }
 
 it('offers the contexts of the target and not of the acting admin', function (): void {
@@ -90,12 +92,13 @@ it('applies the limit after eligibility', function (): void {
 
 it('gives the filters the target, the role, the proposed fields, the actor and the phase of the lookup', function (): void {
     $observed = new ArrayObject;
-    $panel = World::compile(fn (PanelBuilder $p) => $p->assignmentScopes(new AssignmentScopeDeclaration(AssignmentScopeMode::Inherit, [ProjectScope::make()->filter(
+    World::$projectScope = ProjectScope::make()->filter(new ActiveProjects)->filter(
         function (Builder $query, AssignmentScopeRuntime $runtime) use ($observed): void {
             $observed[] = $runtime;
             $query->where('is_active', true);
         },
-    )], evaluator: ScopeEvaluator::class)));
+    );
+    $panel = World::compile();
 
     projects($panel, target: 2, role: SellerRole::class, proposed: ['until' => null, 'fields' => ['region' => 'R1']], actor: 3);
 
@@ -120,11 +123,12 @@ it('gives the filters the target, the role, the proposed fields, the actor and t
 
 it('returns nothing before any filter for an Assignment search without a selected target', function (): void {
     $observed = new ArrayObject;
-    $panel = World::compile(fn (PanelBuilder $p) => $p->assignmentScopes(new AssignmentScopeDeclaration(AssignmentScopeMode::Inherit, [ProjectScope::make()->filter(
+    World::$projectScope = ProjectScope::make()->filter(new ActiveProjects)->filter(
         function (Builder $query, AssignmentScopeRuntime $runtime) use ($observed): void {
             $observed[] = $runtime;
         },
-    )], evaluator: ScopeEvaluator::class)));
+    );
+    $panel = World::compile();
 
     expect(projects($panel, target: null, role: SellerRole::class))->toBe([])
         ->and(count($observed))->toBe(0);
@@ -147,9 +151,10 @@ it('skips eligibility but never the tenant for Inspection and Revocation', funct
 })->with([[AssignmentScopePhase::Inspection], [AssignmentScopePhase::Revocation]]);
 
 it('keeps the tenant and structural boundary when a filter ORs conditions', function (): void {
-    $panel = World::compile(fn (PanelBuilder $p) => $p->assignmentScopes(new AssignmentScopeDeclaration(AssignmentScopeMode::Inherit, [ProjectScope::make()->filter(
+    World::$projectScope = ProjectScope::make()->filter(new ActiveProjects)->filter(
         fn (Builder $query) => $query->orWhere('id', 3)->orWhere('id', 4)->orWhere('id', 1),
-    )], evaluator: ScopeEvaluator::class)));
+    );
+    $panel = World::compile();
 
     // Project 4 passes the OR but belongs to tenant 2, inactive 3 passes it but fails the common active filter.
     expect(ids(projects($panel, target: 1)))->toBe(['1']);

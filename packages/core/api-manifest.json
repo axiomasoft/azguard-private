@@ -4803,6 +4803,119 @@
             ]
         },
         {
+            "name": "AzGuard\\Context\\AssignmentScopeDescription",
+            "publication": "spi-call",
+            "since": "1.0",
+            "kind": "class",
+            "final": true,
+            "abstract": false,
+            "readonly": true,
+            "parent": null,
+            "interfaces": [],
+            "namedArguments": true,
+            "contracts": [],
+            "constants": [],
+            "properties": [
+                {
+                    "name": "components",
+                    "visibility": "public",
+                    "type": "array",
+                    "readonly": true,
+                    "static": false,
+                    "contracts": []
+                },
+                {
+                    "name": "directory",
+                    "visibility": "public",
+                    "type": "?string",
+                    "readonly": true,
+                    "static": false,
+                    "contracts": []
+                },
+                {
+                    "name": "label",
+                    "visibility": "public",
+                    "type": "?string",
+                    "readonly": true,
+                    "static": false,
+                    "contracts": []
+                },
+                {
+                    "name": "resolvesThroughQuery",
+                    "visibility": "public",
+                    "type": "bool",
+                    "readonly": true,
+                    "static": false,
+                    "contracts": []
+                },
+                {
+                    "name": "tenantOwner",
+                    "visibility": "public",
+                    "type": "bool",
+                    "readonly": true,
+                    "static": false,
+                    "contracts": []
+                }
+            ],
+            "methods": [
+                {
+                    "name": "__construct",
+                    "visibility": "public",
+                    "static": false,
+                    "abstract": false,
+                    "final": false,
+                    "parameters": [
+                        {
+                            "name": "components",
+                            "type": "array",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "array (\n)"
+                        },
+                        {
+                            "name": "label",
+                            "type": "?string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "NULL"
+                        },
+                        {
+                            "name": "directory",
+                            "type": "?string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "NULL"
+                        },
+                        {
+                            "name": "tenantOwner",
+                            "type": "bool",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "true"
+                        },
+                        {
+                            "name": "resolvesThroughQuery",
+                            "type": "bool",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "false"
+                        }
+                    ],
+                    "return": null,
+                    "namedArguments": true,
+                    "contracts": [
+                        "@param list<object|class-string> $components configuration only the panel's evaluator applies (for the Scopes",
+                        "@param class-string<AssignmentScopeDirectory>|null $directory default directory of the alias"
+                    ]
+                }
+            ]
+        },
+        {
             "name": "AzGuard\\Context\\AssignmentScopeMode",
             "publication": "api",
             "since": "1.0",
@@ -7932,6 +8045,36 @@
                     "final": false,
                     "parameters": [],
                     "return": "AzGuard\\Scopes\\AssignmentScopeSettings",
+                    "namedArguments": true,
+                    "contracts": []
+                }
+            ]
+        },
+        {
+            "name": "AzGuard\\Contracts\\Scopes\\DescribesAssignmentScope",
+            "publication": "spi-implement",
+            "since": "1.0",
+            "kind": "interface",
+            "final": false,
+            "abstract": false,
+            "readonly": false,
+            "parent": null,
+            "interfaces": [
+                "AzGuard\\Contracts\\Scopes\\AssignmentScopeDefinition"
+            ],
+            "namedArguments": true,
+            "contracts": [],
+            "constants": [],
+            "properties": [],
+            "methods": [
+                {
+                    "name": "description",
+                    "visibility": "public",
+                    "static": false,
+                    "abstract": false,
+                    "final": false,
+                    "parameters": [],
+                    "return": "AzGuard\\Context\\AssignmentScopeDescription",
                     "namedArguments": true,
                     "contracts": []
                 }
@@ -23802,6 +23945,7 @@
             "interfaces": [
                 "AzGuard\\Contracts\\Scopes\\AssignmentScopeDefinition",
                 "AzGuard\\Contracts\\Scopes\\ConfigurableAssignmentScopeDefinition",
+                "AzGuard\\Contracts\\Scopes\\DescribesAssignmentScope",
                 "AzGuard\\Contracts\\Scopes\\QueryableAssignmentScopeDefinition"
             ],
             "namedArguments": true,
@@ -23809,6 +23953,17 @@
             "constants": [],
             "properties": [],
             "methods": [
+                {
+                    "name": "description",
+                    "visibility": "public",
+                    "static": false,
+                    "abstract": false,
+                    "final": false,
+                    "parameters": [],
+                    "return": "AzGuard\\Context\\AssignmentScopeDescription",
+                    "namedArguments": true,
+                    "contracts": []
+                },
                 {
                     "name": "directory",
                     "visibility": "public",
@@ -24023,6 +24178,7 @@
             "interfaces": [
                 "AzGuard\\Contracts\\Scopes\\AssignmentScopeDefinition",
                 "AzGuard\\Contracts\\Scopes\\ConfigurableAssignmentScopeDefinition",
+                "AzGuard\\Contracts\\Scopes\\DescribesAssignmentScope",
                 "AzGuard\\Contracts\\Scopes\\QueryableAssignmentScopeDefinition"
             ],
             "namedArguments": true,
@@ -24066,6 +24222,17 @@
                     "contracts": [
                         "@param class-string<Model> $model"
                     ]
+                },
+                {
+                    "name": "description",
+                    "visibility": "public",
+                    "static": false,
+                    "abstract": false,
+                    "final": false,
+                    "parameters": [],
+                    "return": "AzGuard\\Context\\AssignmentScopeDescription",
+                    "namedArguments": true,
+                    "contracts": []
                 },
                 {
                     "name": "hasOwner",
@@ -24803,7 +24970,8 @@
                 "AzGuard\\Contracts\\Sources\\ProvidesPolicies",
                 "AzGuard\\Contracts\\Sources\\ProvidesRoleGrants",
                 "AzGuard\\Contracts\\Sources\\ProvidesRoles",
-                "AzGuard\\Contracts\\Sources\\Source"
+                "AzGuard\\Contracts\\Sources\\Source",
+                "AzGuard\\Sources\\Internal\\EvaluatesAutomaticRoles"
             ],
             "namedArguments": true,
             "contracts": [],

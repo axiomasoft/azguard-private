@@ -1,12 +1,5 @@
 [
     {
-        "file": "packages/core/src/Authorization/BatchInputs.php",
-        "reference": "AzGuard\\Scopes\\BaseAssignmentScope",
-        "kind": "import",
-        "invariant": "I2",
-        "owner_phase": "P3"
-    },
-    {
         "file": "packages/core/src/AzGuardServiceProvider.php",
         "reference": "AzGuard\\Laravel\\Console\\Commands\\AuditPruneCommand",
         "kind": "import",
@@ -94,20 +87,6 @@
         "file": "packages/core/src/Changes/ChangePipeline.php",
         "reference": "audit_log",
         "kind": "table",
-        "invariant": "I2",
-        "owner_phase": "P3"
-    },
-    {
-        "file": "packages/core/src/Schema/SchemaBuilder.php",
-        "reference": "AzGuard\\Contracts\\Scopes\\ConfigurableAssignmentScopeDefinition",
-        "kind": "import",
-        "invariant": "I2",
-        "owner_phase": "P3"
-    },
-    {
-        "file": "packages/core/src/Schema/SchemaBuilder.php",
-        "reference": "AzGuard\\Scopes\\RoleBindings",
-        "kind": "import",
         "invariant": "I2",
         "owner_phase": "P3"
     },

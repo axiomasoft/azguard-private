@@ -7,8 +7,6 @@ use AzGuard\Changes\Change;
 use AzGuard\Changes\ChangeResult;
 use AzGuard\Changes\ChangeStatus;
 use AzGuard\Changes\GrantDetails;
-use AzGuard\Context\AssignmentScopeDeclaration;
-use AzGuard\Context\AssignmentScopeMode;
 use AzGuard\Context\AssignmentScopePhase;
 use AzGuard\Events\RoleRevoked;
 use AzGuard\Exceptions\AssignmentScopeNotAcceptedException;
@@ -23,12 +21,12 @@ use AzGuard\Panels\PanelRegistry;
 use AzGuard\Plugins\Audit\AuditPlugin;
 use AzGuard\Schema\Field;
 use AzGuard\Schema\FieldTarget;
-use AzGuard\Scopes\Internal\ScopeEvaluator;
 use AzGuard\Storage\StorageTouched;
 use AzGuard\Tests\Fixtures\Changes\ChangeWorld as W;
 use AzGuard\Tests\Fixtures\Changes\DelegationPipe;
 use AzGuard\Tests\Fixtures\Changes\HostFencePipe;
 use AzGuard\Tests\Fixtures\Crm\CrmWorld as World;
+use AzGuard\Tests\Fixtures\Crm\Guards\Crm\Filters\ActiveProjects;
 use AzGuard\Tests\Fixtures\Crm\Guards\Crm\Filters\SellerProjects;
 use AzGuard\Tests\Fixtures\Crm\Guards\Crm\Permissions\Clients\ClientPermission as Action;
 use AzGuard\Tests\Fixtures\Crm\Guards\Crm\Roles\SellerRole;
@@ -160,7 +158,8 @@ it('R30 repeats final validation after a changing pipe, rolls back nested work a
 
 it('R47 gives Assignment capabilities the target user, BaseRole, validated proposal, actor, scope and phase through DI', function (): void {
     InjectedSellerFilter::$observed = [];
-    $panel = W::panel(configure: fn (PanelBuilder $p) => $p->assignmentScopes(new AssignmentScopeDeclaration(AssignmentScopeMode::Inherit, [ProjectScope::make()->filter(InjectedSellerFilter::class)], evaluator: ScopeEvaluator::class)));
+    World::$projectScope = ProjectScope::make()->filter(new ActiveProjects)->filter(InjectedSellerFilter::class);
+    $panel = W::panel();
     W::grant($panel, 'seller', 1, 5, until: new DateTimeImmutable('2026-12-01T00:00:00.5Z'), fields: ['region' => 'R2'], actor: ActorRef::of('crm.user', 3));
     $runtime = InjectedSellerFilter::$observed[0];
 

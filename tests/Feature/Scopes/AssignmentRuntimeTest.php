@@ -2,8 +2,6 @@
 
 declare(strict_types=1);
 
-use AzGuard\Context\AssignmentScopeDeclaration;
-use AzGuard\Context\AssignmentScopeMode;
 use AzGuard\Context\AssignmentScopePhase;
 use AzGuard\Context\AssignmentScopeRuntime;
 use AzGuard\Directories\LookupContext;
@@ -15,11 +13,11 @@ use AzGuard\Kernel\Identity\AssignmentScopeRef;
 use AzGuard\Kernel\Identity\SubjectRef;
 use AzGuard\Kernel\Identity\TenantRef;
 use AzGuard\Panels\Panel;
-use AzGuard\Panels\PanelBuilder;
 use AzGuard\Roles\BaseRole;
 use AzGuard\Scopes\Internal\ScopeEvaluator;
 use AzGuard\Tests\Fixtures\Changes\ChangeWorld as W;
 use AzGuard\Tests\Fixtures\Crm\CrmWorld;
+use AzGuard\Tests\Fixtures\Crm\Guards\Crm\Filters\ActiveProjects;
 use AzGuard\Tests\Fixtures\Crm\Guards\Crm\Filters\SellerProjects;
 use AzGuard\Tests\Fixtures\Crm\Guards\Crm\Roles\SellerRole;
 use AzGuard\Tests\Fixtures\Crm\Guards\Crm\Scopes\ProjectScope;
@@ -55,10 +53,11 @@ it('keeps Access frames on an empty proposal and a present actor', function (): 
 
 it('gives Assignment filters the validated proposal, the target user, the code role and a nullable actor', function (): void {
     $seen = [];
-    $filter = static function (Builder $query, array $proposed, ?ActorRef $actor, ?User $user) use (&$seen): void {
-        $seen[] = [$proposed, $actor, $user?->getKey()];
+    $filter = static function (Builder $query, AssignmentScopeRuntime $runtime) use (&$seen): void {
+        $seen[] = [$runtime->proposed, $runtime->actor, $runtime->user?->getKey()];
     };
-    $panel = CrmWorld::compile(fn (PanelBuilder $p) => $p->assignmentScopes(new AssignmentScopeDeclaration(AssignmentScopeMode::Inherit, [ProjectScope::make()->filter($filter)], evaluator: ScopeEvaluator::class)));
+    CrmWorld::$projectScope = ProjectScope::make()->filter(new ActiveProjects)->filter($filter);
+    $panel = CrmWorld::compile();
     $definition = $panel->scopeDefinition('crm.project');
     $evaluator = new ScopeEvaluator(app());
     $runtime = assignmentRuntime($panel, 1, null, ['until' => null, 'fields' => ['region' => 'R1']], new SellerRole);
@@ -70,13 +69,22 @@ it('gives Assignment filters the validated proposal, the target user, the code r
 });
 
 it('refuses explicitly a filter that requires an actor or actor model that is absent', function (Closure $filter): void {
-    $panel = CrmWorld::compile(fn (PanelBuilder $p) => $p->assignmentScopes(new AssignmentScopeDeclaration(AssignmentScopeMode::Inherit, [ProjectScope::make()->filter($filter)], evaluator: ScopeEvaluator::class)));
+    CrmWorld::$projectScope = ProjectScope::make()->filter(new ActiveProjects)->filter($filter);
+    $panel = CrmWorld::compile();
     $resolved = $panel->scopeDefinition('crm.project')?->resolve(AssignmentScopeRef::of('crm.project', 1));
 
     expect(fn () => (new ScopeEvaluator(app()))->allows(assignmentRuntime($panel, 1, null), $resolved))->toThrow(RuntimeException::class);
 })->with([
-    'actor' => [static fn (Builder $query, ActorRef $actor) => null],
-    'actor model' => [static fn (Builder $query, User $actorModel) => null],
+    'actor' => [static function (Builder $query, AssignmentScopeRuntime $runtime): void {
+        if ($runtime->actor === null) {
+            throw new RuntimeException('This filter requires an actor.');
+        }
+    }],
+    'actor model' => [static function (Builder $query, AssignmentScopeRuntime $runtime): void {
+        if (! $runtime->actorModel instanceof User) {
+            throw new RuntimeException('This filter requires an actor model.');
+        }
+    }],
 ]);
 
 it('answers for a verified scope only through its filters: an active project passes, an inactive one does not', function (): void {

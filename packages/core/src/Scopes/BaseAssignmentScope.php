@@ -6,9 +6,11 @@ namespace AzGuard\Scopes;
 
 use AzGuard\Attributes\Spi;
 use AzGuard\Attributes\SpiKind;
+use AzGuard\Context\AssignmentScopeDescription;
 use AzGuard\Contracts\Scopes\AssignmentScopeDirectory;
 use AzGuard\Contracts\Scopes\AssignmentScopeFilter;
 use AzGuard\Contracts\Scopes\ConfigurableAssignmentScopeDefinition;
+use AzGuard\Contracts\Scopes\DescribesAssignmentScope;
 use AzGuard\Contracts\Scopes\QueryableAssignmentScopeDefinition;
 use AzGuard\Contracts\Scopes\ResolvedAssignmentScope;
 use AzGuard\Exceptions\DefinitionException;
@@ -19,6 +21,7 @@ use AzGuard\Support\ModelKey;
 use Closure;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use ReflectionMethod;
 
 /**
  * Configurable Eloquent assignment scope. A concrete class declares `type()`, `query()` and `tenantOf()`;
@@ -27,7 +30,7 @@ use Illuminate\Database\Eloquent\Model;
  * `resolve()` loads the record once. A global reference and a reference of another type are refused, not ignored.
  */
 #[Spi(kind: SpiKind::Implement, since: '0.7')]
-abstract class BaseAssignmentScope implements ConfigurableAssignmentScopeDefinition, QueryableAssignmentScopeDefinition
+abstract class BaseAssignmentScope implements ConfigurableAssignmentScopeDefinition, DescribesAssignmentScope, QueryableAssignmentScopeDefinition
 {
     /** @var list<AssignmentScopeFilter|class-string<AssignmentScopeFilter>|Closure> */
     private array $filters = [];
@@ -132,5 +135,19 @@ abstract class BaseAssignmentScope implements ConfigurableAssignmentScopeDefinit
     public function settings(): AssignmentScopeSettings
     {
         return new AssignmentScopeSettings($this->filters, $this->label, $this->directory);
+    }
+
+    /**
+     * The filters as the components only the scope evaluator applies, label and directory; records have a tenant
+     * owner, and `resolve()` equals `query()` plus `tenantOf()` while a subclass keeps the base one.
+     */
+    public function description(): AssignmentScopeDescription
+    {
+        return new AssignmentScopeDescription(
+            components: $this->filters,
+            label: $this->label,
+            directory: $this->directory,
+            resolvesThroughQuery: (new ReflectionMethod($this, 'resolve'))->getDeclaringClass()->getName() === self::class,
+        );
     }
 }

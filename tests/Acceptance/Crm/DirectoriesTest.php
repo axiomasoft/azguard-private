@@ -2,8 +2,6 @@
 
 declare(strict_types=1);
 
-use AzGuard\Context\AssignmentScopeDeclaration;
-use AzGuard\Context\AssignmentScopeMode;
 use AzGuard\Context\AssignmentScopePhase;
 use AzGuard\Context\AssignmentScopeRuntime;
 use AzGuard\Contracts\Scopes\AssignmentScopeDirectory;
@@ -11,10 +9,9 @@ use AzGuard\Directories\DirectoryResolver;
 use AzGuard\Directories\QueryScopeDirectory;
 use AzGuard\Kernel\Identity\AssignmentScopeRef;
 use AzGuard\Panels\Panel;
-use AzGuard\Panels\PanelBuilder;
-use AzGuard\Scopes\Internal\ScopeEvaluator;
 use AzGuard\Tests\Feature\Directories\Support\Lookups;
 use AzGuard\Tests\Fixtures\Crm\CrmWorld as World;
+use AzGuard\Tests\Fixtures\Crm\Guards\Crm\Filters\ActiveProjects;
 use AzGuard\Tests\Fixtures\Crm\Guards\Crm\Filters\SellerProjects;
 use AzGuard\Tests\Fixtures\Crm\Guards\Crm\Roles\AnalystRole;
 use AzGuard\Tests\Fixtures\Crm\Guards\Crm\Roles\SellerRole;
@@ -103,7 +100,8 @@ it('V114 Inspection describes an inactive context that Assignment never offers',
 });
 
 it('R50 an external consumer directory declared in code replaces the default through the public SPI', function (): void {
-    $panel = World::compile(fn (PanelBuilder $p) => $p->assignmentScopes(new AssignmentScopeDeclaration(AssignmentScopeMode::Inherit, [ProjectScope::make()->directory(ProjectDirectory::class)], evaluator: ScopeEvaluator::class)));
+    World::$projectScope = ProjectScope::make()->filter(new ActiveProjects)->directory(ProjectDirectory::class);
+    $panel = World::compile();
     $resolver = DirectoryResolver::for($panel, app());
     $lookup = Lookups::make($panel, target: 1, role: SellerRole::class);
 
@@ -125,9 +123,10 @@ it('R50 without a configured directory the default is the query directory of Sco
 });
 
 it('R50 a filter written against the structural query does not change which tenant is offered', function (): void {
-    $panel = World::compile(fn (PanelBuilder $p) => $p->assignmentScopes(new AssignmentScopeDeclaration(AssignmentScopeMode::Inherit, [ProjectScope::make()->filter(
+    World::$projectScope = ProjectScope::make()->filter(new ActiveProjects)->filter(
         fn (Builder $query) => $query->where('region', 'R1')->orWhere('organization_id', 2),
-    )], evaluator: ScopeEvaluator::class)));
+    );
+    $panel = World::compile();
 
     // The OR stays inside its own group: project 5 (region R2) is out, and a tenant-2 row never reaches tenant 1.
     expect(crmProjects($panel, user: 1, role: AnalystRole::class))->toBe(['1', '2'])

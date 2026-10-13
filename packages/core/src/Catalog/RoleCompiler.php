@@ -18,9 +18,9 @@ use AzGuard\Exceptions\UnknownPermissionException;
 use AzGuard\Kernel\Decision\PermissionAuthority;
 use AzGuard\Kernel\Grammar\PermissionGrammar;
 use AzGuard\Kernel\Identity\PermissionPattern;
+use AzGuard\Panels\Internal\CanonicalMetadata;
 use AzGuard\Panels\Panel;
 use AzGuard\Roles\BaseRole;
-use AzGuard\Scopes\Internal\ScopeConfiguration;
 use AzGuard\Sources\PanelSources;
 use Illuminate\Contracts\Container\Container;
 use UnitEnum;
@@ -226,7 +226,9 @@ final readonly class RoleCompiler
                 throw InvalidConfigurationException::failing('tenant_scope', 'Role '.$role::class.' of panel "'.$panel->id().'" declares an unregistered or conflicting assignment scope '.$scope->type().'.');
             }
 
-            if ($evaluator === null && ($panel->scopeDeclaration()->mode ?? AssignmentScopeMode::None) !== AssignmentScopeMode::None && ScopeConfiguration::filterMetadata($scope) !== []) {
+            $components = ContextIdentity::describe($scope)->components;
+
+            if ($evaluator === null && ($panel->scopeDeclaration()->mode ?? AssignmentScopeMode::None) !== AssignmentScopeMode::None && $components !== []) {
                 throw new DefinitionException('Role '.$role::class.' of panel "'.$panel->id().'" binds filters to assignment scope '.$scope->type().' without an evaluator that applies them.');
             }
 
@@ -237,7 +239,7 @@ final readonly class RoleCompiler
             }
 
             $compiled = ['type' => $scope->type(), 'class' => $scope::class];
-            $filters = ScopeConfiguration::filterMetadata($scope);
+            $filters = array_map(static fn (object|string $component): string => hash('sha256', json_encode(CanonicalMetadata::componentMetadata($component), JSON_THROW_ON_ERROR)), $components);
 
             if ($filters !== []) {
                 $compiled['filter_configuration'] = $filters;

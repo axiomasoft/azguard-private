@@ -92,15 +92,15 @@ it('reads fresh fields and rechecks authoritative owner instead of a stale resol
     expect(EligibilityBuilder::matches($this->nativeDefinition, $this->nativeResolved, [], $this->nativeRuntime, app()))->toBeFalse();
 });
 
-it('injects query-first reserved runtime slots and refuses a missing required user', function (): void {
+it('calls a closure filter with the query and the runtime and fails one that needs a missing user', function (): void {
     expect(EligibilityBuilder::matches($this->nativeDefinition, $this->nativeResolved, [
-        function (Builder $query, ?User $user, AssignmentScopeRuntime $runtime): void {
-            expect($user)->toBeNull()->and($runtime->subject->id())->toBe('1');
+        function (Builder $query, AssignmentScopeRuntime $runtime): void {
+            expect($runtime->user)->toBeNull()->and($runtime->subject->id())->toBe('1');
             $query->where('active', true);
         },
     ], $this->nativeRuntime, app()))->toBeTrue();
     expect(fn () => EligibilityBuilder::matches($this->nativeDefinition, $this->nativeResolved, [
-        fn (Builder $query, User $user) => $query->where('id', $user->getKey()),
+        fn (Builder $query, AssignmentScopeRuntime $runtime) => $query->where('id', ($runtime->user ?? throw new RuntimeException('This filter requires a user.'))->getKey()),
     ], $this->nativeRuntime, app()))->toThrow(RuntimeException::class, 'user');
 });
 
@@ -136,6 +136,9 @@ it('blocks terminal operations before SQL including the public base query', func
     'exists' => [fn (Builder $query) => $query->exists()],
     'count' => [fn (Builder $query) => $query->count()],
     'cursor' => [fn (Builder $query) => $query->cursor()],
+    'delete' => [fn (Builder $query) => $query->delete()],
+    'force delete' => [fn (Builder $query) => $query->forceDelete()],
+    'model instance' => [fn (Builder $query) => $query->newModelInstance()],
     'base get' => [fn (Builder $query) => $query->getQuery()->get()],
     'base exists' => [fn (Builder $query) => $query->getQuery()->exists()],
     'base cursor' => [fn (Builder $query) => $query->getQuery()->cursor()],

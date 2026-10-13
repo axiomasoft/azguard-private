@@ -86,6 +86,22 @@ your code. Each line is `Find: <grep pattern> → Replace: <new form>`.
   `$this->app->singletonIf(AzGuard\Configuration\ConfigSections::class)` followed by
   `$this->app->make(AzGuard\Configuration\ConfigSections::class)->own('<root>', fn (array $section) => …)` (the registry is shared only once bound,
   and your provider may register before core's); an unregistered root key is rejected.
+- Find: one scope type declared by several layers or plugins with different `->filter(…)`, `->label(…)` or `->directory(…)` → Replace: declare it once
+  with all its filters, label and directory; contributions of one alias must be identical, otherwise the panel fails with "conflicting assignment
+  scope definitions" (they are no longer merged).
+- Find: `ScopesPlugin::…(…)->accessAdapter('<type>', …)` for a type the same `ScopesPlugin` call does not list → Replace: list the definition of that
+  type in the `ScopesPlugin` call; an adapter for another type fails with "registers an access adapter for unknown assignment scope".
+- Find: `exact_support` / `AssignmentScopeBindingSchema::$exactSupport` read for an adapter-backed scope type → Replace: expect `false`; it is true only
+  for a queryable definition with a model.
+- Find: a custom `AssignmentScopeDefinition` that is not a `BaseAssignmentScope` and needs a label, a default directory or an ownerless (global-tenant)
+  model → Replace: also implement `AzGuard\Contracts\Scopes\DescribesAssignmentScope` and return `AzGuard\Context\AssignmentScopeDescription`.
+- Find: a filter closure whose parameters are injected by name (`$user`, `$role`, `$grant`, `$actor`, `$actorModel`, `$panel`, `$scope`, `$now`,
+  `$phase`, `$proposed`) or typed other than `Builder`/`AssignmentScopeRuntime` → Replace: `function (Builder $query, AssignmentScopeRuntime $runtime)`
+  and read `$runtime->user`, `->role`, `->grant`, `->actor`, `->actorModel`, `->panel`, `->scope`, `->now`, `->phase`, `->proposed`; other closures
+  fail panel compilation with `DefinitionException`.
+- Find: a scope membership or access adapter class name without a container binding that failed panel compilation (`InvalidConfigurationException`
+  check `membership`) → Replace: nothing at boot; the
+  doctor check `scopes.membership` reports it as an error and the check fails closed at runtime, so run `azguard:doctor`.
 
 ## From 0.3 to 0.7.0
 

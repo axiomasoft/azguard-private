@@ -8,8 +8,9 @@ use AzGuard\Attributes\Api;
 use JsonSerializable;
 
 /**
- * How a role binds one assignment scope type: the classes of its filters and how the scope is shown and looked up.
- * Filter objects, their constructor arguments and closures are not part of it.
+ * How a role binds one assignment scope type: the classes of the components its definition describes (filters of the
+ * Scopes module) and how the scope is shown and looked up. Component objects, their constructor arguments and closures
+ * are not part of it.
  */
 #[Api(since: '0.7')]
 final readonly class AssignmentScopeBindingSchema implements JsonSerializable
@@ -17,7 +18,8 @@ final readonly class AssignmentScopeBindingSchema implements JsonSerializable
     /**
      * @param  list<string>  $filters  filter classes in declaration order; `Closure` for a closure filter
      * @param  class-string|null  $directory  the directory class the binding names, null for the directory of the type
-     * @param  bool  $exactSupport  whether exact lists can be built for the type: a queryable model or an access adapter
+     * @param  bool  $exactSupport  whether the binding is a queryable definition with a model; an adapter-backed type
+     *                              reports false
      */
     public function __construct(
         public string $contextType,

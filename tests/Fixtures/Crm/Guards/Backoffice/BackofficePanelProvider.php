@@ -20,14 +20,17 @@ final class BackofficePanelProvider extends PanelProvider
     {
         $sources = CrmWorld::$sources;
         $configure = CrmWorld::$configure;
+        $projectScope = CrmWorld::$projectScope;
 
         try {
             CrmWorld::$sources = [CrmWorld::database()];
             CrmWorld::$configure = CrmWorld::$backofficeConfigure;
+            CrmWorld::$projectScope = CrmWorld::$backofficeProjectScope;
             (new CrmGuardPanelProvider($this->app))->panel($panel);
         } finally {
             CrmWorld::$sources = $sources;
             CrmWorld::$configure = $configure;
+            CrmWorld::$projectScope = $projectScope;
         }
 
         return $panel->discover(dirname(__DIR__).'/Crm', 'AzGuard\\Tests\\Fixtures\\Crm\\Guards\\Crm');

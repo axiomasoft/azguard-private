@@ -51,6 +51,15 @@ final class CrmWorld
 
     public static ?Closure $backofficeConfigure = null;
 
+    /**
+     * The whole `crm.project` definition the stand's ScopesPlugin declares on crm (backoffice: on backoffice) instead of
+     * `ProjectScope::make()->filter(new ActiveProjects)`. One alias has one definition: a test that needs other filters,
+     * label or directory replaces the definition here rather than declaring the alias a second time.
+     */
+    public static ?ProjectScope $projectScope = null;
+
+    public static ?ProjectScope $backofficeProjectScope = null;
+
     public static array $sources = [];
 
     public static function storage(): Storage
@@ -113,6 +122,8 @@ final class CrmWorld
         self::$scopes = true;
         self::$configure = null;
         self::$backofficeConfigure = null;
+        self::$projectScope = null;
+        self::$backofficeProjectScope = null;
         self::$sources = [];
         ProjectScope::$failure = null;
         ClientScopeResolver::$throws = false;

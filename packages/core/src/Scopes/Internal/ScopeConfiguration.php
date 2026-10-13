@@ -4,99 +4,36 @@ declare(strict_types=1);
 
 namespace AzGuard\Scopes\Internal;
 
+use AzGuard\Context\AssignmentScopeRuntime;
 use AzGuard\Contracts\Scopes\AssignmentScopeAccessAdapter;
 use AzGuard\Contracts\Scopes\AssignmentScopeDefinition;
-use AzGuard\Contracts\Scopes\AssignmentScopeDirectory;
 use AzGuard\Contracts\Scopes\AssignmentScopeFilter;
 use AzGuard\Contracts\Scopes\AssignmentScopeMembership;
 use AzGuard\Contracts\Scopes\ConfigurableAssignmentScopeDefinition;
 use AzGuard\Contracts\Scopes\QueryableAssignmentScopeDefinition;
 use AzGuard\Exceptions\DefinitionException;
-use AzGuard\Exceptions\InvalidConfigurationException;
-use AzGuard\Kernel\Support\Narrow;
 use AzGuard\Panels\Internal\CanonicalMetadata;
 use AzGuard\Panels\Panel;
 use AzGuard\Scopes\AssignmentScopeSettings;
 use AzGuard\Scopes\BaseAssignmentScope;
-use AzGuard\Scopes\ModelAssignmentScopeDefinition;
-use AzGuard\Tenancy\TenantMode;
 use Closure;
 use Illuminate\Contracts\Container\Container;
+use Illuminate\Database\Eloquent\Builder;
 use ReflectionClass;
-use ReflectionMethod;
+use ReflectionFunction;
+use ReflectionIntersectionType;
 use ReflectionNamedType;
+use ReflectionParameter;
+use ReflectionType;
+use ReflectionUnionType;
+use UnexpectedValueException;
 
 /**
- * Build-time validation and scalar metadata; user components are never instantiated here. Also the reader of the
- * scope options for the call sites outside the scope code.
+ * Build-time validation of filters, access adapters and role bindings, and the reader of the scope options; user
+ * components are never instantiated here. Core reads definitions only through their description.
  */
 final class ScopeConfiguration
 {
-    /**
-     * A tenant panel cannot use a model-backed definition without an owner callback: its scopes would all belong to
-     * the global tenant.
-     *
-     * @throws InvalidConfigurationException
-     */
-    public static function tenantOwner(string $panel, AssignmentScopeDefinition $definition, TenantMode $tenants): void
-    {
-        if ($tenants === TenantMode::Required && $definition instanceof ModelAssignmentScopeDefinition && ! $definition->hasOwner()) {
-            throw InvalidConfigurationException::failing('tenant_scope', 'Tenant panel '.$panel.' requires an authoritative tenant owner for assignment scope '
-                .$definition->type().': give the model definition an explicit owner callback.');
-        }
-    }
-
-    /**
-     * The membership adapter can be created and every access adapter is resolvable, holds plain configuration and
-     * belongs to a declared scope type.
-     *
-     * @param  array<class-string, object>  $options  the module options of the panel
-     * @param  list<string>  $types  the declared scope type aliases
-     *
-     * @throws DefinitionException
-     * @throws InvalidConfigurationException
-     */
-    public static function checkOptions(string $panel, array $options, array $types, ?Container $container): void
-    {
-        $scopes = $options[ScopesOptions::class] ?? null;
-
-        if (! $scopes instanceof ScopesOptions) {
-            return;
-        }
-        $membership = $scopes->membership;
-
-        if (is_string($membership) && ! ($container?->bound($membership) ?? false) && ! (new ReflectionClass($membership))->isInstantiable()) {
-            throw InvalidConfigurationException::failing('membership', 'Assignment scope membership adapter '.$membership.' has no container binding: bind it or name a class that can be created.');
-        }
-
-        foreach ($scopes->adapters as $type => $adapter) {
-            self::component($adapter, AssignmentScopeAccessAdapter::class, $container, 'Assignment scope access adapter');
-            CanonicalMetadata::componentMetadata($adapter);
-
-            if (! in_array($type, $types, true)) {
-                throw new DefinitionException('Panel '.$panel.' registers an access adapter for unknown assignment scope '.$type.'.');
-            }
-        }
-    }
-
-    /** A model-backed definition without an owner callback: every record belongs to the global tenant. */
-    public static function ownerless(AssignmentScopeDefinition $definition): bool
-    {
-        return $definition instanceof ModelAssignmentScopeDefinition && ! $definition->hasOwner();
-    }
-
-    /** Whether `resolve()` is the base one, equal to `query()` plus `tenantOf()`; a custom one may refuse a record. */
-    public static function resolvesByQuery(AssignmentScopeDefinition $definition): bool
-    {
-        return (new ReflectionMethod($definition, 'resolve'))->getDeclaringClass()->getName() === BaseAssignmentScope::class;
-    }
-
-    /** @return class-string<AssignmentScopeDirectory>|null the directory a configurable definition names */
-    public static function directory(AssignmentScopeDefinition $definition): ?string
-    {
-        return $definition instanceof ConfigurableAssignmentScopeDefinition ? $definition->settings()->directory : null;
-    }
-
     /** @return AssignmentScopeMembership|class-string<AssignmentScopeMembership>|null */
     public static function membership(Panel $panel): AssignmentScopeMembership|string|null
     {
@@ -123,11 +60,74 @@ final class ScopeConfiguration
 
         foreach ($filters as $filter) {
             if ($filter instanceof Closure) {
+                self::closure($definition->type(), $filter);
+
                 continue;
             }
             self::component($filter, AssignmentScopeFilter::class, $container, 'Assignment scope filter');
         }
         self::filterMetadata($definition);
+    }
+
+    /**
+     * A closure filter is called like `AssignmentScopeFilter::apply($query, $runtime)`: at most two required
+     * parameters, the first accepting the Eloquent builder and the second the runtime (an untyped one accepts both).
+     *
+     * @throws DefinitionException
+     */
+    private static function closure(string $type, Closure $filter): void
+    {
+        $reflection = new ReflectionFunction($filter);
+        $parameters = $reflection->getParameters();
+        $accepted = $reflection->getNumberOfRequiredParameters() <= 2
+            && self::accepts($parameters[0] ?? null, Builder::class)
+            && self::accepts($parameters[1] ?? null, AssignmentScopeRuntime::class);
+
+        if (! $accepted) {
+            throw new DefinitionException('Assignment scope '.$type.' has a filter closure that cannot be called as ($query, $runtime): declare '
+                .'function (Builder $query, AssignmentScopeRuntime $runtime) and read the user, role, grant, actor, scope, now, phase and '
+                .'proposed values from the runtime.');
+        }
+    }
+
+    /** @param class-string $class */
+    private static function accepts(?ReflectionParameter $parameter, string $class): bool
+    {
+        return $parameter === null || self::admits($parameter->getType(), $class);
+    }
+
+    /** @param class-string $class */
+    private static function admits(?ReflectionType $type, string $class): bool
+    {
+        if ($type === null) {
+            return true;
+        }
+
+        if ($type instanceof ReflectionNamedType) {
+            return in_array($type->getName(), ['mixed', 'object'], true) || (! $type->isBuiltin() && is_a($class, $type->getName(), true));
+        }
+
+        if ($type instanceof ReflectionUnionType) {
+            foreach ($type->getTypes() as $part) {
+                if (self::admits($part, $class)) {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        if ($type instanceof ReflectionIntersectionType) {
+            foreach ($type->getTypes() as $part) {
+                if (! self::admits($part, $class)) {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        return false;
     }
 
     /** @param class-string $contract */
@@ -188,32 +188,16 @@ final class ScopeConfiguration
             && self::structure($registered) == self::structure($binding);
     }
 
-    public static function merge(AssignmentScopeDefinition $earlier, AssignmentScopeDefinition $later): AssignmentScopeDefinition
-    {
-        if (! $earlier instanceof ConfigurableAssignmentScopeDefinition || ! $later instanceof ConfigurableAssignmentScopeDefinition) {
-            return $later;
-        }
-
-        $merged = $earlier;
-        foreach ($later->settings()->filters as $filter) {
-            $merged = $merged->filter($filter);
-        }
-
-        if ($later->settings()->label !== null) {
-            $merged = $merged->label($later->settings()->label);
-        }
-
-        if ($later->settings()->directory !== null) {
-            return $merged->directory($later->settings()->directory);
-        }
-
-        return $merged;
-    }
-
     /** @return array<string, mixed> */
     private static function structure(AssignmentScopeDefinition $definition): array
     {
-        $properties = Narrow::map((array) $definition, 'assignment scope definition');
+        $properties = [];
+        foreach ((array) $definition as $name => $value) {
+            if (! is_string($name)) {
+                throw new UnexpectedValueException('assignment scope definition key must be a string, got '.get_debug_type($name).'.');
+            }
+            $properties[$name] = $value;
+        }
         foreach ($properties as $name => $value) {
             if ($value instanceof AssignmentScopeSettings || in_array($name, [
                 "\0".BaseAssignmentScope::class."\0filters",
@@ -228,7 +212,7 @@ final class ScopeConfiguration
     }
 
     /** @return list<string> */
-    public static function filterMetadata(AssignmentScopeDefinition $definition): array
+    private static function filterMetadata(AssignmentScopeDefinition $definition): array
     {
         if (! $definition instanceof ConfigurableAssignmentScopeDefinition) {
             return [];

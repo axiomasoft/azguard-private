@@ -1,12 +1,5 @@
 [
     {
-        "file": "packages/core/src/Directories/QueryScopeDirectory.php",
-        "reference": "AzGuard\\Directories\\ModelLookup",
-        "kind": "type",
-        "invariant": "I4",
-        "owner_phase": "P3"
-    },
-    {
         "file": "packages/core/src/Laravel/Console/Commands/AuditPruneCommand.php",
         "reference": "AzGuard\\Changes\\ChangePipeline",
         "kind": "type",
@@ -37,34 +30,6 @@
     {
         "file": "packages/core/src/Laravel/Console/Scaffold/Layout.php",
         "reference": "AzGuard\\Configuration\\AzGuardConfig",
-        "kind": "type",
-        "invariant": "I4",
-        "owner_phase": "P3"
-    },
-    {
-        "file": "packages/core/src/Scopes/Query/EligibilityBuilder.php",
-        "reference": "AzGuard\\Kernel\\Support\\Narrow",
-        "kind": "type",
-        "invariant": "I4",
-        "owner_phase": "P3"
-    },
-    {
-        "file": "packages/core/src/Scopes/Query/EligibilityBuilder.php",
-        "reference": "AzGuard\\Policies\\RuntimeInvoker",
-        "kind": "type",
-        "invariant": "I4",
-        "owner_phase": "P3"
-    },
-    {
-        "file": "packages/core/src/Scopes/Query/EligibilityBuilder.php",
-        "reference": "AzGuard\\Scopes\\Query\\PredicateBuilder",
-        "kind": "type",
-        "invariant": "I4",
-        "owner_phase": "P3"
-    },
-    {
-        "file": "packages/core/src/Scopes/Query/EligibilityBuilder.php",
-        "reference": "AzGuard\\Scopes\\Query\\QueryGuard",
         "kind": "type",
         "invariant": "I4",
         "owner_phase": "P3"

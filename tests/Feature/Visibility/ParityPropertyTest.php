@@ -105,10 +105,12 @@ it('P14 gives each denial layer a positive control and an independent literal de
     $source = new VisibilitySource(direct: [W::grant(1), W::grant(2)], roles: [W::role(1)]);
     [$visibility, $panel] = W::compile($source);
     expect($visibility->visibleTo($panel, VisibilityProject::query(), W::subject(), 'orders.view')->orderBy('id')->pluck('id')->all())->toBe([1, 2]);
+    // One alias has one definition: the stand declares the filtered definition the plugin attaches.
+    W::$projectScope = $layer === 'common' ? (new VisibilityProjectScope)->filter(fn ($q) => $q->where('active', true)) : null;
     [$visibility, $panel] = W::compile($source, function (PanelBuilder $p) use ($layer): void {
         match ($layer) {
             'before' => $p->before([VisibilityBefore::class]),
-            'common' => $p->plugins([ScopesPlugin::inherit((new VisibilityProjectScope)->filter(fn ($q) => $q->where('active', true)))]),
+            'common' => $p->plugins([ScopesPlugin::inherit(W::$projectScope)]),
             'restriction' => $p->restrictions([VisibilityRestriction::class]),
             'veto' => $p->policies([PolicyBinding::for('orders.view', ParityVetoPolicy::class)]),
             'condition' => $p->grantConditions([VisibilityCondition::class]),

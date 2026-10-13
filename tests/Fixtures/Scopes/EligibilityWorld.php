@@ -55,16 +55,20 @@ final class EligibilityWorld
         ]);
     }
 
-    /** @return array{Authorizer, Panel, AccessRequest} */
-    public static function compile(GeneratedSource $source, ?Closure $configure = null): array
+    /**
+     * @param  EligibilityProjectScope|null  $scope  the whole definition of `crm.project` instead of the stand's one
+     *                                               (one alias has one definition)
+     * @return array{Authorizer, Panel, AccessRequest}
+     */
+    public static function compile(GeneratedSource $source, ?Closure $configure = null, ?EligibilityProjectScope $scope = null): array
     {
         RuntimePolicy::$result = true;
         RuntimePolicy::$callback = null;
         RuntimePolicy::$calls = 0;
 
-        return AuthorizationWorld::compile($source, function (PanelBuilder $panel) use ($configure): void {
+        return AuthorizationWorld::compile($source, function (PanelBuilder $panel) use ($configure, $scope): void {
             $panel->tenants(TenantPolicy::required(Organization::class)->requireMembership(new Membership))
-                ->assignmentScopes(new AssignmentScopeDeclaration(AssignmentScopeMode::Inherit, [EligibilityProjectScope::make()->filter(ActiveProjects::class)], evaluator: ScopeEvaluator::class))
+                ->assignmentScopes(new AssignmentScopeDeclaration(AssignmentScopeMode::Inherit, [$scope ?? EligibilityProjectScope::make()->filter(ActiveProjects::class)], evaluator: ScopeEvaluator::class))
                 ->roles([EligibilitySellerRole::class, EligibilityAnalystRole::class]);
             $configure?->__invoke($panel);
         }, rootRole: EligibilityAdminRole::class);

@@ -7,6 +7,7 @@ namespace AzGuard\Authorization;
 use AzGuard\Authorization\Cache\PermissionSetCache;
 use AzGuard\Catalog\PanelCatalog;
 use AzGuard\Context\AssignmentScopeRuntime;
+use AzGuard\Context\Internal\ContextIdentity;
 use AzGuard\Contracts\Scopes\AssignmentScopeEvaluator;
 use AzGuard\Contracts\Scopes\QueryableAssignmentScopeDefinition;
 use AzGuard\Contracts\Scopes\ResolvedAssignmentScope;
@@ -17,11 +18,9 @@ use AzGuard\Kernel\Identity\ActorRef;
 use AzGuard\Kernel\Identity\IdentityCodec;
 use AzGuard\Kernel\Identity\SubjectRef;
 use AzGuard\Panels\Panel;
-use AzGuard\Scopes\BaseAssignmentScope;
 use AzGuard\Sources\PanelSources;
 use AzGuard\Support\ModelKey;
 use Illuminate\Database\Eloquent\Model;
-use ReflectionMethod;
 use RuntimeException;
 use Throwable;
 
@@ -141,10 +140,10 @@ final class BatchInputs
             }
         }
         foreach ($groups as ['definition' => $definition, 'frames' => $frames]) {
-            // Only the inherited resolver is equivalent to query + tenantOf. A custom
+            // Only a resolver the definition describes as query + tenantOf is batched. A custom
             // resolver may refuse a record or report an unavailable structural owner.
             if (! $definition instanceof QueryableAssignmentScopeDefinition
-                || (new ReflectionMethod($definition, 'resolve'))->getDeclaringClass()->getName() !== BaseAssignmentScope::class) {
+                || ! ContextIdentity::describe($definition)->resolvesThroughQuery) {
                 foreach ($frames as $key => $frame) {
                     try {
                         $this->scopes[$key] = $definition->resolve($frame->scope()->context);

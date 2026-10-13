@@ -8,12 +8,15 @@ use AzGuard\Context\AssignmentScopeRuntime;
 use AzGuard\Contracts\Scopes\AssignmentScopeAccessAdapter;
 use AzGuard\Contracts\Scopes\AssignmentScopeFilter;
 use AzGuard\Exceptions\DefinitionException;
+use AzGuard\Kernel\Identity\ActorRef;
 use AzGuard\Kernel\Identity\AssignmentScopeRef;
 use AzGuard\Kernel\Identity\TenantRef;
+use AzGuard\Panels\Panel;
 use AzGuard\Panels\PanelBuilder;
 use AzGuard\Panels\PanelCompiler;
 use AzGuard\Panels\PanelFingerprint;
 use AzGuard\Panels\PanelRecipe;
+use AzGuard\Scopes\Internal\Checks\ScopeMembershipConfigured;
 use AzGuard\Scopes\Internal\ScopeEvaluator;
 use AzGuard\Scopes\Internal\ScopesOptions;
 use AzGuard\Scopes\ModelAssignmentScopeDefinition;
@@ -26,7 +29,10 @@ use AzGuard\Tests\Fixtures\Scopes\ActiveProjects;
 use AzGuard\Tests\Fixtures\Scopes\ConfigCountingFilter;
 use AzGuard\Tests\Fixtures\Scopes\ConfigGenericScope;
 use AzGuard\Tests\Fixtures\Scopes\ConfiguredProjectScope;
+use AzGuard\Tests\Fixtures\Scopes\ContextMembership;
+use AzGuard\Tests\Fixtures\Scopes\EligibilityExternalAdapter;
 use AzGuard\Tests\Fixtures\Scopes\Project;
+use AzGuard\Tests\Fixtures\Scopes\ProjectDirectory;
 use AzGuard\Tests\Fixtures\Scopes\StoreScope;
 use Illuminate\Database\Eloquent\Builder;
 
@@ -66,10 +72,16 @@ it('rejects invalid access adapter type aliases and removed classes', function (
         ->toThrow(DefinitionException::class, 'implement');
 });
 
-it('requires a binding for access adapter interfaces and known scope types', function (): void {
+it('reports an unbound access adapter interface through the doctor and rejects adapters of unknown scope types', function (): void {
     $compile = fn (ScopesPlugin $policy) => PanelWorld::compile([AdminPanel::class => fn (PanelBuilder $panel) => $panel->for(User::class)->plugins([$policy])]);
-    expect(fn () => $compile(ScopesPlugin::inherit(StoreScope::class)->accessAdapter('store', AssignmentScopeAccessAdapter::class)))
-        ->toThrow(DefinitionException::class, 'container binding');
+    [, , $registry] = $compile(ScopesPlugin::inherit(StoreScope::class)->accessAdapter('store', AssignmentScopeAccessAdapter::class));
+    $findings = ScopeMembershipConfigured::check($registry->get('admin'), app());
+    expect(array_map(static fn ($finding): string => $finding->key.' '.($finding->isError() ? 'error' : 'warning'), $findings))->toContain('membership.configured error')
+        ->and(implode(' ', array_map(static fn ($finding): string => $finding->message, $findings)))->toContain('access adapter of assignment scope store')
+        ->and(array_filter(ScopeMembershipConfigured::check(PanelWorld::compile([AdminPanel::class => fn (PanelBuilder $panel) => $panel->for(User::class)
+            ->plugins([ScopesPlugin::inherit(StoreScope::class)->accessAdapter('store', EligibilityExternalAdapter::class)])])[2]->get('admin'), app()),
+            static fn ($finding): bool => $finding->isError()))
+        ->toBe([]);
     expect(fn () => $compile(ScopesPlugin::inherit(StoreScope::class)->accessAdapter('other', new class implements AssignmentScopeAccessAdapter
     {
         public function allows(AssignmentScopeRef $ref, AssignmentScopeRuntime $runtime): bool
@@ -130,18 +142,38 @@ it('rejects filter constructor dependencies that cannot be resolved without a bi
         ->toThrow(DefinitionException::class, 'constructor parameter');
 });
 
-it('merges common filters across configure plugin and provider with identity intact', function (): void {
-    $recipe = new PanelRecipe('admin');
-    foreach ([PanelRecipe::configure(), PanelRecipe::plugin('filters', 0), PanelRecipe::provider()] as $i => $origin) {
-        $recipe->during($origin, fn () => $recipe->record(PanelRecipe::SCOPES, new AssignmentScopeDeclaration(AssignmentScopeMode::Inherit, [
-            ConfiguredProjectScope::make()->label('layer'.$i)->filter(static function (Builder $query) use ($i): void {
-                $query->where('layer', $i);
-            }),
-        ], evaluator: ScopeEvaluator::class)));
-    }
-    $panel = (new PanelCompiler)->compile($recipe, container: app());
-    $definition = $panel->scopeDefinition('crm.project');
-    expect($definition->settings()->filters)->toHaveCount(3)->and($definition->settings()->label)->toBe('layer2');
+it('keeps identical contributions of one alias once and rejects different filters, label or directory', function (ConfiguredProjectScope $later): void {
+    $compile = function (ConfiguredProjectScope ...$definitions): Panel {
+        $recipe = new PanelRecipe('admin');
+        foreach ([PanelRecipe::configure(), PanelRecipe::provider()] as $i => $origin) {
+            $recipe->during($origin, fn () => $recipe->record(PanelRecipe::SCOPES, new AssignmentScopeDeclaration(AssignmentScopeMode::Inherit, [$definitions[$i]], evaluator: ScopeEvaluator::class)));
+        }
+
+        return (new PanelCompiler)->compile($recipe, container: app());
+    };
+    $first = ConfiguredProjectScope::make()->label('Projects')->filter(new ActiveProjects);
+
+    expect($compile($first, ConfiguredProjectScope::make()->label('Projects')->filter(new ActiveProjects))->scopeDefinition('crm.project'))->toBe($first)
+        ->and(fn () => $compile($first, $later))->toThrow(DefinitionException::class, 'declares conflicting assignment scope definitions for crm.project');
+})->with([
+    'another filter' => fn () => ConfiguredProjectScope::make()->label('Projects')->filter(new ActiveProjects)->filter(ConfigCountingFilter::class),
+    'no filter' => fn () => ConfiguredProjectScope::make()->label('Projects'),
+    'another label' => fn () => ConfiguredProjectScope::make()->label('Other')->filter(new ActiveProjects),
+    'a directory' => fn () => ConfiguredProjectScope::make()->label('Projects')->filter(new ActiveProjects)->directory(ProjectDirectory::class),
+]);
+
+it('changes the fingerprint when a filter, the membership or an access adapter changes', function (): void {
+    $fingerprint = function (ScopesPlugin $plugin): string {
+        [, , $registry] = PanelWorld::compile([AdminPanel::class => fn (PanelBuilder $panel) => $panel->for(User::class)->plugins([$plugin])]);
+
+        return $registry->fingerprint('admin');
+    };
+    $base = $fingerprint(ScopesPlugin::inherit(StoreScope::class, ConfiguredProjectScope::make()));
+
+    expect($fingerprint(ScopesPlugin::inherit(StoreScope::class, ConfiguredProjectScope::make())))->toBe($base)
+        ->and($fingerprint(ScopesPlugin::inherit(StoreScope::class, ConfiguredProjectScope::make()->filter(new ActiveProjects))))->not->toBe($base)
+        ->and($fingerprint(ScopesPlugin::inherit(StoreScope::class, ConfiguredProjectScope::make())->requireMembership(ContextMembership::class)))->not->toBe($base)
+        ->and($fingerprint(ScopesPlugin::inherit(StoreScope::class, ConfiguredProjectScope::make())->accessAdapter('store', EligibilityExternalAdapter::class)))->not->toBe($base);
 });
 
 it('rejects a changed owner despite identical model class and scope type', function (): void {
@@ -170,3 +202,28 @@ it('fingerprints scalar closure configuration and rejects live runtime captures'
     expect(fn () => PanelWorld::compile([AdminPanel::class => fn (PanelBuilder $panel) => $panel->for(User::class)->plugins([ScopesPlugin::inherit($definition)])]))
         ->toThrow(DefinitionException::class, 'live model');
 });
+
+it('rejects a filter closure that cannot be called as ($query, $runtime) when the panel compiles', function (Closure $filter): void {
+    $definition = ConfiguredProjectScope::make()->filter($filter);
+
+    expect(fn () => PanelWorld::compile([AdminPanel::class => fn (PanelBuilder $panel) => $panel->for(User::class)->plugins([ScopesPlugin::inherit($definition)])]))
+        ->toThrow(DefinitionException::class, 'Assignment scope crm.project has a filter closure that cannot be called as ($query, $runtime)');
+})->with([
+    'a name-injected user' => [static fn (Builder $query, User $user) => null],
+    'a name-injected actor' => [static fn (Builder $query, ?ActorRef $actor) => null],
+    'a third required parameter' => [static fn (Builder $query, AssignmentScopeRuntime $runtime, array $proposed) => null],
+    'a query that is not a builder' => [static fn (string $query) => null],
+]);
+
+it('accepts a filter closure called as ($query, $runtime), untyped or with fewer parameters', function (Closure $filter): void {
+    $definition = ConfiguredProjectScope::make()->filter($filter);
+
+    expect(fn () => PanelWorld::compile([AdminPanel::class => fn (PanelBuilder $panel) => $panel->for(User::class)->plugins([ScopesPlugin::inherit($definition)])]))
+        ->not->toThrow(DefinitionException::class);
+})->with([
+    'typed' => [static fn (Builder $query, AssignmentScopeRuntime $runtime) => null],
+    'untyped' => [static fn ($query, $runtime) => null],
+    'query only' => [static fn (Builder $query) => null],
+    'no parameters' => [static fn () => null],
+    'optional extra' => [static fn (Builder $query, ?AssignmentScopeRuntime $runtime = null, array $extra = []) => null],
+]);

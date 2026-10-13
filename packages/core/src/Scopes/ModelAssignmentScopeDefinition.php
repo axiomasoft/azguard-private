@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace AzGuard\Scopes;
 
 use AzGuard\Attributes\Api;
+use AzGuard\Context\AssignmentScopeDescription;
 use AzGuard\Exceptions\DefinitionException;
 use AzGuard\Kernel\Identity\IdentityCodec;
 use AzGuard\Kernel\Identity\TenantRef;
@@ -74,5 +75,19 @@ final class ModelAssignmentScopeDefinition extends BaseAssignmentScope
         }
 
         return $this->owner === null ? TenantRef::global() : ($this->owner)($record);
+    }
+
+    /** Without an owner callback every record belongs to the global tenant. */
+    public function description(): AssignmentScopeDescription
+    {
+        $description = parent::description();
+
+        return new AssignmentScopeDescription(
+            components: $description->components,
+            label: $description->label,
+            directory: $description->directory,
+            tenantOwner: $this->hasOwner(),
+            resolvesThroughQuery: $description->resolvesThroughQuery,
+        );
     }
 }

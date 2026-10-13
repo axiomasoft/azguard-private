@@ -29,7 +29,7 @@ final class CrmGuardPanelProvider extends PanelProvider
     {
         $panel->for(model: User::class, guard: 'web')->permissions(CrmWorld::$sources)
             ->tenants(TenantPolicy::required(Organization::class)->requireMembership(new OrganizationMembership))
-            ->plugins(CrmWorld::$scopes ? [ScopesPlugin::inherit(ProjectScope::make()->filter(new ActiveProjects))] : [])
+            ->plugins(CrmWorld::$scopes ? [ScopesPlugin::inherit(CrmWorld::$projectScope ?? ProjectScope::make()->filter(new ActiveProjects))] : [])
             ->restrictions([new AccountLockedRestriction])->grantConditions([new RegionCondition])
             ->consistency(refresh: StateRefresh::Check);
 

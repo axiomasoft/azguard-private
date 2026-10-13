@@ -2,7 +2,7 @@
   "$schema": "urn:swissknifeman:task:plan:phase:v1",
   "id": "P3",
   "title": "Relocate modules and split ownership",
-  "design": "skeleton",
+  "design": "detailed",
   "goal": "Move the complete Scopes, Audit and DevTools slices into their module roots and split schema, installer, health and configuration ownership, keeping one decision/write path and all data intact.",
   "context": "Architecture phase C (revision 2, D7, D11, D12). Approximate size: L. FQCN changes are listed in the AI-agent migration instruction (D16); durable data does not change. Complete slices include providers, config sections, health checks, commands, migrations, stubs and contract suites.",
   "contract": {
@@ -15,21 +15,23 @@
       "knowledge/type-map",
       "knowledge/identities",
       "knowledge/upgrade-map",
-      "knowledge/contracts"
+      "knowledge/contracts",
+      "knowledge/p3-execution"
     ],
     "produces": [
       "modules/scopes, modules/audit and modules/devtools with explicit PSR-4 roots and single autoload ownership",
-      "Six-table StorageSchema create/drop and core health; Audit migration with fixed basename, adoption, non-destructive down() and per-storage generator; Audit health and retention without the authority lock",
+      "Six-table StorageSchema create/drop with one core migration and core health; Audit create-only migration with fixed basename, per-storage generator, audit.table presence/shape check; Audit retention without the authority lock (D19, D20)",
       "DevTools-owned onboarding, generators, stubs and scaffold section; owner-registered config sections",
-      "Concrete-source branches removed from decision/query semantics; any further read-coordinator restructuring gated by I21/I22",
-      "Activation-matrix fixtures and relocated consumer/generator fixtures"
+      "Neutral assignment-scope description in core; module guards its own extension inputs (D21, D22)",
+      "Concrete-source branches removed from decision/query stages; read-coordinator mechanics unchanged (D5)",
+      "Activation-matrix fixtures, core-only archive mode and relocated module tests; clean 1.0 baseline without 0.7 traces (D23)"
     ],
     "boundaries": [
       "No core→module, module↔module or module↔Filament references (allowlists empty)",
       "One scalar/batch/query/write/directory interpretation",
       "No inactive-module I/O, service resolution or compulsory optional table",
       "Physical-handle snapshots, bounded fenced re-reads and root-commit publication preserved",
-      "Shipped migration basenames unchanged"
+      "Core migration basename 2026_10_01_000000_create_azguard_storage unchanged; Audit basename 2026_10_20_000000_create_azguard_audit_log fixed"
     ]
   },
   "scope": {
@@ -51,27 +53,96 @@
   ],
   "pitfalls": [
     "Moving the plugin alone leaves schema/config/health/provider dependencies in core",
-    "Overlapping PSR-4 prefixes need an empty src/Scopes|Audit|DevTools to keep one owner",
-    "Audit adoption must verify full shape, including SQLite triggers, and change nothing on mismatch",
+    "Overlapping PSR-4 prefixes need an empty (deleted) src/Scopes|Audit|DevTools to keep one owner; path-repository installs need composer update before new roots load",
+    "AuditSchema must reproduce the audit_log DDL exactly on every driver (pair constraint or SQLite triggers)",
     "Prune without the panel lock needs concurrent insert/prune runs on MySQL and MariaDB",
-    "Published copies of core migrations now build six tables; teardown must keep audit data"
+    "A new production type without an oracle row has no owner: add rows only via knowledge/p3-execution#oracle",
+    "__DIR__-relative paths change depth when files move"
   ],
   "validation": [
     {
       "id": "V1",
-      "procedure": "Run the core-only fixture with module roots absent and every activation combination including two panels with different options; replay all persistence scenarios on populated 0.7.0 fixtures per driver; run parity, rollback/retry/event-id, physical-handle release, cache fingerprint, concurrent prune and archive consumer checks.",
-      "expect": "I2, I3, I5, I13, I15 and I16 green with empty allowlists; all P1/P2 checks stay green; zero grant, identity or audit-row rewrite.",
+      "procedure": "Run the activation matrix and the core-only archive (module roots absent); the fresh-install scenarios of knowledge/p3-execution#persistence per driver; parity, rollback/retry/event-id, physical-handle release, cache fingerprint, concurrent prune and consumer checks; the full suite, type coverage, database lanes and engine suites (P3.14).",
+      "expect": "I2, I3, I4, I5, I13, I15 and I16 (as amended by D19/D20) green and blocking with empty allowlists; TargetPlacementTest green; all P1/P2 checks green; zero grant, identity or audit-row rewrite.",
       "kind": "acceptance"
     }
   ],
   "deliverables": [
     "Final ownership/dependency map and module activation matrix",
     "Separated module providers, config sections, schema, commands and stubs",
-    "Audit installation/adoption chain incl. named storages",
-    "Updated consumer and generator fixtures"
+    "Audit installation chain for fresh installs incl. named storages (D19)",
+    "Updated consumer and generator fixtures; module tests under tests/Modules"
   ],
-  "items": [],
-  "batches": [],
+  "items": [
+    "P3.1",
+    "P3.2",
+    "P3.3",
+    "P3.4",
+    "P3.5",
+    "P3.6",
+    "P3.7",
+    "P3.8",
+    "P3.9",
+    "P3.10",
+    "P3.11",
+    "P3.12",
+    "P3.13",
+    "P3.14",
+    "P3.15"
+  ],
+  "batches": [
+    {
+      "id": "B1",
+      "items": [
+        "P3.1",
+        "P3.2",
+        "P3.3"
+      ],
+      "mode": "recommended"
+    },
+    {
+      "id": "B2",
+      "items": [
+        "P3.4",
+        "P3.5",
+        "P3.6",
+        "P3.7"
+      ],
+      "mode": "recommended"
+    },
+    {
+      "id": "B3",
+      "items": [
+        "P3.8",
+        "P3.9",
+        "P3.10"
+      ],
+      "mode": "recommended"
+    },
+    {
+      "id": "B4",
+      "items": [
+        "P3.11",
+        "P3.12",
+        "P3.13"
+      ],
+      "mode": "recommended"
+    },
+    {
+      "id": "B5",
+      "items": [
+        "P3.14"
+      ],
+      "mode": "recommended"
+    },
+    {
+      "id": "B6",
+      "items": [
+        "P3.15"
+      ],
+      "mode": "recommended"
+    }
+  ],
   "sections": [
     {
       "id": "design-inputs",

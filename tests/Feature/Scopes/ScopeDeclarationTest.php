@@ -214,7 +214,7 @@ it('creates definition classes without arguments and rejects other strings', fun
         ->and(fn () => $compile(ScopesPlugin::required()))->toThrow(DefinitionException::class, 'registers no definitions');
 });
 
-it('takes the directory the merged definition names over a declared one and rejects two declared classes for a type', function (): void {
+it('takes the directory the definition names over a declared one and rejects two declared classes for a type', function (): void {
     $other = (new class implements AssignmentScopeDirectory
     {
         public function search(string $type, string $term, LookupContext $lookup, int $limit): array
@@ -228,14 +228,14 @@ it('takes the directory the merged definition names over a declared one and reje
         }
     })::class;
     $plugin = static fn (PanelBuilder $panel): PanelBuilder => $panel->plugins([ScopesPlugin::inherit(ConfiguredProjectScope::make()->directory(ProjectDirectory::class))]);
-    $later = declaredPanel($plugin, static fn (PanelBuilder $panel): PanelBuilder => $panel
+    // Two contributions of the alias that name different directories are not merged.
+    $later = static fn (): Panel => declaredPanel($plugin, static fn (PanelBuilder $panel): PanelBuilder => $panel
         ->assignmentScopes(new AssignmentScopeDeclaration(AssignmentScopeMode::Inherit, [ConfiguredProjectScope::make()->directory($other)], evaluator: ScopeEvaluator::class)));
 
     $named = declaredPanel(static fn (PanelBuilder $panel): PanelBuilder => $panel->assignmentScopes(new AssignmentScopeDeclaration(
         AssignmentScopeMode::Inherit, [ConfiguredProjectScope::make()->directory(ProjectDirectory::class)], ['crm.project' => $other], ScopeEvaluator::class)));
 
-    expect($later->scopeDeclaration()?->directories)->toBe(['crm.project' => $other])
-        ->and($later->scopeDefinition('crm.project')?->settings()->directory)->toBe($other)
+    expect($later)->toThrow(DefinitionException::class, 'declares conflicting assignment scope definitions for crm.project')
         ->and($named->scopeDeclaration()?->directories)->toBe(['crm.project' => ProjectDirectory::class])
         ->and(fn () => declaredPanel($plugin, static fn (PanelBuilder $panel): PanelBuilder => $panel
             ->assignmentScopes(new AssignmentScopeDeclaration(AssignmentScopeMode::Inherit, [], ['crm.project' => $other]))))

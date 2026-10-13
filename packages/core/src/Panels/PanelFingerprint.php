@@ -6,11 +6,11 @@ namespace AzGuard\Panels;
 
 use AzGuard\Catalog\PanelCatalog;
 use AzGuard\Context\AssignmentScopeMode;
+use AzGuard\Context\Internal\ContextIdentity;
 use AzGuard\Contracts\Scopes\AssignmentScopeDefinition;
 use AzGuard\Contracts\Sources\Source;
 use AzGuard\Panels\Internal\CanonicalMetadata;
 use AzGuard\Policies\PolicyBinding;
-use AzGuard\Scopes\Internal\ScopeConfiguration;
 use Closure;
 use UnitEnum;
 
@@ -109,12 +109,11 @@ final class PanelFingerprint
                     'type' => $definition->type(),
                     'class' => $definition::class,
                     'model' => $definition->model(),
-                    'filters' => ScopeConfiguration::filterMetadata($definition),
+                    'configuration' => CanonicalMetadata::componentMetadata($definition),
+                    'components' => array_map(CanonicalMetadata::componentMetadata(...), ContextIdentity::describe($definition)->components),
                 ], $panel->scopeDefinitions()),
                 'directories' => $panel->scopeDeclaration()->directories ?? [],
                 'evaluator' => $panel->scopeDeclaration()?->evaluator,
-                'membership' => self::name(ScopeConfiguration::membership($panel)),
-                'adapters' => array_map(CanonicalMetadata::componentMetadata(...), ScopeConfiguration::adapters($panel)),
             ],
             'resource_scopes' => array_map(
                 static fn (mixed $scope): array => is_array($scope)

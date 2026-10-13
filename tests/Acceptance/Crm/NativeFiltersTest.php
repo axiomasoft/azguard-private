@@ -2,13 +2,10 @@
 
 declare(strict_types=1);
 
-use AzGuard\Context\AssignmentScopeDeclaration;
-use AzGuard\Context\AssignmentScopeMode;
 use AzGuard\Exceptions\VisibilityNotSupportedException;
 use AzGuard\Kernel\Decision\DecisionReason;
-use AzGuard\Panels\PanelBuilder;
-use AzGuard\Scopes\Internal\ScopeEvaluator;
 use AzGuard\Tests\Fixtures\Crm\CrmWorld as World;
+use AzGuard\Tests\Fixtures\Crm\Guards\Crm\Filters\ActiveProjects;
 use AzGuard\Tests\Fixtures\Crm\Guards\Crm\Queries\Clients\ClientVisibility;
 use AzGuard\Tests\Fixtures\Crm\Guards\Crm\Resolvers\ClientScopeResolver;
 use AzGuard\Tests\Fixtures\Crm\Guards\Crm\Scopes\ProjectScope;
@@ -20,13 +17,14 @@ use Illuminate\Support\Facades\DB;
 
 it('R18 V110 scalar supports native local scope whereHas nested OR and whereExists', function (): void {
     Project::query()->findOrFail(1)->members()->attach(1, ['role' => 'seller']);
-    $panel = World::compile(fn (PanelBuilder $p) => $p->assignmentScopes(new AssignmentScopeDeclaration(AssignmentScopeMode::Inherit, [ProjectScope::make()->filter(
+    World::$projectScope = ProjectScope::make()->filter(new ActiveProjects)->filter(
         function (Builder $query): void {
             $query->active()->where(fn (Builder $nested) => $nested->where('region', 'missing')->orWhere('region', 'R1'))
                 ->whereHas('members', fn (Builder $members) => $members->whereKey(1))
                 ->whereExists(fn (Query $sub) => $sub->selectRaw('1')->from('project_members')->whereColumn('project_members.project_id', 'projects.id')->where('user_id', 1));
         },
-    )], evaluator: ScopeEvaluator::class)));
+    );
+    $panel = World::compile();
     World::assertDecision(World::decide($panel), true, DecisionReason::Granted);
     World::assertDecision(World::decide($panel, 3), false, DecisionReason::AssignmentScopeIneligible);
     World::assertDecision(World::decide($panel, 4), false, DecisionReason::AssignmentScopeIneligible);
@@ -34,17 +32,20 @@ it('R18 V110 scalar supports native local scope whereHas nested OR and whereExis
 
 it('R18 root OR remains grouped under common active and immutable owner predicates', function (): void {
     World::assign('analyst', 1, 3);
-    $panel = World::compile(fn (PanelBuilder $p) => $p->assignmentScopes(new AssignmentScopeDeclaration(AssignmentScopeMode::Inherit, [ProjectScope::make()->filter(
+    World::$projectScope = ProjectScope::make()->filter(new ActiveProjects)->filter(
         fn (Builder $query) => $query->orWhere('id', 3)->orWhere('id', 1),
-    )], evaluator: ScopeEvaluator::class)));
+    );
+    $panel = World::compile();
     World::assertDecision(World::decide($panel), true, DecisionReason::Granted);
     World::assertDecision(World::decide($panel, 4), false, DecisionReason::AssignmentScopeIneligible);
     World::assertDecision(World::decide($panel, 5), false, DecisionReason::TenantMismatch);
 });
 
 it('R18 unsafe builder changes fail closed instead of widening the scalar check', function (Closure $filter): void {
-    $panel = World::compile(fn (PanelBuilder $p) => $p->assignmentScopes(new AssignmentScopeDeclaration(AssignmentScopeMode::Inherit, [ProjectScope::make()->filter($filter)], evaluator: ScopeEvaluator::class)));
+    World::$projectScope = ProjectScope::make()->filter(new ActiveProjects)->filter($filter);
+    $panel = World::compile();
     World::assertDecision(World::decide($panel), false, DecisionReason::AssignmentScopeFilterError);
+    World::$projectScope = null;
     $panel = World::compile();
     World::assertDecision(World::decide($panel), true, DecisionReason::Granted);
 })->with([
@@ -70,12 +71,12 @@ it('R20 resolver query and owner exceptions refuse without a global fallback', f
 
 it('R18 R50 exact native whereHas local scope and grouped OR preserve scalar list and count', function (string $shape): void {
     DB::table('project_members')->insert(['project_id' => 1, 'user_id' => 1, 'role' => 'seller']);
-    $definition = ProjectScope::make()->filter(match ($shape) {
+    World::$projectScope = ProjectScope::make()->filter(new ActiveProjects)->filter(match ($shape) {
         'whereHas' => fn (Builder $q) => $q->whereHas('members', fn (Builder $users) => $users->whereKey(1)),
         'local' => fn (Builder $q) => $q->active(),
         default => fn (Builder $q) => $q->orWhere('id', 1)->orWhere('id', 4)->orWhere('id', 3),
     });
-    $panel = ClientVisibility::panel(fn (PanelBuilder $p) => $p->assignmentScopes(new AssignmentScopeDeclaration(AssignmentScopeMode::Inherit, [$definition], evaluator: ScopeEvaluator::class)));
+    $panel = ClientVisibility::panel();
     $expected = $shape === 'local' ? [1, 2, 3] : [1, 2];
     $query = ClientVisibility::query($panel);
     expect((clone $query)->orderBy('id')->pluck('id')->all())->toBe($expected)->and($query->count())->toBe(count($expected));
@@ -84,7 +85,8 @@ it('R18 R50 exact native whereHas local scope and grouped OR preserve scalar lis
 })->with(['whereHas', 'local', 'OR']);
 
 it('R18 unsafe native exact mutations throw before pagination and preserve caller SQL', function (Closure $filter): void {
-    $panel = ClientVisibility::panel(fn (PanelBuilder $p) => $p->assignmentScopes(new AssignmentScopeDeclaration(AssignmentScopeMode::Inherit, [ProjectScope::make()->filter($filter)], evaluator: ScopeEvaluator::class)));
+    World::$projectScope = ProjectScope::make()->filter(new ActiveProjects)->filter($filter);
+    $panel = ClientVisibility::panel();
     $host = Client::query()->where('id', '>', 0);
     $sql = $host->toSql();
     expect(fn () => ClientVisibility::query($panel, host: $host)->paginate(1))->toThrow(VisibilityNotSupportedException::class);

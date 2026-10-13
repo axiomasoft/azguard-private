@@ -24,6 +24,7 @@ use AzGuard\Tests\Fixtures\Panels\PanelWorld;
 use Illuminate\Database\Eloquent\Builder;
 
 it('R45 R46 local typed plugin inputs are independent in CRM and backoffice', function (): void {
+    World::$scopes = false;
     World::assign('analyst', 1, 2, panel: 'backoffice');
     $crm = World::compile(fn (PanelBuilder $p) => $p->plugins([CrmAccessPlugin::make(city: 1)]),
         backoffice: fn (PanelBuilder $p) => $p->plugins([CrmAccessPlugin::make(city: 2)]));
@@ -35,17 +36,19 @@ it('R45 R46 local typed plugin inputs are independent in CRM and backoffice', fu
 });
 
 it('R48 local duplicate plugin is rejected and a worker rebuild decides the same on every new registry', function (): void {
+    World::$scopes = false;
     expect(fn () => World::compile(fn (PanelBuilder $p) => $p->plugins([CrmAccessPlugin::make(1), CrmAccessPlugin::make(1)])))
         ->toThrow(PluginConflictException::class);
     for ($i = 0; $i < 2; $i++) {
-        $panel = World::compile(fn (PanelBuilder $p) => $p->plugins([CrmAccessPlugin::make(1)]));
+        $panel = World::compile(fn (PanelBuilder $p) => $p->plugins([CrmAccessPlugin::make(1)]), backoffice: fn (PanelBuilder $p) => $p->plugins([CrmAccessPlugin::make(2)]));
         World::assertDecision(World::decide($panel), true, DecisionReason::Granted);
     }
 });
 
 it('R57 local filter build fingerprint changes while equal configuration remains deterministic', function (): void {
+    World::$scopes = false;
     $build = function (int $city): string {
-        World::compile(fn (PanelBuilder $p) => $p->plugins([CrmAccessPlugin::make($city)]));
+        World::compile(fn (PanelBuilder $p) => $p->plugins([CrmAccessPlugin::make($city)]), backoffice: fn (PanelBuilder $p) => $p->plugins([CrmAccessPlugin::make(2)]));
 
         return app(PanelRegistry::class)->fingerprint('crm');
     };

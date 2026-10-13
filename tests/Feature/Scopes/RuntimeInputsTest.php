@@ -12,10 +12,9 @@ use AzGuard\Kernel\Identity\ActorRef;
 use AzGuard\Kernel\Identity\PermissionKey;
 use AzGuard\Kernel\Identity\SubjectRef;
 use AzGuard\Panels\CurrentPanel;
-use AzGuard\Panels\PanelBuilder;
-use AzGuard\Scopes\ScopesPlugin;
 use AzGuard\Tests\Fixtures\Authorization\GeneratedSource;
 use AzGuard\Tests\Fixtures\Panels\User;
+use AzGuard\Tests\Fixtures\Scopes\ActiveProjects;
 use AzGuard\Tests\Fixtures\Scopes\EligibilityCityFilter;
 use AzGuard\Tests\Fixtures\Scopes\EligibilityProjectScope;
 use AzGuard\Tests\Fixtures\Scopes\EligibilitySellerRole;
@@ -44,12 +43,12 @@ it('passes the actual role contribution target and separate actor to a fresh run
 
 it('provides nullable role and grant for common direct and policy-only filters without global DI bindings', function (string $authority): void {
     $captured = [];
-    $definition = EligibilityProjectScope::make()->filter(function (Builder $query, AssignmentScopeRuntime $runtime) use (&$captured): void {
+    $definition = EligibilityProjectScope::make()->filter(ActiveProjects::class)->filter(function (Builder $query, AssignmentScopeRuntime $runtime) use (&$captured): void {
         $captured[] = $runtime;
         $query->where('is_active', true);
     });
     $source = new GeneratedSource(direct: $authority === 'direct' ? [EligibilityWorld::direct()] : []);
-    [$engine, $panel, $request] = EligibilityWorld::compile($source, fn (PanelBuilder $p) => $p->plugins([ScopesPlugin::inherit($definition)]));
+    [$engine, $panel, $request] = EligibilityWorld::compile($source, scope: $definition);
 
     if ($authority === 'policy') {
         $request = AccessRequest::for($request->subject(), PermissionKey::of('admin', 'orders.policy'));
@@ -61,8 +60,8 @@ it('provides nullable role and grant for common direct and policy-only filters w
 })->with(['direct', 'policy']);
 
 it('rejects a required missing runtime user instead of inventing an empty model', function (): void {
-    $definition = EligibilityProjectScope::make()->filter(fn (Builder $query, User $user) => $query->where('city', $user->getAttribute('city')));
-    [$engine, $panel, $request] = EligibilityWorld::compile(new GeneratedSource(direct: [EligibilityWorld::direct()]), fn (PanelBuilder $p) => $p->plugins([ScopesPlugin::inherit($definition)]));
+    $definition = EligibilityProjectScope::make()->filter(ActiveProjects::class)->filter(fn (Builder $query, AssignmentScopeRuntime $runtime) => $query->where('city', ($runtime->user ?? throw new RuntimeException('This filter requires a user.'))->getAttribute('city')));
+    [$engine, $panel, $request] = EligibilityWorld::compile(new GeneratedSource(direct: [EligibilityWorld::direct()]), scope: $definition);
     $request = AccessRequest::for(SubjectRef::of('user', 99), $request->permission())->inScope(EligibilityWorld::scope());
     expect($engine->decide($panel, $request)->reason)->toBe(DecisionReason::AssignmentScopeFilterError)
         ->and(app()->bound(User::class))->toBeFalse();

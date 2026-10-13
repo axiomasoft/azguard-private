@@ -265,6 +265,12 @@ final class VisibilityWorld
     /** @var (Closure(): Builder<VisibilityProject>)|null */
     public static ?Closure $projectQuery = null;
 
+    /**
+     * The whole `project` definition the stand declares instead of `new VisibilityProjectScope`. One alias has one
+     * definition: a test that attaches `ScopesPlugin` with a filtered definition declares the same object here.
+     */
+    public static ?VisibilityProjectScope $projectScope = null;
+
     public static function seed(): void
     {
         self::$tenanted = false;
@@ -308,6 +314,7 @@ final class VisibilityWorld
         Relation::morphMap([], false);
         self::$tenanted = false;
         self::$projectQuery = null;
+        self::$projectScope = null;
     }
 
     /** @return array{Visibility, Panel, Authorizer} */
@@ -320,7 +327,7 @@ final class VisibilityWorld
                 ->policies([PolicyBinding::for('orders.policy', VisibilityPolicy::class)]);
 
             if ($mode !== 'none') {
-                $panel->assignmentScopes(new AssignmentScopeDeclaration(AssignmentScopeMode::from($mode), [new VisibilityProjectScope], evaluator: ScopeEvaluator::class));
+                $panel->assignmentScopes(new AssignmentScopeDeclaration(AssignmentScopeMode::from($mode), [self::$projectScope ?? new VisibilityProjectScope], evaluator: ScopeEvaluator::class));
             }
 
             if ($tenant) {

@@ -12,9 +12,9 @@ use AzGuard\Kernel\Identity\PermissionKey;
 use AzGuard\Kernel\Identity\RoleKey;
 use AzGuard\Kernel\Identity\TenantRef;
 use AzGuard\Panels\PanelBuilder;
-use AzGuard\Scopes\ScopesPlugin;
 use AzGuard\Tests\Fixtures\Authorization\GeneratedSource;
 use AzGuard\Tests\Fixtures\Authorization\RuntimePolicy;
+use AzGuard\Tests\Fixtures\Scopes\ActiveProjects;
 use AzGuard\Tests\Fixtures\Scopes\EligibilityCityFilter;
 use AzGuard\Tests\Fixtures\Scopes\EligibilityProjectScope;
 use AzGuard\Tests\Fixtures\Scopes\EligibilityWorld;
@@ -110,9 +110,9 @@ it('rereads active and city and current grant fields with an unchanged code stat
 });
 
 it('maps a common native filter exception to a fail closed reason', function (): void {
-    $scope = EligibilityProjectScope::make()->filter(function (): void {
+    $scope = EligibilityProjectScope::make()->filter(ActiveProjects::class)->filter(function (): void {
         throw new RuntimeException('filter failed');
     });
-    [$engine, $panel, $request] = EligibilityWorld::compile(new GeneratedSource(direct: [EligibilityWorld::direct()]), fn (PanelBuilder $p) => $p->plugins([ScopesPlugin::inherit($scope)]));
+    [$engine, $panel, $request] = EligibilityWorld::compile(new GeneratedSource(direct: [EligibilityWorld::direct()]), scope: $scope);
     expect($engine->decide($panel, $request->inScope(EligibilityWorld::scope()))->reason)->toBe(DecisionReason::AssignmentScopeFilterError);
 });

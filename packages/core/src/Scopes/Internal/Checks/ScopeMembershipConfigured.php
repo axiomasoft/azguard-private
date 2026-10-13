@@ -6,8 +6,10 @@ namespace AzGuard\Scopes\Internal\Checks;
 
 use AzGuard\Context\AssignmentScopeMode;
 use AzGuard\Contracts\Diagnostics\DoctorCheck;
+use AzGuard\Contracts\Scopes\AssignmentScopeAccessAdapter;
 use AzGuard\Diagnostics\DoctorContext;
 use AzGuard\Diagnostics\DoctorFinding;
+use AzGuard\Exceptions\DefinitionException;
 use AzGuard\Panels\Panel;
 use AzGuard\Scopes\Internal\ScopeConfiguration;
 use AzGuard\Scopes\ModelAssignmentScopeDefinition;
@@ -16,9 +18,9 @@ use Illuminate\Contracts\Container\Container;
 use ReflectionClass;
 
 /**
- * `scopes.membership` (findings `membership.configured`): the scope membership a panel requires can be created, a
- * required tenant owns every model-backed assignment scope (error), and an inheriting assignment scope without a
- * membership is reported (warning).
+ * `scopes.membership` (findings `membership.configured`): the scope membership a panel requires and every access
+ * adapter given as a class can be created (error), a required tenant owns every model-backed assignment scope (error),
+ * and an inheriting assignment scope without a membership is reported (warning).
  */
 final readonly class ScopeMembershipConfigured implements DoctorCheck
 {
@@ -47,6 +49,15 @@ final readonly class ScopeMembershipConfigured implements DoctorCheck
         if (is_string($membership) && ! $container->bound($membership) && (! class_exists($membership) || ! (new ReflectionClass($membership))->isInstantiable())) {
             $findings[] = DoctorFinding::error('membership.configured', 'Panel '.$panel->id().' requires a assignment scope membership, but '.$membership
                 .' has no container binding and cannot be created.', $scope, ['membership' => $membership]);
+        }
+
+        foreach (ScopeConfiguration::adapters($panel) as $type => $adapter) {
+            try {
+                ScopeConfiguration::component($adapter, AssignmentScopeAccessAdapter::class, $container, 'Assignment scope access adapter');
+            } catch (DefinitionException $error) {
+                $findings[] = DoctorFinding::error('membership.configured', 'Panel '.$panel->id().' cannot create the access adapter of assignment scope '
+                    .$type.': '.$error->getMessage(), $scope, ['scope' => $type]);
+            }
         }
 
         if ($panel->tenants()->mode() === TenantMode::Required) {

@@ -3,8 +3,6 @@
 declare(strict_types=1);
 
 use AzGuard\Authorization\Visibility;
-use AzGuard\Context\AssignmentScopeDeclaration;
-use AzGuard\Context\AssignmentScopeMode;
 use AzGuard\Contracts\Authorization\EvaluationContext;
 use AzGuard\Contracts\Authorization\GrantCondition;
 use AzGuard\Exceptions\VisibilityNotSupportedException;
@@ -14,8 +12,8 @@ use AzGuard\Kernel\Decision\Grant;
 use AzGuard\Kernel\Decision\RoleContribution;
 use AzGuard\Kernel\Identity\SubjectRef;
 use AzGuard\Panels\PanelBuilder;
-use AzGuard\Scopes\Internal\ScopeEvaluator;
 use AzGuard\Tests\Fixtures\Crm\CrmWorld as World;
+use AzGuard\Tests\Fixtures\Crm\Guards\Crm\Filters\ActiveProjects;
 use AzGuard\Tests\Fixtures\Crm\Guards\Crm\Permissions\Clients\ClientPermission as Action;
 use AzGuard\Tests\Fixtures\Crm\Guards\Crm\Policies\Clients\ClientPolicy;
 use AzGuard\Tests\Fixtures\Crm\Guards\Crm\Queries\Clients\ClientVisibility as Lists;
@@ -65,7 +63,8 @@ it('R15 R50 R57 recomputes live city common eligibility and deployment filters w
     expect(Lists::query($panel)->count())->toBe(0)->and(World::decide($panel, 3)->allowed())->toBeFalse()
         ->and(World::storage()->state('crm'))->toEqual($token);
     Project::query()->whereKey(2)->update(['is_active' => true]);
-    $panel = Lists::panel(fn (PanelBuilder $p) => $p->assignmentScopes(new AssignmentScopeDeclaration(AssignmentScopeMode::Inherit, [ProjectScope::make()->filter(fn (Builder $q) => $q->whereKey(1))], evaluator: ScopeEvaluator::class)));
+    World::$projectScope = ProjectScope::make()->filter(new ActiveProjects)->filter(fn (Builder $q) => $q->whereKey(1));
+    $panel = Lists::panel();
     expect(Lists::query($panel)->count())->toBe(0)->and(World::storage()->state('crm'))->toEqual($token);
 });
 

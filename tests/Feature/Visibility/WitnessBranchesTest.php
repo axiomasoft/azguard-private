@@ -78,17 +78,16 @@ it('constrains a queryable external scope adapter without letting it replace own
 });
 
 it('blocks native scope filter structure changes and caught terminal query execution', function (bool $terminal): void {
-    [$visibility, $panel] = W::compile(new VisibilitySource(direct: [W::grant(1)]), fn (PanelBuilder $panel) => $panel->plugins([ScopesPlugin::inherit(
-        (new VisibilityProjectScope)->filter(static function (Builder $query) use ($terminal): void {
-            if ($terminal) {
-                try {
-                    $query->count();
-                } catch (RuntimeException) {
-                }
-            } else {
-                $query->orderBy('id');
+    W::$projectScope = (new VisibilityProjectScope)->filter(static function (Builder $query) use ($terminal): void {
+        if ($terminal) {
+            try {
+                $query->count();
+            } catch (RuntimeException) {
             }
-        }),
-    )]));
+        } else {
+            $query->orderBy('id');
+        }
+    });
+    [$visibility, $panel] = W::compile(new VisibilitySource(direct: [W::grant(1)]), fn (PanelBuilder $panel) => $panel->plugins([ScopesPlugin::inherit(W::$projectScope)]));
     expect(fn () => $visibility->visibleTo($panel, VisibilityProject::query(), W::subject(), 'orders.view'))->toThrow(VisibilityNotSupportedException::class);
 })->with([false, true]);

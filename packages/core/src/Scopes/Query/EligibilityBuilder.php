@@ -10,8 +10,8 @@ use AzGuard\Contracts\Scopes\AssignmentScopeFilter;
 use AzGuard\Contracts\Scopes\QueryableAssignmentScopeDefinition;
 use AzGuard\Contracts\Scopes\ResolvedAssignmentScope;
 use AzGuard\Exceptions\VisibilityNotSupportedException;
-use AzGuard\Kernel\Support\Narrow;
-use AzGuard\Policies\RuntimeInvoker;
+use AzGuard\Scopes\Internal\Query\FilterGuard;
+use AzGuard\Scopes\Internal\Query\FilterQuery;
 use AzGuard\Support\ModelKey;
 use Closure;
 use Illuminate\Contracts\Container\Container;
@@ -19,6 +19,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use RuntimeException;
 use Throwable;
+use UnexpectedValueException;
 
 /**
  * The one guarded predicate engine of assignment-scope filters, shared by Access, Assignment and directories.
@@ -93,7 +94,7 @@ final class EligibilityBuilder
             }
         }
         foreach ($query?->get() ?? [] as $row) {
-            $results[$keys[Narrow::int($row->azguard_batch_witness, 'batch witness')]] = true;
+            $results[$keys[self::witness($row->azguard_batch_witness)]] = true;
         }
 
         return $results;
@@ -109,21 +110,16 @@ final class EligibilityBuilder
             $group = clone $structural;
             $group->getQuery()->wheres = [];
             $group->getQuery()->setBindings([], 'where');
-            $guard = new QueryGuard;
-            $predicate = new PredicateBuilder($group, $guard);
+            $guard = new FilterGuard;
+            $predicate = new FilterQuery($group, $guard);
             $shape = self::shape($predicate);
             $filter = is_string($filter) ? $container->make($filter) : $filter;
 
             if ($filter instanceof AssignmentScopeFilter) {
                 $filter->apply($predicate, $runtime);
             } elseif ($filter instanceof Closure) {
-                $result = (new RuntimeInvoker($container))->invoke($filter, [
-                    'query' => $predicate, 'runtime' => $runtime, 'user' => $runtime->user,
-                    'role' => $runtime->role, 'grant' => $runtime->grant, 'actor' => $runtime->actor,
-                    'actorModel' => $runtime->actorModel, 'panel' => $runtime->panel,
-                    'scope' => $runtime->scope, 'now' => $runtime->now, 'phase' => $runtime->phase,
-                    'proposed' => $runtime->proposed,
-                ]);
+                // Called like AssignmentScopeFilter::apply(); the signature was checked when the panel was compiled.
+                $result = $filter($predicate, $runtime);
 
                 if ($result !== null && $result !== $predicate) {
                     throw new RuntimeException('An eligibility filter returned a replacement query or terminal result.');
@@ -147,8 +143,8 @@ final class EligibilityBuilder
      */
     public static function constrain(Builder $contexts, AssignmentScopeAccessAdapter $adapter, AssignmentScopeRuntime $runtime): void
     {
-        $guard = new QueryGuard;
-        $group = new PredicateBuilder($contexts->getModel()->newModelQuery(), $guard);
+        $guard = new FilterGuard;
+        $group = new FilterQuery($contexts->getModel()->newModelQuery(), $guard);
         $shape = self::shape($group);
 
         if ($adapter->constrain($group, $runtime) !== $group) {
@@ -164,7 +160,7 @@ final class EligibilityBuilder
      */
     public static function shape(Builder $builder): array
     {
-        return PredicateBuilder::shape($builder);
+        return FilterQuery::shape($builder);
     }
 
     /** @param Builder<Model> $builder
@@ -172,6 +168,20 @@ final class EligibilityBuilder
      */
     public static function validateShape(Builder $builder, array $before): void
     {
-        PredicateBuilder::validateShape($builder, $before);
+        FilterQuery::validateShape($builder, $before);
+    }
+
+    /** The witness tag of a batch row: an integer, or its decimal text on drivers that return strings. */
+    private static function witness(mixed $value): int
+    {
+        if (is_string($value) && preg_match('/\A-?\d+\z/', $value) === 1) {
+            return (int) $value;
+        }
+
+        if (! is_int($value)) {
+            throw new UnexpectedValueException('batch witness must be an integer, got '.get_debug_type($value).'.');
+        }
+
+        return $value;
     }
 }

@@ -18,7 +18,6 @@ use AzGuard\Kernel\Decision\AccessRequest;
 use AzGuard\Kernel\Identity\AccessScope;
 use AzGuard\Kernel\Identity\AssignmentScopeRef;
 use AzGuard\Kernel\Support\Narrow;
-use AzGuard\Scopes\Internal\ScopeConfiguration;
 use AzGuard\Scopes\Query\PredicateBuilder;
 use AzGuard\Scopes\Query\QueryGuard;
 use AzGuard\Support\ModelKey;
@@ -204,8 +203,9 @@ final readonly class ResourceContextMapping
             return $predicate;
         }
 
-        if (ScopeConfiguration::ownerless($this->definition)
-            && $frame->scope()->tenant->isGlobal()) {
+        $description = ContextIdentity::describe($this->definition);
+
+        if (! $description->tenantOwner && $frame->scope()->tenant->isGlobal()) {
             return P::pass();
         }
         // An arbitrary tenantOf callback cannot be inferred from a column name.
@@ -225,7 +225,7 @@ final readonly class ResourceContextMapping
             throw new VisibilityNotSupportedException('owner_budget', $this->definition::class);
         }
         $ids = [];
-        $customResolver = ! ScopeConfiguration::resolvesByQuery($this->definition);
+        $customResolver = ! $description->resolvesThroughQuery;
         foreach ($records as $record) {
             if ($customResolver) {
                 $ref = AssignmentScopeRef::of($this->definition->type(), ModelKey::of($record));

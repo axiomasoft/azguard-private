@@ -127,8 +127,8 @@ it('keeps an OR inside the access adapter conjoined with the definition filters 
             return $contextQuery->where('id', '>', 0)->orWhere('city', 'Rome');
         }
     };
-    $configure = static fn (PanelBuilder $p) => $p->plugins([ScopesPlugin::inherit((new VisibilityProjectScope)
-        ->filter(static fn (Builder $query) => $query->where('city', 'Paris')))->accessAdapter('project', $adapter)]);
+    W::$projectScope = (new VisibilityProjectScope)->filter(static fn (Builder $query) => $query->where('city', 'Paris'));
+    $configure = static fn (PanelBuilder $p) => $p->plugins([ScopesPlugin::inherit(W::$projectScope)->accessAdapter('project', $adapter)]);
     [$visibility, $panel] = W::compile(new VisibilitySource(direct: [W::grant(2), W::grant()]), $configure);
 
     // Project 2 is in Rome: (city = Paris) AND (id > 0 OR city = Rome) excludes it in its own scope and in the list of Paris projects.
@@ -224,8 +224,8 @@ it('refuses a global list that would expand into more owner contexts than the bu
 });
 
 it('budgets the contexts of the owner only, not every row of the type', function (): void {
-    $configure = static fn (PanelBuilder $p) => $p->plugins([ScopesPlugin::inherit((new VisibilityProjectScope)
-        ->filter(static fn (Builder $query) => $query->where('city', 'Paris')))]);
+    W::$projectScope = (new VisibilityProjectScope)->filter(static fn (Builder $query) => $query->where('city', 'Paris'));
+    $configure = static fn (PanelBuilder $p) => $p->plugins([ScopesPlugin::inherit(W::$projectScope)]);
     W::$tenanted = true;
     [$visibility, $panel] = W::compile(new VisibilitySource(direct: [W::grant()]), $configure, tenant: true);
     $foreign = [];

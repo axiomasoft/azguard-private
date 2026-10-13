@@ -7,6 +7,7 @@ namespace AzGuard\Panels;
 use AzGuard\Catalog\PanelCatalog;
 use AzGuard\Context\AssignmentScopeDeclaration;
 use AzGuard\Context\AssignmentScopeMode;
+use AzGuard\Context\Internal\ContextIdentity;
 use AzGuard\Contracts\Authorization\AfterHook;
 use AzGuard\Contracts\Authorization\BeforeHook;
 use AzGuard\Contracts\Authorization\GrantCondition;
@@ -27,11 +28,12 @@ use AzGuard\Exceptions\InvalidConfigurationException;
 use AzGuard\Exceptions\PluginConflictException;
 use AzGuard\Exceptions\PrefixConflictException;
 use AzGuard\Kernel\Identity\IdentityCodec;
+use AzGuard\Panels\Internal\CanonicalMetadata;
 use AzGuard\Plugins\PluginContext;
 use AzGuard\Schema\Field;
 use AzGuard\Schema\FieldTarget;
-use AzGuard\Scopes\Internal\ScopeConfiguration;
 use AzGuard\Sources\PanelSources;
+use AzGuard\Tenancy\TenantMode;
 use AzGuard\Tenancy\TenantPolicy;
 use BackedEnum;
 use Closure;
@@ -150,7 +152,6 @@ final class PanelCompiler
         $this->membership($tenants->membership(), $container, 'tenant_scope', 'Tenant');
         $options = $this->options($recipe);
         [$scopes, $definitions] = $this->scopeDeclaration($recipe, $tenants, $container);
-        ScopeConfiguration::checkOptions($id, $options, array_keys($definitions), $container);
 
         $subjects = $this->subjects($recipe);
 
@@ -470,18 +471,27 @@ final class PanelCompiler
                     throw new DefinitionException('Panel '.$panel.' scope '.$definition->type().' declares an invalid Eloquent model.');
                 }
 
-                ScopeConfiguration::tenantOwner($panel, $definition, $tenants->mode());
+                $description = ContextIdentity::describe($definition);
 
-                if ($evaluator === null && $mode !== AssignmentScopeMode::None && ScopeConfiguration::filterMetadata($definition) !== []) {
+                // Without an owner every record belongs to the global tenant: no tenant could ever own the scope.
+                if ($tenants->mode() === TenantMode::Required && ! $description->tenantOwner) {
+                    throw InvalidConfigurationException::failing('tenant_scope', 'Tenant panel '.$panel.' requires an authoritative tenant owner for assignment scope '
+                        .$definition->type().': give the model definition an explicit owner callback.');
+                }
+
+                if ($evaluator === null && $mode !== AssignmentScopeMode::None && $description->components !== []) {
                     throw new DefinitionException('Panel '.$panel.' declares filters on assignment scope '.$definition->type().' without an evaluator that applies them.');
                 }
                 $evaluator?->validate($definition, null);
                 $existing = $compiled[$definition->type()] ?? null;
 
-                if ($existing !== null && ! ScopeConfiguration::sameStructure($existing, $definition)) {
+                // Contributions of one alias are identical or conflict; their components are never merged.
+                if ($existing !== null && ($existing::class !== $definition::class || $existing->type() !== $definition->type()
+                    || $existing->model() !== $definition->model()
+                    || CanonicalMetadata::componentMetadata($existing) !== CanonicalMetadata::componentMetadata($definition))) {
                     throw new DefinitionException('Panel '.$panel.' declares conflicting assignment scope definitions for '.$definition->type().'.');
                 }
-                $compiled[$definition->type()] = $existing === null ? $definition : ScopeConfiguration::merge($existing, $definition);
+                $compiled[$definition->type()] ??= $definition;
             }
         }
 
@@ -539,9 +549,9 @@ final class PanelCompiler
             }
         }
 
-        // The directory a merged definition names is the one of its type: the declared classes are the defaults.
+        // The directory a definition names is the one of its type: the declared classes are the defaults.
         foreach ($definitions as $alias => $definition) {
-            $own = ScopeConfiguration::directory($definition);
+            $own = ContextIdentity::describe($definition)->directory;
 
             if ($own !== null && ! is_subclass_of($own, AssignmentScopeDirectory::class)) {
                 throw new DefinitionException('Panel '.$panel.' assignment scope '.$alias.' names a directory '.$own.' that does not implement '.AssignmentScopeDirectory::class.'.');

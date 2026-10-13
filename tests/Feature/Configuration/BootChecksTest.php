@@ -199,15 +199,6 @@ function allBootChecks(): array
                 CabinetPanel::class => static fn (PanelBuilder $panel): PanelBuilder => $panel->for(User::class)->default(),
             ]),
         ],
-        'a panel that requires scope membership without an adapter' => [
-            'invalid_configuration.membership', InvalidConfigurationException::class, 'membership adapter',
-            function (): void {
-                Relation::morphMap(['project' => Project::class], false);
-                PanelWorld::compile([AdminPanel::class => static fn (PanelBuilder $panel): PanelBuilder => $panel->for(User::class)
-                    ->plugins([ScopesPlugin::inherit(Project::class)->requireMembership()]),
-                ]);
-            },
-        ],
         'a static role of a relation that the panel does not have' => [
             'unknown_role', UnknownRoleException::class, 'unknown static role "ghost"',
             function (): void {
@@ -338,7 +329,7 @@ it('covers every code of the table of startup checks in 07 §5', function (): vo
     expect($covered)->toBe([
         'default_panel_conflict', 'duplicate_permission', 'duplicate_policy_binding', 'duplicate_role',
         'invalid_configuration.cache_ttl', 'invalid_configuration.enum', 'invalid_configuration.host_keys',
-        'invalid_configuration.membership', 'invalid_configuration.storage', 'invalid_configuration.tenant_scope',
+        'invalid_configuration.storage', 'invalid_configuration.tenant_scope',
         'invalid_policy_structure', 'missing_permission_check', 'plugin_conflict',
         'prefix_conflict', 'storage_mismatch', 'unknown_panel', 'unknown_role', 'unknown_source', 'writer_conflict',
     ]);

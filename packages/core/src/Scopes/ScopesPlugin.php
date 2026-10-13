@@ -106,11 +106,27 @@ final class ScopesPlugin implements Plugin
      * `scopes.membership`.
      *
      * @throws DefinitionException when a definition is neither a definition object, a definition class that can be
-     *                             created without arguments nor an Eloquent model class
+     *                             created without arguments nor an Eloquent model class, when the membership or an
+     *                             access adapter does not implement its contract, or when an access adapter names a
+     *                             type that is not one of these definitions
      */
     public function register(PanelBuilder $panel, PluginContext $context): void
     {
         $definitions = array_map(static fn (AssignmentScopeDefinition|string $declared): AssignmentScopeDefinition => self::definition($context, $declared), $this->definitions);
+        $types = array_map(static fn (AssignmentScopeDefinition $definition): string => $definition->type(), $definitions);
+
+        if ($this->membership !== null) {
+            self::implements($this->membership, AssignmentScopeMembership::class, 'Assignment scope membership');
+        }
+
+        // Whether a class name can be created from the container is reported by the `scopes.membership` doctor check.
+        foreach ($this->adapters as $type => $adapter) {
+            self::implements($adapter, AssignmentScopeAccessAdapter::class, 'Assignment scope access adapter');
+
+            if (! in_array($type, $types, true)) {
+                throw new DefinitionException('Panel '.$context->panelId().' registers an access adapter for unknown assignment scope '.$type.'.');
+            }
+        }
 
         $directories = [];
 
@@ -150,6 +166,20 @@ final class ScopesPlugin implements Plugin
         }
 
         return $reflection->newInstance();
+    }
+
+    /**
+     * @param  class-string  $contract
+     *
+     * @throws DefinitionException
+     */
+    private static function implements(object|string $component, string $contract, string $label): void
+    {
+        if ($component instanceof $contract || (is_string($component) && is_a($component, $contract, true))) {
+            return;
+        }
+
+        throw new DefinitionException($label.' must implement '.$contract.'; the configured class may have been removed.');
     }
 
     /** @return class-string<AssignmentScopeAccessAdapter> */

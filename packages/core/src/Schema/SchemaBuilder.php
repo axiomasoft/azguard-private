@@ -6,9 +6,9 @@ namespace AzGuard\Schema;
 
 use AzGuard\Catalog\PanelCatalog;
 use AzGuard\Catalog\PermissionDefinition;
+use AzGuard\Context\Internal\ContextIdentity;
 use AzGuard\Contracts\Scopes\AssignmentScopeDefinition;
 use AzGuard\Contracts\Scopes\AssignmentScopeDirectory;
-use AzGuard\Contracts\Scopes\ConfigurableAssignmentScopeDefinition;
 use AzGuard\Contracts\Scopes\QueryableAssignmentScopeDefinition;
 use AzGuard\Contracts\Sources\ProvidesGrants;
 use AzGuard\Contracts\Sources\ProvidesPermissions;
@@ -27,8 +27,6 @@ use AzGuard\Panels\PanelRegistry;
 use AzGuard\Permissions\GrantedToAll;
 use AzGuard\Roles\BaseRole;
 use AzGuard\Roles\GrantedAutomatically;
-use AzGuard\Scopes\Internal\ScopeConfiguration;
-use AzGuard\Scopes\RoleBindings;
 use AzGuard\Sources\Folder\FolderSource;
 use AzGuard\Sources\PanelSources;
 use Closure;
@@ -245,8 +243,8 @@ final readonly class SchemaBuilder
                 $registered = $panel->scopeDefinition($type)
                     ?? throw new DefinitionException('Role '.$compiled['class'].' of panel "'.$panel->id().'" names the unregistered scope '.$type.'.');
 
-                foreach (RoleBindings::of($role, $registered, $this->container) as $binding) {
-                    $bindings[] = $this->binding($panel, $registered, $binding);
+                foreach ($this->roleBindings($role, $registered) as $binding) {
+                    $bindings[] = $this->binding($registered, $binding);
                 }
             }
             sort($types, SORT_STRING);
@@ -268,21 +266,51 @@ final readonly class SchemaBuilder
         return array_values($roles);
     }
 
-    private function binding(Panel $panel, AssignmentScopeDefinition $registered, AssignmentScopeDefinition $binding): AssignmentScopeBindingSchema
+    /**
+     * The scopes the role binds to the type of the registered definition, empty when the role is not granted in it. A
+     * binding may describe other components, label and directory, never another class or model.
+     *
+     * @return list<AssignmentScopeDefinition>
+     *
+     * @throws DefinitionException
+     */
+    private function roleBindings(BaseRole $role, AssignmentScopeDefinition $registered): array
     {
-        $settings = $binding instanceof ConfigurableAssignmentScopeDefinition ? $binding->settings() : null;
-        $type = $registered->type();
+        $bindings = [];
+
+        foreach ($role->scopes() as $declared) {
+            $binding = is_string($declared) ? $this->container->make($declared) : $declared;
+
+            if (! $binding instanceof AssignmentScopeDefinition) {
+                throw new DefinitionException('A runtime role binding must be an assignment scope definition.');
+            }
+
+            if ($binding->type() !== $registered->type()) {
+                continue;
+            }
+
+            if ($binding::class !== $registered::class || $binding->model() !== $registered->model()) {
+                throw new DefinitionException('A runtime role binding changed the registered scope identity.');
+            }
+            $bindings[] = $binding;
+        }
+
+        return $bindings;
+    }
+
+    private function binding(AssignmentScopeDefinition $registered, AssignmentScopeDefinition $binding): AssignmentScopeBindingSchema
+    {
+        $description = ContextIdentity::describe($binding);
 
         return new AssignmentScopeBindingSchema(
-            contextType: $type,
+            contextType: $registered->type(),
             filters: array_map(
-                static fn (mixed $filter): string => $filter instanceof Closure ? Closure::class : (is_object($filter) ? $filter::class : $filter),
-                $settings === null ? [] : $settings->filters,
+                static fn (object|string $component): string => $component instanceof Closure ? Closure::class : (is_object($component) ? $component::class : $component),
+                $description->components,
             ),
-            label: $settings->label ?? self::scopeLabel($registered),
-            directory: $settings?->directory,
-            exactSupport: ($binding instanceof QueryableAssignmentScopeDefinition && $binding->model() !== null)
-                || isset(ScopeConfiguration::adapters($panel)[$type]),
+            label: $description->label ?? self::scopeLabel($registered),
+            directory: $description->directory,
+            exactSupport: $binding instanceof QueryableAssignmentScopeDefinition && $binding->model() !== null,
         );
     }
 
@@ -367,7 +395,7 @@ final readonly class SchemaBuilder
 
     private static function scopeLabel(AssignmentScopeDefinition $definition): string
     {
-        return ($definition instanceof ConfigurableAssignmentScopeDefinition ? $definition->settings()->label : null) ?? $definition->type();
+        return ContextIdentity::describe($definition)->label ?? $definition->type();
     }
 
     /** @param class-string<Model> $model */

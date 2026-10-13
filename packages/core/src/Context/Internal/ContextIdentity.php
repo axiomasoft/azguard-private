@@ -4,7 +4,10 @@ declare(strict_types=1);
 
 namespace AzGuard\Context\Internal;
 
+use AzGuard\Context\AssignmentScopeDescription;
+use AzGuard\Contracts\Scopes\AssignmentScopeDefinition;
 use AzGuard\Contracts\Scopes\AssignmentScopeEvaluator;
+use AzGuard\Contracts\Scopes\DescribesAssignmentScope;
 use AzGuard\Exceptions\AssignmentScopeNotAcceptedException;
 use AzGuard\Exceptions\DefinitionException;
 use AzGuard\Kernel\Identity\AssignmentScopeRef;
@@ -20,6 +23,15 @@ use Illuminate\Database\Eloquent\Model;
  */
 final class ContextIdentity
 {
+    /**
+     * The facts core reads about a definition: its own description, or the defaults for one that gives none (no
+     * components, label or directory, a tenant owner, a custom `resolve()`).
+     */
+    public static function describe(AssignmentScopeDefinition $definition): AssignmentScopeDescription
+    {
+        return $definition instanceof DescribesAssignmentScope ? $definition->description() : new AssignmentScopeDescription;
+    }
+
     /**
      * The evaluator the scope declaration of the panel names, resolved from the container for one operation; null
      * when the panel declares none (eligibility is then structural only).
