@@ -29,7 +29,7 @@ use ReflectionMethod;
  *
  * `resolve()` loads the record once. A global reference and a reference of another type are refused, not ignored.
  */
-#[Spi(kind: SpiKind::Implement, since: '0.7')]
+#[Spi(kind: SpiKind::Implement, since: '1.0')]
 abstract class BaseAssignmentScope implements ConfigurableAssignmentScopeDefinition, DescribesAssignmentScope, QueryableAssignmentScopeDefinition
 {
     /** @var list<AssignmentScopeFilter|class-string<AssignmentScopeFilter>|Closure> */

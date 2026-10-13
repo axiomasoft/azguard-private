@@ -31,7 +31,7 @@ use DateTimeImmutable;
  * a dynamic permission), cancel with `cancel()`, and must return the result it receives from `$next`. The engine
  * validates the final change again after all pipes.
  */
-#[Spi(kind: SpiKind::Call, since: '0.7')]
+#[Spi(kind: SpiKind::Call, since: '1.0')]
 final readonly class Change
 {
     /** The origin recorded on a change of a dynamic permission, which has no grant origin. */

@@ -20,7 +20,7 @@ use UnitEnum;
  *
  * Its permissions are `azguard-permissions.{view_any,view,create,update,delete}` in the guard panel.
  */
-#[Api(since: '0.7')]
+#[Api(since: '1.0')]
 final class PermissionResource extends Resource
 {
     use AuthorizesResource;

@@ -16,7 +16,7 @@ use AzGuard\Kernel\Identity\TenantRef;
  *
  * A null tenant or context means "not given"; resolvers fill it later. The global context is passed explicitly.
  */
-#[Api(since: '0.7')]
+#[Api(since: '1.0')]
 final readonly class AccessRequest
 {
     private function __construct(

@@ -12,7 +12,7 @@ use DateTimeImmutable;
  * The complete replacement of the editable values of one grant: expiry and fields. Identity, role, scope and
  * origin are never part of it; the writer validates the values again under the panel lock.
  */
-#[Api(since: '0.7')]
+#[Api(since: '1.0')]
 final readonly class GrantDetails
 {
     /**

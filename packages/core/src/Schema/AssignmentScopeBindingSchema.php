@@ -12,7 +12,7 @@ use JsonSerializable;
  * Scopes module) and how the scope is shown and looked up. Component objects, their constructor arguments and closures
  * are not part of it.
  */
-#[Api(since: '0.7')]
+#[Api(since: '1.0')]
 final readonly class AssignmentScopeBindingSchema implements JsonSerializable
 {
     /**

@@ -5,7 +5,7 @@ declare(strict_types=1);
 use AzGuard\Tests\Fixtures\Authorization\AuthorizationWorld;
 use AzGuard\Tests\Fixtures\Authorization\GeneratedSource;
 use AzGuard\Tests\Fixtures\Authorization\RuntimePolicy;
-use AzGuard\Tests\Fixtures\Baseline070\Formats\FormatSnapshot;
+use AzGuard\Tests\Fixtures\Formats\FormatSnapshot;
 use AzGuard\Tests\Fixtures\Gate\GateWorld;
 use Illuminate\Auth\Access\Response;
 use Illuminate\Database\Eloquent\Relations\Relation;
@@ -13,7 +13,7 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Artisan;
 
 /*
- * I17, blocking now: the document `azguard:explain --json` prints, as 0.7.0 prints it. The shape is pinned key by key
+ * I17, blocking now: the document `azguard:explain --json` prints. The shape is pinned key by key
  * with the type of every leaf; the decision object and the step sequence are pinned by value. Build ids and
  * fingerprints are hashes of the code and stay types only.
  */
@@ -54,7 +54,7 @@ it('keeps the explain document of an allow, a policy denial and a missing grant'
     expect($actual)->toBe($stored);
 });
 
-it('has no 0.7.0 path that decides not_applicable: the factory exists, nothing calls it', function (): void {
+it('has no path that decides not_applicable: the factory exists, nothing calls it', function (): void {
     $callers = [];
     $files = new RecursiveIteratorIterator(new RecursiveDirectoryIterator(dirname(__DIR__, 3).'/packages', FilesystemIterator::SKIP_DOTS));
 

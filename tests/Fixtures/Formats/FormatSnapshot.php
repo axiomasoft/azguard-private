@@ -2,19 +2,40 @@
 
 declare(strict_types=1);
 
-namespace AzGuard\Tests\Fixtures\Baseline070\Formats;
+namespace AzGuard\Tests\Fixtures\Formats;
 
 /**
  * The JSON fixtures of the machine formats (I17), regression guards of the current behavior (D16). A fixture is written
- * only in writer mode, `AZGUARD_BASELINE_WRITE=1`, on the current tree; a normal run compares the stored text exactly
+ * only in writer mode, `AZGUARD_FORMATS_WRITE=1`, on the current tree; a normal run compares the stored text exactly
  * and fails when the fixture is missing. A change that alters a pinned format regenerates the fixture in the same commit.
  */
 final class FormatSnapshot
 {
-    public const string WRITE = 'AZGUARD_BASELINE_WRITE';
+    public const string WRITE = 'AZGUARD_FORMATS_WRITE';
 
     /** A generated ULID (event, correlation and incarnation ids) as it stands in a fixture. */
     public const string ULID = '<ulid>';
+
+    /**
+     * The PSR-4 roots of the core package (module roots included) and of Filament, relative to `packages/`.
+     *
+     * @return array<string, string> directory => namespace
+     */
+    public static function productionRoots(string $packages): array
+    {
+        $roots = [];
+
+        foreach (['core', 'filament'] as $package) {
+            /** @var array{autoload: array{psr-4: array<string, string>}} $composer */
+            $composer = json_decode((string) file_get_contents("{$packages}/{$package}/composer.json"), true, flags: JSON_THROW_ON_ERROR);
+
+            foreach ($composer['autoload']['psr-4'] as $namespace => $directory) {
+                $roots[$package.'/'.rtrim($directory, '/')] = $namespace;
+            }
+        }
+
+        return $roots;
+    }
 
     public static function path(string $name): string
     {

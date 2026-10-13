@@ -15,7 +15,7 @@ use Illuminate\Database\Query\Builder;
  * The smallest subject model: it has a key and no table, so a test of a panel, a source or a plugin needs no schema
  * for its users. Every key exists as a subject; nothing is read or written. It authenticates like any user model.
  */
-#[Api(since: '0.7')]
+#[Api(since: '1.0')]
 final class FakeSubject extends Model implements AuthenticatableContract
 {
     use Authenticatable;

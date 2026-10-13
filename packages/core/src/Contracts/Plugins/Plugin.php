@@ -16,7 +16,7 @@ use AzGuard\Plugins\PluginContext;
  * A plugin takes its settings through its own constructor or named factory with typed parameters. Every panel
  * works with its own copy of the plugin, so one plugin can be attached to several panels.
  */
-#[Spi(kind: SpiKind::Implement, since: '0.7')]
+#[Spi(kind: SpiKind::Implement, since: '1.0')]
 interface Plugin
 {
     /**

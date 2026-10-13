@@ -14,7 +14,7 @@ use AzGuard\Kernel\Identity\SubjectRef;
 /**
  * Direct grants a source gives a subject.
  */
-#[Spi(kind: SpiKind::Implement, since: '0.7')]
+#[Spi(kind: SpiKind::Implement, since: '1.0')]
 interface ProvidesGrants extends Source
 {
     /**

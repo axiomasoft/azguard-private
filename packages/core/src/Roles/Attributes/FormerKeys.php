@@ -11,7 +11,7 @@ use AzGuard\Attributes\Api;
  * Keys the role had before a rename.
  */
 #[Attribute(Attribute::TARGET_CLASS)]
-#[Api(since: '0.7')]
+#[Api(since: '1.0')]
 final readonly class FormerKeys
 {
     /** @var list<string> */

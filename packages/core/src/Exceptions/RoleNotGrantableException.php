@@ -9,7 +9,7 @@ use AzGuard\Attributes\Api;
 /**
  * The code role exists but is not granted through storage.
  */
-#[Api(since: '0.7')]
+#[Api(since: '1.0')]
 final class RoleNotGrantableException extends ChangeException
 {
     public function code(): string

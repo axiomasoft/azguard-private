@@ -18,7 +18,7 @@ use AzGuard\Kernel\Decision\RestrictionResult;
  * appliesTo() is not consulted for lists. For a restriction without that adapter
  * appliesTo() may skip it only when the answer does not depend on the resource.
  */
-#[Spi(kind: SpiKind::Implement, since: '0.7')]
+#[Spi(kind: SpiKind::Implement, since: '1.0')]
 interface Restriction
 {
     public function key(): string;

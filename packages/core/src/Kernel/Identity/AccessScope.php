@@ -11,7 +11,7 @@ use AzGuard\Attributes\Api;
  *
  * The global scope inside a tenant means tenant-wide; it never equals the global tenant.
  */
-#[Api(since: '0.7')]
+#[Api(since: '1.0')]
 final readonly class AccessScope
 {
     private function __construct(

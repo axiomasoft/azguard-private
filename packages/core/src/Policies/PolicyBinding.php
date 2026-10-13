@@ -16,7 +16,7 @@ use UnitEnum;
  *
  * Under a policy-only permission the policy is the only authority; under a grants permission it may only veto.
  */
-#[Api(since: '0.7')]
+#[Api(since: '1.0')]
 final readonly class PolicyBinding
 {
     /**

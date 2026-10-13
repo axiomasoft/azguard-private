@@ -10,7 +10,7 @@ use RuntimeException;
 /**
  * Base of every AzGuard error; `code()` is the stable snake_case machine code.
  */
-#[Api(since: '0.7')]
+#[Api(since: '1.0')]
 abstract class AzGuardException extends RuntimeException
 {
     abstract public function code(): string;

@@ -9,7 +9,7 @@ use AzGuard\Attributes\Api;
 /**
  * Explicit panel signals of one check name different panels.
  */
-#[Api(since: '0.7')]
+#[Api(since: '1.0')]
 final class ConflictingPanelException extends DefinitionException
 {
     public function code(): string

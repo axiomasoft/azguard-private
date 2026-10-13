@@ -24,7 +24,7 @@ use Illuminate\Database\Eloquent\Model;
  * target or to Auth. `proposed` holds only schema-validated assignment values (`until`, `fields`) of an
  * Assignment phase and is empty for Access, Revocation and Inspection.
  */
-#[Spi(kind: SpiKind::Call, since: '0.7')]
+#[Spi(kind: SpiKind::Call, since: '1.0')]
 final readonly class AssignmentScopeRuntime
 {
     public function __construct(

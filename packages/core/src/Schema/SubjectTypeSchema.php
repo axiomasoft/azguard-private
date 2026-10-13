@@ -12,7 +12,7 @@ use JsonSerializable;
 /**
  * A subject model of a panel: the Laravel auth guard its current user comes from and the directory that looks it up.
  */
-#[Api(since: '0.7')]
+#[Api(since: '1.0')]
 final readonly class SubjectTypeSchema implements JsonSerializable
 {
     /**

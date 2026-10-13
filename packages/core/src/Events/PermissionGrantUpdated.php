@@ -17,7 +17,7 @@ use DateTimeImmutable;
 /**
  * The expiry or fields of a stored permission grant changed; the values are the new ones.
  */
-#[Api(since: '0.7')]
+#[Api(since: '1.0')]
 final readonly class PermissionGrantUpdated extends AccessEvent
 {
     /** @param array<string, mixed> $fields */

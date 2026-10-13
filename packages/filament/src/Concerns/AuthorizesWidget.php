@@ -13,7 +13,7 @@ use Filament\Widgets\Widget;
  *
  * @phpstan-require-extends Widget
  */
-#[Api(since: '0.7')]
+#[Api(since: '1.0')]
 trait AuthorizesWidget
 {
     public static function canView(): bool

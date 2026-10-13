@@ -19,7 +19,7 @@ use Illuminate\Http\Request;
  * tenant that Filament chose, takes its type from the tenant model of the guard panel and never invents a tenant: a
  * request without a Filament tenant, a Filament panel without the plugin or a tenant of another model gives null.
  */
-#[Api(since: '0.7')]
+#[Api(since: '1.0')]
 final class FilamentTenantResolver implements TenantResolver
 {
     public function resolve(Request $request): ?TenantRef

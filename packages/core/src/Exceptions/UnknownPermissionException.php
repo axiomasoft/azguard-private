@@ -9,7 +9,7 @@ use AzGuard\Attributes\Api;
 /**
  * The permission is not defined in any panel it could belong to.
  */
-#[Api(since: '0.7')]
+#[Api(since: '1.0')]
 final class UnknownPermissionException extends ChangeException
 {
     public function code(): string

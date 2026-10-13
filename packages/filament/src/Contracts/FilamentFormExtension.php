@@ -19,7 +19,7 @@ use Filament\Schemas\Components\Component;
  * Register it with `AzGuardPlugin::formExtensions()`; it is resolved from the container every time a form is built,
  * so it keeps no state between panels or requests.
  */
-#[Spi(kind: SpiKind::Implement, since: '0.7')]
+#[Spi(kind: SpiKind::Implement, since: '1.0')]
 interface FilamentFormExtension
 {
     public function appliesTo(PanelSchema $schema, FieldTarget $target): bool;

@@ -1,6 +1,6 @@
 # Console commands
 
-This page is generated from `php artisan list azguard --format=json` (AzGuard 0.7.0, Laravel 13).
+This page is generated from `php artisan list azguard --format=json` (Laravel 13).
 `php artisan help <command>` shows the same text. A subject is written as `type:id`, where the type is the morph alias.
 `azguard:filament:generate` comes from `axiomasoft/azguard-filament`.
 
@@ -466,6 +466,18 @@ azguard:permissions:delete [--panel [PANEL]] [--tenant [TENANT]] [--force] [--] 
 | `--force` | Delete in production |
 
 ## Diagnostics and maintenance
+
+### `azguard:audit:migration`
+
+Generate the audit journal migration for a configured AzGuard storage.
+
+```
+azguard:audit:migration <storage>
+```
+
+| Argument / option | Description |
+|---|---|
+| `storage` | Configured non-default storage |
 
 ### `azguard:audit:prune`
 

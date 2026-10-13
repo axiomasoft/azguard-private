@@ -33,7 +33,7 @@ use UnitEnum;
 /**
  * A compiled panel: an immutable description produced from the recipe of its provider.
  */
-#[Api(since: '0.7')]
+#[Api(since: '1.0')]
 final readonly class Panel
 {
     /**

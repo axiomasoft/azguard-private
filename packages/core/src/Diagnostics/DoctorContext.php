@@ -14,7 +14,7 @@ use AzGuard\Storage\Internal\Storage;
  * What one run of `azguard:doctor` inspects: the selected panels and storages, whether the run checks a production
  * deployment and the configuration. A check of a source, a panel or a plugin also gets the panel it runs for.
  */
-#[Spi(kind: SpiKind::Call, since: '0.7')]
+#[Spi(kind: SpiKind::Call, since: '1.0')]
 final readonly class DoctorContext
 {
     /**

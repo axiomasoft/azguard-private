@@ -26,7 +26,7 @@ use ReflectionEnum;
  *
  * Add it to the guard panel with `doctorChecks([FilamentDefinitionsCheck::class])`.
  */
-#[Api(since: '0.7')]
+#[Api(since: '1.0')]
 final readonly class FilamentDefinitionsCheck implements DoctorCheck
 {
     public function key(): string

@@ -17,7 +17,7 @@ use AzGuard\Schema\PermissionSchema;
  * exist only when the database writer of the panel declares `dynamicPermissions()`, belong to the tenant and are
  * always decided by grants. Every change goes through the change pipeline.
  */
-#[Api(since: '0.7')]
+#[Api(since: '1.0')]
 interface PermissionManager
 {
     /**

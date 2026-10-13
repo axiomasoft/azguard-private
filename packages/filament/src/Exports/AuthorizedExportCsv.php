@@ -22,7 +22,7 @@ use Illuminate\Support\Facades\Log;
  * panel that the job runs in (the panel of the request that started the export) and the tenant of the export. A missing
  * panel, permission, user or tenant writes no row.
  */
-#[Api(since: '0.7')]
+#[Api(since: '1.0')]
 class AuthorizedExportCsv extends ExportCsv
 {
     /** Option of an export with the guard panel, the view permission, the tenant and the model of its resource. */

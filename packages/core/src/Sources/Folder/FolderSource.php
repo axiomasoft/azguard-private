@@ -56,7 +56,7 @@ use UnitEnum;
  * Every panel has this source first. One `FolderSource` in `permissions([...])` configures that
  * built-in source; a second one is rejected. Names contributed by a plugin are stored as declared.
  */
-#[Api(since: '0.7')]
+#[Api(since: '1.0')]
 final class FolderSource implements ChecksHealth, DescribesSchema, EvaluatesAutomaticRoles, FiltersQueries, ProvidesGrants, ProvidesPermissions, ProvidesPolicies, ProvidesRoleGrants, ProvidesRoles
 {
     /** @var array{permissions: ?string, policies: ?string, roles: ?string, abilities: ?string} */

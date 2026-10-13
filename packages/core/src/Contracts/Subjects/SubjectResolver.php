@@ -12,7 +12,7 @@ use Illuminate\Database\Eloquent\Model;
 /**
  * Converts a subject value to its reference and loads the model behind a reference.
  */
-#[Spi(kind: SpiKind::Implement, since: '0.7')]
+#[Spi(kind: SpiKind::Implement, since: '1.0')]
 interface SubjectResolver
 {
     public function resolve(mixed $subject): SubjectRef;

@@ -12,7 +12,7 @@ use AzGuard\Kernel\Identity\TenantRef;
 /**
  * Tells whether a subject belongs to a tenant.
  */
-#[Spi(kind: SpiKind::Implement, since: '0.7')]
+#[Spi(kind: SpiKind::Implement, since: '1.0')]
 interface TenantMembership
 {
     public function isMember(SubjectRef $subject, TenantRef $tenant): bool;

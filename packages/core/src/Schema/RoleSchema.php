@@ -13,7 +13,7 @@ use JsonSerializable;
 /**
  * A code role of a panel. Its definition changes only in PHP, so an interface shows it read-only.
  */
-#[Api(since: '0.7')]
+#[Api(since: '1.0')]
 final readonly class RoleSchema implements JsonSerializable
 {
     /** A code role is never edited from an interface. */

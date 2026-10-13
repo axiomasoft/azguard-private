@@ -22,7 +22,7 @@ use UnitEnum;
  *
  * Its permission is `pages.azguard-doctor` in the guard panel.
  */
-#[Api(since: '0.7')]
+#[Api(since: '1.0')]
 final class DoctorPage extends Page
 {
     use AuthorizesPage;

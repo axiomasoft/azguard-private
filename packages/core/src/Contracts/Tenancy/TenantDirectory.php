@@ -13,7 +13,7 @@ use AzGuard\Kernel\Identity\TenantRef;
 /**
  * Search of tenants for the interface. It does not decide membership.
  */
-#[Spi(kind: SpiKind::Implement, since: '0.7')]
+#[Spi(kind: SpiKind::Implement, since: '1.0')]
 interface TenantDirectory
 {
     /**

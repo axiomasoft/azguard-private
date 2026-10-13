@@ -21,7 +21,7 @@ use Illuminate\Database\Eloquent\Model;
  *
  * @phpstan-require-extends RelationManager
  */
-#[Api(since: '0.7')]
+#[Api(since: '1.0')]
 trait AuthorizesRelationManager
 {
     public static function canViewForRecord(Model $ownerRecord, string $pageClass): bool

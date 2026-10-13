@@ -27,7 +27,7 @@ use PHPUnit\Framework\Attributes\Test;
  * - a plugin outside the package does not take an id of the reserved `azguard/` prefix;
  * - a panel that keeps the plugin off is the panel without it, with no trace left.
  */
-#[Spi(kind: SpiKind::Call, since: '0.7')]
+#[Spi(kind: SpiKind::Call, since: '1.0')]
 trait PluginContractTests
 {
     /** A new instance of the plugin under test. */

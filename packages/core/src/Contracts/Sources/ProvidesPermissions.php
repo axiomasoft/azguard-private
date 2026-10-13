@@ -13,7 +13,7 @@ use AzGuard\Panels\Panel;
 /**
  * A source of permissions for the catalog of a panel.
  */
-#[Spi(kind: SpiKind::Implement, since: '0.7')]
+#[Spi(kind: SpiKind::Implement, since: '1.0')]
 interface ProvidesPermissions extends Source
 {
     /**

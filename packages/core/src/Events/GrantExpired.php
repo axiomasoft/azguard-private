@@ -19,7 +19,7 @@ use DateTimeImmutable;
  * A stored grant was removed because its expiry had passed. `kind` is `role` or `permission`; exactly one of `role`
  * and `permission` is set.
  */
-#[Api(since: '0.7')]
+#[Api(since: '1.0')]
 final readonly class GrantExpired extends AccessEvent
 {
     public function __construct(

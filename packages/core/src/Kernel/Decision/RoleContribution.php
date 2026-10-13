@@ -15,7 +15,7 @@ use DateTimeImmutable;
 /**
  * A role held in a scope, contributed by a source; qualified by scope, expiry and fields before expansion.
  */
-#[Api(since: '0.7')]
+#[Api(since: '1.0')]
 final readonly class RoleContribution
 {
     /**

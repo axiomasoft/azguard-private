@@ -17,7 +17,7 @@ use DateTimeImmutable;
 /**
  * A stored permission grant was removed by a revocation; the values are those the grant had.
  */
-#[Api(since: '0.7')]
+#[Api(since: '1.0')]
 final readonly class PermissionRevoked extends AccessEvent
 {
     /** @param array<string, mixed> $fields */

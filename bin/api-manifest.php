@@ -459,7 +459,7 @@ function apiFacadeSource(): string
          *
          * @see \AzGuard\AzGuard
          */
-        #[Api(since: '0.7')]
+        #[Api(since: '1.0')]
         final class AzGuard extends Facade
         {
             protected static function getFacadeAccessor(): string

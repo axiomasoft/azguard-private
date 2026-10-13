@@ -21,7 +21,7 @@ use DateTimeImmutable;
  * state version, passes no change pipe and is published when the decision is made — after the commit when the decision
  * was made inside a transaction the package itself holds open.
  */
-#[Api(since: '0.7')]
+#[Api(since: '1.0')]
 final readonly class AccessDecided extends AccessEvent
 {
     public function __construct(

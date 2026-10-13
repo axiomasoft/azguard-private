@@ -9,16 +9,16 @@ use AzGuard\Events\AccessEvent;
 use AzGuard\Events\EventType;
 use AzGuard\Kernel\Identity\ActorRef;
 use AzGuard\Panels\PanelBuilder;
-use AzGuard\Tests\Fixtures\Baseline070\Formats\EventSamples;
-use AzGuard\Tests\Fixtures\Baseline070\Formats\FormatSnapshot;
 use AzGuard\Tests\Fixtures\Changes\ChangeWorld as W;
 use AzGuard\Tests\Fixtures\Crm\CrmWorld;
 use AzGuard\Tests\Fixtures\Events\EventWorld;
+use AzGuard\Tests\Fixtures\Formats\EventSamples;
+use AzGuard\Tests\Fixtures\Formats\FormatSnapshot;
 use AzGuard\Tests\Support\AuditTable;
 
 /*
  * I17, blocking now: the event types, the `AccessEvent::toArray()` envelope and data keys with the exact `state`
- * keys, and the journal row the Audit plugin writes for an event, as 0.7.0 has them. Values of the payloads are pinned
+ * keys, and the journal row the Audit plugin writes for an event. Values of the payloads are pinned
  * by tests/Feature/Events/CatalogTest; this pins the keys per class and the journal row.
  */
 

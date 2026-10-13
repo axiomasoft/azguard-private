@@ -58,7 +58,7 @@ use UnitEnum;
 /**
  * Exact final access before aggregation or pagination. Bounded fallback checks the whole host universe.
  */
-#[Api(since: '0.7')]
+#[Api(since: '1.0')]
 final readonly class Visibility
 {
     public function __construct(private PanelRegistry $registry, private ModelSubjectResolver $subjects, private Container $container, private CurrentContext $current) {}

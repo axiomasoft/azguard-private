@@ -9,7 +9,7 @@ use AzGuard\Attributes\Api;
 /**
  * The model is not a subject of the panel.
  */
-#[Api(since: '0.7')]
+#[Api(since: '1.0')]
 final class SubjectNotAcceptedException extends DefinitionException
 {
     public function code(): string

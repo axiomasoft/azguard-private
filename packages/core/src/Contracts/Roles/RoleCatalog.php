@@ -12,7 +12,7 @@ use AzGuard\Schema\RoleSchema;
  * The code roles of one panel, read-only. A role is a PHP class: its key, permissions and scopes change only in code
  * and with a deployment, never through this catalog. Who holds a role is a matter of grants, not of the catalog.
  */
-#[Api(since: '0.7')]
+#[Api(since: '1.0')]
 interface RoleCatalog
 {
     /**

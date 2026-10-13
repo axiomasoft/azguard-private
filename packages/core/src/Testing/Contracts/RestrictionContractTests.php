@@ -32,7 +32,7 @@ use UnitEnum;
  *   exception, because a restriction that fails on an ordinary request is a defect;
  * - a denial names the restriction.
  */
-#[Spi(kind: SpiKind::Call, since: '0.7')]
+#[Spi(kind: SpiKind::Call, since: '1.0')]
 trait RestrictionContractTests
 {
     /** A new instance of the restriction under test. */

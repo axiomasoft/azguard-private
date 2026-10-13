@@ -11,7 +11,7 @@ use AzGuard\Contracts\Diagnostics\DoctorCheck;
 /**
  * A source that brings its own health checks to `azguard:doctor`; they run for each panel the source is attached to.
  */
-#[Spi(kind: SpiKind::Implement, since: '0.7')]
+#[Spi(kind: SpiKind::Implement, since: '1.0')]
 interface ChecksHealth extends Source
 {
     /** @return list<DoctorCheck> */

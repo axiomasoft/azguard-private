@@ -9,7 +9,7 @@ use AzGuard\Attributes\Api;
 /**
  * No panel is registered under the id.
  */
-#[Api(since: '0.7')]
+#[Api(since: '1.0')]
 final class UnknownPanelException extends DefinitionException
 {
     public function code(): string

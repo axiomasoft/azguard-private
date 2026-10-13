@@ -13,7 +13,7 @@ use AzGuard\Kernel\Identity\SubjectRef;
 /**
  * Search of subjects for the interface.
  */
-#[Spi(kind: SpiKind::Implement, since: '0.7')]
+#[Spi(kind: SpiKind::Implement, since: '1.0')]
 interface SubjectDirectory
 {
     /**

@@ -20,7 +20,7 @@ use UnitEnum;
  * checked again on the server and the writes run as the user who edits. Its permissions are
  * `azguard-permission-grants.{view_any,view,create,update,delete}` in the guard panel.
  */
-#[Api(since: '0.7')]
+#[Api(since: '1.0')]
 final class PermissionGrantResource extends Resource
 {
     use AuthorizesResource;

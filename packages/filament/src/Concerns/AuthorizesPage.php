@@ -13,7 +13,7 @@ use Filament\Pages\Page;
  *
  * @phpstan-require-extends Page
  */
-#[Api(since: '0.7')]
+#[Api(since: '1.0')]
 trait AuthorizesPage
 {
     public static function canAccess(): bool

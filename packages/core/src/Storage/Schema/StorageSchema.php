@@ -15,7 +15,7 @@ use Illuminate\Database\Schema\Blueprint;
  * `permission_grants`, `panel_state`, `subject_revisions` and `storage_state`. A table a module owns (the audit journal)
  * is created by that module.
  */
-#[Api(since: '0.7')]
+#[Api(since: '1.0')]
 final readonly class StorageSchema
 {
     public function __construct(private StorageRegistry $storages) {}

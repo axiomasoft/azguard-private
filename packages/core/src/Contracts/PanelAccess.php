@@ -41,7 +41,7 @@ use Illuminate\Database\Eloquent\Model;
  * stored-grant lists only; decisions read every origin. Without `inTenant()` the tenant is the current tenant of the
  * panel; a panel with tenants and neither is a `TenantRequiredException`, never an aggregate over tenants.
  */
-#[Api(since: '0.7')]
+#[Api(since: '1.0')]
 interface PanelAccess
 {
     public function definition(): Panel;

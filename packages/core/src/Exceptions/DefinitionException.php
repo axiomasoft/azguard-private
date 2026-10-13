@@ -9,7 +9,7 @@ use AzGuard\Attributes\Api;
 /**
  * A panel, source, role or plugin is declared in a way the package cannot build.
  */
-#[Api(since: '0.7')]
+#[Api(since: '1.0')]
 class DefinitionException extends AzGuardException
 {
     public function code(): string

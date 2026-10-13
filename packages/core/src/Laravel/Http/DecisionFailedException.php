@@ -15,7 +15,7 @@ use Symfony\Component\HttpKernel\Exception\HttpException;
  * (with `Retry-After`), 500 for a broken host contract. The message is generic and the response carries no reason,
  * component or exception; the reason stays on the exception for logs.
  */
-#[Api(since: '0.7')]
+#[Api(since: '1.0')]
 final class DecisionFailedException extends HttpException
 {
     public function __construct(public readonly FailureKind $failure, public readonly DecisionReason $reason, int $retryAfter = 5)

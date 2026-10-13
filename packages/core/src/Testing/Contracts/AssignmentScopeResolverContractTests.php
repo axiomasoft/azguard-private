@@ -21,7 +21,7 @@ use PHPUnit\Framework\Attributes\Test;
  * - the scope survives the codec and has no ":" in its type;
  * - a request that names no scope gives null, not an error and not the global scope.
  */
-#[Spi(kind: SpiKind::Call, since: '0.7')]
+#[Spi(kind: SpiKind::Call, since: '1.0')]
 trait AssignmentScopeResolverContractTests
 {
     /** A new instance of the resolver under test. */

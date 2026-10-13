@@ -16,7 +16,7 @@ use AzGuard\Diagnostics\DoctorFinding;
  * from `DoctorContext::panel()`. An exception thrown by a check is reported as an error under `<key>.failed`;
  * the other checks still run.
  */
-#[Spi(kind: SpiKind::Implement, since: '0.7')]
+#[Spi(kind: SpiKind::Implement, since: '1.0')]
 interface DoctorCheck
 {
     /** A stable key of the check, such as `storage.schema` or `acme.folders`. */

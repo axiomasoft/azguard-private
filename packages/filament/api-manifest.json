@@ -7,7 +7,7 @@
         {
             "name": "AzGuard\\Filament\\Attributes\\ForFilament",
             "publication": "api",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "class",
             "final": true,
             "abstract": false,
@@ -54,7 +54,7 @@
         {
             "name": "AzGuard\\Filament\\Authorization\\FilamentGate",
             "publication": "api",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "class",
             "final": true,
             "abstract": false,
@@ -276,7 +276,7 @@
         {
             "name": "AzGuard\\Filament\\AzGuardFilamentServiceProvider",
             "publication": "api",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "class",
             "final": true,
             "abstract": false,
@@ -315,7 +315,7 @@
         {
             "name": "AzGuard\\Filament\\AzGuardPlugin",
             "publication": "api",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "class",
             "final": true,
             "abstract": false,
@@ -827,7 +827,7 @@
         {
             "name": "AzGuard\\Filament\\Concerns\\AuthorizesPage",
             "publication": "api",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "trait",
             "final": false,
             "abstract": false,
@@ -855,7 +855,7 @@
         {
             "name": "AzGuard\\Filament\\Concerns\\AuthorizesRelationManager",
             "publication": "api",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "trait",
             "final": false,
             "abstract": false,
@@ -936,7 +936,7 @@
         {
             "name": "AzGuard\\Filament\\Concerns\\AuthorizesResource",
             "publication": "api",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "trait",
             "final": false,
             "abstract": false,
@@ -1015,7 +1015,7 @@
         {
             "name": "AzGuard\\Filament\\Concerns\\AuthorizesWidget",
             "publication": "api",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "trait",
             "final": false,
             "abstract": false,
@@ -1043,7 +1043,7 @@
         {
             "name": "AzGuard\\Filament\\Contracts\\FilamentFormExtension",
             "publication": "spi-implement",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "interface",
             "final": false,
             "abstract": false,
@@ -1114,7 +1114,7 @@
         {
             "name": "AzGuard\\Filament\\Diagnostics\\FilamentDefinitionsCheck",
             "publication": "api",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "class",
             "final": true,
             "abstract": false,
@@ -1163,7 +1163,7 @@
         {
             "name": "AzGuard\\Filament\\Exports\\AuthorizedExportCsv",
             "publication": "api",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "class",
             "final": false,
             "abstract": false,
@@ -1200,7 +1200,7 @@
         {
             "name": "AzGuard\\Filament\\Exports\\AuthorizedPrepareCsvExport",
             "publication": "api",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "class",
             "final": false,
             "abstract": false,
@@ -1230,7 +1230,7 @@
         {
             "name": "AzGuard\\Filament\\FilamentDefinitions",
             "publication": "api",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "enum",
             "final": true,
             "abstract": false,
@@ -1327,7 +1327,7 @@
         {
             "name": "AzGuard\\Filament\\FilamentTenantResolver",
             "publication": "api",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "class",
             "final": true,
             "abstract": false,
@@ -1365,7 +1365,7 @@
         {
             "name": "AzGuard\\Filament\\Forms\\SchemaFields",
             "publication": "api",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "class",
             "final": true,
             "abstract": false,
@@ -1553,7 +1553,7 @@
         {
             "name": "AzGuard\\Filament\\Pages\\DoctorPage",
             "publication": "api",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "class",
             "final": true,
             "abstract": false,
@@ -1652,7 +1652,7 @@
         {
             "name": "AzGuard\\Filament\\Pages\\PanelsPage",
             "publication": "api",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "class",
             "final": true,
             "abstract": false,
@@ -1706,7 +1706,7 @@
         {
             "name": "AzGuard\\Filament\\Resources\\PermissionGrantResource",
             "publication": "api",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "class",
             "final": true,
             "abstract": false,
@@ -1774,7 +1774,7 @@
         {
             "name": "AzGuard\\Filament\\Resources\\PermissionResource",
             "publication": "api",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "class",
             "final": true,
             "abstract": false,
@@ -1882,7 +1882,7 @@
         {
             "name": "AzGuard\\Filament\\Resources\\RoleGrantResource",
             "publication": "api",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "class",
             "final": true,
             "abstract": false,
@@ -1950,7 +1950,7 @@
         {
             "name": "AzGuard\\Filament\\Resources\\RoleResource",
             "publication": "api",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "class",
             "final": true,
             "abstract": false,
@@ -2068,7 +2068,7 @@
         {
             "name": "AzGuard\\Filament\\Sources\\FilamentSource",
             "publication": "api",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "class",
             "final": true,
             "abstract": false,

@@ -12,5 +12,5 @@ use Attribute;
  * Only the controller class itself and the action are read; a parent controller does not opt its children out.
  */
 #[Attribute(Attribute::TARGET_CLASS | Attribute::TARGET_METHOD)]
-#[Api(since: '0.7')]
+#[Api(since: '1.0')]
 final readonly class SkipPermissionCheck {}

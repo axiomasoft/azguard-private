@@ -173,10 +173,10 @@
         "checks": [
             "tests/Feature/Console/CommandsSnapshotTest.php",
             "tests/Feature/Configuration/ConfigKeysTest.php",
-            "tests/Regression/Baseline070/DoctorSnapshotTest.php",
-            "tests/Regression/Baseline070/EventsSnapshotTest.php",
-            "tests/Regression/Baseline070/ExceptionsSnapshotTest.php",
-            "tests/Regression/Baseline070/ExplainSnapshotTest.php"
+            "tests/Regression/Formats/DoctorSnapshotTest.php",
+            "tests/Regression/Formats/EventsSnapshotTest.php",
+            "tests/Regression/Formats/ExceptionsSnapshotTest.php",
+            "tests/Regression/Formats/ExplainSnapshotTest.php"
         ],
         "blocking": "now",
         "owner_phase": "P1"

@@ -23,7 +23,7 @@ use BackedEnum;
  * @phpstan-type Sources array{sources: list<array{id: string, label: string, class: string, capabilities: list<string>, dynamic: bool}>, named: list<array{name: string, origin: string}>, plugins: list<string>}
  * @phpstan-type Entry array{id: string, label: string, default: bool, prefix: ?string, tenants: string, subjects: list<string>, writer: ?string, storage: ?string, plugins: list<string>, settings?: array<string, array{value: bool|int|string|null, origin: string}>, sources?: Sources, schema?: array<string, mixed>}
  */
-#[Api(since: '0.7')]
+#[Api(since: '1.0')]
 final readonly class PanelOverview
 {
     public function __construct(private PanelRegistry $registry, private AzGuard $azguard) {}

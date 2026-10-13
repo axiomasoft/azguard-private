@@ -11,7 +11,7 @@ use AzGuard\Exceptions\InvalidSourceContributionException;
 /**
  * Outcome of a restriction: pass, or deny with a snake_case reason. A restriction never allows.
  */
-#[Spi(kind: SpiKind::Call, since: '0.7')]
+#[Spi(kind: SpiKind::Call, since: '1.0')]
 final readonly class RestrictionResult
 {
     private function __construct(

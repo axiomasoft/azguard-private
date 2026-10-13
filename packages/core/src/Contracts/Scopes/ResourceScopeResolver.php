@@ -11,7 +11,7 @@ use AzGuard\Kernel\Identity\AccessScope;
 /**
  * Derives the tenant and assignment scope a resource belongs to.
  */
-#[Spi(kind: SpiKind::Implement, since: '0.7')]
+#[Spi(kind: SpiKind::Implement, since: '1.0')]
 interface ResourceScopeResolver
 {
     public function resolve(object $resource, ?AccessScope $selected = null): AccessScope;

@@ -16,7 +16,7 @@ use AzGuard\Exceptions\InvalidRoleKeyException;
  * A full key is `panel:local`. A pattern is a local key whose last segment may be `*` (exactly one more
  * segment) or `**` (one or more segments); bare wildcards are never valid, "everything" is a super-admin role.
  */
-#[Api(since: '0.7')]
+#[Api(since: '1.0')]
 final class PermissionGrammar
 {
     public const int MAX_LOCAL_LENGTH = 255;

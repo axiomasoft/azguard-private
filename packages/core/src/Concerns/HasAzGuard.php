@@ -31,7 +31,7 @@ use UnitEnum;
  *
  * @mixin Model
  */
-#[Api(since: '0.7')]
+#[Api(since: '1.0')]
 trait HasAzGuard
 {
     // Permissions

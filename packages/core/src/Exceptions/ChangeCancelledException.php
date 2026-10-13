@@ -10,7 +10,7 @@ use Throwable;
 /**
  * A `changing` pipe cancelled the change; the whole operation is rolled back.
  */
-#[Api(since: '0.7')]
+#[Api(since: '1.0')]
 final class ChangeCancelledException extends ChangeException
 {
     public function __construct(string $message = '', private readonly ?string $reason = null, ?Throwable $previous = null)

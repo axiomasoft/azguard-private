@@ -12,7 +12,7 @@ use Illuminate\Database\Eloquent\Model;
 /**
  * A role every subject matching a code rule receives; the rule assigns the role, it never defines one.
  */
-#[Spi(kind: SpiKind::Implement, since: '0.7')]
+#[Spi(kind: SpiKind::Implement, since: '1.0')]
 interface GrantedAutomatically
 {
     public function appliesTo(Model $subject, AccessScope $scope): bool;

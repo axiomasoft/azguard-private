@@ -12,7 +12,7 @@ use AzGuard\Context\AssignmentScopePhase;
  *
  * @open
  */
-#[Api(since: '0.7')]
+#[Api(since: '1.0')]
 enum ChangeType: string
 {
     case GrantRole = 'grant_role';

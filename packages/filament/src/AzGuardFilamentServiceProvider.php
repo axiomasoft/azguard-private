@@ -18,7 +18,7 @@ use Illuminate\Routing\Router;
 use Illuminate\Support\ServiceProvider;
 use Livewire\Livewire;
 
-#[Api(since: '0.7')]
+#[Api(since: '1.0')]
 final class AzGuardFilamentServiceProvider extends ServiceProvider
 {
     private const string PANEL_MIDDLEWARE = 'azguard.panel';

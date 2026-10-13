@@ -23,7 +23,7 @@ use ReflectionClass;
  * The manager does not keep a driver cache: `make()` calls the creator every time, so two panels never share an
  * object. There is no default source.
  */
-#[Api(since: '0.7')]
+#[Api(since: '1.0')]
 final class SourceManager extends Manager
 {
     /** @var array<string, class-string<Source>> source name => class declared with `#[AsSource]` */

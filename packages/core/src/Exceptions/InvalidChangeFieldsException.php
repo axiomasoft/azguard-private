@@ -6,7 +6,7 @@ namespace AzGuard\Exceptions;
 
 use AzGuard\Attributes\Api;
 
-#[Api(since: '0.7')]
+#[Api(since: '1.0')]
 final class InvalidChangeFieldsException extends ChangeException
 {
     /** @param array<string, list<string>> $errors */

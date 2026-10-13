@@ -26,7 +26,7 @@ use Illuminate\Database\Eloquent\Model;
  * role and the real engine decides from that, with the same scope, expiry and role rules as for any other source. It
  * is a source like the others, not a shortcut around the engine.
  */
-#[Api(since: '0.7')]
+#[Api(since: '1.0')]
 final class FakeSource implements ProvidesGrants, ProvidesRoleGrants
 {
     /** @var list<array{subject: string, pattern: PermissionPattern, scope: AccessScope, until: ?DateTimeImmutable}> */

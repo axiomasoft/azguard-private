@@ -17,14 +17,14 @@ use AzGuard\Panels\PanelBuilder;
 use AzGuard\Plugins\PluginContext;
 use AzGuard\Storage\Internal\StorageRegistry;
 use AzGuard\Storage\Schema\StorageSchema;
-use AzGuard\Tests\Fixtures\Baseline070\Formats\FormatSnapshot;
 use AzGuard\Tests\Fixtures\Crm\CrmWorld;
+use AzGuard\Tests\Fixtures\Formats\FormatSnapshot;
 use Illuminate\Routing\Router;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\ServiceProvider;
 
 /*
- * I17, blocking now: the resource identities of knowledge/identities#resources as the 0.7.0 code has them. Rows the
+ * I17, blocking now: the resource identities of knowledge/identities#resources as the code has them. Rows the
  * transition adds are listed as absent, so the phase that adds them changes this fixture deliberately.
  */
 

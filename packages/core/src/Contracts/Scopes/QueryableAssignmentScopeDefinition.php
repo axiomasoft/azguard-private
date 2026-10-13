@@ -13,7 +13,7 @@ use Illuminate\Database\Eloquent\Model;
 /**
  * An assignment scope backed by an Eloquent query.
  */
-#[Spi(kind: SpiKind::Implement, since: '0.7')]
+#[Spi(kind: SpiKind::Implement, since: '1.0')]
 interface QueryableAssignmentScopeDefinition extends AssignmentScopeDefinition
 {
     /**

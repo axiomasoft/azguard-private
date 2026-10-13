@@ -23,7 +23,7 @@ use UnitEnum;
  *
  * A panel with tenants needs its current tenant set before the call, as for any grant.
  */
-#[Api(since: '0.7')]
+#[Api(since: '1.0')]
 trait InteractsWithAzGuard
 {
     /** @internal Laravel invokes this after starting RefreshDatabase's wrapping transaction. */

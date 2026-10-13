@@ -15,7 +15,7 @@ use AzGuard\Exceptions\InvalidSourceContributionException;
  * A partition is an adapter's assertion of disjoint, exhaustive outcomes over its
  * resource universe. Shape validation cannot prove arbitrary adapter semantics.
  */
-#[Spi(kind: SpiKind::Call, since: '0.7')]
+#[Spi(kind: SpiKind::Call, since: '1.0')]
 final readonly class AccessPredicate
 {
     /**

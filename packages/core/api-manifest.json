@@ -372,7 +372,7 @@
         {
             "name": "AzGuard\\Attributes\\AsSource",
             "publication": "api",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "class",
             "final": true,
             "abstract": false,
@@ -417,7 +417,7 @@
         {
             "name": "AzGuard\\Attributes\\CheckPermission",
             "publication": "api",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "class",
             "final": true,
             "abstract": false,
@@ -548,7 +548,7 @@
         {
             "name": "AzGuard\\Attributes\\SkipPermissionCheck",
             "publication": "api",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "class",
             "final": true,
             "abstract": false,
@@ -766,7 +766,7 @@
         {
             "name": "AzGuard\\Audit\\AuditPlugin",
             "publication": "api",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "class",
             "final": true,
             "abstract": false,
@@ -900,7 +900,7 @@
         {
             "name": "AzGuard\\Authorization\\Visibility",
             "publication": "api",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "class",
             "final": true,
             "abstract": false,
@@ -1417,7 +1417,7 @@
         {
             "name": "AzGuard\\AzGuardServiceProvider",
             "publication": "api",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "class",
             "final": true,
             "abstract": false,
@@ -1456,7 +1456,7 @@
         {
             "name": "AzGuard\\Catalog\\PermissionDefinition",
             "publication": "spi-call",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "class",
             "final": true,
             "abstract": false,
@@ -1617,7 +1617,7 @@
         {
             "name": "AzGuard\\Changes\\Change",
             "publication": "spi-call",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "class",
             "final": true,
             "abstract": false,
@@ -1876,7 +1876,7 @@
         {
             "name": "AzGuard\\Changes\\ChangeContext",
             "publication": "spi-call",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "class",
             "final": true,
             "abstract": false,
@@ -1989,7 +1989,7 @@
         {
             "name": "AzGuard\\Changes\\ChangeEffect",
             "publication": "api",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "class",
             "final": true,
             "abstract": false,
@@ -2111,7 +2111,7 @@
         {
             "name": "AzGuard\\Changes\\ChangeResult",
             "publication": "api",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "class",
             "final": true,
             "abstract": false,
@@ -2209,7 +2209,7 @@
         {
             "name": "AzGuard\\Changes\\ChangeStatus",
             "publication": "api",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "enum",
             "final": true,
             "abstract": false,
@@ -2306,7 +2306,7 @@
         {
             "name": "AzGuard\\Changes\\ChangeType",
             "publication": "api",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "enum",
             "final": true,
             "abstract": false,
@@ -2523,7 +2523,7 @@
         {
             "name": "AzGuard\\Changes\\EffectKind",
             "publication": "api",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "enum",
             "final": true,
             "abstract": false,
@@ -2624,7 +2624,7 @@
         {
             "name": "AzGuard\\Changes\\GrantDetails",
             "publication": "api",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "class",
             "final": true,
             "abstract": false,
@@ -2688,7 +2688,7 @@
         {
             "name": "AzGuard\\Changes\\GrantFilter",
             "publication": "api",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "class",
             "final": true,
             "abstract": false,
@@ -2947,7 +2947,7 @@
         {
             "name": "AzGuard\\Changes\\GrantPage",
             "publication": "api",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "class",
             "final": true,
             "abstract": false,
@@ -2980,7 +2980,7 @@
         {
             "name": "AzGuard\\Changes\\GrantRecord",
             "publication": "api",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "class",
             "final": true,
             "abstract": false,
@@ -3113,7 +3113,7 @@
         {
             "name": "AzGuard\\Changes\\PermissionDetails",
             "publication": "api",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "class",
             "final": true,
             "abstract": false,
@@ -3209,7 +3209,7 @@
         {
             "name": "AzGuard\\Changes\\PermissionRecord",
             "publication": "api",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "class",
             "final": true,
             "abstract": false,
@@ -3306,7 +3306,7 @@
         {
             "name": "AzGuard\\Concerns\\HasAzGuard",
             "publication": "api",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "trait",
             "final": false,
             "abstract": false,
@@ -3936,7 +3936,7 @@
         {
             "name": "AzGuard\\Concerns\\SubjectAccess",
             "publication": "api",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "class",
             "final": true,
             "abstract": false,
@@ -4696,7 +4696,7 @@
         {
             "name": "AzGuard\\Concerns\\SubjectPanels",
             "publication": "api",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "class",
             "final": true,
             "abstract": false,
@@ -5160,7 +5160,7 @@
         {
             "name": "AzGuard\\Context\\AssignmentScopePhase",
             "publication": "api",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "enum",
             "final": true,
             "abstract": false,
@@ -5265,7 +5265,7 @@
         {
             "name": "AzGuard\\Context\\AssignmentScopeRuntime",
             "publication": "spi-call",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "class",
             "final": true,
             "abstract": false,
@@ -5556,7 +5556,7 @@
         {
             "name": "AzGuard\\Contracts\\Authorization\\EvaluationContext",
             "publication": "spi-call",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "interface",
             "final": false,
             "abstract": false,
@@ -5709,7 +5709,7 @@
         {
             "name": "AzGuard\\Contracts\\Authorization\\FiltersAccessQueries",
             "publication": "spi-implement",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "interface",
             "final": false,
             "abstract": false,
@@ -5767,7 +5767,7 @@
         {
             "name": "AzGuard\\Contracts\\Authorization\\GrantCondition",
             "publication": "spi-implement",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "interface",
             "final": false,
             "abstract": false,
@@ -5817,7 +5817,7 @@
         {
             "name": "AzGuard\\Contracts\\Authorization\\Restriction",
             "publication": "spi-implement",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "interface",
             "final": false,
             "abstract": false,
@@ -5908,7 +5908,7 @@
         {
             "name": "AzGuard\\Contracts\\AzGuardSubject",
             "publication": "spi-implement",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "interface",
             "final": false,
             "abstract": false,
@@ -6517,7 +6517,7 @@
         {
             "name": "AzGuard\\Contracts\\Catalog\\PermissionCatalog",
             "publication": "api",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "interface",
             "final": false,
             "abstract": false,
@@ -6735,7 +6735,7 @@
         {
             "name": "AzGuard\\Contracts\\Changes\\GrantManager",
             "publication": "api",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "interface",
             "final": false,
             "abstract": false,
@@ -6901,7 +6901,7 @@
         {
             "name": "AzGuard\\Contracts\\Changes\\PermissionManager",
             "publication": "api",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "interface",
             "final": false,
             "abstract": false,
@@ -7021,7 +7021,7 @@
         {
             "name": "AzGuard\\Contracts\\Diagnostics\\DoctorCheck",
             "publication": "spi-implement",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "interface",
             "final": false,
             "abstract": false,
@@ -7070,7 +7070,7 @@
         {
             "name": "AzGuard\\Contracts\\PanelAccess",
             "publication": "api",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "interface",
             "final": false,
             "abstract": false,
@@ -7324,7 +7324,7 @@
         {
             "name": "AzGuard\\Contracts\\Panels\\PanelRegistry",
             "publication": "api",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "interface",
             "final": false,
             "abstract": false,
@@ -7533,7 +7533,7 @@
         {
             "name": "AzGuard\\Contracts\\Plugins\\Plugin",
             "publication": "spi-implement",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "interface",
             "final": false,
             "abstract": false,
@@ -7587,7 +7587,7 @@
         {
             "name": "AzGuard\\Contracts\\Roles\\RoleCatalog",
             "publication": "api",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "interface",
             "final": false,
             "abstract": false,
@@ -7638,7 +7638,7 @@
         {
             "name": "AzGuard\\Contracts\\Scopes\\AssignmentScopeDefinition",
             "publication": "spi-implement",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "interface",
             "final": false,
             "abstract": false,
@@ -7698,7 +7698,7 @@
         {
             "name": "AzGuard\\Contracts\\Scopes\\AssignmentScopeDirectory",
             "publication": "spi-implement",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "interface",
             "final": false,
             "abstract": false,
@@ -7874,7 +7874,7 @@
         {
             "name": "AzGuard\\Contracts\\Scopes\\AssignmentScopeResolver",
             "publication": "spi-implement",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "interface",
             "final": false,
             "abstract": false,
@@ -7979,7 +7979,7 @@
         {
             "name": "AzGuard\\Contracts\\Scopes\\ProvidesAccessScope",
             "publication": "spi-implement",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "interface",
             "final": false,
             "abstract": false,
@@ -8007,7 +8007,7 @@
         {
             "name": "AzGuard\\Contracts\\Scopes\\ProvidesAssignmentScope",
             "publication": "spi-implement",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "interface",
             "final": false,
             "abstract": false,
@@ -8035,7 +8035,7 @@
         {
             "name": "AzGuard\\Contracts\\Scopes\\QueryableAssignmentScopeDefinition",
             "publication": "spi-implement",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "interface",
             "final": false,
             "abstract": false,
@@ -8140,7 +8140,7 @@
         {
             "name": "AzGuard\\Contracts\\Scopes\\ResolvedAssignmentScope",
             "publication": "spi-call",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "class",
             "final": true,
             "abstract": false,
@@ -8216,7 +8216,7 @@
         {
             "name": "AzGuard\\Contracts\\Scopes\\ResourceScopeResolver",
             "publication": "spi-implement",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "interface",
             "final": false,
             "abstract": false,
@@ -8260,7 +8260,7 @@
         {
             "name": "AzGuard\\Contracts\\Sources\\AssignmentScopeSelection",
             "publication": "spi-call",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "class",
             "final": true,
             "abstract": false,
@@ -8407,7 +8407,7 @@
         {
             "name": "AzGuard\\Contracts\\Sources\\ChecksHealth",
             "publication": "spi-implement",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "interface",
             "final": false,
             "abstract": false,
@@ -8439,7 +8439,7 @@
         {
             "name": "AzGuard\\Contracts\\Sources\\DescribesSchema",
             "publication": "spi-implement",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "interface",
             "final": false,
             "abstract": false,
@@ -8485,7 +8485,7 @@
         {
             "name": "AzGuard\\Contracts\\Sources\\FencesReads",
             "publication": "spi-implement",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "interface",
             "final": false,
             "abstract": false,
@@ -8530,7 +8530,7 @@
         {
             "name": "AzGuard\\Contracts\\Sources\\FiltersQueries",
             "publication": "spi-implement",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "interface",
             "final": false,
             "abstract": false,
@@ -8589,7 +8589,7 @@
         {
             "name": "AzGuard\\Contracts\\Sources\\ProvidesGrants",
             "publication": "spi-implement",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "interface",
             "final": false,
             "abstract": false,
@@ -8655,7 +8655,7 @@
         {
             "name": "AzGuard\\Contracts\\Sources\\ProvidesPermissions",
             "publication": "spi-implement",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "interface",
             "final": false,
             "abstract": false,
@@ -8714,7 +8714,7 @@
         {
             "name": "AzGuard\\Contracts\\Sources\\ProvidesPolicies",
             "publication": "spi-implement",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "interface",
             "final": false,
             "abstract": false,
@@ -8754,7 +8754,7 @@
         {
             "name": "AzGuard\\Contracts\\Sources\\ProvidesRoleGrants",
             "publication": "spi-implement",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "interface",
             "final": false,
             "abstract": false,
@@ -8820,7 +8820,7 @@
         {
             "name": "AzGuard\\Contracts\\Sources\\ProvidesRoles",
             "publication": "spi-implement",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "interface",
             "final": false,
             "abstract": false,
@@ -8860,7 +8860,7 @@
         {
             "name": "AzGuard\\Contracts\\Sources\\Source",
             "publication": "spi-implement",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "interface",
             "final": false,
             "abstract": false,
@@ -8888,7 +8888,7 @@
         {
             "name": "AzGuard\\Contracts\\Sources\\SourceDescription",
             "publication": "api",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "class",
             "final": true,
             "abstract": false,
@@ -9014,7 +9014,7 @@
         {
             "name": "AzGuard\\Contracts\\Sources\\Volatility",
             "publication": "spi-call",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "enum",
             "final": true,
             "abstract": false,
@@ -9115,7 +9115,7 @@
         {
             "name": "AzGuard\\Contracts\\Subjects\\SubjectDirectory",
             "publication": "spi-implement",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "interface",
             "final": false,
             "abstract": false,
@@ -9201,7 +9201,7 @@
         {
             "name": "AzGuard\\Contracts\\Subjects\\SubjectResolver",
             "publication": "spi-implement",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "interface",
             "final": false,
             "abstract": false,
@@ -9256,7 +9256,7 @@
         {
             "name": "AzGuard\\Contracts\\Tenancy\\TenantDirectory",
             "publication": "spi-implement",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "interface",
             "final": false,
             "abstract": false,
@@ -9334,7 +9334,7 @@
         {
             "name": "AzGuard\\Contracts\\Tenancy\\TenantMembership",
             "publication": "spi-implement",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "interface",
             "final": false,
             "abstract": false,
@@ -9377,7 +9377,7 @@
         {
             "name": "AzGuard\\Contracts\\Tenancy\\TenantResolver",
             "publication": "spi-implement",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "interface",
             "final": false,
             "abstract": false,
@@ -9452,7 +9452,7 @@
         {
             "name": "AzGuard\\Diagnostics\\Doctor",
             "publication": "api",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "class",
             "final": true,
             "abstract": false,
@@ -9548,7 +9548,7 @@
         {
             "name": "AzGuard\\Diagnostics\\DoctorContext",
             "publication": "spi-call",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "class",
             "final": true,
             "abstract": false,
@@ -9694,7 +9694,7 @@
         {
             "name": "AzGuard\\Diagnostics\\DoctorFinding",
             "publication": "api",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "class",
             "final": true,
             "abstract": false,
@@ -9959,7 +9959,7 @@
         {
             "name": "AzGuard\\Diagnostics\\PanelOverview",
             "publication": "api",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "class",
             "final": true,
             "abstract": false,
@@ -10083,7 +10083,7 @@
         {
             "name": "AzGuard\\Diagnostics\\Severity",
             "publication": "api",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "enum",
             "final": true,
             "abstract": false,
@@ -10180,7 +10180,7 @@
         {
             "name": "AzGuard\\Directories\\AssignmentScopeOption",
             "publication": "api",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "class",
             "final": true,
             "abstract": false,
@@ -10256,7 +10256,7 @@
         {
             "name": "AzGuard\\Directories\\LookupContext",
             "publication": "api",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "class",
             "final": true,
             "abstract": false,
@@ -10438,7 +10438,7 @@
         {
             "name": "AzGuard\\Directories\\PanelDirectories",
             "publication": "api",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "class",
             "final": true,
             "abstract": false,
@@ -10505,7 +10505,7 @@
         {
             "name": "AzGuard\\Directories\\SubjectOption",
             "publication": "api",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "class",
             "final": true,
             "abstract": false,
@@ -10581,7 +10581,7 @@
         {
             "name": "AzGuard\\Directories\\TenantOption",
             "publication": "api",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "class",
             "final": true,
             "abstract": false,
@@ -10657,7 +10657,7 @@
         {
             "name": "AzGuard\\Events\\AccessDecided",
             "publication": "api",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "class",
             "final": true,
             "abstract": false,
@@ -10848,7 +10848,7 @@
         {
             "name": "AzGuard\\Events\\AccessEvent",
             "publication": "api",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "class",
             "final": false,
             "abstract": true,
@@ -11113,7 +11113,7 @@
         {
             "name": "AzGuard\\Events\\EventType",
             "publication": "api",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "enum",
             "final": true,
             "abstract": false,
@@ -11250,7 +11250,7 @@
         {
             "name": "AzGuard\\Events\\GrantExpired",
             "publication": "api",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "class",
             "final": true,
             "abstract": false,
@@ -11456,7 +11456,7 @@
         {
             "name": "AzGuard\\Events\\PanelStateTouched",
             "publication": "api",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "class",
             "final": true,
             "abstract": false,
@@ -11576,7 +11576,7 @@
         {
             "name": "AzGuard\\Events\\PermissionCreated",
             "publication": "api",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "class",
             "final": true,
             "abstract": false,
@@ -11743,7 +11743,7 @@
         {
             "name": "AzGuard\\Events\\PermissionDeleted",
             "publication": "api",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "class",
             "final": true,
             "abstract": false,
@@ -11927,7 +11927,7 @@
         {
             "name": "AzGuard\\Events\\PermissionGrantUpdated",
             "publication": "api",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "class",
             "final": true,
             "abstract": false,
@@ -12120,7 +12120,7 @@
         {
             "name": "AzGuard\\Events\\PermissionGranted",
             "publication": "api",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "class",
             "final": true,
             "abstract": false,
@@ -12313,7 +12313,7 @@
         {
             "name": "AzGuard\\Events\\PermissionRevoked",
             "publication": "api",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "class",
             "final": true,
             "abstract": false,
@@ -12506,7 +12506,7 @@
         {
             "name": "AzGuard\\Events\\PermissionUpdated",
             "publication": "api",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "class",
             "final": true,
             "abstract": false,
@@ -12673,7 +12673,7 @@
         {
             "name": "AzGuard\\Events\\RoleGrantUpdated",
             "publication": "api",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "class",
             "final": true,
             "abstract": false,
@@ -12882,7 +12882,7 @@
         {
             "name": "AzGuard\\Events\\RoleGranted",
             "publication": "api",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "class",
             "final": true,
             "abstract": false,
@@ -13075,7 +13075,7 @@
         {
             "name": "AzGuard\\Events\\RoleRevoked",
             "publication": "api",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "class",
             "final": true,
             "abstract": false,
@@ -13268,7 +13268,7 @@
         {
             "name": "AzGuard\\Exceptions\\AmbiguousPanelException",
             "publication": "api",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "class",
             "final": true,
             "abstract": false,
@@ -13299,7 +13299,7 @@
         {
             "name": "AzGuard\\Exceptions\\AssignmentScopeNotAcceptedException",
             "publication": "api",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "class",
             "final": true,
             "abstract": false,
@@ -13330,7 +13330,7 @@
         {
             "name": "AzGuard\\Exceptions\\AssignmentScopeRequiredException",
             "publication": "api",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "class",
             "final": true,
             "abstract": false,
@@ -13361,7 +13361,7 @@
         {
             "name": "AzGuard\\Exceptions\\AuthorizationEngineException",
             "publication": "api",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "class",
             "final": false,
             "abstract": true,
@@ -13380,7 +13380,7 @@
         {
             "name": "AzGuard\\Exceptions\\AzGuardException",
             "publication": "api",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "class",
             "final": false,
             "abstract": true,
@@ -13411,7 +13411,7 @@
         {
             "name": "AzGuard\\Exceptions\\ChangeCancelledException",
             "publication": "api",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "class",
             "final": true,
             "abstract": false,
@@ -13508,7 +13508,7 @@
         {
             "name": "AzGuard\\Exceptions\\ChangeException",
             "publication": "api",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "class",
             "final": false,
             "abstract": true,
@@ -13527,7 +13527,7 @@
         {
             "name": "AzGuard\\Exceptions\\ConfigurationException",
             "publication": "api",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "class",
             "final": false,
             "abstract": true,
@@ -13546,7 +13546,7 @@
         {
             "name": "AzGuard\\Exceptions\\ConflictingPanelException",
             "publication": "api",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "class",
             "final": true,
             "abstract": false,
@@ -13577,7 +13577,7 @@
         {
             "name": "AzGuard\\Exceptions\\ConsistencyException",
             "publication": "api",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "class",
             "final": true,
             "abstract": false,
@@ -13608,7 +13608,7 @@
         {
             "name": "AzGuard\\Exceptions\\DecisionSetTooLargeException",
             "publication": "api",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "class",
             "final": true,
             "abstract": false,
@@ -13682,7 +13682,7 @@
         {
             "name": "AzGuard\\Exceptions\\DefaultPanelConflictException",
             "publication": "api",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "class",
             "final": true,
             "abstract": false,
@@ -13713,7 +13713,7 @@
         {
             "name": "AzGuard\\Exceptions\\DefinitionException",
             "publication": "api",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "class",
             "final": false,
             "abstract": false,
@@ -13744,7 +13744,7 @@
         {
             "name": "AzGuard\\Exceptions\\DirectoryScanLimitException",
             "publication": "api",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "class",
             "final": true,
             "abstract": false,
@@ -13775,7 +13775,7 @@
         {
             "name": "AzGuard\\Exceptions\\DuplicatePanelException",
             "publication": "api",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "class",
             "final": true,
             "abstract": false,
@@ -13806,7 +13806,7 @@
         {
             "name": "AzGuard\\Exceptions\\DuplicatePermissionException",
             "publication": "api",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "class",
             "final": true,
             "abstract": false,
@@ -13837,7 +13837,7 @@
         {
             "name": "AzGuard\\Exceptions\\DuplicatePolicyBindingException",
             "publication": "api",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "class",
             "final": true,
             "abstract": false,
@@ -13868,7 +13868,7 @@
         {
             "name": "AzGuard\\Exceptions\\DuplicateRoleException",
             "publication": "api",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "class",
             "final": true,
             "abstract": false,
@@ -13899,7 +13899,7 @@
         {
             "name": "AzGuard\\Exceptions\\InvalidAssignmentScopeException",
             "publication": "api",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "class",
             "final": true,
             "abstract": false,
@@ -13930,7 +13930,7 @@
         {
             "name": "AzGuard\\Exceptions\\InvalidChangeFieldsException",
             "publication": "api",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "class",
             "final": true,
             "abstract": false,
@@ -13995,7 +13995,7 @@
         {
             "name": "AzGuard\\Exceptions\\InvalidConfigurationException",
             "publication": "api",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "class",
             "final": true,
             "abstract": false,
@@ -14052,7 +14052,7 @@
         {
             "name": "AzGuard\\Exceptions\\InvalidIdentityException",
             "publication": "api",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "class",
             "final": false,
             "abstract": false,
@@ -14083,7 +14083,7 @@
         {
             "name": "AzGuard\\Exceptions\\InvalidPanelIdException",
             "publication": "api",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "class",
             "final": true,
             "abstract": false,
@@ -14114,7 +14114,7 @@
         {
             "name": "AzGuard\\Exceptions\\InvalidPermissionKeyException",
             "publication": "api",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "class",
             "final": true,
             "abstract": false,
@@ -14145,7 +14145,7 @@
         {
             "name": "AzGuard\\Exceptions\\InvalidPolicyStructureException",
             "publication": "api",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "class",
             "final": true,
             "abstract": false,
@@ -14176,7 +14176,7 @@
         {
             "name": "AzGuard\\Exceptions\\InvalidRoleKeyException",
             "publication": "api",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "class",
             "final": true,
             "abstract": false,
@@ -14207,7 +14207,7 @@
         {
             "name": "AzGuard\\Exceptions\\InvalidSourceContributionException",
             "publication": "api",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "class",
             "final": true,
             "abstract": false,
@@ -14238,7 +14238,7 @@
         {
             "name": "AzGuard\\Exceptions\\MissingPermissionCheckException",
             "publication": "api",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "class",
             "final": true,
             "abstract": false,
@@ -14269,7 +14269,7 @@
         {
             "name": "AzGuard\\Exceptions\\PanelNotResolvedException",
             "publication": "api",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "class",
             "final": true,
             "abstract": false,
@@ -14300,7 +14300,7 @@
         {
             "name": "AzGuard\\Exceptions\\PanelNotWritableException",
             "publication": "api",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "class",
             "final": true,
             "abstract": false,
@@ -14331,7 +14331,7 @@
         {
             "name": "AzGuard\\Exceptions\\PermissionNotGrantableException",
             "publication": "api",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "class",
             "final": true,
             "abstract": false,
@@ -14362,7 +14362,7 @@
         {
             "name": "AzGuard\\Exceptions\\PluginConflictException",
             "publication": "api",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "class",
             "final": true,
             "abstract": false,
@@ -14393,7 +14393,7 @@
         {
             "name": "AzGuard\\Exceptions\\PluginException",
             "publication": "api",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "class",
             "final": false,
             "abstract": true,
@@ -14412,7 +14412,7 @@
         {
             "name": "AzGuard\\Exceptions\\PrefixConflictException",
             "publication": "api",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "class",
             "final": true,
             "abstract": false,
@@ -14443,7 +14443,7 @@
         {
             "name": "AzGuard\\Exceptions\\RecursionDetectedException",
             "publication": "api",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "class",
             "final": true,
             "abstract": false,
@@ -14462,7 +14462,7 @@
         {
             "name": "AzGuard\\Exceptions\\RegistryFrozenException",
             "publication": "api",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "class",
             "final": true,
             "abstract": false,
@@ -14493,7 +14493,7 @@
         {
             "name": "AzGuard\\Exceptions\\RoleNotGrantableException",
             "publication": "api",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "class",
             "final": true,
             "abstract": false,
@@ -14524,7 +14524,7 @@
         {
             "name": "AzGuard\\Exceptions\\StaleSelectionException",
             "publication": "api",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "class",
             "final": true,
             "abstract": false,
@@ -14555,7 +14555,7 @@
         {
             "name": "AzGuard\\Exceptions\\StorageException",
             "publication": "api",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "class",
             "final": false,
             "abstract": true,
@@ -14574,7 +14574,7 @@
         {
             "name": "AzGuard\\Exceptions\\StorageMismatchException",
             "publication": "api",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "class",
             "final": true,
             "abstract": false,
@@ -14605,7 +14605,7 @@
         {
             "name": "AzGuard\\Exceptions\\SubjectNotAcceptedException",
             "publication": "api",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "class",
             "final": true,
             "abstract": false,
@@ -14636,7 +14636,7 @@
         {
             "name": "AzGuard\\Exceptions\\TenantMismatchException",
             "publication": "api",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "class",
             "final": true,
             "abstract": false,
@@ -14667,7 +14667,7 @@
         {
             "name": "AzGuard\\Exceptions\\TenantRequiredException",
             "publication": "api",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "class",
             "final": true,
             "abstract": false,
@@ -14698,7 +14698,7 @@
         {
             "name": "AzGuard\\Exceptions\\UnknownPanelException",
             "publication": "api",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "class",
             "final": true,
             "abstract": false,
@@ -14729,7 +14729,7 @@
         {
             "name": "AzGuard\\Exceptions\\UnknownPermissionException",
             "publication": "api",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "class",
             "final": true,
             "abstract": false,
@@ -14760,7 +14760,7 @@
         {
             "name": "AzGuard\\Exceptions\\UnknownRoleException",
             "publication": "api",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "class",
             "final": true,
             "abstract": false,
@@ -14791,7 +14791,7 @@
         {
             "name": "AzGuard\\Exceptions\\UnknownSourceException",
             "publication": "api",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "class",
             "final": true,
             "abstract": false,
@@ -14822,7 +14822,7 @@
         {
             "name": "AzGuard\\Exceptions\\UnsupportedDirectWriteException",
             "publication": "api",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "class",
             "final": true,
             "abstract": false,
@@ -14853,7 +14853,7 @@
         {
             "name": "AzGuard\\Exceptions\\VisibilityNotSupportedException",
             "publication": "api",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "class",
             "final": true,
             "abstract": false,
@@ -14918,7 +14918,7 @@
         {
             "name": "AzGuard\\Exceptions\\WriterConflictException",
             "publication": "api",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "class",
             "final": true,
             "abstract": false,
@@ -14949,7 +14949,7 @@
         {
             "name": "AzGuard\\Facades\\AzGuard",
             "publication": "api",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "class",
             "final": true,
             "abstract": false,
@@ -14965,7 +14965,7 @@
         {
             "name": "AzGuard\\Kernel\\Decision\\AccessPredicate",
             "publication": "spi-call",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "class",
             "final": true,
             "abstract": false,
@@ -15486,7 +15486,7 @@
         {
             "name": "AzGuard\\Kernel\\Decision\\AccessRequest",
             "publication": "api",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "class",
             "final": true,
             "abstract": false,
@@ -15718,7 +15718,7 @@
         {
             "name": "AzGuard\\Kernel\\Decision\\BeforeResult",
             "publication": "spi-call",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "enum",
             "final": true,
             "abstract": false,
@@ -15878,7 +15878,7 @@
         {
             "name": "AzGuard\\Kernel\\Decision\\Decision",
             "publication": "api",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "class",
             "final": true,
             "abstract": false,
@@ -16231,7 +16231,7 @@
         {
             "name": "AzGuard\\Kernel\\Decision\\DecisionReason",
             "publication": "api",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "enum",
             "final": true,
             "abstract": false,
@@ -16404,7 +16404,7 @@
         {
             "name": "AzGuard\\Kernel\\Decision\\DecisionSet",
             "publication": "api",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "class",
             "final": true,
             "abstract": false,
@@ -16524,7 +16524,7 @@
         {
             "name": "AzGuard\\Kernel\\Decision\\Effect",
             "publication": "api",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "enum",
             "final": true,
             "abstract": false,
@@ -16625,7 +16625,7 @@
         {
             "name": "AzGuard\\Kernel\\Decision\\Explanation",
             "publication": "api",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "class",
             "final": true,
             "abstract": false,
@@ -16763,7 +16763,7 @@
         {
             "name": "AzGuard\\Kernel\\Decision\\FailureKind",
             "publication": "api",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "enum",
             "final": true,
             "abstract": false,
@@ -16879,7 +16879,7 @@
         {
             "name": "AzGuard\\Kernel\\Decision\\Grant",
             "publication": "api",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "class",
             "final": true,
             "abstract": false,
@@ -17066,7 +17066,7 @@
         {
             "name": "AzGuard\\Kernel\\Decision\\PermissionAuthority",
             "publication": "api",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "enum",
             "final": true,
             "abstract": false,
@@ -17222,7 +17222,7 @@
         {
             "name": "AzGuard\\Kernel\\Decision\\RestrictionResult",
             "publication": "spi-call",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "class",
             "final": true,
             "abstract": false,
@@ -17291,7 +17291,7 @@
         {
             "name": "AzGuard\\Kernel\\Decision\\RoleContribution",
             "publication": "api",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "class",
             "final": true,
             "abstract": false,
@@ -17587,7 +17587,7 @@
         {
             "name": "AzGuard\\Kernel\\Grammar\\PermissionGrammar",
             "publication": "api",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "class",
             "final": true,
             "abstract": false,
@@ -17834,7 +17834,7 @@
         {
             "name": "AzGuard\\Kernel\\Identity\\AccessScope",
             "publication": "api",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "class",
             "final": true,
             "abstract": false,
@@ -17914,7 +17914,7 @@
         {
             "name": "AzGuard\\Kernel\\Identity\\ActorRef",
             "publication": "api",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "class",
             "final": true,
             "abstract": false,
@@ -18017,7 +18017,7 @@
         {
             "name": "AzGuard\\Kernel\\Identity\\AnyAssignmentScope",
             "publication": "api",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "class",
             "final": true,
             "abstract": false,
@@ -18045,7 +18045,7 @@
         {
             "name": "AzGuard\\Kernel\\Identity\\AssignmentScopeRef",
             "publication": "api",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "class",
             "final": true,
             "abstract": false,
@@ -18162,7 +18162,7 @@
         {
             "name": "AzGuard\\Kernel\\Identity\\IdentityCodec",
             "publication": "api",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "class",
             "final": true,
             "abstract": false,
@@ -18359,7 +18359,7 @@
         {
             "name": "AzGuard\\Kernel\\Identity\\PermissionKey",
             "publication": "api",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "class",
             "final": true,
             "abstract": false,
@@ -18498,7 +18498,7 @@
         {
             "name": "AzGuard\\Kernel\\Identity\\PermissionPattern",
             "publication": "api",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "class",
             "final": true,
             "abstract": false,
@@ -18623,7 +18623,7 @@
         {
             "name": "AzGuard\\Kernel\\Identity\\RoleKey",
             "publication": "api",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "class",
             "final": true,
             "abstract": false,
@@ -18737,7 +18737,7 @@
         {
             "name": "AzGuard\\Kernel\\Identity\\SubjectRef",
             "publication": "api",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "class",
             "final": true,
             "abstract": false,
@@ -18832,7 +18832,7 @@
         {
             "name": "AzGuard\\Kernel\\Identity\\TenantRef",
             "publication": "api",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "class",
             "final": true,
             "abstract": false,
@@ -18949,7 +18949,7 @@
         {
             "name": "AzGuard\\Kernel\\Permissions\\PermissionSet",
             "publication": "api",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "class",
             "final": true,
             "abstract": false,
@@ -19208,7 +19208,7 @@
         {
             "name": "AzGuard\\Laravel\\Gate\\GateBridge",
             "publication": "api",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "class",
             "final": true,
             "abstract": false,
@@ -19313,7 +19313,7 @@
         {
             "name": "AzGuard\\Laravel\\Http\\DecisionFailedException",
             "publication": "api",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "class",
             "final": true,
             "abstract": false,
@@ -19404,7 +19404,7 @@
         {
             "name": "AzGuard\\Laravel\\Http\\DecisionResponder",
             "publication": "api",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "class",
             "final": true,
             "abstract": false,
@@ -19459,7 +19459,7 @@
         {
             "name": "AzGuard\\Panels\\Panel",
             "publication": "api",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "class",
             "final": true,
             "abstract": false,
@@ -19767,7 +19767,7 @@
         {
             "name": "AzGuard\\Panels\\PanelBuilder",
             "publication": "api",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "class",
             "final": true,
             "abstract": false,
@@ -20511,7 +20511,7 @@
         {
             "name": "AzGuard\\Panels\\PanelProvider",
             "publication": "spi-implement",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "class",
             "final": false,
             "abstract": true,
@@ -20569,7 +20569,7 @@
         {
             "name": "AzGuard\\Panels\\PanelSettings",
             "publication": "api",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "class",
             "final": true,
             "abstract": false,
@@ -20754,7 +20754,7 @@
         {
             "name": "AzGuard\\Panels\\Reads",
             "publication": "api",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "enum",
             "final": true,
             "abstract": false,
@@ -20851,7 +20851,7 @@
         {
             "name": "AzGuard\\Panels\\StateRefresh",
             "publication": "api",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "enum",
             "final": true,
             "abstract": false,
@@ -20948,7 +20948,7 @@
         {
             "name": "AzGuard\\Panels\\SubjectDescriptor",
             "publication": "api",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "class",
             "final": true,
             "abstract": false,
@@ -20989,7 +20989,7 @@
         {
             "name": "AzGuard\\Permissions\\Describe",
             "publication": "api",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "class",
             "final": true,
             "abstract": false,
@@ -21066,7 +21066,7 @@
         {
             "name": "AzGuard\\Permissions\\GrantedToAll",
             "publication": "api",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "class",
             "final": true,
             "abstract": false,
@@ -21082,7 +21082,7 @@
         {
             "name": "AzGuard\\Permissions\\PolicyOnly",
             "publication": "api",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "class",
             "final": true,
             "abstract": false,
@@ -21098,7 +21098,7 @@
         {
             "name": "AzGuard\\Permissions\\RequiresGrant",
             "publication": "api",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "class",
             "final": true,
             "abstract": false,
@@ -21114,7 +21114,7 @@
         {
             "name": "AzGuard\\Permissions\\Resource",
             "publication": "api",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "class",
             "final": true,
             "abstract": false,
@@ -21178,7 +21178,7 @@
         {
             "name": "AzGuard\\Plugins\\PluginContext",
             "publication": "spi-call",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "class",
             "final": true,
             "abstract": false,
@@ -21228,7 +21228,7 @@
         {
             "name": "AzGuard\\Policies\\Decides",
             "publication": "api",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "class",
             "final": true,
             "abstract": false,
@@ -21273,7 +21273,7 @@
         {
             "name": "AzGuard\\Policies\\PolicyBinding",
             "publication": "api",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "class",
             "final": true,
             "abstract": false,
@@ -21409,7 +21409,7 @@
         {
             "name": "AzGuard\\Policies\\PolicyFor",
             "publication": "api",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "class",
             "final": true,
             "abstract": false,
@@ -21456,7 +21456,7 @@
         {
             "name": "AzGuard\\Roles\\Attributes\\FormerKeys",
             "publication": "api",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "class",
             "final": true,
             "abstract": false,
@@ -21503,7 +21503,7 @@
         {
             "name": "AzGuard\\Roles\\Attributes\\NotGrantable",
             "publication": "api",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "class",
             "final": true,
             "abstract": false,
@@ -21519,7 +21519,7 @@
         {
             "name": "AzGuard\\Roles\\Attributes\\Role",
             "publication": "api",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "class",
             "final": true,
             "abstract": false,
@@ -21597,7 +21597,7 @@
         {
             "name": "AzGuard\\Roles\\Attributes\\SuperAdmin",
             "publication": "api",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "class",
             "final": true,
             "abstract": false,
@@ -21613,7 +21613,7 @@
         {
             "name": "AzGuard\\Roles\\BaseRole",
             "publication": "spi-implement",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "class",
             "final": false,
             "abstract": true,
@@ -21735,7 +21735,7 @@
         {
             "name": "AzGuard\\Roles\\GrantedAutomatically",
             "publication": "spi-implement",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "interface",
             "final": false,
             "abstract": false,
@@ -21778,7 +21778,7 @@
         {
             "name": "AzGuard\\Roles\\SuperAdminRole",
             "publication": "api",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "class",
             "final": true,
             "abstract": false,
@@ -21806,7 +21806,7 @@
         {
             "name": "AzGuard\\Schema\\AssignmentScopeBindingSchema",
             "publication": "api",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "class",
             "final": true,
             "abstract": false,
@@ -21942,7 +21942,7 @@
         {
             "name": "AzGuard\\Schema\\AssignmentScopeTypeSchema",
             "publication": "api",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "class",
             "final": true,
             "abstract": false,
@@ -22063,7 +22063,7 @@
         {
             "name": "AzGuard\\Schema\\Field",
             "publication": "api",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "class",
             "final": true,
             "abstract": false,
@@ -22388,7 +22388,7 @@
         {
             "name": "AzGuard\\Schema\\FieldSchema",
             "publication": "api",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "class",
             "final": true,
             "abstract": false,
@@ -22573,7 +22573,7 @@
         {
             "name": "AzGuard\\Schema\\FieldTarget",
             "publication": "api",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "enum",
             "final": true,
             "abstract": false,
@@ -22670,7 +22670,7 @@
         {
             "name": "AzGuard\\Schema\\PanelSchema",
             "publication": "api",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "class",
             "final": true,
             "abstract": false,
@@ -22858,7 +22858,7 @@
         {
             "name": "AzGuard\\Schema\\PermissionSchema",
             "publication": "api",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "class",
             "final": true,
             "abstract": false,
@@ -23095,7 +23095,7 @@
         {
             "name": "AzGuard\\Schema\\RoleSchema",
             "publication": "api",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "class",
             "final": true,
             "abstract": false,
@@ -23316,7 +23316,7 @@
         {
             "name": "AzGuard\\Schema\\SubjectTypeSchema",
             "publication": "api",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "class",
             "final": true,
             "abstract": false,
@@ -23452,7 +23452,7 @@
         {
             "name": "AzGuard\\Schema\\TenantTypeSchema",
             "publication": "api",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "class",
             "final": true,
             "abstract": false,
@@ -23648,7 +23648,7 @@
         {
             "name": "AzGuard\\Scopes\\AssignmentScopeSettings",
             "publication": "api",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "class",
             "final": true,
             "abstract": false,
@@ -23726,7 +23726,7 @@
         {
             "name": "AzGuard\\Scopes\\BaseAssignmentScope",
             "publication": "spi-implement",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "class",
             "final": false,
             "abstract": true,
@@ -23898,7 +23898,7 @@
         {
             "name": "AzGuard\\Scopes\\ContextAware",
             "publication": "api",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "trait",
             "final": false,
             "abstract": true,
@@ -23959,7 +23959,7 @@
         {
             "name": "AzGuard\\Scopes\\Contracts\\AssignmentScopeAccessAdapter",
             "publication": "spi-implement",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "interface",
             "final": false,
             "abstract": false,
@@ -24060,7 +24060,7 @@
         {
             "name": "AzGuard\\Scopes\\Contracts\\AssignmentScopeFilter",
             "publication": "spi-implement",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "interface",
             "final": false,
             "abstract": false,
@@ -24105,7 +24105,7 @@
         {
             "name": "AzGuard\\Scopes\\Contracts\\AssignmentScopeMembership",
             "publication": "spi-implement",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "interface",
             "final": false,
             "abstract": false,
@@ -24148,7 +24148,7 @@
         {
             "name": "AzGuard\\Scopes\\Contracts\\ConfigurableAssignmentScopeDefinition",
             "publication": "spi-implement",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "interface",
             "final": false,
             "abstract": false,
@@ -24239,7 +24239,7 @@
         {
             "name": "AzGuard\\Scopes\\ModelAssignmentScopeDefinition",
             "publication": "api",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "class",
             "final": true,
             "abstract": false,
@@ -24685,7 +24685,7 @@
         {
             "name": "AzGuard\\Sources\\Database\\DatabaseSource",
             "publication": "api",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "class",
             "final": true,
             "abstract": false,
@@ -25130,7 +25130,7 @@
         {
             "name": "AzGuard\\Sources\\Folder\\FolderSource",
             "publication": "api",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "class",
             "final": true,
             "abstract": false,
@@ -25543,7 +25543,7 @@
         {
             "name": "AzGuard\\Sources\\Gate\\GateSource",
             "publication": "api",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "class",
             "final": true,
             "abstract": false,
@@ -25668,7 +25668,7 @@
         {
             "name": "AzGuard\\Sources\\Relation\\RelationSource",
             "publication": "api",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "class",
             "final": true,
             "abstract": false,
@@ -25858,7 +25858,7 @@
         {
             "name": "AzGuard\\Sources\\SourceManager",
             "publication": "api",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "class",
             "final": true,
             "abstract": false,
@@ -25961,7 +25961,7 @@
         {
             "name": "AzGuard\\Storage\\Models\\Permission",
             "publication": "spi-implement",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "class",
             "final": false,
             "abstract": false,
@@ -26760,7 +26760,7 @@
         {
             "name": "AzGuard\\Storage\\Models\\PermissionGrant",
             "publication": "spi-implement",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "class",
             "final": false,
             "abstract": false,
@@ -27621,7 +27621,7 @@
         {
             "name": "AzGuard\\Storage\\Models\\RoleGrant",
             "publication": "spi-implement",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "class",
             "final": false,
             "abstract": false,
@@ -28645,7 +28645,7 @@
         {
             "name": "AzGuard\\Storage\\Schema\\StorageSchema",
             "publication": "api",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "class",
             "final": true,
             "abstract": false,
@@ -28788,7 +28788,7 @@
         {
             "name": "AzGuard\\Support\\ModelKey",
             "publication": "api",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "class",
             "final": true,
             "abstract": false,
@@ -28955,7 +28955,7 @@
         {
             "name": "AzGuard\\Tenancy\\ModelTenantDefinition",
             "publication": "api",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "class",
             "final": true,
             "abstract": false,
@@ -29310,7 +29310,7 @@
         {
             "name": "AzGuard\\Testing\\AzGuardFake",
             "publication": "api",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "class",
             "final": true,
             "abstract": false,
@@ -30092,7 +30092,7 @@
         {
             "name": "AzGuard\\Testing\\Contracts\\AssignmentScopeResolverContractTests",
             "publication": "spi-call",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "trait",
             "final": false,
             "abstract": true,
@@ -30271,7 +30271,7 @@
         {
             "name": "AzGuard\\Testing\\Contracts\\HookContractTests",
             "publication": "spi-call",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "trait",
             "final": false,
             "abstract": false,
@@ -30406,7 +30406,7 @@
         {
             "name": "AzGuard\\Testing\\Contracts\\PluginContractTests",
             "publication": "spi-call",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "trait",
             "final": false,
             "abstract": true,
@@ -30513,7 +30513,7 @@
         {
             "name": "AzGuard\\Testing\\Contracts\\RestrictionContractTests",
             "publication": "spi-call",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "trait",
             "final": false,
             "abstract": true,
@@ -30609,7 +30609,7 @@
         {
             "name": "AzGuard\\Testing\\Contracts\\SourceContractTests",
             "publication": "spi-call",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "trait",
             "final": false,
             "abstract": true,
@@ -30753,7 +30753,7 @@
         {
             "name": "AzGuard\\Testing\\Contracts\\SubjectResolverContractTests",
             "publication": "spi-call",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "trait",
             "final": false,
             "abstract": true,
@@ -30868,7 +30868,7 @@
         {
             "name": "AzGuard\\Testing\\FakeSource",
             "publication": "api",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "class",
             "final": true,
             "abstract": false,
@@ -31108,7 +31108,7 @@
         {
             "name": "AzGuard\\Testing\\FakeSubject",
             "publication": "api",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "class",
             "final": true,
             "abstract": false,
@@ -31289,7 +31289,7 @@
         {
             "name": "AzGuard\\Testing\\InteractsWithAzGuard",
             "publication": "api",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "trait",
             "final": false,
             "abstract": false,
@@ -31421,7 +31421,7 @@
         {
             "name": "AzGuard\\Testing\\RecordedChange",
             "publication": "api",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "class",
             "final": true,
             "abstract": false,
@@ -31605,7 +31605,7 @@
         {
             "name": "AzGuard\\Testing\\RecordedCheck",
             "publication": "api",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "class",
             "final": true,
             "abstract": false,

@@ -12,7 +12,7 @@ use JsonSerializable;
 /**
  * The tenant type of a panel and the directory that looks its tenants up.
  */
-#[Api(since: '0.7')]
+#[Api(since: '1.0')]
 final readonly class TenantTypeSchema implements JsonSerializable
 {
     /**

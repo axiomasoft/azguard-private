@@ -51,7 +51,7 @@ use UnitEnum;
  * - it takes `now` from the context, not from its own clock;
  * - `describe()` lists the capabilities the source implements and what it returns has the type of its capability.
  */
-#[Spi(kind: SpiKind::Call, since: '0.7')]
+#[Spi(kind: SpiKind::Call, since: '1.0')]
 trait SourceContractTests
 {
     /** A new instance of the source under test, ready to be attached to a panel. */

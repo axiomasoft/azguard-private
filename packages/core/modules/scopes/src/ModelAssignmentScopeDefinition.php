@@ -17,7 +17,7 @@ use Throwable;
 /**
  * Eloquent shorthand. A tenant panel must supply an explicit authoritative owner callback.
  */
-#[Api(since: '0.7')]
+#[Api(since: '1.0')]
 final class ModelAssignmentScopeDefinition extends BaseAssignmentScope
 {
     private readonly string $alias;

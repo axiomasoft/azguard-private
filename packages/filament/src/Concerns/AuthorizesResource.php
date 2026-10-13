@@ -26,7 +26,7 @@ use UnitEnum;
  *
  * @phpstan-require-extends FilamentResource
  */
-#[Api(since: '0.7')]
+#[Api(since: '1.0')]
 trait AuthorizesResource
 {
     public static function getAuthorizationResponse(string|UnitEnum $action, ?Model $record = null): Response

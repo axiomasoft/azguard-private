@@ -24,7 +24,7 @@ use Filament\Facades\Filament;
  * stored; who decides them is the explicit authority of the plugin. A permission that an enum of the panel defines
  * too is a conflict of the catalog, not a merge.
  */
-#[Api(since: '0.7')]
+#[Api(since: '1.0')]
 final readonly class FilamentSource implements DescribesSchema, ProvidesPermissions
 {
     private function __construct(private string $filamentPanel) {}

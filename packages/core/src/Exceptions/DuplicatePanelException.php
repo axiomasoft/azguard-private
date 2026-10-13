@@ -9,7 +9,7 @@ use AzGuard\Attributes\Api;
 /**
  * A panel id is registered twice; an intended replacement uses `replace()`.
  */
-#[Api(since: '0.7')]
+#[Api(since: '1.0')]
 final class DuplicatePanelException extends DefinitionException
 {
     public function code(): string

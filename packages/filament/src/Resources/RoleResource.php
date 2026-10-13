@@ -27,7 +27,7 @@ use UnitEnum;
  *
  * @phpstan-type Row array{key: string, label: string, class: string, grantable: bool, automatic: bool, super_admin: bool, scope_required: bool, contexts: list<string>, filters: list<string>, permissions: list<array{name: string, authority: ?string, grantable: bool}>}
  */
-#[Api(since: '0.7')]
+#[Api(since: '1.0')]
 final class RoleResource extends Resource
 {
     use AuthorizesResource;

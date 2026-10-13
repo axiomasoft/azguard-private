@@ -12,7 +12,7 @@ use AzGuard\Attributes\Api;
  * writes it; the doctor reports an enum whose class no longer exists in the Filament panel.
  */
 #[Attribute(Attribute::TARGET_CLASS | Attribute::IS_REPEATABLE)]
-#[Api(since: '0.7')]
+#[Api(since: '1.0')]
 final readonly class ForFilament
 {
     /**

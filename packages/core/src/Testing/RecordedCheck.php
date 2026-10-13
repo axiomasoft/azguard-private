@@ -16,7 +16,7 @@ use AzGuard\Kernel\Identity\TenantRef;
 /**
  * One check the fake saw: who asked for which permission in which scope and what the real engine decided.
  */
-#[Api(since: '0.7')]
+#[Api(since: '1.0')]
 final readonly class RecordedCheck
 {
     public function __construct(

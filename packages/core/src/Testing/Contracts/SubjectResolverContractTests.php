@@ -24,7 +24,7 @@ use Throwable;
  * - a reference to a subject that does not exist has no model;
  * - what is not a subject is refused, not turned into a reference.
  */
-#[Spi(kind: SpiKind::Call, since: '0.7')]
+#[Spi(kind: SpiKind::Call, since: '1.0')]
 trait SubjectResolverContractTests
 {
     /** A new instance of the resolver under test. */

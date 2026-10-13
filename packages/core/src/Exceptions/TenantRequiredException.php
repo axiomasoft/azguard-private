@@ -9,7 +9,7 @@ use AzGuard\Attributes\Api;
 /**
  * The panel requires a tenant for this change.
  */
-#[Api(since: '0.7')]
+#[Api(since: '1.0')]
 final class TenantRequiredException extends ChangeException
 {
     public function code(): string

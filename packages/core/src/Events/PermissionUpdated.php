@@ -15,7 +15,7 @@ use DateTimeImmutable;
 /**
  * The label, group or description of a dynamic permission changed; the values are the new ones.
  */
-#[Api(since: '0.7')]
+#[Api(since: '1.0')]
 final readonly class PermissionUpdated extends AccessEvent
 {
     /**

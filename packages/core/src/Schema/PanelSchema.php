@@ -15,7 +15,7 @@ use JsonSerializable;
  * A snapshot: scalars, value objects and class names only. Models, closures, services and the parameters of sources
  * and plugins are never part of it. A panel without a source that stores grants is read-only (`writable` is false).
  */
-#[Api(since: '0.7')]
+#[Api(since: '1.0')]
 final readonly class PanelSchema implements JsonSerializable
 {
     /**

@@ -18,7 +18,7 @@ use DateTimeImmutable;
  * `id` is `role:<n>` or `permission:<n>`. `fingerprint` covers the build, the id, the key, the expiry, the fields and
  * the last update; a form that kept it can be saved only while it still matches.
  */
-#[Api(since: '0.7')]
+#[Api(since: '1.0')]
 final readonly class GrantRecord
 {
     /**

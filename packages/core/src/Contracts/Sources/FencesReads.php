@@ -18,7 +18,7 @@ use AzGuard\Panels\Panel;
  * at most three times, then fails the decision with `consistency_error`; only the source read repeats. The token is
  * opaque (no subject revision), so cached sets of the source are keyed by the whole token.
  */
-#[Spi(kind: SpiKind::Implement, since: '0.7')]
+#[Spi(kind: SpiKind::Implement, since: '1.0')]
 interface FencesReads extends Source
 {
     public function state(Panel $panel, TenantRef $tenant): StateToken;

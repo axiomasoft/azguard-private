@@ -10,7 +10,7 @@ use BackedEnum;
 use Illuminate\Database\Eloquent\Model;
 
 /** An immutable description of a custom grant column or meta value. */
-#[Api(since: '0.7')]
+#[Api(since: '1.0')]
 final class Field
 {
     private ?string $label = null;

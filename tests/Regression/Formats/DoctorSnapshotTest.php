@@ -4,37 +4,16 @@ declare(strict_types=1);
 
 use AzGuard\Contracts\Diagnostics\DoctorCheck;
 use AzGuard\Diagnostics\Severity;
-use AzGuard\Tests\Fixtures\Baseline070\Formats\FormatSnapshot;
 use AzGuard\Tests\Fixtures\Crm\CrmWorld;
+use AzGuard\Tests\Fixtures\Formats\FormatSnapshot;
 use Illuminate\Support\Facades\Artisan;
 
 /*
  * I17, blocking now: every doctor check class with its key and the finding ids it emits, and the document
- * `azguard:doctor --json` prints (field names, severities, exit codes), as 0.7.0 has them.
+ * `azguard:doctor --json` prints (field names, severities, exit codes).
  */
 
 afterEach(fn () => CrmWorld::resetRuntime());
-
-/**
- * The PSR-4 roots of the core package (module roots included) and of Filament, relative to `packages/`.
- *
- * @return array<string, string> directory => namespace
- */
-function baselineProductionRoots(string $packages): array
-{
-    $roots = [];
-
-    foreach (['core', 'filament'] as $package) {
-        /** @var array{autoload: array{psr-4: array<string, string>}} $composer */
-        $composer = json_decode((string) file_get_contents("{$packages}/{$package}/composer.json"), true, flags: JSON_THROW_ON_ERROR);
-
-        foreach ($composer['autoload']['psr-4'] as $namespace => $directory) {
-            $roots[$package.'/'.rtrim($directory, '/')] = $namespace;
-        }
-    }
-
-    return $roots;
-}
 
 /** @return list<class-string<DoctorCheck>> every production doctor check, sorted by class */
 function baselineDoctorChecks(): array
@@ -42,7 +21,7 @@ function baselineDoctorChecks(): array
     $checks = [];
     $root = dirname(__DIR__, 3).'/packages';
 
-    foreach (baselineProductionRoots($root) as $directory => $namespace) {
+    foreach (FormatSnapshot::productionRoots($root) as $directory => $namespace) {
         $files = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($root.'/'.$directory, FilesystemIterator::SKIP_DOTS));
 
         foreach ($files as $file) {

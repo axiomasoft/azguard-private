@@ -15,7 +15,7 @@ use DateTimeImmutable;
  * The state version of a panel was raised on purpose, without a change of a grant, so every cached decision of the
  * panel is renewed. `previousVersion` is the version before the touch.
  */
-#[Api(since: '0.7')]
+#[Api(since: '1.0')]
 final readonly class PanelStateTouched extends AccessEvent
 {
     public function __construct(

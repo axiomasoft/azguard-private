@@ -60,7 +60,7 @@ use ReflectionMethod;
  * The plugin does not change the AzGuard panels. The application attaches `FilamentSource` and `FilamentTenantResolver`
  * itself; `boot()` checks that it did and says what is missing.
  */
-#[Api(since: '0.7')]
+#[Api(since: '1.0')]
 final class AzGuardPlugin implements Plugin
 {
     public const string ID = 'azguard';

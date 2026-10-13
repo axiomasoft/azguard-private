@@ -36,7 +36,7 @@ use InvalidArgumentException;
  * Pages are ordered role grants first, then permission grants, each by id. `cursor` continues a page; it belongs to
  * the manager, the filter and the code build it came from.
  */
-#[Api(since: '0.7')]
+#[Api(since: '1.0')]
 final readonly class GrantFilter
 {
     public const string ACTIVE = 'active';

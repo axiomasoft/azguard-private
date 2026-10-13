@@ -18,7 +18,7 @@ use DateTimeImmutable;
  * The expiry or fields of a stored role grant changed; the values are the new ones. A migration from a former key of
  * the role also changes the key: `previousRole` is then the former key, otherwise null.
  */
-#[Api(since: '0.7')]
+#[Api(since: '1.0')]
 final readonly class RoleGrantUpdated extends AccessEvent
 {
     /** @param array<string, mixed> $fields */

@@ -16,7 +16,7 @@ use UnitEnum;
  * A name is the local name of the panel (`orders.view`) or a permission key of the panel; a key of another panel is
  * never found. Every lookup reads a hash index: no list is scanned and no query is made.
  */
-#[Api(since: '0.7')]
+#[Api(since: '1.0')]
 interface PermissionCatalog
 {
     /**

@@ -9,7 +9,7 @@ use AzGuard\Attributes\Api;
 /**
  * Values of one decision contradict each other: a reason the effect cannot carry, or different state tokens in one set.
  */
-#[Api(since: '0.7')]
+#[Api(since: '1.0')]
 final class ConsistencyException extends AuthorizationEngineException
 {
     public function code(): string

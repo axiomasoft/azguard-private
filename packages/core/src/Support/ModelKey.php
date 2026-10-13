@@ -18,7 +18,7 @@ use Illuminate\Database\Eloquent\Model;
  * aborts the surrounding transaction. AzGuard resolves every subject, tenant and context through this class, so use it
  * for ids that come from a request, a form or a queue payload when the answer must agree with AzGuard's.
  */
-#[Api(since: '0.7')]
+#[Api(since: '1.0')]
 final class ModelKey
 {
     private function __construct() {}

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace AzGuard\Tests\Fixtures\Baseline070\Formats;
+namespace AzGuard\Tests\Fixtures\Formats;
 
 use AzGuard\Events\AccessDecided;
 use AzGuard\Events\AccessEvent;
@@ -30,7 +30,7 @@ use AzGuard\Kernel\Identity\SubjectRef;
 use AzGuard\Kernel\Identity\TenantRef;
 use DateTimeImmutable;
 
-/** One event of every 0.7.0 event type with fixed values, built through the public constructors. */
+/** One event of every event type with fixed values, built through the public constructors. */
 final class EventSamples
 {
     /** @return array<string, mixed> the arguments every event shares */

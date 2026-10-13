@@ -11,7 +11,7 @@ use AzGuard\Attributes\Api;
  * runs or any source is read; it is never split silently, because separate chunks are separate snapshots and would
  * lose the one-state guarantee of the set.
  */
-#[Api(since: '0.7')]
+#[Api(since: '1.0')]
 final class DecisionSetTooLargeException extends AuthorizationEngineException
 {
     public function __construct(public readonly int $subjects, public readonly int $limit)

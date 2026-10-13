@@ -62,7 +62,7 @@ use Illuminate\Routing\Router;
 use Illuminate\Support\ServiceProvider;
 use ReflectionClass;
 
-#[Api(since: '0.7')]
+#[Api(since: '1.0')]
 final class AzGuardServiceProvider extends ServiceProvider
 {
     public function register(): void

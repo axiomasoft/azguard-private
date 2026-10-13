@@ -13,7 +13,7 @@ use AzGuard\Kernel\Identity\AssignmentScopeRef;
 /**
  * Search of assignment scopes of one type for the interface.
  */
-#[Spi(kind: SpiKind::Implement, since: '0.7')]
+#[Spi(kind: SpiKind::Implement, since: '1.0')]
 interface AssignmentScopeDirectory
 {
     /**

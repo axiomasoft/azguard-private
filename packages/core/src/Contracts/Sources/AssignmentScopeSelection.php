@@ -14,7 +14,7 @@ use AzGuard\Kernel\Identity\AssignmentScopeRef;
 /**
  * Candidate prefilter with raw witnesses. It never represents an Allow.
  */
-#[Spi(kind: SpiKind::Call, since: '0.7')]
+#[Spi(kind: SpiKind::Call, since: '1.0')]
 final readonly class AssignmentScopeSelection
 {
     /** @param list<AssignmentScopeRef> $refs

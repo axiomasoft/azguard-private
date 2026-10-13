@@ -12,7 +12,7 @@ use AzGuard\Exceptions\InvalidAssignmentScopeException;
  *
  * `global()` is a separate form with key `global`; `of('global', ...)` is an ordinary reference.
  */
-#[Api(since: '0.7')]
+#[Api(since: '1.0')]
 final readonly class AssignmentScopeRef
 {
     private const string GLOBAL_KEY = 'global';

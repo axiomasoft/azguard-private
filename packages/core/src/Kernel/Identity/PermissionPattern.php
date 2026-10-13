@@ -13,7 +13,7 @@ use AzGuard\Kernel\Internal\PatternMatcher;
 /**
  * A granted pattern inside a panel: an exact name, `orders.*` (one segment) or `orders.**` (one or more).
  */
-#[Api(since: '0.7')]
+#[Api(since: '1.0')]
 final readonly class PermissionPattern
 {
     private function __construct(

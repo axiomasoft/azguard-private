@@ -2,7 +2,7 @@
   "$schema": "urn:swissknifeman:task:plan:item:v1",
   "id": "P3.13",
   "title": "Clean 1.0 baseline: no 0.7 traces in code, tests and docs (D23)",
-  "status": "todo",
+  "status": "in_progress",
   "summary": "Every `#[Api]`/`#[Spi]` attribute gets `since: '1.0'` and both manifests are regenerated; `tests/Fixtures/Baseline070` and `tests/Regression/Baseline070` become `tests/Fixtures/Formats` and `tests/Regression/Formats` with only current-format snapshots (0.7.0 api-manifest byte copies, 0.7.0-only inventories and their sha pins removed); README files and docs stop presenting 0.7.0 (docs/upgrade.md stays).",
   "why": "Owner M16: the first public version is 1.0 and everything must be clean (D23). Hard risk: renaming snapshot trees must not drop a pinned format (I17): every snapshot test keeps its assertions, only names and 0.7.0-only inventories change.",
   "scope": {
@@ -189,6 +189,14 @@
     "need": "none",
     "status": "not_needed"
   },
-  "result": null,
-  "updated_at": "2026-10-13T11:36:28Z"
+  "result": {
+    "started_at": "2026-10-13T20:39:32Z",
+    "executor": {
+      "provider": "claude-code",
+      "model": "claude-sonnet-5-5",
+      "effort": "high",
+      "session": "d5c0ac3a-b857-41e1-9c7c-d7ac82baa845"
+    }
+  },
+  "updated_at": "2026-10-13T20:39:32Z"
 }

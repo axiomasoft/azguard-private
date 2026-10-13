@@ -9,7 +9,7 @@ use AzGuard\Attributes\Api;
 /**
  * Two panels are declared as the default panel of the same subject model.
  */
-#[Api(since: '0.7')]
+#[Api(since: '1.0')]
 final class DefaultPanelConflictException extends DefinitionException
 {
     public function code(): string

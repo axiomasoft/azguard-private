@@ -18,7 +18,7 @@ use Illuminate\Database\Eloquent\Model;
  * The panel is not part of the definition: the catalog that receives it gives the panel. Two definitions are equal
  * only when every field is equal.
  */
-#[Spi(kind: SpiKind::Call, since: '0.7')]
+#[Spi(kind: SpiKind::Call, since: '1.0')]
 final readonly class PermissionDefinition
 {
     /**

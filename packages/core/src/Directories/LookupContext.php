@@ -20,7 +20,7 @@ use Illuminate\Database\Eloquent\Model;
  * The target subject may be absent while the caller is still choosing who to assign. The actor is null when the
  * operation has no actor; it is never replaced by the target or by Auth.
  */
-#[Api(since: '0.7')]
+#[Api(since: '1.0')]
 final readonly class LookupContext
 {
     /**

@@ -45,7 +45,7 @@ use UnitEnum;
  * `$on` of the change assertions names the assignment scope of the grant: `null` is the tenant-wide grant,
  * `AnyAssignmentScope::all()` is a grant in any scope.
  */
-#[Api(since: '0.7')]
+#[Api(since: '1.0')]
 final class AzGuardFake
 {
     /** @var list<RecordedCheck> */

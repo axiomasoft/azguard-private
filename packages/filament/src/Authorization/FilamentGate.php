@@ -44,7 +44,7 @@ use function Filament\get_authorization_response;
  * Filament on a model that has neither a policy nor a Gate ability, the check that Filament would otherwise allow. It
  * never allows anything.
  */
-#[Api(since: '0.7')]
+#[Api(since: '1.0')]
 final class FilamentGate
 {
     /**

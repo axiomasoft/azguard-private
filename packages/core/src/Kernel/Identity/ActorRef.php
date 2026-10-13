@@ -10,7 +10,7 @@ use AzGuard\Exceptions\InvalidIdentityException;
 /**
  * Who initiated a change: a host identity, or the system actor without an id and with a reason.
  */
-#[Api(since: '0.7')]
+#[Api(since: '1.0')]
 final readonly class ActorRef
 {
     public const string SYSTEM_TYPE = 'azguard:system';

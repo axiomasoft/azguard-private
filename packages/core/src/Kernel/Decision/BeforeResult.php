@@ -12,7 +12,7 @@ use AzGuard\Attributes\SpiKind;
  *
  * @closed
  */
-#[Spi(kind: SpiKind::Call, since: '0.7')]
+#[Spi(kind: SpiKind::Call, since: '1.0')]
 enum BeforeResult
 {
     case Continue;

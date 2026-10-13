@@ -11,7 +11,7 @@ use AzGuard\Attributes\Api;
  * identifies the effect for delivery after commit. A deletion `expired` is a grant removed because its expiry had
  * passed. A touch of the panel state is an `Updated` effect without records: `previousVersion` and `reason` describe it.
  */
-#[Api(since: '0.7')]
+#[Api(since: '1.0')]
 final readonly class ChangeEffect
 {
     /** @internal built by the writer */

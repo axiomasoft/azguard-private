@@ -10,7 +10,7 @@ use AzGuard\Attributes\Api;
  * One page of stored grants of a grant manager. `nextCursor` is null on the last page; otherwise
  * `$filter->after($page->nextCursor)` asks for the next one.
  */
-#[Api(since: '0.7')]
+#[Api(since: '1.0')]
 final readonly class GrantPage
 {
     /**

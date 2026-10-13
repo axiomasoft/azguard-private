@@ -11,7 +11,7 @@ use AzGuard\Kernel\Identity\AssignmentScopeRef;
 /**
  * A resource that reports its assignment scope in a panel without tenants.
  */
-#[Spi(kind: SpiKind::Implement, since: '0.7')]
+#[Spi(kind: SpiKind::Implement, since: '1.0')]
 interface ProvidesAssignmentScope
 {
     public function azguardAssignmentScope(): ?AssignmentScopeRef;

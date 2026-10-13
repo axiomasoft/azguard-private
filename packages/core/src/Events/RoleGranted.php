@@ -17,7 +17,7 @@ use DateTimeImmutable;
 /**
  * A role was granted to a subject in one assignment scope and origin.
  */
-#[Api(since: '0.7')]
+#[Api(since: '1.0')]
 final readonly class RoleGranted extends AccessEvent
 {
     /** @param array<string, mixed> $fields */

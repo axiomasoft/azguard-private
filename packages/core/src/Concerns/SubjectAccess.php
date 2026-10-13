@@ -64,7 +64,7 @@ use UnitEnum;
  *
  * The origin selects the partition of changes and stored-grant lists only; checks read every origin.
  */
-#[Api(since: '0.7')]
+#[Api(since: '1.0')]
 final readonly class SubjectAccess
 {
     private SubjectRef $ref;

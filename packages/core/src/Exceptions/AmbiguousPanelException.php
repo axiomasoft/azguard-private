@@ -9,7 +9,7 @@ use AzGuard\Attributes\Api;
 /**
  * A permission enum belongs to several panels and the check names none of them.
  */
-#[Api(since: '0.7')]
+#[Api(since: '1.0')]
 final class AmbiguousPanelException extends DefinitionException
 {
     public function code(): string

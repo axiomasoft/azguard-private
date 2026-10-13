@@ -12,7 +12,7 @@ use Illuminate\Database\Eloquent\Model;
  * Label and domain model of a permission enum. The model does not by itself create permissions.
  */
 #[Attribute(Attribute::TARGET_CLASS)]
-#[Api(since: '0.7')]
+#[Api(since: '1.0')]
 final readonly class Resource
 {
     /**

@@ -18,7 +18,7 @@ use Closure;
  *
  * @phpstan-type Filter AssignmentScopeFilter|class-string<AssignmentScopeFilter>|Closure
  */
-#[Api(since: '0.7')]
+#[Api(since: '1.0')]
 final readonly class AssignmentScopeSettings
 {
     /**

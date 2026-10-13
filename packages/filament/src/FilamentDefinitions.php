@@ -13,7 +13,7 @@ use AzGuard\Attributes\Api;
  *
  * @open
  */
-#[Api(since: '0.7')]
+#[Api(since: '1.0')]
 enum FilamentDefinitions: string
 {
     /** Permission enums of the guard panel folder. */

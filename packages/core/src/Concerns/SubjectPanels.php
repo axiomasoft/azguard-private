@@ -18,7 +18,7 @@ use Illuminate\Database\Eloquent\Model;
  * Every panel of one subject: `$user->azguard()`. Panels are picked by the panel resolver only; the selector never
  * changes the model, the authentication manager or the current panel.
  */
-#[Api(since: '0.7')]
+#[Api(since: '1.0')]
 final readonly class SubjectPanels
 {
     public function __construct(private Model|SubjectRef $subject) {}

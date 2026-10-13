@@ -12,7 +12,7 @@ use DateTimeImmutable;
 /**
  * The patterns a subject holds, deduplicated, with an optional absolute deadline of the set.
  */
-#[Api(since: '0.7')]
+#[Api(since: '1.0')]
 final readonly class PermissionSet
 {
     /**

@@ -12,7 +12,7 @@ use JsonSerializable;
 /**
  * One permission of a panel as an interface shows it: who decides it, which sources can give it and where.
  */
-#[Api(since: '0.7')]
+#[Api(since: '1.0')]
 final readonly class PermissionSchema implements JsonSerializable
 {
     /**

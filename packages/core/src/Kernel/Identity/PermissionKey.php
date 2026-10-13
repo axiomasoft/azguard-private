@@ -14,7 +14,7 @@ use Stringable;
 /**
  * A catalog permission name: local `orders.view` inside a panel, full form `admin:orders.view`.
  */
-#[Api(since: '0.7')]
+#[Api(since: '1.0')]
 final readonly class PermissionKey implements JsonSerializable, Stringable
 {
     private function __construct(

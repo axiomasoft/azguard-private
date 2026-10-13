@@ -45,7 +45,7 @@ use UnitEnum;
  * - a pipe writes nothing itself: what reaches the database goes through the writer it hands the change to;
  * - a change that is cancelled after the pipe left nothing behind in any table.
  */
-#[Spi(kind: SpiKind::Call, since: '0.7')]
+#[Spi(kind: SpiKind::Call, since: '1.0')]
 trait HookContractTests
 {
     /**

@@ -25,7 +25,7 @@ use AzGuard\Kernel\Identity\TenantRef;
  * One change the fake saw, taken from the event the change published after its commit. A change of the permission
  * catalog or of the panel state has no subject, role or context.
  */
-#[Api(since: '0.7')]
+#[Api(since: '1.0')]
 final readonly class RecordedChange
 {
     public function __construct(

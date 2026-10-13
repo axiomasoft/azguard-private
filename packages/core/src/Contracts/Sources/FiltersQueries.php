@@ -13,7 +13,7 @@ use AzGuard\Kernel\Identity\SubjectRef;
 /**
  * Raw assignment candidates and witnesses; null means exact selection is unsupported.
  */
-#[Spi(kind: SpiKind::Implement, since: '0.7')]
+#[Spi(kind: SpiKind::Implement, since: '1.0')]
 interface FiltersQueries extends Source
 {
     public function contextsCovering(SubjectRef $subject, PermissionKey $key, string $contextType, EvaluationContext $context): ?AssignmentScopeSelection;

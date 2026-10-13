@@ -11,7 +11,7 @@ use Filament\Actions\Exports\Jobs\PrepareCsvExport;
  * Prepares an export whose chunks are written by `AuthorizedExportCsv`; an export action of a Filament panel that
  * enforces uses it.
  */
-#[Api(since: '0.7')]
+#[Api(since: '1.0')]
 class AuthorizedPrepareCsvExport extends PrepareCsvExport
 {
     public function getExportCsvJob(): string

@@ -12,7 +12,7 @@ use AzGuard\Kernel\Identity\AccessScope;
 /**
  * The answer to an access request: effect, reason consistent with it, the state it was made against and the scope.
  */
-#[Api(since: '0.7')]
+#[Api(since: '1.0')]
 final readonly class Decision
 {
     private const array ALLOW_REASONS = [DecisionReason::Granted, DecisionReason::SuperAdmin, DecisionReason::Policy];

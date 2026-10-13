@@ -13,7 +13,7 @@ use AzGuard\Roles\Attributes\SuperAdmin;
  */
 #[Role('superadmin', label: 'azguard::roles.superadmin')]
 #[SuperAdmin]
-#[Api(since: '0.7')]
+#[Api(since: '1.0')]
 final class SuperAdminRole extends BaseRole
 {
     public function permissions(): array

@@ -16,7 +16,7 @@ use Illuminate\Database\Eloquent\Model;
  *
  * @mixin Model
  */
-#[Api(since: '0.7')]
+#[Api(since: '1.0')]
 trait ContextAware
 {
     abstract public function azguardContextType(): string;

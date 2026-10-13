@@ -22,7 +22,7 @@ use Illuminate\Database\Eloquent\Model;
  * Panels are compiled once the application has booted; reading before that throws, so a half-built registry is
  * never observed.
  */
-#[Api(since: '0.7')]
+#[Api(since: '1.0')]
 interface PanelRegistry
 {
     /**

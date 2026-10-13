@@ -12,7 +12,7 @@ use AzGuard\Roles\BaseRole;
 /**
  * A source of code roles of a panel; it describes roles and never assigns them.
  */
-#[Spi(kind: SpiKind::Implement, since: '0.7')]
+#[Spi(kind: SpiKind::Implement, since: '1.0')]
 interface ProvidesRoles extends Source
 {
     /**

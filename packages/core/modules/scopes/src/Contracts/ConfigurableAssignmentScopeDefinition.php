@@ -16,7 +16,7 @@ use Closure;
  *
  * A string passed to `filter` is a class-string of {@see AssignmentScopeFilter}, never a profile alias.
  */
-#[Spi(kind: SpiKind::Implement, since: '0.7')]
+#[Spi(kind: SpiKind::Implement, since: '1.0')]
 interface ConfigurableAssignmentScopeDefinition extends AssignmentScopeDefinition
 {
     /**

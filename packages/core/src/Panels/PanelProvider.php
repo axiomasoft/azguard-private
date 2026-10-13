@@ -14,7 +14,7 @@ use Illuminate\Support\ServiceProvider;
  *
  * Listed in `azguard.panels.providers` or registered as a regular service provider by a module.
  */
-#[Spi(kind: SpiKind::Implement, since: '0.7')]
+#[Spi(kind: SpiKind::Implement, since: '1.0')]
 abstract class PanelProvider extends ServiceProvider
 {
     /**

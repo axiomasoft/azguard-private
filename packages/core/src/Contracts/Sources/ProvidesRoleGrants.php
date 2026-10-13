@@ -14,7 +14,7 @@ use AzGuard\Kernel\Identity\SubjectRef;
 /**
  * Roles a source assigns, including a superadmin role with no permissions of its own.
  */
-#[Spi(kind: SpiKind::Implement, since: '0.7')]
+#[Spi(kind: SpiKind::Implement, since: '1.0')]
 interface ProvidesRoleGrants extends Source
 {
     /**

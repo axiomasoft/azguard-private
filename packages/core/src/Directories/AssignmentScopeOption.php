@@ -10,7 +10,7 @@ use AzGuard\Kernel\Identity\AssignmentScopeRef;
 /**
  * One assignment scope a directory offers to the interface.
  */
-#[Api(since: '0.7')]
+#[Api(since: '1.0')]
 final readonly class AssignmentScopeOption
 {
     public function __construct(

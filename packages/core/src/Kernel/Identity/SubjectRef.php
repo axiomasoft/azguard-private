@@ -10,7 +10,7 @@ use AzGuard\Exceptions\InvalidIdentityException;
 /**
  * The subject a decision is about: a type alias of its identity domain and a canonical id.
  */
-#[Api(since: '0.7')]
+#[Api(since: '1.0')]
 final readonly class SubjectRef
 {
     private function __construct(

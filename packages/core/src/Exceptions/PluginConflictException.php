@@ -9,7 +9,7 @@ use AzGuard\Attributes\Api;
 /**
  * Two plugins of one panel set the same setting to different values and the panel provider does not decide.
  */
-#[Api(since: '0.7')]
+#[Api(since: '1.0')]
 final class PluginConflictException extends PluginException
 {
     public function code(): string

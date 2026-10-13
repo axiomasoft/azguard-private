@@ -17,7 +17,7 @@ use AzGuard\Exceptions\StaleSelectionException;
  * no method takes a panel, a tenant or an origin, and a grant of another partition behaves as if it did not exist.
  * Every change goes through the change pipeline, its pipes and its final validation.
  */
-#[Api(since: '0.7')]
+#[Api(since: '1.0')]
 interface GrantManager
 {
     /** Grants of the partition matching the filter, expired and orphaned ones included as the filter asks. */

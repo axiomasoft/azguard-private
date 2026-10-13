@@ -29,7 +29,7 @@ use Illuminate\Contracts\Container\Container;
  * describes; it decides neither membership nor access, and a caller checks every chosen value with `describe()` again
  * before it writes.
  */
-#[Api(since: '0.7')]
+#[Api(since: '1.0')]
 final readonly class PanelDirectories
 {
     private DirectoryResolver $resolver;

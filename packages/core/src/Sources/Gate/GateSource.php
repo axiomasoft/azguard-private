@@ -18,7 +18,7 @@ use Illuminate\Database\Eloquent\Model;
 /**
  * Adapts explicitly mapped native Laravel abilities as mode-aware policies.
  */
-#[Api(since: '0.7')]
+#[Api(since: '1.0')]
 final class GateSource implements DescribesSchema, ProvidesPolicies
 {
     /** @var list<PolicyBinding> */

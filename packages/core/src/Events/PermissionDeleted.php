@@ -15,7 +15,7 @@ use DateTimeImmutable;
 /**
  * A dynamic permission was deleted; the grants of exactly its name in the tenant were revoked in the same change.
  */
-#[Api(since: '0.7')]
+#[Api(since: '1.0')]
 final readonly class PermissionDeleted extends AccessEvent
 {
     /**

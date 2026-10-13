@@ -15,7 +15,7 @@ use Throwable;
 /**
  * A tenant model identified by its registered morph alias.
  */
-#[Api(since: '0.7')]
+#[Api(since: '1.0')]
 final readonly class ModelTenantDefinition
 {
     private string $alias;

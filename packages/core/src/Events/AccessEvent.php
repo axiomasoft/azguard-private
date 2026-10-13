@@ -22,7 +22,7 @@ use DateTimeZone;
  * moment of delivery. The payload holds values and references only: no Eloquent model, request, container or secret.
  * Delivery is best effort and not exactly-once.
  */
-#[Api(since: '0.7')]
+#[Api(since: '1.0')]
 abstract readonly class AccessEvent
 {
     public function __construct(

@@ -12,7 +12,7 @@ use AzGuard\Exceptions\InvalidChangeFieldsException;
  * Name, tenant and the Grants authority mode are never part of it; the writer validates the values again under the
  * panel lock. A dynamic permission declares no field schema, so any field is refused when the change is validated.
  */
-#[Api(since: '0.7')]
+#[Api(since: '1.0')]
 final readonly class PermissionDetails
 {
     /**

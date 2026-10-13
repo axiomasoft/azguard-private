@@ -13,7 +13,7 @@ use AzGuard\Attributes\Api;
  *
  * @closed
  */
-#[Api(since: '0.7')]
+#[Api(since: '1.0')]
 enum PermissionAuthority: string
 {
     case Policy = 'policy';

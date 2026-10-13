@@ -18,7 +18,7 @@ use UnitEnum;
  *
  * Its permission is `pages.azguard-panels` in the guard panel.
  */
-#[Api(since: '0.7')]
+#[Api(since: '1.0')]
 final class PanelsPage extends Page
 {
     use AuthorizesPage;

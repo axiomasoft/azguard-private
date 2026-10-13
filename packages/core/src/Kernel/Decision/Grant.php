@@ -17,7 +17,7 @@ use ReflectionReference;
 /**
  * A grant from any source: "the permission holds because of this", with its owner (origin), scope and expiry.
  */
-#[Api(since: '0.7')]
+#[Api(since: '1.0')]
 final readonly class Grant
 {
     /**

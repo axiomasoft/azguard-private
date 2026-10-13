@@ -42,7 +42,7 @@ use Throwable;
 /**
  * Raw roles from membership on a host entity. The engine expands and qualifies the roles.
  */
-#[Api(since: '0.7')]
+#[Api(since: '1.0')]
 final class RelationSource implements DescribesSchema, FiltersQueries, ProvidesRoleGrants
 {
     private ?RelationBinding $binding = null;

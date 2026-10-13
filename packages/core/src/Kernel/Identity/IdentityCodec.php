@@ -15,7 +15,7 @@ use ReflectionReference;
  * Composite keys are JSON arrays led by the codec version, never strings glued without boundaries. A reference is
  * encoded with its kind, so a subject, a tenant and an assignment scope with the same alias and id stay distinct.
  */
-#[Api(since: '0.7')]
+#[Api(since: '1.0')]
 final readonly class IdentityCodec
 {
     public const int VERSION = 1;

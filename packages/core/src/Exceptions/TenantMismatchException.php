@@ -9,7 +9,7 @@ use AzGuard\Attributes\Api;
 /**
  * The change addresses a tenant the panel or the assignment scope does not belong to.
  */
-#[Api(since: '0.7')]
+#[Api(since: '1.0')]
 final class TenantMismatchException extends ChangeException
 {
     public function code(): string

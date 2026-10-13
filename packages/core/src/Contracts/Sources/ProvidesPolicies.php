@@ -12,7 +12,7 @@ use AzGuard\Policies\PolicyBinding;
 /**
  * A source of policy bindings: the only authority of a policy-only permission, a veto for a grants permission.
  */
-#[Spi(kind: SpiKind::Implement, since: '0.7')]
+#[Spi(kind: SpiKind::Implement, since: '1.0')]
 interface ProvidesPolicies extends Source
 {
     /**

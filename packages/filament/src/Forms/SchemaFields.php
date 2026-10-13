@@ -31,7 +31,7 @@ use Throwable;
  * The fields only collect values and show the rules of the schema as hints. What the values mean is checked by the
  * writer of the panel, which refuses an unknown field or a value that breaks its rules.
  */
-#[Api(since: '0.7')]
+#[Api(since: '1.0')]
 final class SchemaFields
 {
     /** The state path that holds the values. */

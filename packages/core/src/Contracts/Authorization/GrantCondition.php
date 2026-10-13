@@ -13,7 +13,7 @@ use AzGuard\Kernel\Decision\RoleContribution;
 /**
  * Qualifies one contribution before contributions are joined with OR.
  */
-#[Spi(kind: SpiKind::Implement, since: '0.7')]
+#[Spi(kind: SpiKind::Implement, since: '1.0')]
 interface GrantCondition
 {
     public function allows(Grant|RoleContribution $grant, AccessRequest $request, EvaluationContext $context): bool;

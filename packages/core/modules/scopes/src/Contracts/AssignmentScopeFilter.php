@@ -13,7 +13,7 @@ use Illuminate\Database\Eloquent\Model;
 /**
  * A predicate added to the structural query of an assignment scope. It does not choose the owner.
  */
-#[Spi(kind: SpiKind::Implement, since: '0.7')]
+#[Spi(kind: SpiKind::Implement, since: '1.0')]
 interface AssignmentScopeFilter
 {
     /**

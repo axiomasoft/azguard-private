@@ -11,7 +11,7 @@ use AzGuard\Attributes\Api;
  * Label, group and description of one permission case.
  */
 #[Attribute(Attribute::TARGET_CLASS_CONSTANT)]
-#[Api(since: '0.7')]
+#[Api(since: '1.0')]
 final readonly class Describe
 {
     public function __construct(

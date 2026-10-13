@@ -23,7 +23,7 @@ use Illuminate\Database\Eloquent\Model;
  * schema-validated `until` and `fields` of a grant or an update; it is empty for a revocation. `state` is the locked
  * panel state before this operation.
  */
-#[Spi(kind: SpiKind::Call, since: '0.7')]
+#[Spi(kind: SpiKind::Call, since: '1.0')]
 final readonly class ChangeContext
 {
     /**

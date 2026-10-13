@@ -11,7 +11,7 @@ use AzGuard\Attributes\Api;
  *
  * @closed
  */
-#[Api(since: '0.7')]
+#[Api(since: '1.0')]
 enum Reads: string
 {
     /** The write PDO outside an unrecognized transaction; decisions do not see replica lag. */

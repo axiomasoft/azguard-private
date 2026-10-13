@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace AzGuard\Tests\Fixtures\Parity;
 
-use AzGuard\Tests\Fixtures\Baseline070\Formats\FormatSnapshot;
+use AzGuard\Tests\Fixtures\Formats\FormatSnapshot;
 use RuntimeException;
 
 /**
@@ -15,7 +15,7 @@ use RuntimeException;
  * The snapshot is the set itself, without loss: per reason and group (one list query or directory search), the
  * unsupported paths, the seeds and the members (clients, contexts). Seeds with the same paths and members share one
  * line. A new unsupported case fails, and a case that became supported fails until it is deleted from the snapshot.
- * It is rewritten only in writer mode, `AZGUARD_BASELINE_WRITE=1`, like the other baseline fixtures (D16).
+ * It is rewritten only in writer mode, `AZGUARD_FORMATS_WRITE=1`, like the other baseline fixtures (D16).
  *
  * A disagreement is an I9 finding. The ones 0.7.0 has are reported to the owner in the plan log and listed, by
  * finding, in the hand-written `i9-findings-0.7.0.json`; the matrix fails on any other disagreement and on a listed

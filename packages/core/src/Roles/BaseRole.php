@@ -22,7 +22,7 @@ use UnitEnum;
  * Every attribute has a method with the same meaning, and overriding the method is equivalent to the attribute.
  * Attributes are read by reflection once per class.
  */
-#[Spi(kind: SpiKind::Implement, since: '0.7')]
+#[Spi(kind: SpiKind::Implement, since: '1.0')]
 abstract class BaseRole
 {
     /**

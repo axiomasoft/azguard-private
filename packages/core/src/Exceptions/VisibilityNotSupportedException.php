@@ -10,7 +10,7 @@ use RuntimeException;
 /**
  * Safe diagnostics: component and category, never a source payload or exception message.
  */
-#[Api(since: '0.7')]
+#[Api(since: '1.0')]
 final class VisibilityNotSupportedException extends RuntimeException
 {
     public function __construct(public readonly string $reason = 'unsupported', public readonly ?string $component = null)

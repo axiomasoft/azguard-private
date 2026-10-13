@@ -12,7 +12,7 @@ use AzGuard\Attributes\Api;
  * The code names the failed check after the dot (`invalid_configuration.enum`); a failure without a narrower
  * check keeps the base code.
  */
-#[Api(since: '0.7')]
+#[Api(since: '1.0')]
 final class InvalidConfigurationException extends ConfigurationException
 {
     private ?string $check = null;

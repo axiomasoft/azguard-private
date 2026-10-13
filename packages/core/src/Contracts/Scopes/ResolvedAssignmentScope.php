@@ -13,7 +13,7 @@ use Illuminate\Database\Eloquent\Model;
 /**
  * A resolved assignment scope with its owner tenant and, for a local definition, the loaded record.
  */
-#[Spi(kind: SpiKind::Call, since: '0.7')]
+#[Spi(kind: SpiKind::Call, since: '1.0')]
 final readonly class ResolvedAssignmentScope
 {
     public function __construct(

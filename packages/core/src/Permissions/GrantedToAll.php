@@ -11,5 +11,5 @@ use AzGuard\Attributes\Api;
  * Marks a case that every subject of the panel holds. Discovery records the mark; grants read it later.
  */
 #[Attribute(Attribute::TARGET_CLASS_CONSTANT)]
-#[Api(since: '0.7')]
+#[Api(since: '1.0')]
 final readonly class GrantedToAll {}

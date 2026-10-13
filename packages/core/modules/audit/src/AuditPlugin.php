@@ -20,7 +20,7 @@ use InvalidArgumentException;
  * `retentionDays` is how long a row is kept; the journal is cleaned by the maintenance command, never by this plugin.
  * Doctor checks that the journal table exists (`audit.table`).
  */
-#[Api(since: '0.7')]
+#[Api(since: '1.0')]
 final class AuditPlugin implements Plugin
 {
     private function __construct(private int $retentionDays)

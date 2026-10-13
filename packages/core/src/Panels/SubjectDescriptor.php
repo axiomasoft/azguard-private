@@ -11,7 +11,7 @@ use Illuminate\Database\Eloquent\Model;
  * A compiled subject of a panel as `PanelBuilder::for()` declared it: the model, the Laravel auth guard its current
  * user comes from and the directory that looks subjects up for interfaces.
  */
-#[Api(since: '0.7')]
+#[Api(since: '1.0')]
 final readonly class SubjectDescriptor
 {
     /**

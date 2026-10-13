@@ -21,7 +21,7 @@ if (class_exists(Middleware::class)) {
      * `message` (by default 403 and the standard message) and never explains the decision.
      */
     #[Attribute(Attribute::TARGET_CLASS | Attribute::TARGET_METHOD | Attribute::IS_REPEATABLE)]
-    #[Api(since: '0.7')]
+    #[Api(since: '1.0')]
     final class CheckPermission extends Middleware
     {
         use DescribesPermissionCheck;
@@ -51,7 +51,7 @@ if (class_exists(Middleware::class)) {
      * `message` (by default 403 and the standard message) and never explains the decision.
      */
     #[Attribute(Attribute::TARGET_CLASS | Attribute::TARGET_METHOD | Attribute::IS_REPEATABLE)]
-    #[Api(since: '0.7')]
+    #[Api(since: '1.0')]
     final class CheckPermission
     {
         use DescribesPermissionCheck;

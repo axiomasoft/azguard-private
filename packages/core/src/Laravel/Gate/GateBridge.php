@@ -24,7 +24,7 @@ use Throwable;
 
 /** Authoritative Laravel Gate adapter; null is reserved for foreign abilities.
  */
-#[Api(since: '0.7')]
+#[Api(since: '1.0')]
 final readonly class GateBridge
 {
     public function __construct(private Authorizer $authorizer, private PanelResolver $resolver, private PanelRegistry $registry) {}

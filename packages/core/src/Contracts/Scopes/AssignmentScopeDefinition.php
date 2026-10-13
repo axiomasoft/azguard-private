@@ -12,7 +12,7 @@ use Illuminate\Database\Eloquent\Model;
 /**
  * A type of assignment scope, such as a project; grants store its alias, never the class name.
  */
-#[Spi(kind: SpiKind::Implement, since: '0.7')]
+#[Spi(kind: SpiKind::Implement, since: '1.0')]
 interface AssignmentScopeDefinition
 {
     /**

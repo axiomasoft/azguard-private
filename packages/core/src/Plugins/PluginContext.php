@@ -12,7 +12,7 @@ use AzGuard\Attributes\SpiKind;
  *
  * It carries no options, no container and no panel object: a plugin keeps its settings in its own typed fields.
  */
-#[Spi(kind: SpiKind::Call, since: '0.7')]
+#[Spi(kind: SpiKind::Call, since: '1.0')]
 final readonly class PluginContext
 {
     /**

@@ -14,7 +14,7 @@ use Stringable;
 /**
  * A grant field as an interface shows it: scalars and class names only, never a rule object or a closure.
  */
-#[Api(since: '0.7')]
+#[Api(since: '1.0')]
 final readonly class FieldSchema implements JsonSerializable
 {
     /**

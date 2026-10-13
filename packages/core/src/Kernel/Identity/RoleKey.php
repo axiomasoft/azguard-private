@@ -12,7 +12,7 @@ use AzGuard\Kernel\Grammar\PermissionGrammar;
 /**
  * A role key inside a panel; full form `admin:manager`.
  */
-#[Api(since: '0.7')]
+#[Api(since: '1.0')]
 final readonly class RoleKey
 {
     private function __construct(

@@ -48,7 +48,7 @@ use Throwable;
  * database connections and source parameters that look like secrets are removed from every finding before it
  * leaves the doctor. The doctor only reads.
  */
-#[Api(since: '0.7')]
+#[Api(since: '1.0')]
 final readonly class Doctor
 {
     /** @var list<class-string<DoctorCheck>> checks of the core in the order of the catalog of checks */

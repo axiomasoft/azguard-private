@@ -23,7 +23,7 @@ use UnitEnum;
  * A model that holds roles and permissions; `Concerns\HasAzGuard` implements it. The panel selector `guard()` is not
  * part of the contract: a model may keep its own Eloquent `guard()` and reach panels through `azguard()`.
  */
-#[Spi(kind: SpiKind::Implement, since: '0.7')]
+#[Spi(kind: SpiKind::Implement, since: '1.0')]
 interface AzGuardSubject
 {
     public function hasPermission(string|UnitEnum $permission, Model|AssignmentScopeRef|null $on = null, ?string $guard = null): bool;

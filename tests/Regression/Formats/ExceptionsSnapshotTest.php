@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 use AzGuard\Exceptions\AzGuardException;
 use AzGuard\Laravel\Http\DecisionFailedException;
-use AzGuard\Tests\Fixtures\Baseline070\Formats\FormatSnapshot;
+use AzGuard\Tests\Fixtures\Formats\FormatSnapshot;
 
 /*
- * I17, blocking now: every exception class of the package, its parent and its machine code as 0.7.0 has them.
+ * I17, blocking now: every exception class of the package, its parent and its machine code.
  * Applications catch these classes and match these codes; a change is deliberate and updates the fixture.
  */
 

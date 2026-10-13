@@ -21,7 +21,7 @@ use Illuminate\Database\Eloquent\Model;
 /**
  * What the engine shows a source, a hook or a restriction during one check.
  */
-#[Spi(kind: SpiKind::Call, since: '0.7')]
+#[Spi(kind: SpiKind::Call, since: '1.0')]
 interface EvaluationContext
 {
     public function panel(): Panel;

@@ -14,7 +14,7 @@ use Illuminate\Database\Eloquent\Model;
 /**
  * Decides which assignment scopes of a type the subject may use. The core adds the owner predicates.
  */
-#[Spi(kind: SpiKind::Implement, since: '0.7')]
+#[Spi(kind: SpiKind::Implement, since: '1.0')]
 interface AssignmentScopeAccessAdapter
 {
     public function allows(AssignmentScopeRef $ref, AssignmentScopeRuntime $runtime): bool;

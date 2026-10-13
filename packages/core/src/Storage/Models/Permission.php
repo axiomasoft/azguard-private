@@ -11,7 +11,7 @@ use AzGuard\Storage\Internal\Concerns\BelongsToStorage;
 use AzGuard\Storage\Internal\Concerns\GuardsDirectWrites;
 use Illuminate\Database\Eloquent\Model;
 
-#[Spi(kind: SpiKind::Implement, since: '0.7')]
+#[Spi(kind: SpiKind::Implement, since: '1.0')]
 class Permission extends Model
 {
     use BelongsToStorage;

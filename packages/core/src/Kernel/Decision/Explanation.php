@@ -11,7 +11,7 @@ use DateTimeImmutable;
 
 /** An immutable, scalar diagnostic snapshot of one evaluation.
  */
-#[Api(since: '0.7')]
+#[Api(since: '1.0')]
 final readonly class Explanation
 {
     /** @var list<array<string, mixed>> */

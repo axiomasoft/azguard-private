@@ -9,7 +9,7 @@ use AzGuard\Attributes\Api;
 /**
  * A panel names a source that is not registered.
  */
-#[Api(since: '0.7')]
+#[Api(since: '1.0')]
 final class UnknownSourceException extends DefinitionException
 {
     public function code(): string

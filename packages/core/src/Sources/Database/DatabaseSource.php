@@ -81,7 +81,7 @@ use Throwable;
 /**
  * Raw database assignments. Role expansion and qualification belong to the engine.
  */
-#[Api(since: '0.7')]
+#[Api(since: '1.0')]
 final class DatabaseSource implements ChecksHealth, DescribesSchema, FencesReads, FiltersQueries, ProvidesGrants, ProvidesPermissions, ProvidesRoleGrants
 {
     private bool $onlyRoles = false;

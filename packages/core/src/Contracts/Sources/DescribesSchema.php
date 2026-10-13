@@ -12,7 +12,7 @@ use AzGuard\Panels\Panel;
 /**
  * Describes what the source can contribute to the schema of a panel.
  */
-#[Spi(kind: SpiKind::Implement, since: '0.7')]
+#[Spi(kind: SpiKind::Implement, since: '1.0')]
 interface DescribesSchema extends Source
 {
     public function describe(Panel $panel, ?TenantRef $tenant = null): SourceDescription;

@@ -12,7 +12,7 @@ use JsonSerializable;
 /**
  * An assignment scope type registered on a panel: how it is shown and which directory looks its scopes up.
  */
-#[Api(since: '0.7')]
+#[Api(since: '1.0')]
 final readonly class AssignmentScopeTypeSchema implements JsonSerializable
 {
     /**

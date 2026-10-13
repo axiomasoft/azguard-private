@@ -15,7 +15,7 @@ use AzGuard\Kernel\Decision\StateToken;
  * the first grant record. `state` is the resulting revision of this operation; `committed` is false while
  * an outer transaction is still open, so the state must not be cached yet. One `correlationId` per operation.
  */
-#[Api(since: '0.7')]
+#[Api(since: '1.0')]
 final readonly class ChangeResult
 {
     /**

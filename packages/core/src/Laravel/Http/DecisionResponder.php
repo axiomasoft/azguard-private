@@ -15,7 +15,7 @@ use Illuminate\Auth\Access\Response;
  * 503 when authority could not be read now, 500 when host code broke its contract. It is opt-in: `authorize()`,
  * `azguard.can` and the Gate keep answering 403 for every denial, and the final HTTP policy belongs to the host.
  */
-#[Api(since: '0.7')]
+#[Api(since: '1.0')]
 final class DecisionResponder
 {
     /** The status a response should have for the decision; null when it allows. */

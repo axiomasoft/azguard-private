@@ -59,7 +59,7 @@ permissions, roles only), so an interface needs no source class.
 | `Request` | For the rest of the request or job |
 | `Volatile` | Read again on every check |
 
-`php artisan azguard:make:source Ldap --panel=admin` creates a skeleton. This example was tested against 0.7.0:
+`php artisan azguard:make:source Ldap --panel=admin` creates a skeleton. A complete example:
 
 ```php
 namespace App\Guards\Admin\Sources;

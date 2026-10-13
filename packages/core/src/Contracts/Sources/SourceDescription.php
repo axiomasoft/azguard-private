@@ -10,7 +10,7 @@ use AzGuard\Schema\Field;
 /**
  * What a source can contribute to a panel. Parameters of the source are not part of the description.
  */
-#[Api(since: '0.7')]
+#[Api(since: '1.0')]
 final readonly class SourceDescription
 {
     /** A name of the source for people; the id when the source gives none. */
