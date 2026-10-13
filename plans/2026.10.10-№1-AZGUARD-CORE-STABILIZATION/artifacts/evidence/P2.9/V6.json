@@ -1,0 +1,33 @@
+{
+    "$schema": "urn:swissknifeman:task:plan:check-evidence:v1",
+    "evidence_id": "PLAN1.P2.9.V6.2026-10-13T03:21:33Z",
+    "check_id": "V6",
+    "subject": "PLAN1.P2.9",
+    "procedure": {
+        "cmd": "composer analyse && composer lint:check && composer refactor:check && composer api:check",
+        "cwd": "."
+    },
+    "candidate": {
+        "head": "fed259a35625589bf576733fe1809068b1018c0c"
+    },
+    "exit": 0,
+    "environment": {
+        "platform": "Linux",
+        "php": "8.4.26 (PATH shim; system php is 8.3)",
+        "note": "run on a clean worktree of HEAD: the owner working tree has uncommitted KitCase removal"
+    },
+    "log": {
+        "path": "plans/2026.10.10-№1-AZGUARD-CORE-STABILIZATION/artifacts/evidence/P2.9/V6.log",
+        "sha256": "45117fb1e76b491ca3c76437bfd3230f3ad3905de5a606584c840f6778801e1b"
+    },
+    "started_at": "2026-10-13T03:21:33Z",
+    "finished_at": "2026-10-13T03:26:45Z",
+    "producer": {
+        "kind": "executor",
+        "actor": {
+            "provider": "claude-code",
+            "model": "claude-sonnet-5-5",
+            "effort": "high"
+        }
+    }
+}
