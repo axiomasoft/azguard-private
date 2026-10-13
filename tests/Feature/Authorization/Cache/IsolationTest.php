@@ -110,7 +110,7 @@ it('keeps two physical authority storages and subjects from sharing warmed DB gr
     expect($engine->decide($panel, $otherSubject)->reason)->toBe(DecisionReason::NotGranted);
     $owned = Storage::own(prefix: 'isolated_');
     app(StorageSchema::class)->create($owned->id());
-    [$otherEngine, $otherPanel] = CacheWorld::database(DatabaseSource::make()->storage($owned));
+    [$otherEngine, $otherPanel] = CacheWorld::database(DatabaseSource::make()->usingStorage($owned));
     expect($otherEngine->decide($otherPanel, $request)->reason)->toBe(DecisionReason::NotGranted);
 });
 

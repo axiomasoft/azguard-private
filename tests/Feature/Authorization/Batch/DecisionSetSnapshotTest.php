@@ -101,7 +101,7 @@ it('shares one physical snapshot across logical stores and read modes', function
             ->permissions([DatabasePermission::class, DatabaseSource::make()])
             ->policies([PolicyBinding::for(DatabasePermission::Policy, DatabasePolicy::class)])->consistency(Reads::Primary, StateRefresh::Check),
         CabinetPanel::class => static fn (PanelBuilder $panel): PanelBuilder => $panel->for(User::class)->resourcePrefix(false)
-            ->permissions([DatabasePermission::class, DatabaseSource::make()->storage($second)])
+            ->permissions([DatabasePermission::class, DatabaseSource::make()->usingStorage($second)])
             ->policies([PolicyBinding::for(DatabasePermission::Policy, DatabasePolicy::class)])->consistency($reads, StateRefresh::Check),
     ]);
     app()->instance(PanelRegistry::class, $registry);

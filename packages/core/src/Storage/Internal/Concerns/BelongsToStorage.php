@@ -13,21 +13,8 @@ use AzGuard\Storage\Internal\Storage;
 
 trait BelongsToStorage
 {
+    /** Read and written only by `ModelBinding` (the models expose no storage member to hosts). */
     private ?Storage $boundStorage = null;
-
-    final public function bindToStorage(Storage $storage, string $table): static
-    {
-        $this->boundStorage = $storage;
-        $this->setConnection($storage->connectionName());
-        $this->setTable($table);
-
-        return $this;
-    }
-
-    final public function storage(): Storage
-    {
-        return $this->boundStorage ?? throw new StorageMismatchException('Model must be obtained through Storage::model().');
-    }
 
     /** @param array<string, mixed> $attributes */
     public function newInstance($attributes = [], $exists = false): static
@@ -35,7 +22,9 @@ trait BelongsToStorage
         $model = parent::newInstance($attributes, $exists);
 
         if ($this->boundStorage !== null) {
-            $model->bindToStorage($this->boundStorage, $this->getTable());
+            $model->boundStorage = $this->boundStorage;
+            $model->setConnection($this->boundStorage->connectionName());
+            $model->setTable($this->getTable());
         }
 
         return $model;
@@ -94,7 +83,7 @@ trait BelongsToStorage
             throw new InvalidIdentityException('Invalid host key column '.$column.'.');
         }
 
-        return HostKeyColumns::canonical($this->storage()->hostKeys(), $value);
+        return HostKeyColumns::canonical(($this->boundStorage ?? throw new StorageMismatchException('Model must be obtained through Storage::model().'))->hostKeys(), $value);
     }
 
     /** @return array<string, string> */

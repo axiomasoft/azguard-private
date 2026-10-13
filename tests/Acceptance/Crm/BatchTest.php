@@ -71,7 +71,7 @@ it('R68 keeps policy requests independent when a neighbouring Grants connection 
         throw new RuntimeException('batch assignment connection unavailable');
     });
     $storage = app(StorageRegistry::class)->own('batch_broken', 'broken_');
-    World::compile(sources: [DatabaseSource::make()->storage($storage)]);
+    World::compile(sources: [DatabaseSource::make()->usingStorage($storage)]);
     $one = Client::query()->findOrFail(1);
     $set = app(Authorizer::class)->decideMany([
         BatchCrmWorld::request($one, Action::ViewOwnProfile),

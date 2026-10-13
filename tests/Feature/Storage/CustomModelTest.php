@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use AzGuard\Exceptions\StorageMismatchException;
+use AzGuard\Storage\Internal\ModelBinding;
 use AzGuard\Storage\Internal\Storage;
 use AzGuard\Storage\Internal\StorageRegistry;
 use AzGuard\Storage\Models\Permission;
@@ -65,7 +66,7 @@ it('preserves service casts and inherited storage binding on custom hydration', 
     expect($hydrated)->toBeInstanceOf(StorageCustomRoleGrant::class)
         ->and($hydrated->getTable())->toBe('azg_role_grants')
         ->and($hydrated->getConnectionName())->toBe('testbench')
-        ->and($hydrated->storage())->toBe($storage)
+        ->and(ModelBinding::storageOf($hydrated))->toBe($storage)
         ->and($hydrated->meta)->toBe(['a' => 1])
         ->and($hydrated->subject_id)->toBe('007')
         ->and($hydrated->subjectRef()->id())->toBe('007')
@@ -91,7 +92,7 @@ if (class_exists(Table::class) && class_exists(Connection::class)) {
 }
 
 it('requires binding and a known model kind', function (): void {
-    expect(fn () => (new RoleGrant)->storage())->toThrow(StorageMismatchException::class)
+    expect(fn () => ModelBinding::storageOf(new RoleGrant))->toThrow(StorageMismatchException::class)
         ->and(fn () => app(StorageRegistry::class)->get('default')->model('unknown'))->toThrow(StorageMismatchException::class);
 });
 
@@ -106,7 +107,7 @@ it('binds each factory instance to its own connection and prefix', function (): 
         $default = $registry->get('default')->model('role_grant', StorageCustomRoleGrant::class)->newInstance();
         expect($custom->getTable())->toBe('other_role_grants')
             ->and($custom->getConnectionName())->toBe('secondary')
-            ->and($custom->storage())->toBe($storage)
+            ->and(ModelBinding::storageOf($custom))->toBe($storage)
             ->and($default->getTable())->toBe('azg_role_grants')
             ->and($default->getConnectionName())->toBe('testbench');
     } finally {

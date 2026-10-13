@@ -24,7 +24,7 @@ it('R61 PolicyOnly never reads an assignment connection that aborts every SQL op
         throw new RuntimeException('assignment connection is down');
     });
     $storage = app(StorageRegistry::class)->own('crm_broken', 'broken_');
-    $panel = World::compile(sources: [DatabaseSource::make()->storage($storage)]);
+    $panel = World::compile(sources: [DatabaseSource::make()->usingStorage($storage)]);
     $decision = World::decide($panel, action: Action::ViewOwnProfile);
     World::assertDecision($decision, true, DecisionReason::Policy);
     expect($decision->state)->toBeInstanceOf(CodeStateToken::class)->and($reads)->toBe(0);

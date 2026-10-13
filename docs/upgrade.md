@@ -122,6 +122,8 @@ your code. Each line is `Find: <grep pattern> → Replace: <new form>`.
 - Find: `AzGuard\Kernel\Grammar\PatternMatcher` → Replace: `AzGuard\Kernel\Identity\PermissionPattern`; the matcher is now internal.
 - Find: `AzGuard\Directories\ModelSubjectDirectory` or `AzGuard\Directories\ModelTenantDirectory` → Replace: depend on `AzGuard\Contracts\Subjects\SubjectDirectory` / `AzGuard\Contracts\Tenancy\TenantDirectory`; the model directories are now internal.
 - Find: `AzGuard\Storage\Storage` → Replace: `AzGuard\Storage\StorageDescriptor`; the class is now internal.
+- Find: `->bindToStorage(` or `$model->storage()` on a `Permission`, `PermissionGrant` or `RoleGrant` subclass → Replace: nothing; the models carry no storage member, ask `AzGuard::storage($id)` for the `StorageDescriptor`.
+- Find: `DatabaseSource::make()->storage($storageObject)` → Replace: `->storage('<storage id>')`; the method takes the id of a configured storage only.
 
 ## From 0.3 to 0.7.0
 

@@ -7,6 +7,7 @@ use AzGuard\Kernel\Identity\ActorRef;
 use AzGuard\Kernel\Identity\PermissionKey;
 use AzGuard\Kernel\Identity\PermissionPattern;
 use AzGuard\Kernel\Identity\TenantRef;
+use AzGuard\Storage\Internal\ModelBinding;
 use AzGuard\Storage\Internal\Storage;
 use AzGuard\Storage\Internal\StorageMutation;
 use AzGuard\Storage\Internal\StorageRegistry;
@@ -38,7 +39,7 @@ it('hydrates concrete grant models with their storage and typed identity', funct
     $grant = $storage->model('permission_grant')->newQuery()->firstOrFail();
 
     expect($role)->toBeInstanceOf(RoleGrant::class)
-        ->and($role->storage())->toBe($storage)
+        ->and(ModelBinding::storageOf($role))->toBe($storage)
         ->and($role->getTable())->toBe('azg_role_grants')
         ->and($role->getConnectionName())->toBe($storage->connectionName())
         ->and($role->tenantRef()->equals(TenantRef::of('organization', '2')))->toBeTrue()
@@ -52,7 +53,7 @@ it('hydrates concrete grant models with their storage and typed identity', funct
         ->and($role->meta)->toBe(['note' => 'hello'])
         ->and($grant)->toBeInstanceOf(PermissionGrant::class)
         ->and($grant->permissionKey())->toEqual(PermissionPattern::of('admin', 'orders.*'))
-        ->and($grant->storage())->toBe($storage);
+        ->and(ModelBinding::storageOf($grant))->toBe($storage);
 });
 
 it('decodes global null and system actor forms and exact permissions', function (): void {
@@ -111,7 +112,7 @@ it('uses the selected storage host key grammar after hydration', function (): vo
 
     try {
         $role = $storage->model('role_grant')->newFromBuilder(['subject_type' => 'user', 'subject_id' => '007']);
-        expect($role->storage())->toBe($storage)
+        expect(ModelBinding::storageOf($role))->toBe($storage)
             ->and(fn () => $role->subjectRef())->toThrow(InvalidIdentityException::class);
         $role->setRawAttributes(['subject_type' => 'user', 'subject_id' => 7]);
         expect($role->subjectRef()->id())->toBe('7');

@@ -24,7 +24,7 @@ it('materializes a fenced foreign-connection DatabaseSource without joining assi
         $mutation->table('permission_grants')->insert(DatabaseWorld::row('permission', W::scope(1), ['permission' => 'orders.view']));
         $mutation->touch('admin');
     });
-    [$visibility, $panel] = W::compile(extra: [DatabaseSource::make()->storage($storage)]);
+    [$visibility, $panel] = W::compile(extra: [DatabaseSource::make()->usingStorage($storage)]);
     DB::connection()->enableQueryLog();
     $query = $visibility->visibleTo($panel, VisibilityProject::query(), W::subject(), 'orders.view');
     expect($query->toSql())->not->toContain('azg_')->and($query->pluck('id')->all())->toBe([1]);

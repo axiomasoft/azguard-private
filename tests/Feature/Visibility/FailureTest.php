@@ -19,7 +19,7 @@ afterEach(fn () => W::reset());
 it('AC10 throws source_error instead of returning an empty list when the grant storage fails', function (): void {
     $storage = Storage::own('secondary');
     app(StorageSchema::class)->create($storage->id());
-    [$visibility, $panel] = W::compile(extra: [DatabaseSource::make()->storage($storage)]);
+    [$visibility, $panel] = W::compile(extra: [DatabaseSource::make()->usingStorage($storage)]);
     DB::connection('secondary')->beforeExecuting(static function (string $sql): void {
         if (str_contains($sql, 'azg_')) {
             throw new RuntimeException('The grant storage is unavailable.');

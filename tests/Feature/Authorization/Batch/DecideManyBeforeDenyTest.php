@@ -31,7 +31,7 @@ it('keeps a static before denial outside neighbouring DB authority and scalar st
 
             throw new RuntimeException('The DB is unavailable for the neighbouring grants check.');
         });
-        $source = $source->storage(app(StorageRegistry::class)->own('before_deny_broken', 'broken_'));
+        $source = $source->usingStorage(app(StorageRegistry::class)->own('before_deny_broken', 'broken_'));
     }
     [$engine, $panel] = CacheWorld::database($source, configure: fn (PanelBuilder $panel) => $panel->before(
         fn (AccessRequest $request, EvaluationContext $context): BeforeResult => $context->resource()?->deny === true ? BeforeResult::Deny : BeforeResult::Continue,

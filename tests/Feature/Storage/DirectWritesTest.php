@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use AzGuard\Exceptions\UnsupportedDirectWriteException;
+use AzGuard\Storage\Internal\ModelBinding;
 use AzGuard\Storage\Internal\Storage;
 use AzGuard\Storage\Internal\StorageMutation;
 use AzGuard\Storage\Internal\StorageRegistry;
@@ -33,7 +34,7 @@ function loadedModel(Storage $storage, string $kind, string $class): Model
 {
     $table = $storage->prefix().$kind.'s';
 
-    return (new $class)->bindToStorage($storage, $table)->newFromBuilder(['id' => 1, 'origin' => 'manual', 'expires_at' => null]);
+    return ModelBinding::bind(new $class, $storage, $table)->newFromBuilder(['id' => 1, 'origin' => 'manual', 'expires_at' => null]);
 }
 
 function directWritesWorld(Storage $storage): void

@@ -24978,7 +24978,7 @@
                     "parameters": [
                         {
                             "name": "storage",
-                            "type": "AzGuard\\Storage\\Internal\\Storage|string",
+                            "type": "string",
                             "byRef": false,
                             "variadic": false,
                             "hasDefault": false
@@ -25879,32 +25879,6 @@
             "properties": [],
             "methods": [
                 {
-                    "name": "bindToStorage",
-                    "visibility": "public",
-                    "static": false,
-                    "abstract": false,
-                    "final": true,
-                    "parameters": [
-                        {
-                            "name": "storage",
-                            "type": "AzGuard\\Storage\\Internal\\Storage",
-                            "byRef": false,
-                            "variadic": false,
-                            "hasDefault": false
-                        },
-                        {
-                            "name": "table",
-                            "type": "string",
-                            "byRef": false,
-                            "variadic": false,
-                            "hasDefault": false
-                        }
-                    ],
-                    "return": "static",
-                    "namedArguments": true,
-                    "contracts": []
-                },
-                {
                     "name": "casts",
                     "visibility": "protected",
                     "static": false,
@@ -26516,17 +26490,6 @@
                     ]
                 },
                 {
-                    "name": "storage",
-                    "visibility": "public",
-                    "static": false,
-                    "abstract": false,
-                    "final": true,
-                    "parameters": [],
-                    "return": "AzGuard\\Storage\\Internal\\Storage",
-                    "namedArguments": true,
-                    "contracts": []
-                },
-                {
                     "name": "storageCasts",
                     "visibility": "protected",
                     "static": false,
@@ -26748,32 +26711,6 @@
                     "contracts": [
                         "@return list<Field>"
                     ]
-                },
-                {
-                    "name": "bindToStorage",
-                    "visibility": "public",
-                    "static": false,
-                    "abstract": false,
-                    "final": true,
-                    "parameters": [
-                        {
-                            "name": "storage",
-                            "type": "AzGuard\\Storage\\Internal\\Storage",
-                            "byRef": false,
-                            "variadic": false,
-                            "hasDefault": false
-                        },
-                        {
-                            "name": "table",
-                            "type": "string",
-                            "byRef": false,
-                            "variadic": false,
-                            "hasDefault": false
-                        }
-                    ],
-                    "return": "static",
-                    "namedArguments": true,
-                    "contracts": []
                 },
                 {
                     "name": "casts",
@@ -27403,17 +27340,6 @@
                     ]
                 },
                 {
-                    "name": "storage",
-                    "visibility": "public",
-                    "static": false,
-                    "abstract": false,
-                    "final": true,
-                    "parameters": [],
-                    "return": "AzGuard\\Storage\\Internal\\Storage",
-                    "namedArguments": true,
-                    "contracts": []
-                },
-                {
                     "name": "storageCasts",
                     "visibility": "protected",
                     "static": false,
@@ -27646,32 +27572,6 @@
                     "contracts": [
                         "@return list<Field>"
                     ]
-                },
-                {
-                    "name": "bindToStorage",
-                    "visibility": "public",
-                    "static": false,
-                    "abstract": false,
-                    "final": true,
-                    "parameters": [
-                        {
-                            "name": "storage",
-                            "type": "AzGuard\\Storage\\Internal\\Storage",
-                            "byRef": false,
-                            "variadic": false,
-                            "hasDefault": false
-                        },
-                        {
-                            "name": "table",
-                            "type": "string",
-                            "byRef": false,
-                            "variadic": false,
-                            "hasDefault": false
-                        }
-                    ],
-                    "return": "static",
-                    "namedArguments": true,
-                    "contracts": []
                 },
                 {
                     "name": "casts",
@@ -28299,17 +28199,6 @@
                     "contracts": [
                         "@param array<mixed> $options"
                     ]
-                },
-                {
-                    "name": "storage",
-                    "visibility": "public",
-                    "static": false,
-                    "abstract": false,
-                    "final": true,
-                    "parameters": [],
-                    "return": "AzGuard\\Storage\\Internal\\Storage",
-                    "namedArguments": true,
-                    "contracts": []
                 },
                 {
                     "name": "storageCasts",

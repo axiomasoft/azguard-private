@@ -119,11 +119,20 @@ final class DatabaseSource implements ChecksHealth, DescribesSchema, FencesReads
         return $copy;
     }
 
-    public function storage(string|Storage $storage): static
+    public function storage(string $storage): static
     {
         if ($storage === '') {
             throw new DefinitionException('DatabaseSource storage needs a name.');
         }
+        $copy = clone $this;
+        $copy->selectedStorage = $storage;
+
+        return $copy;
+    }
+
+    /** @internal A storage object that the registry does not hold, for tests and modules; hosts name a registered storage by id. */
+    public function usingStorage(Storage $storage): static
+    {
         $copy = clone $this;
         $copy->selectedStorage = $storage;
 

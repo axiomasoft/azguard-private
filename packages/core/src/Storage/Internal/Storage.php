@@ -201,7 +201,7 @@ final class Storage
             }
         } while (($reflection = $reflection->getParentClass()) !== false);
 
-        return (new $class)->bindToStorage($this, $expectedTable);
+        return ModelBinding::bind(new $class, $this, $expectedTable);
     }
 
     /** @param ReflectionClass<object> $reflection */
