@@ -440,7 +440,7 @@ it('only storage database sources change pipeline its participant writer and tes
 
 it('only storage uses storage concerns and the guarded builder', function (): void {
     expect(SourceScan::restrictedReferencesIn(SourceScan::files(), [
-        'AzGuard\Storage\Concerns', 'AzGuard\Storage\Internal\WriteGuardedBuilder',
+        'AzGuard\Storage\Internal\Concerns', 'AzGuard\Storage\Internal\WriteGuardedBuilder',
     ], ['AzGuard\Storage']))->toBe([]);
 });
 

@@ -351,12 +351,12 @@ it('ignores a split or retired owner, a type the oracle does not know and a modu
 
 it('resolves a moved file and a renamed type through the target path and the target name', function (): void {
     $ownership = Ownership::of([[
-        'current' => 'AzGuard\Authorization\ScopeEligibility', 'current_path' => 'packages/core/modules/scopes/src/Internal/ScopeEligibility.php',
+        'current' => 'AzGuard\Authorization\ScopeEligibility', 'current_path' => 'packages/core/src/Authorization/ScopeEligibility.php',
         'target' => 'AzGuard\Scopes\Internal\ScopeEligibility', 'target_path' => 'packages/core/modules/scopes/src/Internal/ScopeEligibility.php',
         'owner' => 'scopes', 'action' => 'relocate', 'phase' => 'P3',
     ]]);
 
-    expect($ownership->fileOwner('packages/core/modules/scopes/src/Internal/ScopeEligibility.php'))->toBe('scopes')
+    expect($ownership->fileOwner('packages/core/src/Authorization/ScopeEligibility.php'))->toBe('scopes')
         ->and($ownership->fileOwner('packages/core/modules/scopes/src/Internal/ScopeEligibility.php'))->toBe('scopes')
         ->and($ownership->referenceOwner('import', 'AzGuard\Authorization\ScopeEligibility'))->toBe('scopes')
         ->and($ownership->referenceOwner('import', 'azguard\scopes\internal\scopeeligibility'))->toBe('scopes')
