@@ -20,7 +20,10 @@ use AzGuard\Scopes\Query\EligibilityBuilder;
 use AzGuard\Scopes\RoleBindings;
 use AzGuard\Support\ModelKey;
 use Illuminate\Contracts\Container\Container;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Query\Expression;
+use ReflectionMethod;
 
 /**
  * Default directory of an assignment scope backed by an Eloquent query.
@@ -73,7 +76,7 @@ final readonly class QueryScopeDirectory implements AssignmentScopeDirectory
             return [];
         }
         $query = EligibilityBuilder::structural($definition);
-        ModelLookup::match($query, $term);
+        self::match($query, $term);
 
         if ($assignment) {
             $stages = $this->stages($definition, $lookup);
@@ -112,7 +115,7 @@ final readonly class QueryScopeDirectory implements AssignmentScopeDirectory
             }
 
             foreach ($this->members($assignment, $type, $this->adapted($adapter, $type, $owned, $lookup), $lookup) as $record) {
-                $options[] = new AssignmentScopeOption(AssignmentScopeRef::of($type, ModelKey::of($record)), ModelLookup::label($record));
+                $options[] = new AssignmentScopeOption(AssignmentScopeRef::of($type, ModelKey::of($record)), self::label($record));
 
                 if (count($options) >= $limit) {
                     return $options;
@@ -143,7 +146,7 @@ final readonly class QueryScopeDirectory implements AssignmentScopeDirectory
             return null;
         }
 
-        return new AssignmentScopeOption($context, $resolved->record === null ? (string) $context->id() : ModelLookup::label($resolved->record));
+        return new AssignmentScopeOption($context, $resolved->record === null ? (string) $context->id() : self::label($resolved->record));
     }
 
     /**
@@ -245,5 +248,83 @@ final readonly class QueryScopeDirectory implements AssignmentScopeDirectory
         }
 
         return $records;
+    }
+
+    /** `azguardLabel()` of the record when it gives a non-empty string, else its key. */
+    private static function label(Model $record): string
+    {
+        if (method_exists($record, 'azguardLabel')) {
+            $label = $record->azguardLabel();
+
+            if (is_string($label) && $label !== '') {
+                return $label;
+            }
+        }
+
+        return ModelKey::of($record);
+    }
+
+    /**
+     * Restricts the query to rows whose key equals the term or whose `azguardSearchColumns()` contain it; an empty
+     * term restricts nothing. The term is always a bound value.
+     *
+     * @param  Builder<Model>  $query
+     */
+    private static function match(Builder $query, string $term): void
+    {
+        $term = trim($term);
+
+        if ($term === '') {
+            return;
+        }
+
+        $model = $query->getModel();
+        $driver = $model->getConnection()->getDriverName();
+        // The explicitly declared LIKE escape character and wildcards of the bound term all match themselves.
+        $pattern = '%'.str_replace(['!', '%', '_'], ['!!', '!%', '!_'], $term).'%';
+        $operator = $driver === 'pgsql' ? 'ilike' : 'like';
+        $columns = self::searchColumns($model);
+        // An integer key never equals free text; comparing them would fail on a strict engine.
+        $keyCanEqual = ! ModelKey::isInteger($model) || (ctype_digit($term) && strlen($term) <= 18);
+
+        $query->where(function (Builder $group) use ($model, $term, $pattern, $operator, $columns, $keyCanEqual): void {
+            $matchers = 0;
+
+            if ($keyCanEqual) {
+                $group->orWhere($model->getQualifiedKeyName(), $term);
+                $matchers++;
+            }
+
+            foreach ($columns as $column) {
+                $group->orWhere($model->qualifyColumn($column), $operator, new Expression("? escape '!'"));
+                $group->getQuery()->addBinding($pattern, 'where');
+                $matchers++;
+            }
+
+            if ($matchers === 0) {
+                $group->whereRaw('0 = 1');
+            }
+        });
+    }
+
+    /** @return list<string> */
+    private static function searchColumns(Model $model): array
+    {
+        if (! method_exists($model, 'azguardSearchColumns') || ! (new ReflectionMethod($model, 'azguardSearchColumns'))->isStatic()) {
+            return [];
+        }
+        $columns = (new ReflectionMethod($model, 'azguardSearchColumns'))->invoke(null);
+
+        if (! is_array($columns)) {
+            throw new DefinitionException($model::class.'::azguardSearchColumns() must return a list of column names.');
+        }
+
+        foreach ($columns as $column) {
+            if (! is_string($column) || preg_match('/^[A-Za-z_][A-Za-z0-9_]*$/', $column) !== 1) {
+                throw new DefinitionException($model::class.'::azguardSearchColumns() must list plain column names, got '.json_encode($column).'.');
+            }
+        }
+
+        return array_values($columns);
     }
 }

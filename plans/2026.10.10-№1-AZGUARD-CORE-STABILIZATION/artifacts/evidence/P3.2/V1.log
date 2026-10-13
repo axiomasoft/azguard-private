@@ -1,0 +1,833 @@
+### step p32_v1
+
+   PASS  Tests\Feature\Visibility\ParityPropertyTest
+  ✓ it P14 matches every scalar allow id and count on 100 reproducible…  4.15s  
+  ✓ it P14 keeps list equal to scalar for a restriction whose appliesTo… 0.70s  
+  ✓ it P14 gives each denial layer a positive control and an independen… 0.04s  
+  ✓ it P14 gives each denial layer a positive control and an independen… 0.03s  
+  ✓ it P14 gives each denial layer a positive control and an independen… 0.03s  
+  ✓ it P14 gives each denial layer a positive control and an independen… 0.03s  
+  ✓ it P14 gives each denial layer a positive control and an independen… 0.03s  
+  ✓ it P14 gives each denial layer a positive control and an independen… 0.03s  
+
+   PASS  Tests\Feature\Visibility\RoleScopeGuardTest
+  ✓ it A09b exact visibility ignores a project contribution of a role w… 0.06s  
+
+   PASS  Tests\Feature\Visibility\TenantMembershipVisibilityTest
+  ✓ it denies ordinary granted visibility when fixed tenant membership…  0.03s  
+
+   PASS  Tests\Acceptance\Crm\BuildInputsTest
+  ✓ it R48 local duplicate plugin is rejected and a worker rebuild deci… 0.09s  
+  ✓ it R67 removed declared policy or Decides attribute is a compile er… 0.04s  
+  ✓ it R67 removed declared policy or Decides attribute is a compile er… 0.03s  
+  ✓ it R45 R46 local typed plugin inputs are independent in CRM and bac… 0.07s  
+  ✓ it R57 local filter build fingerprint changes while equal configura… 0.06s  
+  ✓ it R67 typed filter class removal and incorrect factory inputs are…  0.06s  
+  ✓ it R57 build rejects a captured live host model instead of retainin… 0.07s  
+
+   PASS  Tests\Acceptance\Crm\ConsumerSpiTest
+  ✓ it R67 renamed Decides method still supplies local public consumer…  0.07s  
+  ✓ it R50 local public definition filter and directory use structural…  0.06s  
+
+   PASS  Tests\Feature\Visibility\BoundedCandidatesTest
+  ✓ it evaluates every grant candidate before slicing and reports an em… 0.03s  
+  ✓ it bounds the full selected-tenant universe before scalar checks an… 0.02s  
+  ✓ it checks the full PolicyOnly host universe outside any grant prefi… 0.02s  
+  ✓ it rejects an oversized universe and an already paginated builder    0.02s  
+
+   PASS  Tests\Feature\Scopes\WithinContextTest
+  ✓ it restores the explicit panels scope when entry resolution throws…  0.03s  
+  ✓ it restores the explicit panels scope when entry resolution throws…  0.02s  
+  ✓ it restores nested per-panel scopes on success and callback excepti… 0.01s  
+  ✓ it restores nested per-panel scopes on success and callback excepti… 0.01s  
+  ✓ it rejects forged structural entry identity and restores the prior…  0.01s  
+  ✓ it rejects forged structural entry identity and restores the prior…  0.02s  
+  ✓ it rejects forged structural entry identity and restores the prior…  0.02s  
+
+   PASS  Tests\Feature\Directories\PanelDirectoriesTest
+  ✓ it searches and describes the same tenants as the resolver           0.07s  
+  ✓ it hands out the directories that the resolver of the panel picks    0.05s  
+
+   PASS  Tests\Feature\Scopes\ScopeFiltersTest
+  ✓ it does not promote scope-required or empty-binding roles into sele… 0.03s  
+  ✓ it does not promote scope-required or empty-binding roles into sele… 0.02s  
+  ✓ it rereads active and city and current grant fields with an unchang… 0.03s  
+  ✓ it requires one whole contribution for filters and its own fields    0.03s  
+  ✓ it maps a common native filter exception to a fail closed reason     0.02s  
+  ✓ it applies the same role binding to scoped superadmin qualification  0.03s  
+  ✓ it keeps common filters before grants policy hook and scoped supera… 0.02s  
+  ✓ it keeps common filters before grants policy hook and scoped supera… 0.02s  
+  ✓ it keeps common filters before grants policy hook and scoped supera… 0.02s  
+  ✓ it keeps common filters before grants policy hook and scoped supera… 0.02s  
+  ✓ it keeps a rejected seller independent from an analyst and direct c… 0.02s  
+  ✓ it keeps a rejected seller independent from an analyst and direct c… 0.02s  
+  ✓ it keeps a rejected seller independent from an analyst and direct c… 0.03s  
+
+   PASS  Tests\Feature\Visibility\FailureTest
+  ✓ it AC10 throws source_error instead of returning an empty list when… 0.08s  
+
+   PASS  AzGuard\Tests\Contracts\Consumer\ConsumerEvaluatorContractTest
+  ✓ evaluator does not fail on ordinary requests                         0.02s  
+  ✓ engine asks the evaluator only about verified scopes                 0.02s  
+  ✓ evaluator only narrows                                               0.02s  
+  ✓ evaluator answers many checks like one in their order                0.02s  
+
+   PASS  Tests\Feature\Scopes\ScopeTableTest
+  ✓ it implements every scope table cell for direct and role authority…  0.04s  
+  ✓ it implements every scope table cell for direct and role authority…  0.02s  
+  ✓ it implements every scope table cell for direct and role authority…  0.02s  
+  ✓ it implements every scope table cell for direct and role authority…  0.02s  
+  ✓ it implements every scope table cell for direct and role authority…  0.02s  
+  ✓ it implements every scope table cell for direct and role authority…  0.02s  
+  ✓ it implements every scope table cell for direct and role authority…  0.02s  
+  ✓ it implements every scope table cell for direct and role authority…  0.02s  
+  ✓ it implements every scope table cell for direct and role authority…  0.02s  
+  ✓ it implements every scope table cell for direct and role authority…  0.02s  
+  ✓ it implements every scope table cell for direct and role authority…  0.02s  
+  ✓ it implements every scope table cell for direct and role authority…  0.02s  
+  ✓ it implements every scope table cell for direct and role authority…  0.02s  
+  ✓ it implements every scope table cell for direct and role authority…  0.02s  
+  ✓ it implements every scope table cell for direct and role authority…  0.02s  
+  ✓ it implements every scope table cell for direct and role authority…  0.02s  
+  ✓ it does not broaden an isolated contextual check with tenant-wide a… 0.02s  
+  ✓ it does not broaden an isolated contextual check with tenant-wide a… 0.02s  
+  ✓ it passes the same accepted scopes to coherent and fallback authori… 0.02s  
+  ✓ it passes the same accepted scopes to coherent and fallback authori… 0.02s  
+  ✓ it passes the same accepted scopes to coherent and fallback authori… 0.02s  
+  ✓ it passes the same accepted scopes to coherent and fallback authori… 0.02s  
+  ✓ it requires one complete scoped contribution instead of combining c… 0.02s  
+  ✓ it resolves the selected tenant before reading dynamic permission d… 0.02s  
+  ✓ it gives every source the same complete tenant and context selectio… 0.02s  
+  ✓ it rejects a malicious global or foreign contribution even after a…  0.02s  
+  ✓ it rejects a malicious global or foreign contribution even after a…  0.02s  
+  ✓ it rejects a malicious global or foreign contribution even after a…  0.02s  
+  ✓ it rejects a malicious global or foreign contribution even after a…  0.02s  
+
+   PASS  Tests\Acceptance\Crm\ConsistencyTest
+  ✓ it R52 invalidates request memo on a local root revoke for both ref… 0.16s  
+  ✓ it R52 invalidates request memo on a local root revoke for both ref… 0.07s  
+  ✓ it R51 denies ordinary and scoped administrative grants exactly at…  0.07s  
+  ✓ it R51 denies ordinary and scoped administrative grants exactly at…  0.08s  
+
+   PASS  Tests\Feature\Scopes\ExternalEligibilityTest
+  ✓ it fails closed on external exceptions without broad query fallback  0.03s  
+  ✓ it does not call external eligibility for unknown foreign owner or…  0.02s  
+  ✓ it does not call external eligibility for unknown foreign owner or…  0.02s  
+  ✓ it does not call external eligibility for unknown foreign owner or…  0.01s  
+  ✓ it resolves the external adapter class at each operation with live…  0.02s  
+  ✓ it runs external scalar eligibility after structural resolution wit… 0.02s  
+  ✓ it runs external scalar eligibility after structural resolution wit… 0.02s  
+
+   PASS  AzGuard\Tests\Contracts\Consumer\ConsumerHooksContractTest
+  ✓ cancelled change leaves no trace                                     0.18s  
+  ✓ hooks and pipe fit their contracts                                   0.04s  
+  ✓ after hook observes and writes nothing                               0.04s  
+  ✓ pipe writes nothing besides the writer                               0.05s  
+  ✓ before hook answers with a before result and writes nothing          0.04s  
+
+   PASS  AzGuard\Tests\Contracts\Sources\DatabaseSourceContractTest
+  ✓ source answers only for its own panel                                0.05s  
+  ✓ same version gives the same answer                                   0.05s  
+  ✓ describe matches what the source gives                               0.04s  
+  ✓ source takes now from the context                                    0.06s  
+  ✓ panel accepts and describes the source                               0.05s  
+  ✓ source has a valid stable id                                         0.04s  
+
+   PASS  Tests\Acceptance\Crm\DiagnosticsTest
+  ✓ it R49 local declared grant fields expose no undeclared assignment…  0.07s  
+
+   PASS  Tests\Acceptance\Crm\BatchTest
+  ✓ it R68 keeps policy requests independent when a neighbouring Grants… 0.06s  
+  ✓ it R68 preserves mixed policy DB and relation order state identitie… 0.08s  
+
+   PASS  Tests\Acceptance\Crm\PoliciesTest
+  ✓ it R21 caller can update normal C1 while policy vetoes do not call…  0.08s  
+  ✓ it R22 policy modes distinguish null true false and Response with a… 0.07s  
+  ✓ it R22 policy modes distinguish null true false and Response with a… 0.07s  
+  ✓ it R22 policy modes distinguish null true false and Response with a… 0.07s  
+  ✓ it R22 policy modes distinguish null true false and Response with a… 0.07s  
+  ✓ it R22 policy modes distinguish null true false and Response with a… 0.07s  
+
+   PASS  Tests\Acceptance\Crm\DynamicActionsTest
+  ✓ it R65 grants an enum permission without any copy in permissions, r… 0.10s  
+  ✓ it R23 refuses to create a dynamic action when the panel did not op… 0.04s  
+  ✓ it R23 writes with a roles-only writer that keeps the action defini… 0.05s  
+  ✓ it R59 never resurrects a deleted grant: a grant after the delete i… 0.07s  
+  ✓ it R59 removes the exact grants of a deleted action in the tenant a… 0.11s  
+  ✓ it R23 keeps an opt-in dynamic action and its direct grant inside t… 0.08s  
+
+   PASS  Tests\Feature\Visibility\RestrictionAppliesToTest
+  ✓ it A05 keeps a resource-dependent appliesTo of an adapter restricti… 0.04s  
+  ✓ it A05 lets an adapter restriction express inapplicability through…  0.03s  
+  ✓ it A05 compiles the predicate of an adapter restriction whose appli… 0.03s  
+  ✓ it A05 encodes applicability by permission in predicate so list equ… 0.03s  
+  ✓ it A05 encodes applicability by permission in predicate so list equ… 0.03s  
+
+   PASS  AzGuard\Tests\Contracts\Plugins\LabelPluginContractTest
+  ✓ plugin builds on a clean panel                                       0.01s  
+  ✓ plugin kept off a panel leaves no trace there                        0.02s  
+  ✓ plugin has a stable id                                               0.01s  
+  ✓ register runs once per panel and writes nothing                      0.01s  
+  ✓ plugin outside the package does not take a reserved id               0.01s  
+  ✓ plugin builds on two panels and touches only the one it is attached… 0.01s  
+
+   PASS  Tests\Feature\Scopes\RuntimeInputsTest
+  ✓ it provides nullable role and grant for common direct and policy-on… 0.02s  
+  ✓ it provides nullable role and grant for common direct and policy-on… 0.02s  
+  ✓ it passes the actual role contribution target and separate actor to… 0.03s  
+  ✓ it rejects a required missing runtime user instead of inventing an…  0.02s  
+  ✓ it isolates interleaved fiber panel and scope stacks and restores a… 0.02s  
+  ✓ it isolates interleaved fiber panel and scope stacks and restores a… 0.02s  
+
+   PASS  Tests\Feature\Directories\ModelSubjectDirectoryTest
+  ✓ it treats wildcards of the term as text and never as a pattern       0.06s  
+  ✓ it refuses a subject directory class that does not implement the co… 0.05s  
+  ✓ it limits and orders results by key and selects the model by morph…  0.05s  
+  ✓ it searches subjects by key and by the declared columns and labels…  0.05s  
+  ✓ it works without a selected target and for every phase with (AzGuar… 0.05s  
+  ✓ it works without a selected target and for every phase with (AzGuar… 0.04s  
+  ✓ it works without a selected target and for every phase with (AzGuar… 0.05s  
+  ✓ it describes a subject of the panel and nothing else                 0.05s  
+  ✓ it keeps a custom subject directory declared with for() and selects… 0.05s  
+  ✓ it finds literal underscores and escape characters without matching… 0.05s  
+  ✓ it refuses search columns that are not plain column names            0.05s  
+
+   PASS  AzGuard\Tests\Contracts\Sources\FakeSourceContractTest
+  ✓ same version gives the same answer                                   0.02s  
+  ✓ source has a valid stable id                                         0.01s  
+  ✓ describe matches what the source gives                               0.01s  
+  ✓ panel accepts and describes the source                               0.01s  
+  ✓ source takes now from the context                                    0.01s  
+  ✓ source answers only for its own panel                                0.02s  
+
+   PASS  AzGuard\Tests\Contracts\Consumer\ConsumerRestrictionContractTest
+  ✓ restriction answers the same request the same way                    0.02s  
+  ✓ restriction writes nothing while it decides                          0.01s  
+  ✓ restriction has a stable key                                         0.01s  
+  ✓ restriction does not fail on ordinary requests and names its denial  0.02s  
+
+   PASS  Tests\Feature\Visibility\BeforePredicateTest
+  ✓ it keeps qualified admin exemptions inside its own complete witness… 0.06s  
+  ✓ it compiles before pass and PolicyOnly allow while leaving all assi… 0.03s  
+  ✓ it does not let policy allow or a root role bypass before deny with… 0.02s  
+  ✓ it does not let policy allow or a root role bypass before deny with… 0.02s  
+  ✓ it uses policy as a veto and preserves abstain only with a grant     0.02s  
+
+   PASS  Tests\Feature\Scopes\AssignmentRuntimeTest
+  ✓ it refuses explicitly a filter that requires an actor or actor mode… 0.05s  
+  ✓ it refuses explicitly a filter that requires an actor or actor mode… 0.05s  
+  ✓ it keeps Access frames on an empty proposal and a present actor      0.05s  
+  ✓ it accepts a lookup without an actor                                 0.04s  
+  ✓ it answers for a verified scope only through its filters: an active… 0.05s  
+  ✓ it refuses a missing or foreign scope structurally in the write bef… 0.06s  
+  ✓ it gives Assignment filters the validated proposal, the target user… 0.05s  
+
+   PASS  Tests\Acceptance\Crm\AuthorityModesTest
+  ✓ it R66 removed role key contributes no authority until a registered… 0.07s  
+  ✓ it R62 policy true and before Continue never replace an assignment…  0.08s  
+  ✓ it R61 PolicyOnly never reads an assignment connection that aborts…  0.06s  
+  ✓ it R65 enum assignments work without dynamic definitions or a copie… 0.07s  
+  ✓ it R63 read slice wildcard and superadmin cannot replace PolicyOnly… 0.06s  
+
+   PASS  AzGuard\Tests\Contracts\Consumer\ConsumerParticipantContractTest
+  ✓ participant declares its own tables                                  0.05s  
+  ✓ participant rows roll back with the operation                        0.08s  
+  ✓ participant runs again on a retry and keeps only the committed atte… 0.09s  
+  ✓ participant writes only through its writer while recording           0.06s  
+  ✓ participant is not called without an effect                          0.09s  
+
+   PASS  Tests\Feature\Scopes\ScopeDescriptionTest
+  ✓ it describes a definition that gives no description with the defaul… 0.02s  
+  ✓ it describes a module definition by its filters, label, directory,…  0.01s  
+  ✓ it takes the tenant owner and the default directory of a custom def… 0.02s  
+
+   PASS  AzGuard\Tests\Contracts\Hooks\HooksContractTest
+  ✓ pipe writes nothing besides the writer                               0.06s  
+  ✓ after hook observes and writes nothing                               0.05s  
+  ✓ cancelled change leaves no trace                                     0.08s  
+  ✓ hooks and pipe fit their contracts                                   0.04s  
+  ✓ before hook answers with a before result and writes nothing          0.04s  
+
+   PASS  Tests\Feature\Scopes\FilterConfigurationTest
+  ✓ it fingerprints scalar closure configuration and rejects live runti… 0.02s  
+  ✓ it rejects a changed owner despite identical model class and scope…  0.01s  
+  ✓ it registers typed access adapters on an immutable plugin            0.01s  
+  ✓ it accepts class object and closure filters without resolving typed… 0.01s  
+  ✓ it rejects an unbound filter interface at build and accepts its bou… 0.01s  
+  ✓ it keeps identical contributions of one alias once and rejects diff… 0.01s  
+  ✓ it keeps identical contributions of one alias once and rejects diff… 0.02s  
+  ✓ it keeps identical contributions of one alias once and rejects diff… 0.01s  
+  ✓ it keeps identical contributions of one alias once and rejects diff… 0.01s  
+  ✓ it accepts a filter closure called as ($query, $runtime), untyped o… 0.01s  
+  ✓ it accepts a filter closure called as ($query, $runtime), untyped o… 0.01s  
+  ✓ it accepts a filter closure called as ($query, $runtime), untyped o… 0.01s  
+  ✓ it accepts a filter closure called as ($query, $runtime), untyped o… 0.01s  
+  ✓ it accepts a filter closure called as ($query, $runtime), untyped o… 0.01s  
+  ✓ it rejects native filters for generic definitions and reports remov… 0.01s  
+  ✓ it rejects invalid access adapter type aliases and removed classes   0.01s  
+  ✓ it reports an unbound access adapter interface through the doctor a… 0.01s  
+  ✓ it changes the fingerprint when a filter, the membership or an acce… 0.02s  
+  ✓ it rejects a filter closure that cannot be called as ($query, $runt… 0.01s  
+  ✓ it rejects a filter closure that cannot be called as ($query, $runt… 0.01s  
+  ✓ it rejects a filter closure that cannot be called as ($query, $runt… 0.01s  
+  ✓ it rejects a filter closure that cannot be called as ($query, $runt… 0.01s  
+  ✓ it rejects filter constructor dependencies that cannot be resolved…  0.01s  
+
+   PASS  Tests\Feature\Visibility\CrossConnectionTest
+  ✓ it supports 1000 materialized scope refs and rejects 1001 before qu… 0.86s  
+  ✓ it materializes a fenced foreign-connection DatabaseSource without…  0.04s  
+
+   PASS  Tests\Feature\Directories\QueryScopeDirectoryTest
+  ✓ it gives the filters the target, the role, the proposed fields, the… 0.05s  
+  ✓ it searches nothing for an external definition without a query       0.04s  
+  ✓ it keeps the tenant and structural boundary when a filter ORs condi… 0.04s  
+  ✓ it applies the limit after eligibility                               0.05s  
+  ✓ it does not let a foreign or filtered chunk use up the limit of an…  0.06s  
+  ✓ it refuses a partial list when the scan budget ends before the limi… 0.05s  
+  ✓ it returns nothing before any filter for an Assignment search witho… 0.04s  
+  ✓ it matches the key and the model search columns of a context         0.05s  
+  ✓ it keeps scanning after chunks that every filter rejects             0.05s  
+  ✓ it describes an inactive context to Inspection and to the owner cal… 0.05s  
+  ✓ it describes a scope of the selected tenant and refuses a foreign,…  0.05s  
+  ✓ it describes a scope of the selected tenant and refuses a foreign,…  0.05s  
+  ✓ it skips eligibility but never the tenant for Inspection and Revoca… 0.05s  
+  ✓ it skips eligibility but never the tenant for Inspection and Revoca… 0.05s  
+  ✓ it returns nothing for a role that is not granted in the context ty… 0.05s  
+  ✓ it lets the access adapter of the type narrow the candidates before… 0.05s  
+  ✓ it offers the contexts of the target and not of the acting admin     0.06s  
+
+   PASS  Tests\Feature\Scopes\ResourceScopeTest
+  ✓ it rejects a resource resolver returning a foreign tenant or contex… 0.03s  
+  ✓ it rejects a resource resolver returning a foreign tenant or contex… 0.01s  
+  ✓ it selects explicit then resource then current scope without leakin… 0.02s  
+  ✓ it denies missing exceptional or forged structural resolver snapsho… 0.02s  
+  ✓ it denies missing exceptional or forged structural resolver snapsho… 0.02s  
+  ✓ it denies missing exceptional or forged structural resolver snapsho… 0.01s  
+  ✓ it denies missing exceptional or forged structural resolver snapsho… 0.01s  
+  ✓ it denies missing exceptional or forged structural resolver snapsho… 0.01s  
+  ✓ it passes selected scope to an authoritative resource resolver       0.02s  
+  ✓ it accepts an external model-null structural definition without inv… 0.02s  
+  ✓ it requires tenant and authoritative resource owner before policy t… 0.02s  
+  ✓ it requires tenant and authoritative resource owner before policy t… 0.02s  
+  ✓ it requires tenant and authoritative resource owner before policy t… 0.02s  
+  ✓ it requires tenant and authoritative resource owner before policy t… 0.02s  
+  ✓ it requires tenant and authoritative resource owner before policy t… 0.02s  
+  ✓ it requires tenant and authoritative resource owner before policy t… 0.02s  
+  ✓ it requires tenant and authoritative resource owner before policy t… 0.02s  
+  ✓ it requires tenant and authoritative resource owner before policy t… 0.02s  
+
+   PASS  Tests\Acceptance\Crm\ExternalScopeTest
+  ✓ it R19 R50 refuses the external model null exact list before count…  0.07s  
+  ✓ it R19 R50 scalar external definition resolves model null without a… 0.05s  
+
+   PASS  AzGuard\Tests\Contracts\Scopes\ScopeEvaluatorContractTest
+  ✓ evaluator only narrows                                               0.02s  
+  ✓ evaluator does not fail on ordinary requests                         0.01s  
+  ✓ evaluator answers many checks like one in their order                0.01s  
+  ✓ engine asks the evaluator only about verified scopes                 0.02s  
+
+   PASS  Tests\Feature\Visibility\PredicateCompilerTest
+  ✓ it keeps bound SQL-looking values literal                            0.02s  
+  ✓ it maps boolean NULL and Laravel Response policy outcomes into exha… 0.02s  
+  ✓ it materializes supported global scopes once before attaching the p… 0.01s  
+  ✓ it before pass constrains rows without creating policy authority     0.02s  
+  ✓ it rejects UNION introduced by a deferred global scope atomically    0.01s  
+  ✓ it rejects unsupported or unknown nodes atomically even behind a co… 0.01s  
+  ✓ it rejects unsupported or unknown nodes atomically even behind a co… 0.01s  
+  ✓ it rejects unsupported or unknown nodes atomically even behind a co… 0.01s  
+  ✓ it rejects unsupported or unknown nodes atomically even behind a co… 0.01s  
+  ✓ it rejects unsupported or unknown nodes atomically even behind a co… 0.01s  
+  ✓ it rejects unsupported or unknown nodes atomically even behind a co… 0.02s  
+  ✓ it rejects unsupported or unknown nodes atomically even behind a co… 0.02s  
+  ✓ it rejects unsupported or unknown nodes atomically even behind a co… 0.02s  
+  ✓ it rejects unsupported or unknown nodes atomically even behind a co… 0.02s  
+  ✓ it compiles total boolean comparisons and their complements includi… 0.02s  
+  ✓ it compiles total boolean comparisons and their complements includi… 0.02s  
+  ✓ it compiles total boolean comparisons and their complements includi… 0.02s  
+  ✓ it compiles total boolean comparisons and their complements includi… 0.02s  
+  ✓ it compiles total boolean comparisons and their complements includi… 0.02s  
+  ✓ it compiles total boolean comparisons and their complements includi… 0.02s  
+  ✓ it compiles total boolean comparisons and their complements includi… 0.02s  
+  ✓ it compiles total boolean comparisons and their complements includi… 0.02s  
+  ✓ it compiles total boolean comparisons and their complements includi… 0.02s  
+  ✓ it compiles total boolean comparisons and their complements includi… 0.02s  
+  ✓ it compiles total boolean comparisons and their complements includi… 0.02s  
+  ✓ it compiles total boolean comparisons and their complements includi… 0.02s  
+  ✓ it compiles total boolean comparisons and their complements includi… 0.02s  
+  ✓ it compiles total boolean comparisons and their complements includi… 0.02s  
+  ✓ it compiles total boolean comparisons and their complements includi… 0.02s  
+  ✓ it compiles total boolean comparisons and their complements includi… 0.02s  
+  ✓ it compiles total boolean comparisons and their complements includi… 0.02s  
+  ✓ it compiles total boolean comparisons and their complements includi… 0.02s  
+  ✓ it compiles total boolean comparisons and their complements includi… 0.02s  
+  ✓ it compiles total boolean comparisons and their complements includi… 0.02s  
+  ✓ it compiles total boolean comparisons and their complements includi… 0.02s  
+  ✓ it compiles total boolean comparisons and their complements includi… 0.02s  
+  ✓ it compiles total boolean comparisons and their complements includi… 0.02s  
+  ✓ it rejects replaced and aliased roots without mutating their querie… 0.02s  
+  ✓ it rejects replaced and aliased roots without mutating their querie… 0.02s  
+  ✓ it rejects host UNION arms before appending a predicate with (true)  0.02s  
+  ✓ it rejects host UNION arms before appending a predicate with (false… 0.02s  
+  ✓ it constrains a guest-style deny over a host raw OR without leaking… 0.02s  
+  ✓ it rejects ungrouped host OR without weakening it                    0.02s  
+  ✓ it preserves the grouped host WHERE and all non-WHERE query setting… 0.02s  
+  ✓ it rejects relation constraints that could bypass the correlation a… 0.02s  
+  ✓ it rejects relation constraints that could bypass the correlation a… 0.02s  
+  ✓ it rejects relation constraints that could bypass the correlation a… 0.02s  
+  ✓ it rejects relation constraints that could bypass the correlation a… 0.02s  
+  ✓ it rejects relation constraints that could bypass the correlation a… 0.02s  
+  ✓ it keeps grouped native relation raw predicates correlated with the… 0.02s  
+  ✓ it ORs complete typed contribution branches without mixing witness…  0.02s  
+  ✓ it rejects partition trees until the caller chooses an outcome       0.02s  
+  ✓ it keeps a host raw OR inside its own group with its bindings in or… 0.02s  
+
+   PASS  AzGuard\Tests\Contracts\Sources\RelationSourceContractTest
+  ✓ source has a valid stable id                                         0.06s  
+  ✓ describe matches what the source gives                               0.02s  
+  ✓ panel accepts and describes the source                               0.02s  
+  ✓ source answers only for its own panel                                0.02s  
+  ✓ source takes now from the context                                    0.02s  
+  ✓ same version gives the same answer                                   0.02s  
+
+   PASS  Tests\Acceptance\Crm\AssignmentsTest
+  ✓ it R30 publishes no event and writes no journal row for rolled back… 0.08s  
+  ✓ it R63 rejects an exact grant of the PolicyOnly action and keeps wi… 0.06s  
+  ✓ it R27 refuses escalation by a manager with limited delegation and…  0.05s  
+  ✓ it R27 refuses escalation by a manager with limited delegation and…  0.05s  
+  ✓ it R27 refuses escalation by a manager with limited delegation and…  0.05s  
+  ✓ it R27 refuses escalation by a manager with limited delegation and…  0.05s  
+  ✓ it R27 refuses escalation by a manager with limited delegation and…  0.05s  
+  ✓ it R27 refuses escalation by a manager with limited delegation and…  0.05s  
+  ✓ it R29 refuses a change prepared against an old build or owner revi… 0.06s  
+  ✓ it R27 keeps the actor identity and reason in the journal and the e… 0.06s  
+  ✓ it R30 repeats final validation after a changing pipe, rolls back n… 0.08s  
+  ✓ it R26 filters the target Anna by her city while delegation sees th… 0.06s  
+  ✓ it R28 lets an admin revoke grants of a deactivated, expired or del… 0.09s  
+  ✓ it R42 publishes the revocation of one origin only: the grant of an… 0.07s  
+  ✓ it R07 refuses a project or a client field of tenant B in tenant A…  0.07s  
+  ✓ it R47 gives Assignment capabilities the target user, BaseRole, val… 0.05s  
+  ✓ it R09 refuses an Assignment into the inactive project P3 whatever…  0.06s  
+
+   PASS  AzGuard\Tests\Contracts\Restrictions\ReadOnlyEditRestrictionContractTest
+  ✓ restriction does not fail on ordinary requests and names its denial  0.03s  
+  ✓ restriction has a stable key                                         0.01s  
+  ✓ restriction writes nothing while it decides                          0.01s  
+  ✓ restriction answers the same request the same way                    0.02s  
+
+   PASS  Tests\Feature\Visibility\GrantRoleSuperAdminVisibilityTest
+  ✓ it A02 keeps restrictions on lists for a direct grant with a super-… 0.02s  
+  ✓ it A02 does not treat a direct grant with a super-admin role key as… 0.02s  
+
+   PASS  Tests\Feature\Visibility\HostRawOrTest
+  ✓ it A06 keeps a scope descriptor raw OR from escaping the owner tena… 0.03s  
+  ✓ it A06c lists nothing for a guest over a host raw OR                 0.02s  
+  ✓ it A06 keeps host raw OR bindings aligned with the authority bindin… 0.04s  
+  ✓ it A06 keeps a host raw OR inside its own group so the authority ca… 0.03s  
+
+   PASS  Tests\Acceptance\Crm\HttpTest
+  ✓ it R39 answers one action alike through azguard.can, Laravel can an… 0.38s  
+  ✓ it R39 refuses an expired role, a role in an inactive project and a… 0.11s  
+  ✓ it R39 lets a caller of P1 into organization A only, with every act… 0.16s  
+  ✓ it R63 refuses a grant of the PolicyOnly action over HTTP without a… 0.15s  
+  ✓ it R39 decides the entry permission AND and lets its veto stop the…  0.09s  
+  ✓ it R54 serves requests of A and B from one application without carr… 0.17s  
+  ✓ it R39 refuses entry without a role even with a direct grant or a p… 0.07s  
+
+   PASS  Tests\Feature\Visibility\UnsupportedTest
+  ✓ it passes a deterministically irrelevant restriction without an ada… 0.03s  
+  ✓ it rejects unsupported conditions before host aggregation            0.02s  
+  ✓ it rejects an explicitly unsupported scope instead of widening the…  0.02s  
+  ✓ it retries only the selection read of a changing source and fails c… 0.02s  
+  ✓ it never silently omits arbitrary automatic folder roles             0.02s  
+  ✓ it rejects an unsupported, throwing or malformed source after anoth… 0.02s  
+  ✓ it rejects an unsupported, throwing or malformed source after anoth… 0.02s  
+  ✓ it rejects an unsupported, throwing or malformed source after anoth… 0.03s  
+
+   PASS  Tests\Feature\Visibility\VisibleToTest
+  ✓ it applies one grouped final constraint before count and pagination… 0.05s  
+  ✓ it never inherits a tenant-wide assignment into isolated contexts    0.03s  
+  ✓ it applies native common and role filters as separate AND groups pe… 0.03s  
+  ✓ it uses one fixed now and preserves conditions on individual witnes… 0.02s  
+  ✓ it throws before resource execution without partially mutating the…  0.02s  
+  ✓ it keeps the authoritative tenant owner for tenant-wide grants and…  0.02s  
+  ✓ it rejects an ungrouped raw context relation before it can widen sc… 0.02s  
+  ✓ it preserves literal scalar parity for disjoint scoped witnesses an… 0.03s  
+
+   PASS  Tests\Acceptance\Crm\ScaleVisibilityTest
+  ✓ it V45 returns all 1000 CRM ids and honest totals with SQL bounded…  0.19s  
+  ✓ it R58 returns all 10000 CRM ids and honest totals with SQL bounde… 12.76s  
+
+   PASS  AzGuard\Tests\Contracts\Resolvers\AssignmentScopeResolverContractTest
+  ✓ scope survives the codec and has no colon in its type                0.01s  
+  ✓ resolving is idempotent                                              0.01s  
+  ✓ request without a scope gives null                                   0.01s  
+
+   PASS  AzGuard\Tests\Contracts\Resolvers\SubjectResolverContractTest
+  ✓ reference survives the codec and has no colon in its type            0.01s  
+  ✓ what is not a subject is refused                                     0.01s  
+  ✓ model of the reference resolves back to the same reference           0.01s  
+  ✓ missing subject has no model                                         0.01s  
+  ✓ resolving is idempotent                                              0.01s  
+
+   PASS  Tests\Acceptance\Crm\ContextRolesTest
+  ✓ it R10 seller city binding qualifies both view and update instead o… 0.08s  
+  ✓ it R12 independent witnesses survive DB relation source and assignm… 0.08s  
+  ✓ it R12 independent witnesses survive DB relation source and assignm… 0.08s  
+  ✓ it R12 independent witnesses survive DB relation source and assignm… 0.08s  
+  ✓ it R12 independent witnesses survive DB relation source and assignm… 0.08s  
+  ✓ it R14 two PHP roles use the actual target actor and branch via rea… 0.08s  
+  ✓ it R14 two PHP roles use the actual target actor and branch via rea… 0.08s  
+  ✓ it R09 common active filter vetoes direct role policy before Contin… 0.06s  
+  ✓ it R09 common active filter vetoes direct role policy before Contin… 0.05s  
+  ✓ it R09 common active filter vetoes direct role policy before Contin… 0.06s  
+  ✓ it R09 common active filter vetoes direct role policy before Contin… 0.06s  
+  ✓ it R16 direct grants expose role null and cannot manufacture a requ… 0.07s  
+  ✓ it R13 each contribution must satisfy city region and all its own f… 0.09s  
+  ✓ it R17 empty permission admin still obeys city inactive tenant scop… 0.10s  
+  ✓ it R11 seller city never vetoes an independent analyst contribution  0.08s  
+
+   PASS  Tests\Feature\Visibility\ScopeResolverTest
+  ✓ it preserves a custom structural scope resolver when compiling visi… 0.05s  
+  ✓ it preserves a custom structural scope resolver when compiling visi… 0.02s  
+  ✓ it keeps scalar batch and visibility equivalent when a custom resol… 0.04s  
+  ✓ it keeps scalar batch and visibility equivalent when a custom resol… 0.04s  
+  ✓ it keeps scalar batch and visibility equivalent when a custom resol… 0.04s  
+
+   PASS  Tests\Feature\Scopes\NativeBuilderTest
+  ✓ it keeps OR inside its own predicate and preserves identity and oth… 0.02s  
+  ✓ it calls a closure filter with the query and the runtime and fails…  0.01s  
+  ✓ it blocks terminal operations before SQL including the public base…  0.01s  
+  ✓ it blocks terminal operations before SQL including the public base…  0.01s  
+  ✓ it blocks terminal operations before SQL including the public base…  0.01s  
+  ✓ it blocks terminal operations before SQL including the public base…  0.01s  
+  ✓ it blocks terminal operations before SQL including the public base…  0.01s  
+  ✓ it blocks terminal operations before SQL including the public base…  0.01s  
+  ✓ it blocks terminal operations before SQL including the public base…  0.01s  
+  ✓ it blocks terminal operations before SQL including the public base…  0.01s  
+  ✓ it blocks terminal operations before SQL including the public base…  0.02s  
+  ✓ it blocks terminal operations before SQL including the public base…  0.02s  
+  ✓ it blocks terminal operations before SQL including the public base…  0.02s  
+  ✓ it blocks terminal operations before SQL including the public base…  0.02s  
+  ✓ it blocks terminal operations before SQL including the public base…  0.02s  
+  ✓ it blocks terminal operations before SQL including the public base…  0.02s  
+  ✓ it blocks terminal operations before SQL including the public base…  0.02s  
+  ✓ it blocks terminal operations before SQL including the public base…  0.02s  
+  ✓ it reads fresh fields and rechecks authoritative owner instead of a… 0.02s  
+  ✓ it supports native grouped predicates, local scopes, relationships…  0.02s  
+  ✓ it rejects altered root structure and replacement queries with data… 0.01s  
+  ✓ it rejects altered root structure and replacement queries with data… 0.02s  
+  ✓ it rejects altered root structure and replacement queries with data… 0.02s  
+  ✓ it rejects altered root structure and replacement queries with data… 0.01s  
+  ✓ it rejects altered root structure and replacement queries with data… 0.01s  
+  ✓ it rejects altered root structure and replacement queries with data… 0.02s  
+  ✓ it rejects altered root structure and replacement queries with data… 0.02s  
+  ✓ it rejects altered root structure and replacement queries with data… 0.01s  
+  ✓ it rejects altered root structure and replacement queries with data… 0.01s  
+  ✓ it rejects altered root structure and replacement queries with data… 0.01s  
+  ✓ it rejects altered root structure and replacement queries with data… 0.02s  
+  ✓ it rejects altered root structure and replacement queries with data… 0.02s  
+  ✓ it rejects altered root structure and replacement queries with data… 0.02s  
+  ✓ it rejects altered root structure and replacement queries with data… 0.02s  
+
+   PASS  AzGuard\Tests\Contracts\Changes\JournalParticipantContractTest
+  ✓ participant is not called without an effect                          0.11s  
+  ✓ participant runs again on a retry and keeps only the committed atte… 0.13s  
+  ✓ participant writes only through its writer while recording           0.08s  
+  ✓ participant declares its own tables                                  0.05s  
+  ✓ participant rows roll back with the operation                        0.09s  
+
+   PASS  Tests\Acceptance\Crm\SourcesTest
+  ✓ it R44 a failing source denies after a valid DB grant or admin in e… 0.07s  
+  ✓ it R44 a failing source denies after a valid DB grant or admin in e… 0.07s  
+  ✓ it R44 a failing source denies after a valid DB grant or admin in e… 0.07s  
+  ✓ it R44 a failing source denies after a valid DB grant or admin in e… 0.07s  
+  ✓ it R42 DB and relation assignments independently support the same P… 0.10s  
+
+   PASS  Tests\Feature\Visibility\WitnessBranchesTest
+  ✓ it blocks native scope filter structure changes and caught terminal… 0.03s  
+  ✓ it blocks native scope filter structure changes and caught terminal… 0.02s  
+  ✓ it constrains a queryable external scope adapter without letting it… 0.02s  
+  ✓ it uses fixed GrantedToAll folder witnesses in isolated and require… 0.03s  
+  ✓ it uses fixed GrantedToAll folder witnesses in isolated and require… 0.03s  
+  ✓ it composes actual RelationSource witnesses with direct grants with… 0.03s  
+
+   PASS  Tests\Acceptance\Crm\SubjectApiTest
+  ✓ it R04 keeps independent panel accesses of A and B through nested s… 0.08s  
+  ✓ it R03 reaches the crm panel through the facade without switching A… 0.06s  
+  ✓ it R05 refuses a full name of backoffice inside the selected crm pa… 0.07s  
+  ✓ it R05 refuses a full name of backoffice inside the explicitly sele… 0.08s  
+  ✓ it R05 keeps an enum with guard unchanged when the crm prefix is it… 0.09s  
+  ✓ it R05 keeps an enum with guard unchanged when the crm prefix is it… 0.09s  
+  ✓ it R05 keeps an enum with guard unchanged when the crm prefix is it… 0.09s  
+  ✓ it R03 keeps the own guard() of a consumer model and reaches the pa… 0.06s  
+  ✓ it R03 selects the crm panel without switching Auth, and keeps nati… 0.06s  
+  ✓ it R04 keeps independent wrappers of one user instance through nest… 0.08s  
+
+   PASS  Tests\Feature\Scopes\ScopeDeclarationTest
+  ✓ it rejects plugins that set different modes unless the provider set… 0.02s  
+  ✓ it contributes the declaration and the scope options from ScopesPlu… 0.01s  
+  ✓ it takes the mode of the provider over the scopes plugin and unions… 0.01s  
+  ✓ it names one evaluator at most                                       0.01s  
+  ✓ it creates definition classes without arguments and rejects other s… 0.01s  
+  ✓ it accepts only declaration objects in the scope slot and definitio… 0.01s  
+  ✓ it keeps the provider mode when a later layer attaches no scopes pl… 0.01s  
+  ✓ it gives a panel without a scope declaration no declaration, which…  0.01s  
+  ✓ it takes the directory the definition names over a declared one and… 0.01s  
+  ✓ it rejects filters that no evaluator would apply                     0.01s  
+  ✓ it lets the provider settle the mode when ScopesPlugin and another…  0.01s  
+  ✓ it merges directories by scope type and rejects conflicting, unknow… 0.01s  
+
+   PASS  Tests\Acceptance\Crm\RuntimeInputsTest
+  ✓ it R47 R67 V109 V111 V113 DI receives live Access target and actor…  0.07s  
+  ✓ it R47 direct and PolicyOnly callbacks carry explicit null role and… 0.06s  
+
+   PASS  Tests\Acceptance\Crm\NativeFiltersTest
+  ✓ it R20 resolver query and owner exceptions refuse without a global…  0.06s  
+  ✓ it R20 resolver query and owner exceptions refuse without a global…  0.06s  
+  ✓ it R20 resolver query and owner exceptions refuse without a global…  0.06s  
+  ✓ it R20 resolver query and owner exceptions refuse without a global…  0.06s  
+  ✓ it R18 unsafe native exact mutations throw before pagination and pr… 0.05s  
+  ✓ it R18 unsafe native exact mutations throw before pagination and pr… 0.05s  
+  ✓ it R18 unsafe native exact mutations throw before pagination and pr… 0.05s  
+  ✓ it R18 unsafe native exact mutations throw before pagination and pr… 0.06s  
+  ✓ it R18 R50 exact native whereHas local scope and grouped OR preserv… 0.08s  
+  ✓ it R18 R50 exact native whereHas local scope and grouped OR preserv… 0.08s  
+  ✓ it R18 R50 exact native whereHas local scope and grouped OR preserv… 0.09s  
+  ✓ it R18 root OR remains grouped under common active and immutable ow… 0.06s  
+  ✓ it R18 unsafe builder changes fail closed instead of widening the s… 0.08s  
+  ✓ it R18 unsafe builder changes fail closed instead of widening the s… 0.07s  
+  ✓ it R18 unsafe builder changes fail closed instead of widening the s… 0.07s  
+  ✓ it R18 unsafe builder changes fail closed instead of widening the s… 0.07s  
+  ✓ it R18 V110 scalar supports native local scope whereHas nested OR a… 0.06s  
+
+   PASS  Tests\Feature\Scopes\MembershipTest
+  ✓ it checks active tenant membership independently of grants for A B…  0.03s  
+  ✓ it checks active tenant membership independently of grants for A B…  0.02s  
+  ✓ it checks active tenant membership independently of grants for A B…  0.01s  
+  ✓ it checks active tenant membership independently of grants for A B…  0.02s  
+  ✓ it checks active tenant membership independently of grants for A B…  0.02s  
+  ✓ it checks active tenant membership independently of grants for A B…  0.02s  
+  ✓ it checks active tenant membership independently of grants for A B…  0.02s  
+  ✓ it checks active tenant membership independently of grants for A B…  0.02s  
+  ✓ it checks active tenant membership independently of grants for A B…  0.02s  
+  ✓ it checks active tenant membership independently of grants for A B…  0.02s  
+  ✓ it checks active tenant membership independently of grants for A B…  0.02s  
+  ✓ it checks active tenant membership independently of grants for A B…  0.01s  
+  ✓ it makes context membership optional and enforces it only when requ… 0.02s  
+  ✓ it makes context membership optional and enforces it only when requ… 0.02s  
+  ✓ it makes context membership optional and enforces it only when requ… 0.02s  
+  ✓ it makes context membership optional and enforces it only when requ… 0.02s  
+  ✓ it makes context membership optional and enforces it only when requ… 0.02s  
+  ✓ it makes context membership optional and enforces it only when requ… 0.02s  
+  ✓ it makes context membership optional and enforces it only when requ… 0.02s  
+  ✓ it makes context membership optional and enforces it only when requ… 0.02s  
+
+   PASS  Tests\Feature\Directories\ModelTenantDirectoryTest
+  ✓ it describes a known tenant and nothing for a missing, foreign-type… 0.06s  
+  ✓ it lists the tenants of the panel model by key and limit without de… 0.04s  
+  ✓ it offers no tenants for a panel without a tenant model              0.04s  
+
+   PASS  AzGuard\Tests\Contracts\Plugins\AuditPluginContractTest
+  ✓ register runs once per panel and writes nothing                      0.02s  
+  ✓ plugin builds on two panels and touches only the one it is attached… 0.02s  
+  ✓ plugin kept off a panel leaves no trace there                        0.02s  
+  ✓ plugin has a stable id                                               0.01s  
+  ✓ plugin builds on a clean panel                                       0.01s  
+  ✓ plugin outside the package does not take a reserved id               0.01s  
+
+   PASS  Tests\Feature\Visibility\ScopeQueryTest
+  ✓ it budgets the contexts of the owner only, not every row of the typ… 0.05s  
+  ✓ it makes a class-string access adapter anew for every context of a…  0.02s  
+  ✓ it raises scope_query when a queryable evaluator refuses a concrete… 0.02s  
+  ✓ it lists scoped resources only through a queryable evaluator and ne… 0.02s  
+  ✓ it marks witnesses of every context only when they are tenant-wide   0.01s  
+  ✓ it asks again once per owner context, with its concrete runtime, wh… 0.02s  
+  ✓ it refuses a global list that would expand into more owner contexts… 0.10s  
+  ✓ it maps a resource to its context only through MapsAssignmentScope,… 0.02s  
+  ✓ it does not specialize a global runtime the evaluator expresses at…  0.02s  
+  ✓ it keeps an OR inside the access adapter conjoined with the definit… 0.03s  
+
+   PASS  Tests\Feature\Visibility\GlobalRolesGuardTest
+  ✓ it A09 exact visibility ignores ordinary global grants and non-allo… 0.03s  
+
+   PASS  Tests\Acceptance\Crm\SchemaTest
+  ✓ it R49 keeps the typed secret of a plugin, live models and the cont… 0.05s  
+  ✓ it R38 gives the editor badge data that the writer enforces: Policy… 0.05s  
+  ✓ it R49 matches the stored JSON snapshot of the CRM panel schema, in… 0.06s  
+  ✓ it R24 shows a context binding with several typed filters as class…  0.05s  
+
+   PASS  AzGuard\Tests\Contracts\Sources\FolderSourceContractTest
+  ✓ source has a valid stable id                                         0.01s  
+  ✓ same version gives the same answer                                   0.01s  
+  ✓ panel accepts and describes the source                               0.01s  
+  ✓ source takes now from the context                                    0.01s  
+  ✓ describe matches what the source gives                               0.01s  
+  ✓ source answers only for its own panel                                0.01s  
+
+   PASS  Tests\Acceptance\Crm\BuildStateTest
+  ✓ it R57 joint root sees host membership changes and rollback preserv… 0.09s  
+  ✓ it R57 joint root sees host membership changes and rollback preserv… 0.09s  
+  ✓ it R57 restore and generation changes cannot revive an older warm C… 0.09s  
+
+   PASS  Tests\Acceptance\Crm\TenancyTest
+  ✓ it R07 host composite FK rejects a cross tenant client without chan… 0.03s  
+  ✓ it R01 reads literal clients in the selected tenant through actual…  0.12s  
+  ✓ it R02 keeps CRM assignments separate from a positive backoffice as… 0.06s  
+  ✓ it R06 rejects an owner forged to the selected tenant while the pro… 0.06s  
+  ✓ it R06 enforces membership unknown tenants and resource ownership e… 0.05s  
+  ✓ it R06 enforces membership unknown tenants and resource ownership e… 0.06s  
+  ✓ it R06 enforces membership unknown tenants and resource ownership e… 0.05s  
+  ✓ it R06 enforces membership unknown tenants and resource ownership e… 0.05s  
+  ✓ it R06 enforces membership unknown tenants and resource ownership e… 0.06s  
+  ✓ it R06 enforces membership unknown tenants and resource ownership e… 0.06s  
+  ✓ it R06 enforces membership unknown tenants and resource ownership e… 0.06s  
+  ✓ it R06 enforces membership unknown tenants and resource ownership e… 0.06s  
+
+   PASS  Tests\Acceptance\Crm\ScaleBatchTest
+  ✓ it R58 accounts every CRM resource of 10000 in 100 contexts multir… 80.71s  
+  ✓ it V45 accounts every CRM resource of 1000 with scalar parity and b… 7.97s  
+
+   PASS  Tests\Feature\Scopes\ScopePolicyBuildTest
+  ✓ it accepts configured common filters at compilation                  0.01s  
+  ✓ it accepts configured role filters at compilation                    0.01s  
+  ✓ it requires a tenant membership adapter at panel compilation         0.01s  
+  ✓ it accepts model shortcuts only with a structural owner in tenant p… 0.01s  
+  ✓ it rejects a role binding that changes registered scope identity     0.01s  
+
+   PASS  AzGuard\Tests\Contracts\Scopes\RecordingEvaluatorContractTest
+  ✓ evaluator does not fail on ordinary requests                         0.02s  
+  ✓ engine asks the evaluator only about verified scopes                 0.01s  
+  ✓ evaluator only narrows                                               0.01s  
+  ✓ evaluator answers many checks like one in their order                0.01s  
+
+   PASS  Tests\Feature\Directories\WriteEqualDirectoryTest
+  ✓ it describes in other phases without the checks of the write         0.05s  
+  ✓ it F2 offers nothing in a tenant the target is not a member of, and… 0.05s  
+  ✓ it checks the target once per lookup: the number of queries does no… 0.05s  
+  ✓ it offers only the scopes the target is a member of when the panel…  0.07s  
+  ✓ it F1 offers nothing when the effective mode is None although an ea… 0.07s  
+
+   PASS  Tests\Acceptance\Crm\QueueTest
+  ✓ it R53 forbids an export queued before the right was taken away      0.11s  
+  ✓ it R54 keeps the panel, the scope and the authorizer of one job awa… 0.10s  
+  ✓ it R53 authorizes an export job as the subject it carries when it r… 0.13s  
+
+   PASS  AzGuard\Tests\Contracts\Sources\GateSourceContractTest
+  ✓ source answers only for its own panel                                0.02s  
+  ✓ describe matches what the source gives                               0.01s  
+  ✓ source takes now from the context                                    0.01s  
+  ✓ same version gives the same answer                                   0.01s  
+  ✓ source has a valid stable id                                         0.01s  
+  ✓ panel accepts and describes the source                               0.01s  
+
+   PASS  Tests\Acceptance\Crm\FreshInputsTest
+  ✓ it R15 V112 host city and active fields refresh under the identical… 0.08s  
+
+   PASS  Tests\Acceptance\Crm\VisibilityTest
+  ✓ it R35 R64 evaluates every bounded policy-only row while assignment… 0.07s  
+  ✓ it R33 constrains order search pages and totals before pagination e… 0.08s  
+  ✓ it R15 R50 R57 recomputes live city common eligibility and deployme… 0.11s  
+  ✓ it R35 throws before querying resources for scalar-only components…  0.05s  
+  ✓ it R35 throws before querying resources for scalar-only components…  0.05s  
+  ✓ it R35 throws before querying resources for scalar-only components…  0.05s  
+  ✓ it R35 throws before querying resources for scalar-only components…  0.05s  
+  ✓ it keeps region conditions on their own complete witness and policy… 0.13s  
+  ✓ it R35 bounded fallback checks all policy rows even when the policy… 0.07s  
+  ✓ it R31 R32 returns independent literal CRM ids and complete scalar…  0.08s  
+  ✓ it R31 R32 returns independent literal CRM ids and complete scalar…  0.06s  
+  ✓ it R31 R32 returns independent literal CRM ids and complete scalar…  0.07s  
+  ✓ it R31 R32 returns independent literal CRM ids and complete scalar…  0.10s  
+  ✓ it R31 R32 returns independent literal CRM ids and complete scalar…  0.08s  
+  ✓ it R31 R32 returns independent literal CRM ids and complete scalar…  0.10s  
+
+   PASS  Tests\Acceptance\Crm\ManagersTest
+  ✓ it R25 offers no definition mutation: a raw request for a role or a… 0.07s  
+  ✓ it R37 R28 keeps the editor of tenant A out of tenant B: ids, forms… 0.06s  
+  ✓ it R65 lists enum permissions without a stored copy and creates a G… 0.09s  
+  ✓ it R66 R29 keeps a renamed role without authority until the explici… 0.10s  
+  ✓ it R15 validates edited grant fields again and decides with the new… 0.10s  
+  ✓ it R42 revokes one manual grant while the relation membership and t… 0.10s  
+
+   PASS  Tests\Contracts\NegativeFixturesTest
+  ✓ it fails the hook suite on a hook or a pipe that breaks a guarantee… 0.11s  
+  ✓ it fails the hook suite on a hook or a pipe that breaks a guarantee… 0.05s  
+  ✓ it fails the hook suite on a hook or a pipe that breaks a guarantee… 0.06s  
+  ✓ it fails the hook suite on a hook or a pipe that breaks a guarantee… 0.05s  
+  ✓ it fails the hook suite on a hook or a pipe that breaks a guarantee… 0.05s  
+  ✓ it fails the hook suite on a hook or a pipe that breaks a guarantee… 0.09s  
+  ✓ it fails the hook suite on a hook or a pipe that breaks a guarantee… 0.05s  
+  ✓ it fails the hook suite on a hook or a pipe that breaks a guarantee… 0.05s  
+  ✓ it fails the scope resolver suite on a resolver that breaks a guara… 0.04s  
+  ✓ it fails the scope resolver suite on a resolver that breaks a guara… 0.04s  
+  ✓ it fails the scope resolver suite on a resolver that breaks a guara… 0.04s  
+  ✓ it fails the scope resolver suite on a resolver that breaks a guara… 0.04s  
+  ✓ it fails the participant suite on a participant that breaks a guara… 0.04s  
+  ✓ it fails the participant suite on a participant that breaks a guara… 0.13s  
+  ✓ it fails the participant suite on a participant that breaks a guara… 0.06s  
+  ✓ it fails the participant suite on a participant that breaks a guara… 0.11s  
+  ✓ it fails the source suite on a source that breaks a guarantee and p… 0.05s  
+  ✓ it fails the source suite on a source that breaks a guarantee and p… 0.04s  
+  ✓ it fails the source suite on a source that breaks a guarantee and p… 0.04s  
+  ✓ it fails the source suite on a source that breaks a guarantee and p… 0.04s  
+  ✓ it fails the source suite on a source that breaks a guarantee and p… 0.04s  
+  ✓ it fails the source suite on a source that breaks a guarantee and p… 0.05s  
+  ✓ it fails the plugin suite on a plugin that breaks a guarantee and p… 0.05s  
+  ✓ it fails the plugin suite on a plugin that breaks a guarantee and p… 0.04s  
+  ✓ it fails the plugin suite on a plugin that breaks a guarantee and p… 0.04s  
+  ✓ it fails the plugin suite on a plugin that breaks a guarantee and p… 0.04s  
+  ✓ it fails the subject resolver suite on a resolver that breaks a gua… 0.04s  
+  ✓ it fails the subject resolver suite on a resolver that breaks a gua… 0.04s  
+  ✓ it fails the subject resolver suite on a resolver that breaks a gua… 0.04s  
+  ✓ it fails the subject resolver suite on a resolver that breaks a gua… 0.04s  
+  ✓ it fails the subject resolver suite on a resolver that breaks a gua… 0.04s  
+  ✓ it fails the restriction suite on a restriction that breaks a guara… 0.05s  
+  ✓ it fails the restriction suite on a restriction that breaks a guara… 0.04s  
+  ✓ it fails the restriction suite on a restriction that breaks a guara… 0.05s  
+  ✓ it fails the restriction suite on a restriction that breaks a guara… 0.05s  
+  ✓ it fails the evaluator suite on an evaluator that breaks a guarante… 0.05s  
+  ✓ it fails the evaluator suite on an evaluator that breaks a guarante… 0.04s  
+  ✓ it fails the evaluator suite on an evaluator that breaks a guarante… 0.05s  
+
+   PASS  Tests\Acceptance\Crm\FilamentTest
+  ✓ it R40 does not open the card of a client of another project, so no… 0.21s  
+  ✓ it R37 clears the subject, the role, the context and the fields whe… 0.61s  
+  ✓ it R28 lists a grant in an inactive project and an expired one and…  0.65s  
+  ✓ it R36 offers in the grant form the contexts of the target seller o… 1.75s  
+  ✓ it R34 shows in the list, its count, the widget and global search o… 0.27s  
+  ✓ it R36 grants a role in a context offered for the target, with the…  0.64s  
+  ✓ it R37 refuses a project, a subject or a grant of organization B in… 1.32s  
+  ✓ it R34 exports only the clients the caller may still view, in its o… 0.35s  
+  ✓ it R34 deletes in bulk only own clients: a foreign id in the select… 0.48s  
+  ✓ it R36 gives a custom directory the selected subject and role when…  0.65s  
+  ✓ it R36 offers no context before the target subject is chosen         0.51s  
+  ✓ it R39 lets a caller of P1 into organization A only, and opens ther… 0.49s  
+  ✓ it R39 refuses the Filament panel without a role even with a direct… 0.10s  
+  ✓ it R40 lets a caller open the list and the card and record a call t… 0.44s  
+
+   PASS  Tests\Acceptance\Crm\DirectoriesTest
+  ✓ it R36 applies LIMIT after eligibility                               0.06s  
+  ✓ it V114 gives the filters the target, the role, the proposed fields… 0.05s  
+  ✓ it R50 a filter written against the structural query does not chang… 0.05s  
+  ✓ it R36 autocomplete offers the contexts of the target seller and an… 0.06s  
+  ✓ it R50 without a configured directory the default is the query dire… 0.04s  
+  ✓ it R50 an external consumer directory declared in code replaces the… 0.04s  
+  ✓ it R36 does not offer a context to a target of another tenant by wi… 0.05s  
+  ✓ it V114 Inspection describes an inactive context that Assignment ne… 0.05s  
+
+   PASS  Tests\Feature\Scopes\BaseAssignmentScopeResolveTest
+  ✓ it loads a project once and refuses a reference of another type      0.02s  
+  ✓ it resolves a context only by the exact key, the same way the batch… 0.01s  
+
+   PASS  AzGuard\Tests\Contracts\Consumer\ConsumerPluginContractTest
+  ✓ plugin has a stable id                                               0.04s  
+  ✓ register runs once per panel and writes nothing                      0.04s  
+  ✓ plugin builds on two panels and touches only the one it is attached… 0.05s  
+  ✓ plugin builds on a clean panel                                       0.04s  
+  ✓ plugin kept off a panel leaves no trace there                        0.05s  
+  ✓ plugin outside the package does not take a reserved id               0.04s  
+
+  Tests:    660 passed (26305 assertions)
+  Duration: 141.50s
+  Random Order Seed: 1791899727
+
+

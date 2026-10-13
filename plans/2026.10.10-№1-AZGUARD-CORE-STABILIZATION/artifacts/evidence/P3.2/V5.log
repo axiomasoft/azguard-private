@@ -1,0 +1,29 @@
+### step static3
+> vendor/bin/phpstan analyse --memory-limit=1G
+Note: Using configuration file /home/vostrikov/projects/packages/azguard/phpstan.neon.
+   0/534 [░░░░░░░░░░░░░░░░░░░░░░░░░░░░]   0%
+ 534/534 [▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓] 100%
+
+
+ [OK] No errors                                                                 
+
+{"tool":"pint","result":"passed"}> vendor/bin/rector process --dry-run
+
+ [WARNING] These rules are skipped, but are deprecated. Most likely you do not  
+           need to skip them anymore as not part of any set and remove them:    
+                                                                                
+           * Rector\CodeQuality\Rector\FuncCall\SimplifyRegexPatternRector      
+
+ [OK] Rector is done!                                                           
+
+ [WARNING] Skipped rule                                                         
+           "Rector\CodeQuality\Rector\FuncCall\SimplifyRegexPatternRector" is   
+           deprecated                                                           
+
+ [WARNING] This skipped rule is never registered. You can remove it from        
+           "->withSkip()"                                                       
+
+ * Rector\CodeQuality\Rector\FuncCall\SimplifyRegexPatternRector
+
+> php bin/api-manifest.php --check
+

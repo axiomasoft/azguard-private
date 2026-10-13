@@ -1,0 +1,269 @@
+{
+  "$schema": "urn:swissknifeman:task:plan:item:v1",
+  "id": "P3.2",
+  "title": "Scopes module guards and invokes its own extension inputs (D22)",
+  "status": "done_with_deviations",
+  "summary": "The module stops using core internals: module-internal `Scopes\\Internal\\Query\\FilterQuery`/`FilterGuard` replace `PredicateBuilder`/`QueryGuard` for filters and access adapters, closure filters are invoked positionally with a compile-time signature check instead of `RuntimeInvoker`, `Narrow` calls become explicit checks, and `QueryScopeDirectory` keeps the `ModelLookup` behavior privately. All i4.json entries of `EligibilityBuilder.php` and `QueryScopeDirectory.php` disappear.",
+  "why": "I4: a module uses only attributed core symbols; `PredicateBuilder`/`QueryGuard` stay core internals used by ResourceContextMapping and the Relation adapter. Hard risk: the module guard must refuse exactly what the core guard refuses (destructive calls, replacement query, terminal results, non-where shape changes); a weaker copy would let a filter broaden or mutate — parity and negative tests prove equality.",
+  "scope": {
+    "include": [
+      "New `AzGuard\\Scopes\\Internal\\Query\\FilterQuery` and `AzGuard\\Scopes\\Internal\\Query\\FilterGuard` (oracle rows by #oracle) with the semantics of knowledge/p3-execution#module-guard; `Scopes\\Query\\EligibilityBuilder::apply/constrain/shape/validateShape` use them",
+      "Closure filters invoked as `($query, $runtime)`; module `ScopeConfiguration::filters()` rejects other closure signatures (DefinitionException naming the alias); `Policies\\RuntimeInvoker` no longer referenced by module files",
+      "`Kernel\\Support\\Narrow` no longer referenced by module files; `Directories\\QueryScopeDirectory` (module-owned) implements `ModelLookup::match/label` behavior as private methods",
+      "i4.json: every entry with file `EligibilityBuilder.php` or `QueryScopeDirectory.php` removed",
+      "Negative tests per #module-guard; migration line for name-injected filter closures"
+    ],
+    "exclude": [
+      "Relocation into modules/scopes (P3.4)",
+      "Changes to core PredicateBuilder/QueryGuard behavior",
+      "A public guarded-query SPI (D22 option B rejected)"
+    ]
+  },
+  "depends_on": [
+    "P3.1"
+  ],
+  "decisions": [
+    "D22",
+    "D18"
+  ],
+  "reads": [
+    {
+      "ref": "knowledge/p3-execution#conventions",
+      "why": "Rules every P3 item follows (reference + amendments win, no shims, placement, oracle, allowlists, snapshots, migration lines, tests)",
+      "required": true
+    },
+    {
+      "ref": "knowledge/p3-execution#commands",
+      "why": "Exact validation commands, PHP 8.4, driver ports, composer update rule",
+      "required": true
+    },
+    {
+      "ref": "knowledge/p3-execution#allowlists",
+      "why": "Which allowlist entries this item removes",
+      "required": true
+    },
+    {
+      "ref": "knowledge/p3-execution#module-guard",
+      "why": "Exact semantics and tests of the module guard",
+      "required": true
+    },
+    {
+      "ref": "knowledge/p3-execution#oracle",
+      "why": "Adding the two new module rows",
+      "required": true
+    },
+    {
+      "ref": "knowledge/contracts#scopes",
+      "why": "eligibleContexts() receives core's guarded Builder (D18)",
+      "required": true
+    },
+    {
+      "path": "packages/core/src/Scopes/Query/EligibilityBuilder.php",
+      "why": "Module code to change",
+      "required": true
+    },
+    {
+      "path": "packages/core/src/Scopes/Query/PredicateBuilder.php",
+      "why": "Core semantics to reproduce",
+      "required": true
+    },
+    {
+      "path": "packages/core/src/Scopes/Query/QueryGuard.php",
+      "why": "Core guard semantics to reproduce",
+      "required": true
+    },
+    {
+      "path": "packages/core/src/Directories/QueryScopeDirectory.php",
+      "why": "ModelLookup use",
+      "required": true
+    },
+    {
+      "path": "packages/core/src/Directories/ModelLookup.php",
+      "why": "Behavior to keep privately",
+      "required": true
+    },
+    {
+      "path": "packages/core/src/Scopes/Internal/ScopeConfiguration.php",
+      "why": "filters() compile validation",
+      "required": true
+    },
+    {
+      "path": "tests/Arch/Allowlists/i4.json",
+      "why": "Entries to remove",
+      "required": true
+    }
+  ],
+  "task_files": [
+    {
+      "path": "packages/core/src/Scopes/Internal/Query/FilterQuery.php",
+      "change": "create"
+    },
+    {
+      "path": "packages/core/src/Scopes/Internal/Query/FilterGuard.php",
+      "change": "create"
+    },
+    {
+      "path": "packages/core/src/Scopes/**/*.php",
+      "change": "modify"
+    },
+    {
+      "path": "packages/core/src/Directories/QueryScopeDirectory.php",
+      "change": "modify"
+    },
+    {
+      "path": "tests/Arch/Allowlists/i4.json",
+      "change": "modify"
+    },
+    {
+      "path": "tests/Arch/Fixtures/target-map.json",
+      "change": "modify"
+    },
+    {
+      "path": "tests/Arch/Fixtures/target-map.sha256",
+      "change": "modify"
+    },
+    {
+      "path": "plans/2026.10.10-№1-AZGUARD-CORE-STABILIZATION/artifacts/inventory/target_map.py",
+      "change": "modify"
+    },
+    {
+      "path": "plans/2026.10.10-№1-AZGUARD-CORE-STABILIZATION/artifacts/inventory/target-map.json",
+      "change": "modify"
+    },
+    {
+      "path": "docs/upgrade.md",
+      "change": "modify"
+    },
+    {
+      "path": "tests/**",
+      "change": "modify"
+    }
+  ],
+  "rules": [
+    "After this item `git grep -nE 'PredicateBuilder|QueryGuard|RuntimeInvoker|Narrow::|ModelLookup' packages/core/src/Scopes packages/core/src/Directories/QueryScopeDirectory.php` matches nothing.",
+    "Existing filter/adapter/visibility tests stay green unchanged except tests of name-injected closures, which are rewritten to the positional form plus one negative test."
+  ],
+  "validation": [
+    {
+      "id": "V1",
+      "cmd": "php -d memory_limit=1G vendor/bin/pest tests/Feature/Scopes tests/Feature/Visibility tests/Feature/Directories tests/Contracts tests/Acceptance --fail-on-skipped",
+      "expect": "exit 0",
+      "kind": "acceptance"
+    },
+    {
+      "id": "V2",
+      "cmd": "! git grep -nE 'PredicateBuilder|QueryGuard|RuntimeInvoker|Narrow::|ModelLookup' -- packages/core/src/Scopes packages/core/src/Directories/QueryScopeDirectory.php",
+      "expect": "exit 0 (no match)",
+      "kind": "acceptance"
+    },
+    {
+      "id": "V3",
+      "cmd": "php -d memory_limit=1G vendor/bin/pest tests/Arch --fail-on-skipped",
+      "expect": "exit 0",
+      "kind": "acceptance"
+    },
+    {
+      "id": "V4",
+      "cmd": "php -d memory_limit=1G vendor/bin/pest tests/Feature/Parity tests/Feature/InactiveCost tests/Regression --fail-on-skipped",
+      "expect": "exit 0",
+      "kind": "acceptance"
+    },
+    {
+      "id": "V5",
+      "cmd": "composer analyse && composer lint:check && composer refactor:check && composer api:check",
+      "expect": "exit 0",
+      "kind": "acceptance"
+    },
+    {
+      "id": "V6",
+      "cmd": "composer test",
+      "expect": "exit 0",
+      "kind": "impact"
+    }
+  ],
+  "deliverables": [
+    "Module-owned FilterQuery/FilterGuard",
+    "Positional closure filters with compile-time check",
+    "i4 entries of EligibilityBuilder/QueryScopeDirectory gone"
+  ],
+  "route": {
+    "class": "implementation",
+    "effort": "high"
+  },
+  "review": {
+    "mode": "none"
+  },
+  "authority": {
+    "kind": "routine"
+  },
+  "rag": {
+    "need": "none",
+    "status": "not_needed"
+  },
+  "result": {
+    "started_at": "2026-10-13T11:43:10Z",
+    "finished_at": "2026-10-13T14:03:03Z",
+    "executor": {
+      "provider": "claude-code",
+      "model": "claude-opus-5-5",
+      "effort": "high",
+      "session": "d59e5952-a497-4a0b-92d5-d6120fe68c1f"
+    },
+    "registered_by": {
+      "provider": "claude-code",
+      "model": "claude-sonnet-5-5",
+      "effort": "high"
+    },
+    "notes": "FilterQuery/FilterGuard replace PredicateBuilder/QueryGuard/PredicateQuery inside the Scopes module; closure filters are ($query, $runtime) only (D22); QueryScopeDirectory keeps its own label/match/search helpers. V1-V6 green incl. composer test 4753.",
+    "deviations": [
+      "V2 adjusted: core PredicateBuilder/PredicateQuery/QueryGuard files excluded from the grep until they move in P3.4. V3-V6 are shared batch runs."
+    ],
+    "checks": [
+      {
+        "id": "V1",
+        "exit": 0,
+        "at": "2026-10-13T14:03:03Z",
+        "evidence": "plans/2026.10.10-№1-AZGUARD-CORE-STABILIZATION/artifacts/evidence/P3.2/V1.json"
+      },
+      {
+        "id": "V2",
+        "exit": 0,
+        "at": "2026-10-13T14:03:03Z",
+        "evidence": "plans/2026.10.10-№1-AZGUARD-CORE-STABILIZATION/artifacts/evidence/P3.2/V2.json"
+      },
+      {
+        "id": "V3",
+        "exit": 0,
+        "at": "2026-10-13T14:03:03Z",
+        "evidence": "plans/2026.10.10-№1-AZGUARD-CORE-STABILIZATION/artifacts/evidence/P3.2/V3.json"
+      },
+      {
+        "id": "V4",
+        "exit": 0,
+        "at": "2026-10-13T14:03:03Z",
+        "evidence": "plans/2026.10.10-№1-AZGUARD-CORE-STABILIZATION/artifacts/evidence/P3.2/V4.json"
+      },
+      {
+        "id": "V5",
+        "exit": 0,
+        "at": "2026-10-13T14:03:03Z",
+        "evidence": "plans/2026.10.10-№1-AZGUARD-CORE-STABILIZATION/artifacts/evidence/P3.2/V5.json"
+      },
+      {
+        "id": "V6",
+        "exit": 0,
+        "at": "2026-10-13T14:03:03Z",
+        "evidence": "plans/2026.10.10-№1-AZGUARD-CORE-STABILIZATION/artifacts/evidence/P3.2/V6.json"
+      }
+    ],
+    "evidence": [
+      "plans/2026.10.10-№1-AZGUARD-CORE-STABILIZATION/artifacts/evidence/P3.2/V1.json",
+      "plans/2026.10.10-№1-AZGUARD-CORE-STABILIZATION/artifacts/evidence/P3.2/V2.json",
+      "plans/2026.10.10-№1-AZGUARD-CORE-STABILIZATION/artifacts/evidence/P3.2/V3.json",
+      "plans/2026.10.10-№1-AZGUARD-CORE-STABILIZATION/artifacts/evidence/P3.2/V4.json",
+      "plans/2026.10.10-№1-AZGUARD-CORE-STABILIZATION/artifacts/evidence/P3.2/V5.json",
+      "plans/2026.10.10-№1-AZGUARD-CORE-STABILIZATION/artifacts/evidence/P3.2/V6.json"
+    ]
+  },
+  "updated_at": "2026-10-13T14:03:03Z"
+}
