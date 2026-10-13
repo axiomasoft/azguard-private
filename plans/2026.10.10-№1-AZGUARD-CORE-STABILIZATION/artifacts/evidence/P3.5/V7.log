@@ -1,0 +1,18 @@
+### composer test:db -- pgsql --parallel  (exit 0)
+> Composer\Config::disableProcessTimeout
+> @php bin/test-db.php 'pgsql' '--parallel'
+[pgsql] php -d memory_limit=1G vendor/bin/pest --fail-on-skipped --exclude-group=server-skip --group=database --parallel --processes=4 --passthru-php='-d memory_limit=1G'
+{"tool":"pest","result":"passed","tests":746,"passed":746,"assertions":4786,"duration_ms":219991}
+
+### composer test:db -- mysql --parallel  (exit 0)
+> Composer\Config::disableProcessTimeout
+> @php bin/test-db.php 'mysql' '--parallel'
+[mysql] php -d memory_limit=1G vendor/bin/pest --fail-on-skipped --exclude-group=server-skip --group=database --parallel --processes=4 --passthru-php='-d memory_limit=1G'
+{"tool":"pest","result":"passed","tests":746,"passed":746,"assertions":4786,"duration_ms":1433984}
+
+### composer test:db -- mariadb --parallel  (exit 0)
+> Composer\Config::disableProcessTimeout
+> @php bin/test-db.php 'mariadb' '--parallel'
+[mariadb] php -d memory_limit=1G vendor/bin/pest --fail-on-skipped --exclude-group=server-skip --group=database --parallel --processes=4 --passthru-php='-d memory_limit=1G'
+{"tool":"pest","result":"passed","tests":746,"passed":746,"assertions":4786,"duration_ms":857922}
+
