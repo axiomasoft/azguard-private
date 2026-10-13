@@ -75,7 +75,7 @@ final readonly class Panel
         private array $resourceScopes = [],
         /** @var list<ChangePipe|class-string<ChangePipe>|Closure> */
         private array $changingPipes = [],
-        /** @var list<array{participant: ChangeParticipant, tables: list<string>}> */
+        /** @var list<array{participant: ChangeParticipant|class-string<ChangeParticipant>, tables: list<string>}> */
         private array $changeParticipants = [],
         /** @var list<SubjectDescriptor> */
         private array $subjectDescriptors = [],
@@ -166,7 +166,7 @@ final readonly class Panel
      * Participants of the write operations with the base names of the tables each declared, in the order provider,
      * plugins, `configure`.
      *
-     * @return list<array{participant: ChangeParticipant, tables: list<string>}>
+     * @return list<array{participant: ChangeParticipant|class-string<ChangeParticipant>, tables: list<string>}>
      *
      * @internal read by the change pipeline and the panel fingerprint
      */

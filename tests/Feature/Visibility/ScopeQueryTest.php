@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use AzGuard\Authorization\Internal\Query\ResourceContextMapping;
 use AzGuard\Context\AssignmentScopeDeclaration;
 use AzGuard\Context\AssignmentScopeMode;
 use AzGuard\Context\AssignmentScopeRuntime;
@@ -135,9 +136,19 @@ it('keeps an OR inside the access adapter conjoined with the definition filters 
         ->and($visibility->visibleTo($panel, VisibilityProject::query(), W::subject(), 'orders.view')->orderBy('id')->pluck('id')->all())->toBe([1, 4]);
 });
 
-it('raises scope_query for every false answer of a queryable evaluator, also for a global request', function (): void {
-    $evaluator = new class implements QueryableAssignmentScopeEvaluator
+/**
+ * A queryable evaluator that answers `$global` for a global runtime and, for a concrete one, narrows to Paris
+ * (`$concrete` true) or refuses; it keeps the contexts it was asked about.
+ */
+function specializingEvaluator(bool $global, bool $concrete): QueryableAssignmentScopeEvaluator
+{
+    return new class($global, $concrete) implements QueryableAssignmentScopeEvaluator
     {
+        /** @var list<string|null> */
+        public array $asked = [];
+
+        public function __construct(private readonly bool $global, private readonly bool $concrete) {}
+
         public function validate(AssignmentScopeDefinition $definition, ?AssignmentScopeDefinition $registered): void {}
 
         public function allows(AssignmentScopeRuntime $runtime, ResolvedAssignmentScope $resolved): bool
@@ -150,14 +161,66 @@ it('raises scope_query for every false answer of a queryable evaluator, also for
             return array_fill(0, count($checks), true);
         }
 
-        public function eligibleContexts(AssignmentScopeRuntime $runtime, QueryableAssignmentScopeDefinition $definition, Builder $contexts, Builder $universe): bool
+        public function eligibleContexts(AssignmentScopeRuntime $runtime, QueryableAssignmentScopeDefinition $definition, Builder $contexts): bool
         {
-            return ! $runtime->scope->context->isGlobal();
+            $this->asked[] = $runtime->scope->context->id();
+
+            if ($runtime->scope->context->isGlobal()) {
+                return $this->global;
+            }
+            $contexts->where('city', 'Paris');
+
+            return $this->concrete;
         }
     };
+}
+
+/** @return list<int> ids of the projects a global grant of tenant A lists through `$evaluator` */
+function specializedList(QueryableAssignmentScopeEvaluator $evaluator): array
+{
+    app()->instance($evaluator::class, $evaluator);
+    W::$tenanted = true;
+    [$visibility, $panel] = W::compile(new VisibilitySource(direct: [W::grant()]), static fn (PanelBuilder $p) => $p
+        ->assignmentScopes(new AssignmentScopeDeclaration(AssignmentScopeMode::Inherit, [new VisibilityProjectScope], evaluator: $evaluator::class)), mode: 'none', tenant: true);
+
+    return $visibility->visibleTo($panel, VisibilityProject::query(), W::subject(), 'orders.view', W::scope())->orderBy('id')->pluck('id')->all();
+}
+
+it('raises scope_query when a queryable evaluator refuses a concrete context', function (): void {
+    $evaluator = specializingEvaluator(global: false, concrete: false);
     app()->instance($evaluator::class, $evaluator);
 
-    expect(scopeQueryReason($evaluator::class))->toBe('scope_query');
+    expect(scopeQueryReason($evaluator::class))->toBe('scope_query')
+        ->and(fn () => specializedList($evaluator))->toThrow(VisibilityNotSupportedException::class, 'scope_query');
+});
+
+it('asks again once per owner context, with its concrete runtime, when the evaluator refuses a global runtime', function (): void {
+    $evaluator = specializingEvaluator(global: false, concrete: true);
+
+    // Tenant A owns projects 1–3; only project 1 is in Paris. Project 4 (Paris, tenant B) is never asked about.
+    expect(specializedList($evaluator))->toBe([1])
+        ->and(array_values(array_unique($evaluator->asked)))->toEqualCanonicalizing([null, '1', '2', '3']);
+});
+
+it('does not specialize a global runtime the evaluator expresses at once', function (): void {
+    $evaluator = specializingEvaluator(global: true, concrete: true);
+
+    expect(specializedList($evaluator))->toBe([1, 2, 3])->and(array_values(array_unique($evaluator->asked)))->toBe([null]);
+});
+
+it('refuses a global list that would expand into more owner contexts than the budget', function (): void {
+    $owned = [];
+
+    for ($id = 5; $id <= 5 + ResourceContextMapping::CONTEXT_BUDGET; $id++) {
+        $owned[] = ['id' => $id, 'project_id' => null, 'org' => 'A', 'city' => 'Rome', 'state' => null, 'active' => true];
+    }
+
+    foreach (array_chunk($owned, 200) as $chunk) {
+        VisibilityProject::query()->insert($chunk);
+    }
+
+    expect(fn () => specializedList(specializingEvaluator(global: false, concrete: true)))
+        ->toThrow(VisibilityNotSupportedException::class, 'scope_runtime_budget');
 });
 
 it('budgets the contexts of the owner only, not every row of the type', function (): void {

@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace AzGuard\Changes;
 
 use AzGuard\Changes\Internal\OperationRows;
+use AzGuard\Contracts\Changes\ChangeParticipant;
+use AzGuard\Exceptions\DefinitionException;
 use AzGuard\Exceptions\InvalidConfigurationException;
 use AzGuard\Exceptions\PanelNotWritableException;
 use AzGuard\Exceptions\StaleSelectionException;
@@ -493,7 +495,8 @@ final readonly class ChangePipeline
 
     /**
      * Hands the records of the operation to the participants of the panel, in their order, inside the transaction of
-     * the operation; each gets a writer of its own tables that closes when its `record()` returns.
+     * the operation; a participant declared by class name is built for this operation, and each gets a writer of its own
+     * tables that closes when its `record()` returns.
      *
      * @param  non-empty-list<ChangeRecord>  $records
      */
@@ -507,7 +510,12 @@ final readonly class ChangePipeline
         $mutation = $writer->mutation($panel);
         $storage = $writer->descriptor();
 
-        foreach ($participants as ['participant' => $participant, 'tables' => $tables]) {
+        foreach ($participants as ['participant' => $declared, 'tables' => $tables]) {
+            $participant = is_string($declared) ? $this->container->make($declared) : $declared;
+
+            if (! $participant instanceof ChangeParticipant) {
+                throw new DefinitionException('The container did not build a '.ChangeParticipant::class.' for '.$declared.'.');
+            }
             $rows = new OperationRows($mutation, $storage, $tables);
 
             try {

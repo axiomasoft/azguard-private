@@ -2,7 +2,7 @@
   "$schema": "urn:swissknifeman:task:plan:item:v1",
   "id": "P2.15",
   "title": "Review P2",
-  "status": "todo",
+  "status": "in_progress",
   "summary": "An independent read-only review checks P2.1–P2.14 against the reference (knowledge/contracts, type-map, architecture#scope-boundary, #extension-system, #operation-chains G, p2-execution) and D15–D17, and records a GREEN or RED verdict with findings in artifacts/reviews/P2-review.md.",
   "why": "Owner requested a review of P2 (brief M14). P2 rewrites the whole extension surface, the scope eligibility and SQL paths and the transactional journal; a fresh reader catches silent signature drift, weakened tests, approximate visibility and participant bypasses that item-level checks can miss.",
   "scope": {
@@ -116,6 +116,14 @@
     "need": "none",
     "status": "not_needed"
   },
-  "result": null,
-  "updated_at": "2026-10-11T16:12:48Z"
+  "result": {
+    "started_at": "2026-10-13T09:36:22Z",
+    "executor": {
+      "provider": "claude-code",
+      "model": "claude-opus-5-5",
+      "effort": "high",
+      "session": "7958a4e7-f74c-4710-95ba-bba17f5d5f85"
+    }
+  },
+  "updated_at": "2026-10-13T09:36:22Z"
 }

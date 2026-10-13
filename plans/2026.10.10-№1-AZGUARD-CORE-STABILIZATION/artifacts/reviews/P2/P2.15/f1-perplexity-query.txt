@@ -1,0 +1,19 @@
+I design the extension SPI of a Laravel authorization package (RBAC with tenant + "assignment scope" contexts, e.g. a role granted inside project 42). Lists of visible resources are compiled to exact SQL (query filtering / data filtering, like Oso data filtering, Cerbos PlanResources, OpenFGA ListObjects, SpiceDB LookupResources).
+
+Core owns tenant isolation, scope mode, structural checks and the query compiler. An optional module implements an evaluator SPI that answers "is this assignment scope eligible" (scalar) and, for lists, narrows a guarded candidate query of context rows:
+
+  interface QueryableAssignmentScopeEvaluator {
+      // narrows $contexts (where-only guarded builder over the context model) to eligible contexts;
+      // returns false when this runtime cannot be expressed exactly -> core raises VisibilityNotSupported('scope_query')
+      public function eligibleContexts(AssignmentScopeRuntime $runtime, QueryableAssignmentScopeDefinition $definition, Builder $contexts): bool;
+  }
+
+Problem: for a GLOBAL request (a role granted tenant-wide, no concrete context), user-defined filters/adapters of the module may read runtime->scope (the concrete context), so one predicate cannot express them. The implementation currently enumerates contexts and emits one OR branch per context with a concrete runtime, bounded by a budget of 1000 contexts (over budget -> VisibilityNotSupported). To count the budget only over contexts the subject's owner/tenant can reach (not every row of the type), the implementer added a 4th parameter: Builder $universe = the owner-constrained context query (unguarded clone, the evaluator runs ->limit(1001)->get() on it).
+
+Options:
+A) Keep the 4th parameter Builder $universe in the implementer SPI (amend the frozen contract).
+B) Revert to 3 params; module enumerates all rows of the type (budget false positives on large tables).
+C) Keep 3 params; give "false for a global runtime" the meaning "cannot be expressed for all contexts at once": core enumerates the owner-reachable contexts itself (bounded budget, like its other owner/selection budgets), and calls eligibleContexts once per context with a concrete runtime on a guarded branch; false on a concrete runtime -> scope_query.
+D) Something else (e.g. a separate optional capability interface, a read-only context iterator/value instead of a Builder, a 'needsConcreteContext(): bool' declaration, partial evaluation with residual conditions).
+
+Questions: 1) How do mature authorization engines (SpiceDB LookupResources, OpenFGA ListObjects, Oso data filtering / local authorization, Cerbos query plan, Casbin, Permify, Topaz) split responsibility between the engine and user extensions/caveats/conditions for list filtering when conditions depend on the concrete resource/context, and who enumerates and bounds the fan-out? 2) Which option gives the smallest, most stable implementer SPI (no executable builders handed to plugins, positional calls, compatibility after 1.0) while keeping lists exact and bounded? 3) Pitfalls: double evaluation, N+1 queries, OR-explosion in SQL, budget semantics, consistency with the scalar check path. Give a concrete recommendation with reasoning and sources.

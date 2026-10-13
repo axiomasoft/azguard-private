@@ -69,7 +69,7 @@ final class PanelFingerprint
         }
 
         $options = array_map(static fn (object $options): mixed => CanonicalMetadata::metadata($options), $panel->optionObjects());
-        $participants = array_map(static fn (array $participant): array => ['class' => $participant['participant']::class, 'tables' => $participant['tables']],
+        $participants = array_map(static fn (array $participant): array => ['class' => is_string($participant['participant']) ? $participant['participant'] : $participant['participant']::class, 'tables' => $participant['tables']],
             $panel->participants());
 
         return [

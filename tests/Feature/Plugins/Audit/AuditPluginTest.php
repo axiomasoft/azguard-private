@@ -158,7 +158,7 @@ it('journals through the participant of the plugin, not a change pipe', function
     $panel = auditedPanel();
 
     expect($panel->changing())->toBe([])
-        ->and(array_map(static fn (array $participant): string => $participant['participant']::class, $panel->participants()))->toBe([JournalParticipant::class])
+        ->and(array_column($panel->participants(), 'participant'))->toBe([JournalParticipant::class])
         ->and(array_column($panel->participants(), 'tables'))->toBe([['audit_log']]);
 });
 

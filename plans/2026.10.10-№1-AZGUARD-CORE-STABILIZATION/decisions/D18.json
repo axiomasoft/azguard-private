@@ -1,0 +1,65 @@
+{
+  "$schema": "urn:swissknifeman:task:plan:decision:v1",
+  "id": "D18",
+  "title": "Per-context specialization of a refused global eligibleContexts() runtime",
+  "date": "2026-10-13",
+  "status": "accepted",
+  "question": "P2.10 added a fourth parameter Builder $universe (the owner-narrowed context query) to QueryableAssignmentScopeEvaluator::eligibleContexts(), beyond knowledge/contracts#scopes, so that the 1000-context budget of a global list with scope-reading filters counts only the owner's contexts. Keep the amendment, revert it, or move the enumeration?",
+  "options": [
+    {
+      "id": "A",
+      "text": "Amend the contract: keep Builder $universe (an unguarded executable builder handed to an Spi(Implement) implementer)."
+    },
+    {
+      "id": "B",
+      "text": "Revert to the reference: the module enumerates every row of the type; the budget fails large context tables (P2.10 review F3 returns)."
+    },
+    {
+      "id": "C",
+      "text": "Keep the reference signature; for a runtime without a concrete context, false means 'cannot be expressed at once': core enumerates the contexts the owner reaches (budget 1000, reason scope_runtime_budget) and asks eligibleContexts() again per context with its concrete runtime on an isolated guarded group; the branches apply only when every answer is exact; false for a concrete runtime is scope_query."
+    }
+  ],
+  "context": "Found by the P2 review (P2.15, finding F1). Owner answer 2026-10-13: «изучи подробно этот вопрос через поиск и perplexity, чтобы подобрать наилучший вариант для нашей архитектуры». Research: engines that list exactly own enumeration and bound it in the engine (SpiceDB LookupResources, OpenFGA ListObjects with server-side max results/deadline); planners resolve what they can at once and leave per-resource conditions to the engine/adapter (Cerbos PlanResources resolves principal-only conditions immediately). Perplexity recommended C: core owns candidate enumeration, owner constraints and fan-out budgets; the module owns eligibility semantics and their exact query form.",
+  "decision": "C — Keep the reference signature eligibleContexts(AssignmentScopeRuntime, QueryableAssignmentScopeDefinition, Builder $contexts): bool. Core (ResourceContextMapping) specializes a refused global runtime per owner context (at most 1000, else VisibilityNotSupportedException 'scope_runtime_budget'); every per-context answer narrows its own isolated guarded group; one false answer for a concrete runtime is 'scope_query' and nothing of the refused groups applies.",
+  "rationale": "No executable builder reaches an implementer beyond the guarded where-only group of the reference; enumeration, owner narrowing and budgets stay with core next to owner_budget and selection_budget (D7: core owns the algebra and envelope, the evaluator answers eligibility only); the SPI stays the frozen three-parameter shape; lists stay exact and bounded by the owner's contexts as on 0.7.0.",
+  "consequences": [
+    "knowledge/contracts#scopes behavior note of eligibleContexts() gains: for a runtime without a concrete context, false lets core ask again once per owner context (at most 1000, else 'scope_runtime_budget').",
+    "ScopeVisibility (Scopes module) no longer enumerates contexts; it returns false for a global runtime whose filters or adapter read the concrete context.",
+    "Evaluators are asked up to 1 + 1000 times per list compilation of such a runtime; adapters given as class names are built per context."
+  ],
+  "applies_to": [
+    "P2",
+    "P3",
+    "P4"
+  ],
+  "evidence": [
+    {
+      "kind": "repo",
+      "ref": "packages/core/src/Authorization/Internal/Query/ResourceContextMapping.php"
+    },
+    {
+      "kind": "repo",
+      "ref": "packages/core/src/Scopes/Internal/Query/ScopeVisibility.php"
+    },
+    {
+      "kind": "repo",
+      "ref": "tests/Feature/Visibility/ScopeQueryTest.php"
+    },
+    {
+      "kind": "owner",
+      "ref": "2026-10-13 P2.15 session",
+      "note": "owner delegated the choice after research"
+    },
+    {
+      "kind": "repo",
+      "ref": "plans/2026.10.10-№1-AZGUARD-CORE-STABILIZATION/artifacts/reviews/P2-review.md",
+      "note": "F1 research sources: Cerbos PlanResources docs, OpenFGA listObjects deadline/max-results, Perplexity answer"
+    }
+  ],
+  "actor": {
+    "provider": "claude-code",
+    "model": "claude-opus-5-5",
+    "effort": "high"
+  },
+  "answered_by": "agent"
+}

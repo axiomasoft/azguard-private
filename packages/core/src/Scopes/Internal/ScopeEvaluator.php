@@ -41,8 +41,8 @@ final readonly class ScopeEvaluator implements QueryableAssignmentScopeEvaluator
         return (new ScopeEligibility($this->container))->allowsMany($checks);
     }
 
-    public function eligibleContexts(AssignmentScopeRuntime $runtime, QueryableAssignmentScopeDefinition $definition, Builder $contexts, Builder $universe): bool
+    public function eligibleContexts(AssignmentScopeRuntime $runtime, QueryableAssignmentScopeDefinition $definition, Builder $contexts): bool
     {
-        return (new ScopeVisibility($this->container))->eligibleContexts($runtime, $definition, $contexts, $universe);
+        return (new ScopeVisibility($this->container))->eligibleContexts($runtime, $definition, $contexts);
     }
 }

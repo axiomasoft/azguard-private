@@ -219,11 +219,12 @@ final class PanelCompiler
     }
 
     /**
-     * Participants of `participants()` as objects with the tables they declare. Only a panel with the core writer takes
+     * Participants of `participants()` as declared, with the tables they declare. Only a panel with the core writer takes
      * participants; a participant may not declare an authority table, and two participants of one panel may not
-     * declare the same table.
+     * declare the same table. A class name is built here only to read `tables()`; the change pipeline builds it anew
+     * for every operation, like every other handler.
      *
-     * @return list<array{participant: ChangeParticipant, tables: list<string>}>
+     * @return list<array{participant: ChangeParticipant|class-string<ChangeParticipant>, tables: list<string>}>
      *
      * @throws DefinitionException
      */
@@ -257,7 +258,7 @@ final class PanelCompiler
                     $owners[$table] = $participant::class;
                     $tables[] = $table;
                 }
-                $participants[] = ['participant' => $participant, 'tables' => $tables];
+                $participants[] = ['participant' => is_string($item) && is_subclass_of($item, ChangeParticipant::class) ? $item : $participant, 'tables' => $tables];
             }
         }
 

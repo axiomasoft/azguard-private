@@ -1,0 +1,5 @@
+Recommendation: choose C for the existing three-argument SPI, with transactional predicate construction and explicitly defined concrete-context specialization. Core should own candidate enumeration, tenant/owner constraints, and all fan-out budgets; the module should own eligibility semantics and their exact query representation.
+There are two important qualifications:
+- false must remain “this invocation cannot produce an exact predicate,” not “deny.” A global failure may trigger core specialization; a concrete failure remains VisibilityNotSupported('scope_query').
+- C avoids handing plugins an additional executable universe builder, but your existing Builder $contexts does not literally satisfy “no executable builders handed to plugins.” If that is a hard requirement, use a predicate-only sink or immutable predicate result before freezing 1.0. That is a separate decision from who enumerates.
+The mature engines support this separation of concerns, but they do not all provide the same list semantics. In particular, graph lookup, conditional lookup, and database query planning are different contracts—not interchangeable implementations of an exact SQL filte

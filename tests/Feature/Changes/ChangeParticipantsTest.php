@@ -107,12 +107,28 @@ describe('compilation', function (): void {
         expect(fn () => participantPanel([$participant]))->toThrow(DefinitionException::class, 'participants() expects');
     })->with(['closure' => [fn (): Closure => static fn (): null => null], 'object' => [fn (): stdClass => new stdClass], 'other class' => [stdClass::class], 'empty name' => ['']]);
 
-    it('builds a participant named by its class through the container', function (): void {
-        app()->bind(ProbeParticipant::class, static fn (): ProbeParticipant => new ProbeParticipant('built'));
+    it('keeps a participant named by its class and builds it through the container for every operation', function (): void {
+        $built = [];
+        app()->bind(ProbeParticipant::class, static function () use (&$built): ProbeParticipant {
+            return $built[] = new ProbeParticipant('built');
+        });
         $panel = participantPanel([ProbeParticipant::class]);
 
-        expect($panel->participants())->toHaveCount(1)->and($panel->participants()[0]['participant'])->toBeInstanceOf(ProbeParticipant::class)
-            ->and($panel->participants()[0]['participant']->origin)->toBe('built')->and($panel->participants()[0]['tables'])->toBe(['probe_rows']);
+        expect($panel->participants())->toBe([['participant' => ProbeParticipant::class, 'tables' => ['probe_rows']]])->and($built)->toHaveCount(1);
+
+        W::grant($panel, 'analyst', 2, 1);
+        W::grant($panel, 'analyst', 3, 1);
+
+        expect($built)->toHaveCount(3)->and($built[2])->not->toBe($built[1]);
+    });
+
+    it('rolls the operation back when the container builds no participant for a declared class', function (): void {
+        $panel = participantPanel([ProbeParticipant::class]);
+        $keys = W::keys();
+        app()->bind(ProbeParticipant::class, static fn (): stdClass => new stdClass);
+
+        expect(fn () => W::grant($panel, 'analyst', 2, 1))->toThrow(DefinitionException::class, 'did not build')
+            ->and(W::keys())->toBe($keys)->and(EventWorld::events())->toBe([]);
     });
 });
 

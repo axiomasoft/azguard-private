@@ -11,12 +11,9 @@ use AzGuard\Contracts\Scopes\AssignmentScopeFilter;
 use AzGuard\Contracts\Scopes\ConfigurableAssignmentScopeDefinition;
 use AzGuard\Contracts\Scopes\QueryableAssignmentScopeDefinition;
 use AzGuard\Exceptions\VisibilityNotSupportedException;
-use AzGuard\Kernel\Identity\AccessScope;
-use AzGuard\Kernel\Identity\AssignmentScopeRef;
 use AzGuard\Scopes\Internal\ScopeConfiguration;
 use AzGuard\Scopes\Query\EligibilityBuilder;
 use AzGuard\Scopes\RoleBindings;
-use AzGuard\Support\ModelKey;
 use Closure;
 use Illuminate\Contracts\Container\Container;
 use Illuminate\Database\Eloquent\Builder;
@@ -25,52 +22,29 @@ use Illuminate\Database\Eloquent\Model;
 /**
  * The exact SQL form of `ScopeEligibility` for lists: the native filters of the definition and, for a contribution
  * with a role, of its bindings, each as its own AND group, and the access adapter in a separate guarded group beside
- * them. A runtime without a concrete context whose filters or adapter would inspect it is expressed as one branch
- * per context of the type, each with its concrete runtime; more than 1000 contexts cannot be expressed exactly.
+ * them. A runtime without a concrete context whose filters or adapter would inspect it is refused, so core specializes
+ * it per context.
  */
 final readonly class ScopeVisibility
 {
-    public const int CONTEXT_BUDGET = 1000;
-
     public function __construct(private Container $container) {}
 
     /**
+     * A runtime without a concrete context whose filters or adapter would inspect it cannot be expressed at once: the
+     * answer is false and core asks again for every context with its concrete runtime.
+     *
      * @param  Builder<Model>  $contexts
-     * @param  Builder<Model>  $universe  the contexts the owner can reach: the budget counts and the fan-out enumerates these
      */
-    public function eligibleContexts(AssignmentScopeRuntime $runtime, QueryableAssignmentScopeDefinition $definition, Builder $contexts,
-        Builder $universe): bool
+    public function eligibleContexts(AssignmentScopeRuntime $runtime, QueryableAssignmentScopeDefinition $definition, Builder $contexts): bool
     {
         $configurations = [$definition, ...($runtime->role === null ? [] : RoleBindings::of($runtime->role, $definition, $this->container))];
         $adapter = $this->declaredAdapter($runtime, $definition);
         $filtered = array_filter($configurations, static fn (AssignmentScopeDefinition $configuration): bool => self::filters($configuration) !== []) !== [];
 
-        if (! $runtime->scope->context->isGlobal() || ($adapter === null && ! $filtered)) {
-            $this->narrow($runtime, $definition, $configurations, $adapter, $contexts);
-
-            return true;
+        if ($runtime->scope->context->isGlobal() && ($adapter !== null || $filtered)) {
+            return false;
         }
-
-        // Filters and adapters may read runtime.scope: give every context of the type its own concrete runtime.
-        $records = $universe->limit(self::CONTEXT_BUDGET + 1)->get();
-
-        if ($records->count() > self::CONTEXT_BUDGET) {
-            throw new VisibilityNotSupportedException('scope_runtime_budget');
-        }
-        $contexts->where(function (Builder $or) use ($records, $runtime, $definition, $configurations, $adapter): void {
-            $or->whereRaw('1 = 0');
-
-            foreach ($records as $record) {
-                $ref = AssignmentScopeRef::of($definition->type(), ModelKey::of($record));
-                $local = new AssignmentScopeRuntime(panel: $runtime->panel, scope: AccessScope::in($runtime->scope->tenant, $ref), subject: $runtime->subject,
-                    user: $runtime->user, role: $runtime->role, grant: $runtime->grant, actor: $runtime->actor, actorModel: $runtime->actorModel,
-                    now: $runtime->now, phase: $runtime->phase, proposed: $runtime->proposed);
-                $or->orWhere(function (Builder $branch) use ($local, $definition, $configurations, $adapter, $ref): void {
-                    ModelKey::where($branch, (string) $ref->id());
-                    $this->narrow($local, $definition, $configurations, $adapter, $branch);
-                });
-            }
-        });
+        $this->narrow($runtime, $definition, $configurations, $adapter, $contexts);
 
         return true;
     }

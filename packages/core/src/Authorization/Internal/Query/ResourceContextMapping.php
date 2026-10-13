@@ -6,6 +6,7 @@ namespace AzGuard\Authorization\Internal\Query;
 
 use AzGuard\Authorization\EvaluationFrame;
 use AzGuard\Authorization\Query\PredicateCompiler;
+use AzGuard\Context\AssignmentScopeRuntime;
 use AzGuard\Context\Internal\ContextIdentity;
 use AzGuard\Contracts\Authorization\FiltersAccessQueries;
 use AzGuard\Contracts\Scopes\AssignmentScopeDefinition;
@@ -32,11 +33,15 @@ use ReflectionNamedType;
 /**
  * The resource's explicitly declared single context, its structural owner and the join to the resource branch. The
  * eligibility of the contexts comes from the panel's evaluator through `eligibleContexts()`, on an isolated, guarded
- * candidate query that only accepts narrowing; a runtime it cannot express exactly is unsupported, never
- * approximated.
+ * candidate query that only accepts narrowing. A global runtime it cannot express at once is specialized here into
+ * one branch per context the owner reaches (at most `CONTEXT_BUDGET`); a concrete runtime it cannot express exactly
+ * is unsupported, never approximated.
  */
 final readonly class ResourceContextMapping
 {
+    /** Contexts a global list may expand into before it is unsupported. */
+    public const int CONTEXT_BUDGET = 1000;
+
     /** @param Builder<*> $host */
     public function __construct(
         private Builder $host,
@@ -120,19 +125,69 @@ final readonly class ResourceContextMapping
         if (! $evaluator instanceof QueryableAssignmentScopeEvaluator) {
             throw new VisibilityNotSupportedException('scope_query', $evaluator === null ? null : $evaluator::class);
         }
-        $group = $query->getModel()->newModelQuery();
+        $runtime = $frame->scopeRuntime($request->subject(), common: $common);
+        $eligible = $this->eligible($evaluator, $runtime, $query);
+
+        if ($eligible === null) {
+            if (! $runtime->scope->context->isGlobal()) {
+                throw new VisibilityNotSupportedException('scope_query', $evaluator::class);
+            }
+            $eligible = $this->perContext($evaluator, $request, $frame, $common, $query);
+        }
+        $query->getQuery()->addNestedWhereQuery($eligible->getQuery());
+
+        return $query;
+    }
+
+    /**
+     * The evaluator's narrowing of an isolated, guarded group over the context model, or null when it cannot express
+     * this runtime exactly; a refused group is discarded, whatever it was narrowed to.
+     *
+     * @param  Builder<Model>  $query
+     * @return Builder<Model>|null
+     */
+    private function eligible(QueryableAssignmentScopeEvaluator $evaluator, AssignmentScopeRuntime $runtime, Builder $query): ?Builder
+    {
         $guard = new QueryGuard;
-        $contexts = new PredicateBuilder($group, $guard);
+        $contexts = new PredicateBuilder($query->getModel()->newModelQuery(), $guard);
         $shape = PredicateBuilder::shape($contexts);
 
-        if (! $evaluator->eligibleContexts($frame->scopeRuntime($request->subject(), common: $common), $this->definition, $contexts, clone $query)) {
-            throw new VisibilityNotSupportedException('scope_query', $evaluator::class);
+        if (! $evaluator->eligibleContexts($runtime, $this->definition, $contexts)) {
+            return null;
         }
         $guard->validate();
         PredicateBuilder::validateShape($contexts, $shape);
-        $query->getQuery()->addNestedWhereQuery($contexts->getQuery());
 
-        return $query;
+        return $contexts;
+    }
+
+    /**
+     * A global runtime the evaluator cannot express at once: one branch per context the owner reaches, each narrowed for
+     * its concrete runtime. Core enumerates and bounds the contexts; the branches apply only when every one is exact.
+     *
+     * @param  Builder<Model>  $owned  the context query already narrowed to the owner
+     * @return Builder<Model>
+     */
+    private function perContext(QueryableAssignmentScopeEvaluator $evaluator, AccessRequest $request, EvaluationFrame $frame, bool $common, Builder $owned): Builder
+    {
+        $records = (clone $owned)->limit(self::CONTEXT_BUDGET + 1)->get();
+
+        if ($records->count() > self::CONTEXT_BUDGET) {
+            throw new VisibilityNotSupportedException('scope_runtime_budget', $evaluator::class);
+        }
+        $branches = $owned->getModel()->newModelQuery()->whereRaw('1 = 0');
+
+        foreach ($records as $record) {
+            $ref = AssignmentScopeRef::of($this->definition->type(), ModelKey::of($record));
+            $runtime = $frame->withScope(AccessScope::in($frame->scope()->tenant, $ref))->scopeRuntime($request->subject(), common: $common);
+            $eligible = $this->eligible($evaluator, $runtime, $owned) ?? throw new VisibilityNotSupportedException('scope_query', $evaluator::class);
+            $branch = $owned->getModel()->newModelQuery();
+            ModelKey::where($branch, $ref->id() ?? '');
+            $branch->getQuery()->addNestedWhereQuery($eligible->getQuery());
+            $branches->getQuery()->addNestedWhereQuery($branch->getQuery(), 'or');
+        }
+
+        return $branches;
     }
 
     /** @param Builder<Model> $query */
