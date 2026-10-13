@@ -17,12 +17,16 @@ php artisan azguard:doctor --production    # also checks the catalog cache and t
 
 ## Storage schema
 
-Each storage records its schema in `storage_state`. AzGuard 0.7.0 uses schema 2, which adds the
-`subject_revisions` table and the `epoch` column of `panel_state` (see [Consistency](/advanced/consistency)).
-A default storage created by a pre-release at schema 1 is upgraded in place by the bundled migration when you run
-`php artisan migrate`. For a named storage, call `app(StorageSchema::class)->upgrade('name')` in a migration of
-your own. `azguard:doctor` reports `storage.schema` until the stored schema matches the configuration. The upgrade
-is not reversible: an older release refuses a storage at a schema it does not know.
+Each storage records its schema in `storage_state` (schema 2: the authority tables, `subject_revisions` and the
+`epoch` column of `panel_state`, see [Consistency](/advanced/consistency)). The core migration
+`2026_10_01_000000_create_azguard_storage` creates the six authority tables of the default storage; for a named
+storage run `php artisan azguard:storage:migration <name>`. `azguard:doctor` reports `storage.schema` when the stored
+schema does not match the configuration.
+
+The audit journal belongs to `AuditPlugin` and has its own migration. Publish it once and migrate:
+`php artisan vendor:publish --tag=azguard-audit-migrations && php artisan migrate` (default storage), or
+`php artisan azguard:audit:migration <name>` for a named storage. Until then `azguard:doctor` reports
+`audit.table` for every panel with `AuditPlugin`.
 
 ## SQLite
 

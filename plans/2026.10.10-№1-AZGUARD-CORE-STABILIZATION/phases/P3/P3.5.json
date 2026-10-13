@@ -2,7 +2,7 @@
   "$schema": "urn:swissknifeman:task:plan:item:v1",
   "id": "P3.5",
   "title": "Split storage ownership: six core tables, Audit schema, migration and health (D19, D20)",
-  "status": "todo",
+  "status": "in_progress",
   "summary": "`StorageSchema` creates/drops six core tables; the schema-1 upgrade migration, `StorageSchema::upgrade()` and the schema-1 hint go (D20); Audit gets `Audit\\Internal\\AuditSchema`, the create-only migration `2026_10_20_000000_create_azguard_audit_log` published under `azguard-audit-migrations`, the stub and `azguard:audit:migration {storage}`, `AuditServiceProvider` (publish tag + console commands) and the `audit.table` presence/shape check; core health/doctor know six tables. 0.7.0 populated fixtures are removed and the NoScope parity world seeds through the current API (D19). DDL fixtures per driver for core-only and core+Audit.",
   "why": "Phase deliverable 'six-table StorageSchema … Audit migration with fixed basename … per-storage generator'; I13 (core-only needs no audit table), I15, I16 as amended (knowledge/p3-execution#persistence). Hard risks: the audit table built by AuditSchema must be byte-identical in DDL to today's (columns, types, nullability, indexes, unique event_id, tenant pair constraint/SQLite triggers) on all four drivers; test infrastructure must create the audit table only for tests that attach Audit, otherwise I13 is faked.",
   "scope": {
@@ -292,6 +292,14 @@
     "need": "none",
     "status": "not_needed"
   },
-  "result": null,
-  "updated_at": "2026-10-13T11:36:28Z"
+  "result": {
+    "started_at": "2026-10-13T15:43:18Z",
+    "executor": {
+      "provider": "claude-code",
+      "model": "claude-opus-5-5",
+      "effort": "high",
+      "session": "6489227b-678c-4234-b409-ba5159d2c195"
+    }
+  },
+  "updated_at": "2026-10-13T15:43:18Z"
 }
