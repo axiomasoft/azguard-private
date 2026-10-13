@@ -2,7 +2,7 @@
   "$schema": "urn:swissknifeman:task:plan:item:v1",
   "id": "P3.10",
   "title": "Filament internal moves and the target-placement check",
-  "status": "todo",
+  "status": "done_with_deviations",
   "summary": "Moves the 14 Filament internals to `Filament\\Internal\\<Area>` per the oracle, then adds `tests/Arch/TargetPlacementTest.php`: every non-retired oracle row (each part of a split) is declared at its `target_path` with its target FQCN, no production file declares a superseded FQCN, and the tree under each root equals knowledge/target-structure plus the #amendments rows.",
   "why": "Phase exit: 'after P3 the tree under each root equals knowledge/target-structure'. Without a placement check a forgotten row stays at its old FQCN while all scans pass (they resolve by FQCN). Hard risk: Filament resource pages stay at `Resources\\<Resource>\\Pages` by framework convention (target-structure rule 2) — not moved.",
   "scope": {
@@ -135,6 +135,58 @@
     "need": "none",
     "status": "not_needed"
   },
-  "result": null,
-  "updated_at": "2026-10-13T11:36:28Z"
+  "result": {
+    "started_at": "2026-10-13T18:37:30Z",
+    "finished_at": "2026-10-13T19:21:29Z",
+    "executor": {
+      "provider": "claude-code",
+      "model": "claude-sonnet-5-5",
+      "effort": "medium",
+      "session": "f65b7276-a38a-4b7c-93ad-e08317a40206"
+    },
+    "notes": "14 Filament internals moved to Filament\\Internal; TargetPlacementTest (4 cases incl. non-vacuity) green on the whole tree except the row P3.11 creates (TARGET_PLACEMENT_PENDING). V1-V5 green.",
+    "deviations": [
+      "Pending list for P3.11 row"
+    ],
+    "checks": [
+      {
+        "id": "V1",
+        "exit": 0,
+        "at": "2026-10-13T19:21:29Z",
+        "evidence": "plans/2026.10.10-№1-AZGUARD-CORE-STABILIZATION/artifacts/evidence/P3.10/V1.json"
+      },
+      {
+        "id": "V2",
+        "exit": 0,
+        "at": "2026-10-13T19:21:29Z",
+        "evidence": "plans/2026.10.10-№1-AZGUARD-CORE-STABILIZATION/artifacts/evidence/P3.10/V2.json"
+      },
+      {
+        "id": "V3",
+        "exit": 0,
+        "at": "2026-10-13T19:21:29Z",
+        "evidence": "plans/2026.10.10-№1-AZGUARD-CORE-STABILIZATION/artifacts/evidence/P3.10/V3.json"
+      },
+      {
+        "id": "V4",
+        "exit": 0,
+        "at": "2026-10-13T19:21:29Z",
+        "evidence": "plans/2026.10.10-№1-AZGUARD-CORE-STABILIZATION/artifacts/evidence/P3.10/V4.json"
+      },
+      {
+        "id": "V5",
+        "exit": 0,
+        "at": "2026-10-13T19:21:29Z",
+        "evidence": "plans/2026.10.10-№1-AZGUARD-CORE-STABILIZATION/artifacts/evidence/P3.10/V5.json"
+      }
+    ],
+    "evidence": [
+      "plans/2026.10.10-№1-AZGUARD-CORE-STABILIZATION/artifacts/evidence/P3.10/V1.json",
+      "plans/2026.10.10-№1-AZGUARD-CORE-STABILIZATION/artifacts/evidence/P3.10/V2.json",
+      "plans/2026.10.10-№1-AZGUARD-CORE-STABILIZATION/artifacts/evidence/P3.10/V3.json",
+      "plans/2026.10.10-№1-AZGUARD-CORE-STABILIZATION/artifacts/evidence/P3.10/V4.json",
+      "plans/2026.10.10-№1-AZGUARD-CORE-STABILIZATION/artifacts/evidence/P3.10/V5.json"
+    ]
+  },
+  "updated_at": "2026-10-13T19:21:29Z"
 }
