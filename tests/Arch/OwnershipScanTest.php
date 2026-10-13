@@ -7,9 +7,8 @@ use AzGuard\Tests\Arch\Ownership;
 use AzGuard\Tests\Arch\SourceScan;
 
 /*
- * I2 and I3 (PLAN1 P1.4), report mode until P3 exit: the current violations must equal tests/Arch/Allowlists/i2.json and
- * i3.json exactly. A new violation fails now; a listed one that no longer occurs is stale and fails too, so the lists only
- * shrink, and every entry names the phase that removes it. At P3 exit the lists are empty and the scans block as they are.
+ * I2 and I3 (PLAN1 P1.4) block since P3.12: any violation fails, and tests/Arch/Allowlists/i2.json and i3.json stay empty.
+ * (The helper that compares a scan with an allowlist is still tested below: it is the shape a later invariant may report in.)
  *
  * The owner of a file is the owner of the oracle row whose `current_path` (`target_path` once moved) is that file; a
  * reference resolves to a row by FQCN. Oracle: tests/Arch/Fixtures/target-map.json, a byte copy of the plan artifact
@@ -399,26 +398,24 @@ it('keeps the I2 and I3 allowlists empty once core names no module (P3.7)', func
         ->and(BoundaryScan::allowlist('i3'))->toBe([]);
 });
 
-it('I2 (report mode, blocking after P3): core references no module', function (): void {
+it('I2 (blocking): core references no module', function (): void {
     $found = array_values(array_filter(
         BoundaryScan::violations(Ownership::fromOracle(), SourceScan::files()),
         static fn (array $violation): bool => $violation['invariant'] === 'I2',
     ));
-    $difference = BoundaryScan::compare($found, BoundaryScan::allowlist('i2'));
 
-    expect($difference['new'])->toBe([], 'new I2 violations: add no allowlist entry, remove the reference')
-        ->and($difference['stale'])->toBe([], 'stale I2 allowlist entries: delete them from tests/Arch/Allowlists/i2.json');
+    expect($found)->toBe([], 'I2 blocks: remove the reference; there is no allowlist')
+        ->and(BoundaryScan::allowlist('i2'))->toBe([]);
 });
 
-it('I3 (report mode, blocking after P3): modules, Filament and each other stay isolated', function (): void {
+it('I3 (blocking): modules, Filament and each other stay isolated', function (): void {
     $found = array_values(array_filter(
         BoundaryScan::violations(Ownership::fromOracle(), SourceScan::files()),
         static fn (array $violation): bool => $violation['invariant'] === 'I3',
     ));
-    $difference = BoundaryScan::compare($found, BoundaryScan::allowlist('i3'));
 
-    expect($difference['new'])->toBe([], 'new I3 violations: add no allowlist entry, remove the reference')
-        ->and($difference['stale'])->toBe([], 'stale I3 allowlist entries: delete them from tests/Arch/Allowlists/i3.json');
+    expect($found)->toBe([], 'I3 blocks: remove the reference; there is no allowlist')
+        ->and(BoundaryScan::allowlist('i3'))->toBe([]);
 });
 
 it('reports a new and a stale violation against an allowlist', function (): void {

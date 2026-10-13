@@ -58,7 +58,7 @@
         },
         "console": {
             "src": ["packages/core/src/Laravel", "packages/core/src/Diagnostics", "packages/core/src/AzGuard.php", "packages/core/src/AzGuardServiceProvider.php"],
-            "tests": ["Feature/Console", "Feature/Diagnostics", "Feature/Laravel", "Feature/ServiceProviderTest.php", "Unit/ServiceProviderContractTest.php"],
+            "tests": ["Feature/Console", "Feature/Diagnostics", "Feature/Laravel", "Feature/Activation", "Feature/ServiceProviderTest.php", "Unit/ServiceProviderContractTest.php"],
             "uses": ["kernel", "catalog", "storage", "sources", "changes", "authorization", "visibility", "testing-kit", "scopes", "audit", "devtools"]
         },
         "filament": {
@@ -98,7 +98,7 @@
     },
     "database": [
         "Feature/Storage", "Feature/Sources/Database", "Feature/Changes", "Feature/Visibility", "Feature/Directories",
-        "Feature/Parity", "Contracts", "Modules/Scopes/Contracts", "Modules/Audit/Contracts", "Engines"
+        "Feature/Parity", "Feature/Activation", "Contracts", "Modules/Scopes/Contracts", "Modules/Audit/Contracts", "Engines"
     ],
     "global": ["composer.json", "composer.lock", "phpunit.xml", "tests/Pest.php", "tests/TestCase.php", "tests/zones.json", "bin/test-changed.php", "tests/Support", "tests/Fixtures", "packages/core/composer.json", "packages/filament/composer.json"]
 }

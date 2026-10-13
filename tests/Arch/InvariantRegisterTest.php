@@ -138,3 +138,16 @@ it('keeps each allowlist inside the phase from which its invariant blocks', func
     }
 
 });
+
+it('blocks I2, I3, I4, I5 and I13 now and keeps their allowlists empty (P3.12)', function (): void {
+    $register = array_column(invariantRegister(), null, 'id');
+    $lists = [
+        'I2' => __DIR__.'/Allowlists/i2.json', 'I3' => __DIR__.'/Allowlists/i3.json', 'I4' => __DIR__.'/Allowlists/i4.json', 'I5' => __DIR__.'/Allowlists/i5.json',
+        'I13' => dirname(__DIR__).'/Fixtures/InactiveCost/allowlist.json',
+    ];
+
+    foreach ($lists as $id => $file) {
+        expect($register[$id]['blocking'])->toBe('now', $id.' must block')
+            ->and(json_decode((string) file_get_contents($file), true, flags: JSON_THROW_ON_ERROR))->toBe([], $id.' has an allowlist entry');
+    }
+});

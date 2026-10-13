@@ -71,6 +71,9 @@ jobs:
       - name: Core and Filament archives in a clean Laravel 13 app
         run: bash bin/consumer-fixture.sh --laravel=13 --version="${GITHUB_REF_NAME#v}" --with-filament
 
+      - name: Core archive without module roots in a clean Laravel 13 app
+        run: bash bin/consumer-fixture.sh core-only --laravel=13 --version="${GITHUB_REF_NAME#v}"
+
       - name: Require changelog section in tagged commit
         run: |
           version="${GITHUB_REF_NAME#v}"

@@ -270,3 +270,7 @@ jobs:
 
       - name: Core and Filament archives in a clean Laravel 13 app
         run: bash bin/consumer-fixture.sh --laravel=13 --with-filament
+
+      # Blocking: the core archive without modules/ boots, migrates, passes the doctor, grants and checks (I13, I19).
+      - name: Core archive without module roots in a clean Laravel 13 app
+        run: bash bin/consumer-fixture.sh core-only --laravel=13

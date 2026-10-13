@@ -15,7 +15,7 @@
         "checks": [
             "tests/Arch/OwnershipScanTest.php"
         ],
-        "blocking": "after P3",
+        "blocking": "now",
         "owner_phase": "P1"
     },
     {
@@ -24,7 +24,7 @@
         "checks": [
             "tests/Arch/OwnershipScanTest.php"
         ],
-        "blocking": "after P3",
+        "blocking": "now",
         "owner_phase": "P1"
     },
     {
@@ -34,7 +34,7 @@
             "tests/Arch/ApiManifestTest.php",
             "tests/Arch/Allowlists/i4.json"
         ],
-        "blocking": "after P3",
+        "blocking": "now",
         "owner_phase": "P2"
     },
     {
@@ -43,7 +43,7 @@
         "checks": [
             "tests/Arch/AutoloadOwnershipTest.php"
         ],
-        "blocking": "after P3",
+        "blocking": "now",
         "owner_phase": "P3"
     },
     {
@@ -131,7 +131,7 @@
         "checks": [
             "tests/Feature/InactiveCost/CoreOnlyPanelTest.php"
         ],
-        "blocking": "after P3",
+        "blocking": "now",
         "owner_phase": "P3"
     },
     {

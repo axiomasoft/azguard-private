@@ -9,6 +9,7 @@ autoload, undiscovered providers) that the monorepo test suite cannot see.
 ```bash
 bash bin/consumer-fixture.sh                      # core archive, Laravel 13
 bash bin/consumer-fixture.sh --with-filament      # core and Filament archives
+bash bin/consumer-fixture.sh core-only            # the core archive without modules/ (no Scopes, Audit, DevTools)
 bash bin/consumer-fixture.sh --laravel=12 --version=0.7.0 --keep
 ```
 
@@ -18,6 +19,7 @@ bash bin/consumer-fixture.sh --laravel=12 --version=0.7.0 --keep
 | `--version=V` | Version stamped into the **copies** of the package manifests (default `0.7.0`) |
 | `--with-filament` | Also install `axiomasoft/azguard-filament` |
 | `--keep` | Keep the temporary directory and print its path |
+| `core-only` | Build the core archive without `modules/` (module providers and PSR-4 roots removed), install it and run `fixtures/consumer/core-only`: migrate, `azguard:doctor`, one grant, one check, no module command registered. Does not combine with `--with-filament` |
 
 What the script does:
 
@@ -34,8 +36,8 @@ result is `unavailable`, never green.
 
 ## CI
 
-The `consumer-fixture` job in `.github/workflows/tests.yml` runs both variants on PHP 8.4 and Laravel 13. It is
-non-blocking (`continue-on-error: true`) until the fixtures below exist.
+The `consumer-fixture` job in `.github/workflows/tests.yml` runs the core, core + Filament and core-only variants on PHP 8.4
+and Laravel 13; the core-only step blocks the job.
 
 ## Planned fixtures
 

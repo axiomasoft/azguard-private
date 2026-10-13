@@ -14,9 +14,9 @@ use AzGuard\Tests\Arch\SourceScan;
  * The supported surface (D9): publication is the #[Api]/#[Spi] attribute, the attributed types equal the markers of the
  * type map (tests/Arch/Fixtures/target-map.json), and the generated api-manifest.json files are current.
  *
- * I4 (report mode until P3 exit): files the oracle gives to a module or to Filament, and the stubs of core, reference
- * only supported core types and the members their manifests list. The current violations must equal
- * tests/Arch/Allowlists/i4.json exactly; entries with owner P2 are the work list of P2.2–P2.13.
+ * I4 (blocking since P3.12): files the oracle gives to a module or to Filament, and the stubs of core, reference
+ * only supported core types and the members their manifests list. Any violation fails; tests/Arch/Allowlists/i4.json
+ * stays empty.
  */
 
 function apiManifestRoot(): string
@@ -257,14 +257,13 @@ it('keeps the I4 allowlist empty once the modules and their stubs use the suppor
     expect(BoundaryScan::allowlist('i4'))->toBe([]);
 });
 
-it('I4 (report mode, blocking after P3): modules, Filament and stubs use only supported core types and members', function (): void {
+it('I4 (blocking): modules, Filament and stubs use only supported core types and members', function (): void {
     $ownership = Ownership::fromOracle();
     $found = ApiUsage::i4Violations($ownership, ApiUsage::i4Files($ownership), ApiUsage::supported());
-    $difference = BoundaryScan::compare($found, BoundaryScan::allowlist('i4'));
 
     expect(ApiUsage::i4Files($ownership))->toContain(apiManifestRoot().'/packages/core/modules/devtools/stubs/policy.stub', apiManifestRoot().'/packages/core/modules/audit/stubs/audit-migration.stub')
-        ->and($difference['new'])->toBe([], 'new I4 violations: use a supported type or member, add no allowlist entry')
-        ->and($difference['stale'])->toBe([], 'stale I4 allowlist entries: delete them from tests/Arch/Allowlists/i4.json');
+        ->and($found)->toBe([], 'I4 blocks: use a supported type or member; there is no allowlist')
+        ->and(BoundaryScan::allowlist('i4'))->toBe([]);
 });
 
 it('I4: reports an unsupported core type and a member the manifest does not list, and nothing for a listed one', function (): void {

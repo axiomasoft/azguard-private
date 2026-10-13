@@ -8,11 +8,11 @@ use AzGuard\Tests\Arch\Ownership;
 use AzGuard\Tests\Arch\SourceScan;
 
 /*
- * I5 (PLAN1 P1.4), report mode until P3 exit: every production FQCN under packages/<name>/src and
+ * I5 (PLAN1 P1.4), blocking since P3.12: every production FQCN under packages/<name>/src and
  * packages/core/modules/<module>/src has exactly one PSR-4 owner among the `autoload` entries of packages/<name>/composer.json,
  * the authoritative classmap built from the sources has no type declared in two files, and `src/Scopes`, `src/Audit`,
- * `src/DevTools` and `src/Plugins/Audit` are reported. The current violations must equal tests/Arch/Allowlists/i5.json
- * exactly; both lists are empty at P3 exit, when the rule blocks as it is. The optimized-autoload consumer run is the
+ * `src/DevTools` and `src/Plugins/Audit` are reported. Any violation fails; tests/Arch/Allowlists/i5.json
+ * stays empty. The optimized-autoload consumer run is the
  * consumer job of PLAN1 P1.5.
  */
 
@@ -139,11 +139,11 @@ it('reports the directories the transition removes, in every production root', f
     ]);
 });
 
-it('I5 (report mode, blocking after P3): every production type has one autoload owner', function (): void {
-    $difference = BoundaryScan::compare(AutoloadOwnership::violations(Ownership::fromOracle()), BoundaryScan::allowlist('i5'));
+it('I5 (blocking): every production type has one autoload owner', function (): void {
+    $found = AutoloadOwnership::violations(Ownership::fromOracle());
 
-    expect($difference['new'])->toBe([], 'new I5 violations: add no allowlist entry, fix the autoload ownership')
-        ->and($difference['stale'])->toBe([], 'stale I5 allowlist entries: delete them from tests/Arch/Allowlists/i5.json');
+    expect($found)->toBe([], 'I5 blocks: fix the autoload ownership; there is no allowlist')
+        ->and(BoundaryScan::allowlist('i5'))->toBe([]);
 });
 
 it('keeps the I5 allowlist empty once the module files moved to their roots (P3.4)', function (): void {

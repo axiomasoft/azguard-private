@@ -2,10 +2,13 @@
 
 declare(strict_types=1);
 
+use AzGuard\Audit\AuditPlugin;
+use AzGuard\Audit\AuditServiceProvider;
 use AzGuard\Authorization\Internal\Authorizer;
 use AzGuard\Changes\ChangeStatus;
 use AzGuard\Context\AssignmentScopeDeclaration;
 use AzGuard\Context\AssignmentScopeMode;
+use AzGuard\DevTools\DevToolsServiceProvider;
 use AzGuard\Kernel\Decision\AccessRequest;
 use AzGuard\Kernel\Identity\PermissionKey;
 use AzGuard\Kernel\Identity\SubjectRef;
@@ -13,6 +16,7 @@ use AzGuard\Kernel\Identity\TenantRef;
 use AzGuard\Panels\Panel;
 use AzGuard\Panels\PanelBuilder;
 use AzGuard\Scopes\Internal\ScopeEligibility;
+use AzGuard\Scopes\ScopesPlugin;
 use AzGuard\Tests\Arch\Ownership;
 use AzGuard\Tests\Fixtures\Changes\ChangeWorld;
 use AzGuard\Tests\Fixtures\Changes\Roles\RootRole;
@@ -27,9 +31,10 @@ use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 /*
- * I13 harness (PLAN1 P1.4), report mode until P3: an inactive module costs nothing. A core-only panel (no Audit
+ * I13 harness (PLAN1 P1.4), blocking since P3.12: an inactive module costs nothing. A core-only panel (no Audit
  * plugin, scope mode `None`) boots, checks and grants; during that run the container may resolve no
  * service whose type the ownership oracle gives to scopes, audit or devtools (counted through the container
  * `resolving` callback), no query may touch a module table (counted through `DB::listen`), the doctor may not need a
@@ -243,4 +248,18 @@ it('I13: no DevTools command is registered when the application does not run in 
 
 it('keeps the inactive-cost allowlist empty once Audit owns its table (P3.5)', function (): void {
     expect(inactiveCostAllowlist())->toBe([]);
+});
+
+it('I13: with the module roots installed and their providers registered, a core-only panel still costs nothing', function (): void {
+    // Control: the modules are really there — their types autoload and the providers of Audit and DevTools are registered.
+    $present = [
+        class_exists(AuditPlugin::class), class_exists(ScopesPlugin::class),
+        app()->getProviders(AuditServiceProvider::class) !== [], app()->getProviders(DevToolsServiceProvider::class) !== [],
+    ];
+    $run = coreOnlyRun();
+
+    expect($present)->toBe([true, true, true, true])
+        ->and($run['behavior']['granted'])->toBe(ChangeStatus::Applied)
+        ->and(inactiveCostKeys($run['costs']))->toBe([])
+        ->and(Schema::connection(CrmWorld::storage()->connectionName())->hasTable(CrmWorld::storage()->prefix().'audit_log'))->toBeFalse();
 });

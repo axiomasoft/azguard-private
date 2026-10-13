@@ -2,7 +2,7 @@
   "$schema": "urn:swissknifeman:task:plan:item:v1",
   "id": "P3.12",
   "title": "Activation matrix, core without module roots, and blocking boundaries",
-  "status": "todo",
+  "status": "in_progress",
   "summary": "Builds the activation-matrix fixtures and test (knowledge/p3-execution#activation), adds the `core-only` consumer mode that installs the core archive without `modules/` and proves boot/doctor/grant/check, and turns I2, I3, I4, I5 and I13 blocking with empty allowlists.",
   "why": "Phase exit: 'core boots, checks and writes without module roots'; release-gate conditions 1–2; architecture#operation-chains I. Hard risks: the inactive-cost assertions must observe real container resolutions and queries (not a mocked container); the core-only archive must really lack module files and providers, otherwise I13 proves nothing.",
   "scope": {
@@ -169,6 +169,14 @@
     "need": "none",
     "status": "not_needed"
   },
-  "result": null,
-  "updated_at": "2026-10-13T11:36:28Z"
+  "result": {
+    "started_at": "2026-10-13T20:39:32Z",
+    "executor": {
+      "provider": "claude-code",
+      "model": "claude-sonnet-5-5",
+      "effort": "high",
+      "session": "d5c0ac3a-b857-41e1-9c7c-d7ac82baa845"
+    }
+  },
+  "updated_at": "2026-10-13T20:39:32Z"
 }
