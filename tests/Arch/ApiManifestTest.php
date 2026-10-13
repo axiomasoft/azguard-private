@@ -253,14 +253,8 @@ it('reports a missing, a second and a wrong enum tag', function (): void {
     ]);
 });
 
-it('keeps every I4 allowlist entry well formed and owned by P2 or P3', function (): void {
-    foreach (BoundaryScan::allowlist('i4') as $entry) {
-        expect(array_keys($entry))->toBe(['file', 'reference', 'kind', 'invariant', 'owner_phase'])
-            ->and($entry['invariant'])->toBe('I4')
-            ->and($entry['kind'])->toBeIn(['type', 'member'])
-            ->and($entry['owner_phase'])->toBeIn(['P2', 'P3'], 'i4 entry '.$entry['file'].' '.$entry['reference'].' has no owner phase')
-            ->and(is_file(apiManifestRoot().'/'.$entry['file']))->toBeTrue($entry['file'].' is not a file');
-    }
+it('keeps the I4 allowlist empty once the modules and their stubs use the supported surface only (P3.7)', function (): void {
+    expect(BoundaryScan::allowlist('i4'))->toBe([]);
 });
 
 it('I4 (report mode, blocking after P3): modules, Filament and stubs use only supported core types and members', function (): void {
@@ -268,7 +262,7 @@ it('I4 (report mode, blocking after P3): modules, Filament and stubs use only su
     $found = ApiUsage::i4Violations($ownership, ApiUsage::i4Files($ownership), ApiUsage::supported());
     $difference = BoundaryScan::compare($found, BoundaryScan::allowlist('i4'));
 
-    expect(ApiUsage::i4Files($ownership))->toContain(apiManifestRoot().'/packages/core/stubs/policy.stub')
+    expect(ApiUsage::i4Files($ownership))->toContain(apiManifestRoot().'/packages/core/modules/devtools/stubs/policy.stub', apiManifestRoot().'/packages/core/modules/audit/stubs/audit-migration.stub')
         ->and($difference['new'])->toBe([], 'new I4 violations: use a supported type or member, add no allowlist entry')
         ->and($difference['stale'])->toBe([], 'stale I4 allowlist entries: delete them from tests/Arch/Allowlists/i4.json');
 });

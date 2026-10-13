@@ -17,7 +17,6 @@ use AzGuard\Contracts\Panels\PanelRegistry as PanelRegistryContract;
 use AzGuard\Events\EventObservers;
 use AzGuard\Exceptions\InvalidConfigurationException;
 use AzGuard\Laravel\About\AboutSection;
-use AzGuard\Laravel\Console\Commands\AuditPruneCommand;
 use AzGuard\Laravel\Console\Commands\CatalogCacheCommand;
 use AzGuard\Laravel\Console\Commands\CatalogClearCommand;
 use AzGuard\Laravel\Console\Commands\CatalogListCommand;
@@ -25,16 +24,6 @@ use AzGuard\Laravel\Console\Commands\DoctorCommand;
 use AzGuard\Laravel\Console\Commands\ExplainCommand;
 use AzGuard\Laravel\Console\Commands\GrantsListCommand;
 use AzGuard\Laravel\Console\Commands\GrantsPruneCommand;
-use AzGuard\Laravel\Console\Commands\InstallCommand;
-use AzGuard\Laravel\Console\Commands\Make\MakeModelsCommand;
-use AzGuard\Laravel\Console\Commands\Make\MakePanelCommand;
-use AzGuard\Laravel\Console\Commands\Make\MakePermissionCommand;
-use AzGuard\Laravel\Console\Commands\Make\MakePipeCommand;
-use AzGuard\Laravel\Console\Commands\Make\MakePluginCommand;
-use AzGuard\Laravel\Console\Commands\Make\MakePolicyCommand;
-use AzGuard\Laravel\Console\Commands\Make\MakeRestrictionCommand;
-use AzGuard\Laravel\Console\Commands\Make\MakeRoleCommand;
-use AzGuard\Laravel\Console\Commands\Make\MakeSourceCommand;
 use AzGuard\Laravel\Console\Commands\PanelsListCommand;
 use AzGuard\Laravel\Console\Commands\PermissionsCreateCommand;
 use AzGuard\Laravel\Console\Commands\PermissionsDeleteCommand;
@@ -48,7 +37,6 @@ use AzGuard\Laravel\Console\Commands\RolesRevokeCommand;
 use AzGuard\Laravel\Console\Commands\SourcesListCommand;
 use AzGuard\Laravel\Console\Commands\StateResetCommand;
 use AzGuard\Laravel\Console\Commands\StorageMigrationCommand;
-use AzGuard\Laravel\Console\Commands\StubsCommand;
 use AzGuard\Laravel\Gate\GateBridge;
 use AzGuard\Laravel\Http\Middleware\CheckPermission;
 use AzGuard\Laravel\Http\Middleware\EnterPanel;
@@ -82,8 +70,6 @@ final class AzGuardServiceProvider extends ServiceProvider
         $this->mergeConfigFrom(__DIR__.'/../config/azguard.php', 'azguard');
 
         $this->app->singletonIf(ConfigSections::class);
-        // DevTools owns the scaffold section; core registers it on its behalf until the module has its provider (P3).
-        $this->app->make(ConfigSections::class)->own('scaffold', AzGuardConfig::validateScaffold(...));
 
         $this->app->singleton(
             AzGuardConfig::class,
@@ -156,9 +142,7 @@ final class AzGuardServiceProvider extends ServiceProvider
                 PanelsListCommand::class, SourcesListCommand::class, CatalogListCommand::class, RolesListCommand::class, GrantsListCommand::class,
                 PermissionsShowCommand::class, RolesGrantCommand::class, RolesRevokeCommand::class, PermissionsGrantCommand::class,
                 PermissionsRevokeCommand::class, PermissionsCreateCommand::class, PermissionsDeleteCommand::class, RolesRenameKeyCommand::class,
-                GrantsPruneCommand::class, AuditPruneCommand::class, StateResetCommand::class, StubsCommand::class,
-                InstallCommand::class, MakePanelCommand::class, MakePermissionCommand::class, MakeRoleCommand::class, MakePolicyCommand::class, MakeSourceCommand::class,
-                MakePluginCommand::class, MakeRestrictionCommand::class, MakePipeCommand::class, MakeModelsCommand::class,
+                GrantsPruneCommand::class, StateResetCommand::class,
             ]);
         }
         $this->scheduleMaintenance();

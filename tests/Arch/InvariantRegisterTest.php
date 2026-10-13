@@ -129,6 +129,8 @@ it('keeps each allowlist inside the phase from which its invariant blocks', func
     foreach ($lists as $id => $file) {
         $entries = json_decode((string) file_get_contents($file), true, flags: JSON_THROW_ON_ERROR);
 
+        expect($entries)->toBeList($id.' allowlist is not a list');
+
         foreach ($entries as $entry) {
             expect($register[$id]['blocking'])->toMatch('/\Aafter P\d\z/', $id.' has an allowlist and must name the phase it empties by');
             expect((int) substr($entry['owner_phase'], 1))->toBeLessThanOrEqual((int) substr($register[$id]['blocking'], -1), $id.' lists a violation owned later than the phase it blocks from');

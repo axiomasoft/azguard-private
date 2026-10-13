@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace AzGuard\Tests;
 
+use AzGuard\Audit\AuditServiceProvider;
 use AzGuard\AzGuardServiceProvider;
+use AzGuard\DevTools\DevToolsServiceProvider;
 use AzGuard\Filament\AzGuardFilamentServiceProvider;
 use AzGuard\Tests\Support\TestDatabase;
 use Closure;
@@ -79,6 +81,8 @@ class TestCase extends Orchestra
     {
         return [
             AzGuardServiceProvider::class,
+            AuditServiceProvider::class,
+            DevToolsServiceProvider::class,
             AzGuardFilamentServiceProvider::class,
         ];
     }

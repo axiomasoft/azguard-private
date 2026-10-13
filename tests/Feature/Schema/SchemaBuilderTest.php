@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 use AzGuard\Directories\ModelSubjectDirectory;
 use AzGuard\Directories\ModelTenantDirectory;
-use AzGuard\Directories\QueryScopeDirectory;
 use AzGuard\Exceptions\TenantMismatchException;
 use AzGuard\Kernel\Decision\PermissionAuthority;
 use AzGuard\Kernel\Identity\TenantRef;
@@ -18,6 +17,7 @@ use AzGuard\Schema\PanelSchema;
 use AzGuard\Schema\PermissionSchema;
 use AzGuard\Schema\RoleSchema;
 use AzGuard\Schema\SchemaBuilder;
+use AzGuard\Scopes\Internal\QueryScopeDirectory;
 use AzGuard\Sources\Database\DatabaseSource;
 use AzGuard\Tests\Fixtures\Changes\ChangeWorld as W;
 use AzGuard\Tests\Fixtures\Crm\CrmPermissionGrant;

@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace AzGuard\Tests\Fixtures\Scopes;
 
-use AzGuard\Contracts\Scopes\AssignmentScopeFilter;
-use AzGuard\Contracts\Scopes\ConfigurableAssignmentScopeDefinition;
 use AzGuard\Scopes\AssignmentScopeSettings;
+use AzGuard\Scopes\Contracts\AssignmentScopeFilter;
+use AzGuard\Scopes\Contracts\ConfigurableAssignmentScopeDefinition;
 use Closure;
 
 final class ConfigGenericScope extends StoreScope implements ConfigurableAssignmentScopeDefinition

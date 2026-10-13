@@ -15,13 +15,34 @@ use Illuminate\Support\Facades\Artisan;
 
 afterEach(fn () => CrmWorld::resetRuntime());
 
+/**
+ * The PSR-4 roots of the core package (module roots included) and of Filament, relative to `packages/`.
+ *
+ * @return array<string, string> directory => namespace
+ */
+function baselineProductionRoots(string $packages): array
+{
+    $roots = [];
+
+    foreach (['core', 'filament'] as $package) {
+        /** @var array{autoload: array{psr-4: array<string, string>}} $composer */
+        $composer = json_decode((string) file_get_contents("{$packages}/{$package}/composer.json"), true, flags: JSON_THROW_ON_ERROR);
+
+        foreach ($composer['autoload']['psr-4'] as $namespace => $directory) {
+            $roots[$package.'/'.rtrim($directory, '/')] = $namespace;
+        }
+    }
+
+    return $roots;
+}
+
 /** @return list<class-string<DoctorCheck>> every production doctor check, sorted by class */
 function baselineDoctorChecks(): array
 {
     $checks = [];
     $root = dirname(__DIR__, 3).'/packages';
 
-    foreach (['core/src' => 'AzGuard\\', 'filament/src' => 'AzGuard\\Filament\\'] as $directory => $namespace) {
+    foreach (baselineProductionRoots($root) as $directory => $namespace) {
         $files = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($root.'/'.$directory, FilesystemIterator::SKIP_DOTS));
 
         foreach ($files as $file) {

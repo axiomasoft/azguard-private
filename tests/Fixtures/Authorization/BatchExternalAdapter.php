@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace AzGuard\Tests\Fixtures\Authorization;
 
 use AzGuard\Context\AssignmentScopeRuntime;
-use AzGuard\Contracts\Scopes\AssignmentScopeAccessAdapter;
 use AzGuard\Kernel\Identity\AssignmentScopeRef;
+use AzGuard\Scopes\Contracts\AssignmentScopeAccessAdapter;
 use Illuminate\Database\Eloquent\Builder;
 use RuntimeException;
 

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use AzGuard\AzGuardServiceProvider;
 use AzGuard\Configuration\AzGuardConfig;
+use AzGuard\DevTools\Internal\ScaffoldConfig;
 use AzGuard\Exceptions\InvalidConfigurationException;
 use AzGuard\Panels\PanelBuilder;
 use AzGuard\Panels\PanelCompiler;
@@ -62,7 +63,10 @@ it('publishes the file with exactly the keys of the snapshot', function (): void
 it('accepts exactly the keys of the published file', function (): void {
     $snapshot = json_decode((string) file_get_contents(dirname(__DIR__, 2).'/Fixtures/Configuration/config-keys.json'), true, flags: JSON_THROW_ON_ERROR);
 
-    expect(AzGuardConfig::knownKeys())->toBe($snapshot)
+    $known = [...AzGuardConfig::knownKeys(), ...array_map(static fn (string $key): string => 'scaffold.'.$key, ScaffoldConfig::KEYS)];
+    sort($known, SORT_STRING);
+
+    expect($known)->toBe($snapshot)
         ->and(AzGuardConfig::fromRepository(new Repository(['azguard' => publishedConfiguration()])))->toBeInstanceOf(AzGuardConfig::class);
 });
 
@@ -86,22 +90,23 @@ it('reads the new sections with their defaults', function (): void {
     expect($config->gateEnabled())->toBeTrue()
         ->and($config->scheduleEnabled())->toBeTrue()
         ->and($config->pruneExpiredFrequency())->toBe('daily')
-        ->and($config->scaffoldNamespace())->toBe('App\\Guards')
-        ->and($config->scaffoldPath())->toBe('app/Guards')
+        ->and(ScaffoldConfig::fromRepository(new Repository(['azguard' => []]))->namespace)->toBe('App\\Guards')
+        ->and(ScaffoldConfig::fromRepository(new Repository(['azguard' => []]))->path)->toBe('app/Guards')
         ->and($config->defaultTenantResolvers())->toBe([])
         ->and($config->defaultScopeResolvers())->toBe([]);
 });
 
 it('normalizes the generator target and the prune frequency', function (): void {
-    $config = AzGuardConfig::fromRepository(new Repository(['azguard' => [
+    $repository = new Repository(['azguard' => [
         'schedule' => ['enabled' => false, 'prune_expired' => '0 3 * * *'],
         'scaffold' => ['namespace' => '\\Domain\\Guards\\', 'path' => 'src/Guards/'],
-    ]]));
+    ]]);
+    $config = AzGuardConfig::fromRepository($repository);
 
     expect($config->scheduleEnabled())->toBeFalse()
         ->and($config->pruneExpiredFrequency())->toBe('0 3 * * *')
-        ->and($config->scaffoldNamespace())->toBe('Domain\\Guards')
-        ->and($config->scaffoldPath())->toBe('src/Guards')
+        ->and(ScaffoldConfig::fromRepository($repository)->namespace)->toBe('Domain\\Guards')
+        ->and(ScaffoldConfig::fromRepository($repository)->path)->toBe('src/Guards')
         ->and(AzGuardConfig::fromRepository(new Repository(['azguard' => ['schedule' => ['prune_expired' => null]]]))->pruneExpiredFrequency())->toBeNull();
 });
 

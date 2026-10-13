@@ -2,17 +2,19 @@
 
 declare(strict_types=1);
 
+use AzGuard\Audit\AuditPlugin;
 use AzGuard\Configuration\AzGuardConfig;
 use AzGuard\Exceptions\DefinitionException;
 use AzGuard\Panels\PanelBuilder;
-use AzGuard\Plugins\Audit\AuditPlugin;
 use AzGuard\Sources\Database\DatabaseSource;
+use AzGuard\Storage\Schema\StorageSchema;
 use AzGuard\Storage\StorageRegistry;
 use AzGuard\Tests\Fixtures\Diagnostics\ColumnRoleGrant;
 use AzGuard\Tests\Fixtures\Diagnostics\DoctorWorld;
 use AzGuard\Tests\Fixtures\Panels\OrderPermission;
 use AzGuard\Tests\Fixtures\Panels\TestPanel;
 use AzGuard\Tests\Fixtures\Panels\User;
+use AzGuard\Tests\Support\AuditTable;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
@@ -42,13 +44,14 @@ function storageFindings(string $key): array
 
 it('storage.migrated passes a migrated storage and fails one without its tables', function (): void {
     storagePanel();
-    expect(storageFindings('storage.migrated'))->toBe(['storage:default error Storage default lacks the tables permissions, role_grants, permission_grants, audit_log, panel_state, subject_revisions, storage_state (prefix "azg_"): publish and run the AzGuard migrations.']);
+    expect(storageFindings('storage.migrated'))->toBe(['storage:default error Storage default lacks the tables permissions, role_grants, permission_grants, panel_state, subject_revisions, storage_state (prefix "azg_"): publish and run the AzGuard migrations.']);
 
     DoctorWorld::migrate();
-    expect(storageFindings('storage.migrated'))->toBe([]);
+    expect(storageFindings('storage.migrated'))->toBe([])
+        ->and(Schema::hasTable('azg_audit_log'))->toBeFalse();
 
-    Schema::drop('azg_audit_log');
-    expect(storageFindings('storage.migrated'))->toBe(['storage:default error Storage default lacks the tables audit_log (prefix "azg_"): publish and run the AzGuard migrations.']);
+    Schema::drop('azg_subject_revisions');
+    expect(storageFindings('storage.migrated'))->toBe(['storage:default error Storage default lacks the tables subject_revisions (prefix "azg_"): publish and run the AzGuard migrations.']);
 });
 
 it('storage.schema passes a matching state row and fails a different or unreadable one, also after an earlier successful read', function (): void {
@@ -78,7 +81,8 @@ it('storage.schema fails host key columns that cannot hold the host keys of the 
     $finding = DoctorWorld::only(DoctorWorld::run(), 'storage.schema');
     expect($finding)->toHaveCount(1)
         ->and($finding[0]->details['host_keys'])->toBe('bigint')
-        ->and($finding[0]->details['columns'])->toContain('role_grants.subject_id', 'permission_grants.actor_id', 'audit_log.tenant_id');
+        ->and($finding[0]->details['columns'])->toContain('role_grants.subject_id', 'permission_grants.actor_id')
+        ->and(implode(' ', $finding[0]->details['columns']))->not->toContain('audit_log');
 });
 
 it('storage.schema of a database source fails a column field its model declares that the table lacks', function (): void {
@@ -91,8 +95,12 @@ it('storage.schema of a database source fails a column field its model declares 
 });
 
 it('audit.table passes a migrated journal and fails a missing journal; a panel without a database writer does not compile', function (): void {
+    DoctorWorld::withoutPasswordInMessages();
     DoctorWorld::migrate();
     storagePanel(more: static fn (PanelBuilder $panel) => $panel->plugins([AuditPlugin::make()]));
+    expect(storageFindings('audit.table'))->toBe(['plugin:azguard/audit error The storage default of panel test has no audit_log table: run php artisan vendor:publish --tag=azguard-audit-migrations and php artisan migrate.']);
+
+    AuditTable::create();
     expect(storageFindings('audit.table'))->toBe([]);
 
     Schema::drop('azg_audit_log');
@@ -103,6 +111,31 @@ it('audit.table passes a migrated journal and fails a missing journal; a panel w
     // The journal participant needs the database writer, so such a panel is a definition error before any check runs.
     expect(fn () => DoctorWorld::panels([TestPanel::class => static fn (PanelBuilder $panel) => $panel->for(User::class)->permissions([OrderPermission::class])
         ->plugins([AuditPlugin::make()])]))->toThrow(DefinitionException::class, 'participants need the database writer');
+});
+
+it('audit.table names the generator of a named storage and lists how a journal table differs from the audit schema', function (): void {
+    DoctorWorld::withoutPasswordInMessages();
+    config()->set('azguard.storages.ledger', ['connection' => null, 'table_prefix' => 'lgr_', 'host_keys' => null]);
+    app()->forgetInstance(AzGuardConfig::class);
+    app()->forgetInstance(StorageRegistry::class);
+    app(StorageSchema::class)->create('ledger');
+    storagePanel(DatabaseSource::make()->storage('ledger'), static fn (PanelBuilder $panel) => $panel->plugins([AuditPlugin::make()]));
+    expect(storageFindings('audit.table'))->toBe(['plugin:azguard/audit error The storage ledger of panel test has no audit_log table: run php artisan azguard:audit:migration ledger and php artisan migrate.']);
+
+    AuditTable::create('ledger');
+    Schema::table('lgr_audit_log', static function (Blueprint $table): void {
+        $table->dropIndex('lgr_al_corr');
+    });
+    Schema::table('lgr_audit_log', static function (Blueprint $table): void {
+        $table->dropColumn('actor_reason');
+    });
+    Schema::table('lgr_audit_log', static function (Blueprint $table): void {
+        $table->string('note')->nullable();
+    });
+    $finding = DoctorWorld::only(DoctorWorld::run(), 'audit.table');
+
+    expect(DoctorWorld::summary($finding))->toBe(['plugin:azguard/audit audit.table error'])
+        ->and($finding[0]->details['differences'])->toBe(['missing column actor_reason', 'extra column note', 'missing index lgr_al_corr']);
 });
 
 it('storage.sqlite warns about an SQLite file outside WAL or without a busy timeout and never changes it', function (): void {

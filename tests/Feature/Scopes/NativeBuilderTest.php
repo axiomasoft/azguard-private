@@ -10,7 +10,7 @@ use AzGuard\Kernel\Identity\AssignmentScopeRef;
 use AzGuard\Kernel\Identity\SubjectRef;
 use AzGuard\Kernel\Identity\TenantRef;
 use AzGuard\Panels\PanelBuilder;
-use AzGuard\Scopes\Query\EligibilityBuilder;
+use AzGuard\Scopes\Internal\Query\EligibilityBuilder;
 use AzGuard\Tests\Fixtures\Panels\AdminPanel;
 use AzGuard\Tests\Fixtures\Panels\PanelWorld;
 use AzGuard\Tests\Fixtures\Panels\User;

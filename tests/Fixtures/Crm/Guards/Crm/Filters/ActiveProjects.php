@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace AzGuard\Tests\Fixtures\Crm\Guards\Crm\Filters;
 
 use AzGuard\Context\AssignmentScopeRuntime;
-use AzGuard\Contracts\Scopes\AssignmentScopeFilter;
+use AzGuard\Scopes\Contracts\AssignmentScopeFilter;
 use Illuminate\Database\Eloquent\Builder;
 
 final class ActiveProjects implements AssignmentScopeFilter

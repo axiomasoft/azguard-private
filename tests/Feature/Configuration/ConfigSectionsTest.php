@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use AzGuard\Configuration\AzGuardConfig;
 use AzGuard\Configuration\ConfigSections;
+use AzGuard\DevTools\Internal\ScaffoldConfig;
 use AzGuard\Exceptions\InvalidConfigurationException;
 use Illuminate\Config\Repository;
 
@@ -63,14 +64,33 @@ it('refuses an owner of a root that belongs to core when the configuration is re
     expect(fn () => sectionsConfig([], $sections))->toThrow(InvalidConfigurationException::class, 'belongs to core');
 })->with(['panels', 'storages', 'defaults', 'gate', 'decision_sets']);
 
-it('validates the scaffold section through the owner core registers on behalf of DevTools', function (): void {
+it('validates the scaffold section through the owner DevTools registers', function (): void {
     $sections = app(ConfigSections::class);
-    $registered = AzGuardConfig::fromRepository(new Repository(['azguard' => ['scaffold' => ['namespace' => 'App\\Access', 'path' => 'app/Access']]]), $sections);
+    $repository = new Repository(['azguard' => ['scaffold' => ['namespace' => 'App\\Access', 'path' => 'app/Access']]]);
+    AzGuardConfig::fromRepository($repository, $sections);
 
-    expect($registered->scaffoldNamespace())->toBe('App\\Access')->and($registered->scaffoldPath())->toBe('app/Access')
+    expect(array_keys($sections->owned()))->toContain('scaffold')
+        ->and(ScaffoldConfig::fromRepository($repository)->namespace)->toBe('App\\Access')->and(ScaffoldConfig::fromRepository($repository)->path)->toBe('app/Access')
         ->and(fn () => AzGuardConfig::fromRepository(new Repository(['azguard' => ['scaffold' => ['folder' => 'x']]]), $sections))
         ->toThrow(InvalidConfigurationException::class, 'Unknown key in azguard.scaffold: folder')
         ->and(fn () => AzGuardConfig::fromRepository(new Repository(['azguard' => ['scaffold' => ['path' => '/abs']]]), $sections))
         ->toThrow(InvalidConfigurationException::class, 'azguard.scaffold.path must be')
         ->and(fn () => sectionsConfig(['scaffold' => []], new ConfigSections))->toThrow(InvalidConfigurationException::class, 'Unknown key in azguard: scaffold');
+});
+
+it('gives the generators the discovery folder names core reads, with the same defaults and the same refusal', function (): void {
+    $custom = new Repository(['azguard' => ['discovery' => ['permissions' => 'Abilities/Perms/', 'shared' => 'Common']]]);
+
+    foreach ([new Repository(['azguard' => []]), $custom] as $repository) {
+        $core = AzGuardConfig::fromRepository($repository)->discovery();
+        $scaffold = ScaffoldConfig::fromRepository($repository);
+
+        expect(array_combine(array_keys($core), array_map($scaffold->folder(...), array_keys($core))))->toBe($core);
+    }
+
+    expect(ScaffoldConfig::fromRepository($custom)->folder('unknown'))->toBeNull()
+        ->and(fn () => ScaffoldConfig::fromRepository(new Repository(['azguard' => ['discovery' => ['roles' => '']]])))
+        ->toThrow(InvalidConfigurationException::class, 'azguard.discovery.roles must be a folder name')
+        ->and(fn () => ScaffoldConfig::fromRepository(new Repository(['azguard' => ['scaffold' => ['folder' => 'x']]])))
+        ->toThrow(InvalidConfigurationException::class, 'Unknown key in azguard.scaffold: folder');
 });

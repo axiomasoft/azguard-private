@@ -2,15 +2,16 @@
 
 declare(strict_types=1);
 
+use AzGuard\Audit\AuditPlugin;
 use AzGuard\Catalog\CatalogCache;
 use AzGuard\Configuration\AzGuardConfig;
 use AzGuard\Panels\PanelBuilder;
-use AzGuard\Plugins\Audit\AuditPlugin;
 use AzGuard\Storage\StorageRegistry;
 use AzGuard\Tests\Fixtures\Baseline070\Formats\FormatSnapshot;
 use AzGuard\Tests\Fixtures\Changes\ChangeWorld as W;
 use AzGuard\Tests\Fixtures\Console\GeneratedApp;
 use AzGuard\Tests\Fixtures\Crm\CrmWorld;
+use AzGuard\Tests\Support\AuditTable;
 use Illuminate\Console\Command;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Filesystem\Filesystem;
@@ -52,6 +53,17 @@ function azguardCommandsSnapshot(): array
 }
 
 it('keeps the names and signatures of the azguard commands', function (): void {
+    if (FormatSnapshot::writing()) {
+        $snapshot = azguardCommandsSnapshot();
+
+        foreach (azguardCommands() as $name => $synopsis) {
+            $snapshot[$name] = ['synopsis' => $synopsis, 'exit_codes' => $snapshot[$name]['exit_codes'] ?? []];
+        }
+        $snapshot = array_intersect_key($snapshot, azguardCommands());
+        ksort($snapshot, SORT_STRING);
+        file_put_contents(azguardCommandsPath(), FormatSnapshot::encode($snapshot));
+    }
+
     expect(azguardCommands())->toBe(array_map(static fn (array $command): string => $command['synopsis'], azguardCommandsSnapshot()));
 });
 
@@ -134,9 +146,32 @@ describe('exit codes', function (): void {
             }),
         ];
 
+        $archive = static function (): void {
+            app()->useDatabasePath(test()->scratch);
+            config()->set('azguard.storages.archive', ['connection' => null, 'table_prefix' => 'archive_', 'host_keys' => null]);
+            app()->forgetInstance(AzGuardConfig::class);
+            app()->forgetInstance(StorageRegistry::class);
+        };
+
         return [
+            'azguard:audit:migration' => [
+                'success' => static function () use ($archive): int {
+                    $archive();
+
+                    return Artisan::call('azguard:audit:migration', ['storage' => 'archive']);
+                },
+                'exists' => static function () use ($archive): int {
+                    $archive();
+                    Artisan::call('azguard:audit:migration', ['storage' => 'archive']);
+
+                    return Artisan::call('azguard:audit:migration', ['storage' => 'archive']);
+                },
+                'default storage' => $call('azguard:audit:migration', ['storage' => 'default']),
+                'unknown storage' => $call('azguard:audit:migration', ['storage' => 'ghost']),
+            ],
             'azguard:audit:prune' => [
                 'success' => static function (): int {
+                    AuditTable::create();
                     W::panel(configure: static fn (PanelBuilder $builder) => $builder->plugins([AuditPlugin::make()]));
 
                     return Artisan::call('azguard:audit:prune');
@@ -254,11 +289,8 @@ describe('exit codes', function (): void {
                     return Artisan::call('azguard:state:reset', ['panel' => 'crm']);
                 }],
             'azguard:storage:migration' => [
-                'success' => static function (): int {
-                    app()->useDatabasePath(test()->scratch);
-                    config()->set('azguard.storages.archive', ['connection' => null, 'table_prefix' => 'archive_', 'host_keys' => null]);
-                    app()->forgetInstance(AzGuardConfig::class);
-                    app()->forgetInstance(StorageRegistry::class);
+                'success' => static function () use ($archive): int {
+                    $archive();
 
                     return Artisan::call('azguard:storage:migration', ['name' => 'archive']);
                 },

@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace AzGuard\Tests\Fixtures\Authorization;
 
 use AzGuard\Context\AssignmentScopeRuntime;
-use AzGuard\Contracts\Scopes\AssignmentScopeFilter;
+use AzGuard\Scopes\Contracts\AssignmentScopeFilter;
 use Illuminate\Database\Eloquent\Builder;
 use RuntimeException;
 

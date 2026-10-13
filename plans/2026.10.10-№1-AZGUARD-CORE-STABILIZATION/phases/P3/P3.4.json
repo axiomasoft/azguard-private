@@ -2,7 +2,7 @@
   "$schema": "urn:swissknifeman:task:plan:item:v1",
   "id": "P3.4",
   "title": "Module PSR-4 roots and relocation of the existing Scopes and Audit files",
-  "status": "todo",
+  "status": "in_progress",
   "summary": "`packages/core/composer.json` gains the PSR-4 roots `AzGuard\\Scopes\\ → modules/scopes/src/` and `AzGuard\\Audit\\ → modules/audit/src/` (`AzGuard\\DevTools\\ → modules/devtools/src/` with P3.7); every file under `src/Scopes`, `src/Audit`, `src/Plugins/Audit` and the module-owned files in core directories move to their oracle `target_path` (FQCN changes only where the oracle row says so); the core guarded-query classes move to `Authorization\\Internal\\Query`. I5 allowlist becomes empty.",
   "why": "One autoload owner per FQCN (I5) and the phase deliverable 'modules/scopes, modules/audit with explicit PSR-4 roots'. Hard risk: Composer resolves the longest prefix but falls back to `AzGuard\\ → src/`; a leftover `src/Scopes/...` file would be loaded by the core root — the directories must be empty and deleted; and the path-repository install needs `composer update` before the new roots are visible.",
   "scope": {
@@ -268,6 +268,14 @@
     "need": "none",
     "status": "not_needed"
   },
-  "result": null,
-  "updated_at": "2026-10-13T11:36:28Z"
+  "result": {
+    "started_at": "2026-10-13T15:43:18Z",
+    "executor": {
+      "provider": "claude-code",
+      "model": "claude-opus-5-5",
+      "effort": "high",
+      "session": "6489227b-678c-4234-b409-ba5159d2c195"
+    }
+  },
+  "updated_at": "2026-10-13T15:43:18Z"
 }

@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
+use AzGuard\Audit\AuditPlugin;
 use AzGuard\Contracts\Changes\ChangeParticipant;
 use AzGuard\Contracts\Changes\OwnedRowsWriter;
 use AzGuard\Events\AccessEvent;
 use AzGuard\Panels\PanelBuilder;
-use AzGuard\Plugins\Audit\AuditPlugin;
 use AzGuard\Sources\Database\DatabaseSource;
 use AzGuard\Storage\Schema\StorageSchema;
 use AzGuard\Storage\StorageMutation;
@@ -16,6 +16,7 @@ use AzGuard\Tests\Fixtures\Changes\ChangeWorld as W;
 use AzGuard\Tests\Fixtures\Crm\CrmWorld;
 use AzGuard\Tests\Fixtures\Events\EventWorld;
 use AzGuard\Tests\Fixtures\Sources\Database\DatabaseWorld;
+use AzGuard\Tests\Support\AuditTable;
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\Schema;
 
@@ -84,6 +85,7 @@ it('P16b participant rows become durable exactly with the committed root of a wr
     // The CRM stand brings its own users table instead of the one of this directory.
     Schema::dropIfExists('users');
     CrmWorld::seed();
+    AuditTable::create();
     EventWorld::listen();
     $control = new class
     {

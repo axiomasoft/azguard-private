@@ -41,7 +41,7 @@ it('assigns every source directory of the packages to a zone', function (): void
     $assigned = array_merge(...array_column(azguardZoneMap()['zones'], 'src'));
     $unassigned = [];
 
-    foreach (['packages/core/src', 'packages/filament/src'] as $package) {
+    foreach (['packages/core/src', 'packages/filament/src', ...array_map(static fn (string $module): string => substr($module, strlen($root) + 1), glob("{$root}/packages/core/modules/*/src") ?: [])] as $package) {
         foreach (glob("{$root}/{$package}/*") ?: [] as $path) {
             $relative = substr($path, strlen($root) + 1);
 

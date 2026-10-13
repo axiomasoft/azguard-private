@@ -2,18 +2,19 @@
 
 declare(strict_types=1);
 
+use AzGuard\Audit\AuditPlugin;
 use AzGuard\Audit\Internal\JournalRow;
 use AzGuard\Changes\PermissionDetails;
 use AzGuard\Events\AccessEvent;
 use AzGuard\Events\EventType;
 use AzGuard\Kernel\Identity\ActorRef;
 use AzGuard\Panels\PanelBuilder;
-use AzGuard\Plugins\Audit\AuditPlugin;
 use AzGuard\Tests\Fixtures\Baseline070\Formats\EventSamples;
 use AzGuard\Tests\Fixtures\Baseline070\Formats\FormatSnapshot;
 use AzGuard\Tests\Fixtures\Changes\ChangeWorld as W;
 use AzGuard\Tests\Fixtures\Crm\CrmWorld;
 use AzGuard\Tests\Fixtures\Events\EventWorld;
+use AzGuard\Tests\Support\AuditTable;
 
 /*
  * I17, blocking now: the event types, the `AccessEvent::toArray()` envelope and data keys with the exact `state`
@@ -74,6 +75,7 @@ it('keeps the journal row of every event: its columns and the payload equal to t
 describe('the journal rows the Audit plugin writes', function (): void {
     beforeEach(function (): void {
         CrmWorld::seed();
+        AuditTable::create();
         EventWorld::listen();
     });
     afterEach(function (): void {

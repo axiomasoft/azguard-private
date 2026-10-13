@@ -314,10 +314,10 @@ it('keeps one predicate engine and one role-binding resolver for directories and
     }
 
     expect(azguardPrivateEligibilityCopies(SourceScan::files('packages/core/src/Directories')))->toBe([])
-        ->and(azguardPrivateEligibilityCopies([dirname(__DIR__, 2).'/packages/core/src/Scopes/Internal/ScopeEligibility.php']))->toBe([])
-        ->and((string) file_get_contents(dirname(__DIR__, 2).'/packages/core/src/Directories/QueryScopeDirectory.php'))
+        ->and(azguardPrivateEligibilityCopies([dirname(__DIR__, 2).'/packages/core/modules/scopes/src/Internal/ScopeEligibility.php']))->toBe([])
+        ->and((string) file_get_contents(dirname(__DIR__, 2).'/packages/core/modules/scopes/src/Internal/QueryScopeDirectory.php'))
         ->toContain('EligibilityBuilder::structural(', 'EligibilityBuilder::apply(', 'RoleBindings::of(')
-        ->and((string) file_get_contents(dirname(__DIR__, 2).'/packages/core/src/Scopes/Internal/ScopeEligibility.php'))
+        ->and((string) file_get_contents(dirname(__DIR__, 2).'/packages/core/modules/scopes/src/Internal/ScopeEligibility.php'))
         ->toContain('RoleBindings::of(', 'EligibilityBuilder::matches(');
 });
 
@@ -421,9 +421,10 @@ arch('code roles do not use storage, changes or authorization')
     ->expect('AzGuard\Roles')
     ->not->toUse(['AzGuard\Storage', 'AzGuard\Changes', 'AzGuard\Authorization']);
 
-arch('only storage and the database source touch the database layer')
+// The Audit module owns its journal table (schema, migrations, retention: D19) on the connection of the storage.
+arch('only storage, the database source and the Audit module touch the database layer')
     ->expect(AZGUARD_DATABASE_ACCESS)
-    ->toOnlyBeUsedIn(['AzGuard\Storage', 'AzGuard\Sources\Database'])
+    ->toOnlyBeUsedIn(['AzGuard\Storage', 'AzGuard\Sources\Database', 'AzGuard\Audit'])
     // The tests and the load bench are applications of the package: they seed and query their own tables.
     ->ignoring(['AzGuard\Tests', 'AzGuardBench']);
 

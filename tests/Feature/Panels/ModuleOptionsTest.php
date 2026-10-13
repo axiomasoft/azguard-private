@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use AzGuard\Audit\AuditOptions;
+use AzGuard\Audit\AuditPlugin;
 use AzGuard\Exceptions\DefinitionException;
 use AzGuard\Exceptions\PluginConflictException;
 use AzGuard\Panels\Panel;
@@ -10,7 +11,6 @@ use AzGuard\Panels\PanelBuilder;
 use AzGuard\Panels\PanelFingerprint;
 use AzGuard\Panels\PanelRecipe;
 use AzGuard\Panels\PanelRegistry;
-use AzGuard\Plugins\Audit\AuditPlugin;
 use AzGuard\Schema\Field;
 use AzGuard\Sources\Database\DatabaseSource;
 use AzGuard\Tests\Fixtures\Panels\AdminPanel;

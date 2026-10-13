@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
+use AzGuard\Audit\AuditPlugin;
 use AzGuard\Configuration\AzGuardConfig;
 use AzGuard\Exceptions\DefinitionException;
 use AzGuard\Exceptions\PluginConflictException;
 use AzGuard\Panels\PanelBuilder;
 use AzGuard\Panels\PanelRecipe;
 use AzGuard\Panels\PanelRegistry;
-use AzGuard\Plugins\Audit\AuditPlugin;
 use AzGuard\Plugins\PluginContext;
 use AzGuard\Sources\Database\DatabaseSource;
 use AzGuard\Tests\Fixtures\Authorization\RecordingRestriction;

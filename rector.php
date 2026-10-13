@@ -20,6 +20,9 @@ use Rector\Set\ValueObject\SetList;
 return RectorConfig::configure()
     ->withPaths([
         __DIR__.'/packages/core/src',
+        __DIR__.'/packages/core/modules/scopes/src',
+        __DIR__.'/packages/core/modules/audit/src',
+        __DIR__.'/packages/core/modules/devtools/src',
         __DIR__.'/packages/filament/src',
         __DIR__.'/bench/src',
     ])
@@ -62,5 +65,5 @@ return RectorConfig::configure()
         // Configuration names default storage models as strings on purpose: the zone rule forbids it to depend on Storage.
         StringClassNameToClassConstantRector::class => [__DIR__.'/packages/core/src/Configuration/AzGuardConfig.php'],
         // PredicateQuery is cloned and re-bound to a new guard; readonly breaks the clone (NativeBuilderTest).
-        ReadOnlyPropertyRector::class => [__DIR__.'/packages/core/src/Scopes/Query/PredicateQuery.php'],
+        ReadOnlyPropertyRector::class => [__DIR__.'/packages/core/src/Authorization/Internal/Query/PredicateQuery.php'],
     ]);

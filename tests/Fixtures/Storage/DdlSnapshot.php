@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace AzGuard\Tests\Fixtures\Storage;
 
+use AzGuard\Audit\Internal\AuditSchema;
+use AzGuard\AzGuard;
 use AzGuard\Storage\Schema\StorageSchema;
 use AzGuard\Storage\Storage;
 use AzGuard\Storage\StorageRegistry;
@@ -43,9 +45,12 @@ final class DdlSnapshot
 
         try {
             $snapshot = [];
-            foreach (['permissions', 'role_grants', 'permission_grants', 'audit_log', 'panel_state', 'subject_revisions', 'storage_state'] as $base) {
+            foreach (['permissions', 'role_grants', 'permission_grants', 'panel_state', 'subject_revisions', 'storage_state'] as $base) {
                 $snapshot['string'][$base] = self::table($storage, $base);
             }
+            expect($storage->connection()->getSchemaBuilder()->hasTable($storage->prefix().AuditSchema::TABLE))->toBeFalse('core created the audit table');
+            AuditSchema::create(app(AzGuard::class)->storage('default'));
+            $audit = ['string' => [AuditSchema::TABLE => self::table($storage, AuditSchema::TABLE)]];
             foreach (['uuid', 'bigint', 'ulid'] as $hostKeys) {
                 $variant = new Storage($hostKeys, $storage->connection(), 'hk_'.$hostKeys.'_', $hostKeys);
                 $registry->register($variant);
@@ -59,17 +64,21 @@ final class DdlSnapshot
                 }
             }
             $driver = $storage->connection()->getDriverName();
-            $path = __DIR__.'/ddl/'.$driver.'.json';
-            $actual = json_encode($snapshot, JSON_THROW_ON_ERROR | JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES)."\n";
 
-            if (getenv('AZGUARD_UPDATE_SNAPSHOTS') === '1') {
-                if (! is_dir(__DIR__.'/ddl')) {
-                    mkdir(__DIR__.'/ddl');
+            // The six core tables in ddl/<driver>.json; the journal table of the Audit module in ddl/<driver>.audit.json.
+            foreach (['' => $snapshot, '.audit' => $audit] as $suffix => $tables) {
+                $path = __DIR__.'/ddl/'.$driver.$suffix.'.json';
+                $actual = json_encode($tables, JSON_THROW_ON_ERROR | JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES)."\n";
+
+                if (getenv('AZGUARD_UPDATE_SNAPSHOTS') === '1') {
+                    if (! is_dir(__DIR__.'/ddl')) {
+                        mkdir(__DIR__.'/ddl');
+                    }
+                    file_put_contents($path, $actual);
                 }
-                file_put_contents($path, $actual);
+                expect(is_file($path))->toBeTrue('DDL snapshot missing: '.$path);
+                expect($actual)->toBe(file_get_contents($path));
             }
-            expect(is_file($path))->toBeTrue('DDL snapshot missing: '.$path);
-            expect($actual)->toBe(file_get_contents($path));
             // Record the environment separately: an engine patch version does not rewrite schema fixtures.
             $environment = match ($driver) {
                 'pgsql' => $storage->connection()->selectOne('SELECT version() AS version'),
@@ -78,6 +87,7 @@ final class DdlSnapshot
             };
             file_put_contents(sys_get_temp_dir().'/azguard-ddl-environment-'.$driver.'.json', json_encode($environment, JSON_THROW_ON_ERROR));
         } finally {
+            AuditSchema::drop(app(AzGuard::class)->storage('default'));
             $schema->drop('default');
         }
     }

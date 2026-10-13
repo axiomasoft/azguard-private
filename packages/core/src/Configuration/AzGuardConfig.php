@@ -27,8 +27,6 @@ final readonly class AzGuardConfig
 
     private const array SCHEDULE_KEYS = ['enabled', 'prune_expired'];
 
-    private const array SCAFFOLD_KEYS = ['namespace', 'path'];
-
     private const array DECISION_SETS_KEYS = ['max_subjects'];
 
     /** Default of `decision_sets.max_subjects`; bench/README.md, "DecisionSet size", gives the measurements. */
@@ -88,8 +86,6 @@ final readonly class AzGuardConfig
         private bool $gateEnabled,
         private bool $scheduleEnabled,
         private ?string $pruneExpiredFrequency,
-        private string $scaffoldNamespace,
-        private string $scaffoldPath,
         private int $maxSetSubjects = self::DEFAULT_MAX_SET_SUBJECTS,
     ) {}
 
@@ -128,8 +124,6 @@ final readonly class AzGuardConfig
         self::assertKnownKeys('gate', $gate, self::GATE_KEYS);
         $schedule = self::section('schedule', $config->get('azguard.schedule', []));
         self::assertKnownKeys('schedule', $schedule, self::SCHEDULE_KEYS);
-        // Read here until DevTools owns its section (P3); validated by the owner registered in ConfigSections.
-        $scaffold = self::section('scaffold', $config->get('azguard.scaffold', []));
         $sets = self::section('decision_sets', $config->get('azguard.decision_sets', []));
         self::assertKnownKeys('decision_sets', $sets, self::DECISION_SETS_KEYS);
 
@@ -148,8 +142,6 @@ final readonly class AzGuardConfig
             self::flag('gate.enabled', $gate['enabled'] ?? true),
             self::flag('schedule.enabled', $schedule['enabled'] ?? true),
             self::frequencyFrom(array_key_exists('prune_expired', $schedule) ? $schedule['prune_expired'] : 'daily'),
-            self::namespaceFrom($scaffold['namespace'] ?? 'App\\Guards'),
-            self::pathFrom($scaffold['path'] ?? 'app/Guards'),
             self::maxSetSubjectsFrom($sets['max_subjects'] ?? self::DEFAULT_MAX_SET_SUBJECTS),
         );
     }
@@ -210,35 +202,10 @@ final readonly class AzGuardConfig
         return $this->pruneExpiredFrequency;
     }
 
-    /** Namespace the generators put the panel directories in, without the leading or trailing backslash. */
-    public function scaffoldNamespace(): string
-    {
-        return $this->scaffoldNamespace;
-    }
-
-    /** Directory the generators put the panel directories in, relative to the application, without the trailing slash. */
-    public function scaffoldPath(): string
-    {
-        return $this->scaffoldPath;
-    }
-
     /**
-     * @internal Validates the `scaffold` section, which core registers in `ConfigSections` on behalf of DevTools.
-     *
-     * @param  array<string, mixed>  $section
-     *
-     * @throws InvalidConfigurationException
-     */
-    public static function validateScaffold(array $section): void
-    {
-        self::assertKnownKeys('scaffold', $section, self::SCAFFOLD_KEYS);
-        self::namespaceFrom($section['namespace'] ?? 'App\\Guards');
-        self::pathFrom($section['path'] ?? 'app/Guards');
-    }
-
-    /**
-     * Every key of the configuration file the package accepts, as a dotted path. A name chosen by the application
-     * is written `*`: `storages.*.connection`, and `sources` stands for the whole map of source parameters.
+     * Every key of the configuration file core validates itself, as a dotted path; the roots registered in
+     * `ConfigSections` belong to their owners. A name chosen by the application is written `*`:
+     * `storages.*.connection`, and `sources` stands for the whole map of source parameters.
      *
      * @return list<string>
      */
@@ -248,7 +215,7 @@ final readonly class AzGuardConfig
             'defaults.tenants.resolvers', 'defaults.scopes.resolvers'];
         $groups = [
             'ids' => ['host_keys'], 'catalog' => self::CATALOG_KEYS, 'discovery' => self::DISCOVERY_KEYS, 'gate' => self::GATE_KEYS,
-            'schedule' => self::SCHEDULE_KEYS, 'scaffold' => self::SCAFFOLD_KEYS, 'storages.*' => self::STORAGE_KEYS, 'decision_sets' => self::DECISION_SETS_KEYS,
+            'schedule' => self::SCHEDULE_KEYS, 'storages.*' => self::STORAGE_KEYS, 'decision_sets' => self::DECISION_SETS_KEYS,
             'defaults.models' => self::MODEL_KEYS,
             'defaults.cache' => self::DEFAULTS_KEYS['defaults.cache'], 'defaults.consistency' => self::DEFAULTS_KEYS['defaults.consistency'],
         ];
@@ -331,31 +298,6 @@ final readonly class AzGuardConfig
         }
 
         throw self::invalidValue('schedule.prune_expired', $frequency, 'a frequency method of the Laravel scheduler without arguments, a cron expression or null');
-    }
-
-    /**
-     * @throws InvalidConfigurationException
-     */
-    private static function namespaceFrom(mixed $namespace): string
-    {
-        $namespace = is_string($namespace) ? trim($namespace, '\\') : null;
-
-        return $namespace !== null && preg_match('/\A[A-Za-z_][A-Za-z0-9_]*(?:\\\\[A-Za-z_][A-Za-z0-9_]*)*\z/', $namespace) === 1
-            ? $namespace
-            : throw self::invalidValue('scaffold.namespace', $namespace, 'a PHP namespace');
-    }
-
-    /**
-     * @throws InvalidConfigurationException
-     */
-    private static function pathFrom(mixed $path): string
-    {
-        $path = is_string($path) ? rtrim(str_replace('\\', '/', $path), '/') : null;
-
-        return $path !== null && $path !== '' && ! str_contains($path, "\0") && ! str_starts_with($path, '/')
-            && preg_match('/\A[a-z][a-z0-9+.-]*:/i', $path) !== 1 && ! in_array('..', explode('/', $path), true)
-            ? $path
-            : throw self::invalidValue('scaffold.path', $path, 'a directory relative to the application');
     }
 
     /** @return array<string, class-string> */

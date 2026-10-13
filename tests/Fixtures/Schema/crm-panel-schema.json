@@ -269,7 +269,7 @@
             "type": "crm.project",
             "label": "crm.project",
             "model": "AzGuard\\Tests\\Fixtures\\Crm\\Models\\Project",
-            "directory": "AzGuard\\Directories\\QueryScopeDirectory"
+            "directory": "AzGuard\\Scopes\\Internal\\QueryScopeDirectory"
         }
     ],
     "subjects": [

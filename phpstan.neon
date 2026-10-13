@@ -4,6 +4,9 @@ includes:
 parameters:
   paths:
     - packages/core/src
+    - packages/core/modules/scopes/src
+    - packages/core/modules/audit/src
+    - packages/core/modules/devtools/src
     - packages/filament/src
     - bench/src
     - bench/bin

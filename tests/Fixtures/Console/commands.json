@@ -1,4 +1,13 @@
 {
+    "azguard:audit:migration": {
+        "synopsis": "<storage>",
+        "exit_codes": {
+            "success": 0,
+            "exists": 2,
+            "default storage": 2,
+            "unknown storage": 2
+        }
+    },
     "azguard:audit:prune": {
         "synopsis": "[--panel [PANEL]] [--before [BEFORE]] [--force]",
         "exit_codes": {

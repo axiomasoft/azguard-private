@@ -162,7 +162,7 @@
         "id": "I16",
         "status": "build",
         "checks": [
-            "tests/Regression/Baseline070/PopulatedDatabaseTest.php"
+            "tests/Feature/Storage/FreshInstallTest.php"
         ],
         "blocking": "after P3",
         "owner_phase": "P3"

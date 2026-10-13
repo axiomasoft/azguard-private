@@ -146,13 +146,8 @@ it('I5 (report mode, blocking after P3): every production type has one autoload 
         ->and($difference['stale'])->toBe([], 'stale I5 allowlist entries: delete them from tests/Arch/Allowlists/i5.json');
 });
 
-it('lists in the I5 allowlist only the removed directories, each owned by a phase', function (): void {
-    foreach (BoundaryScan::allowlist('i5') as $entry) {
-        expect($entry)->toHaveKeys(['file', 'reference', 'kind', 'invariant', 'owner_phase'])
-            ->and($entry['invariant'])->toBe('I5')
-            ->and($entry['owner_phase'])->toBeIn(['P2', 'P3'])
-            ->and(is_dir(dirname(__DIR__, 2).'/'.$entry['file']) || is_file(dirname(__DIR__, 2).'/'.$entry['file']))->toBeTrue($entry['file'].' does not exist');
-    }
+it('keeps the I5 allowlist empty once the module files moved to their roots (P3.4)', function (): void {
+    expect(BoundaryScan::allowlist('i5'))->toBe([]);
 });
 
 it('holds an authoritative classmap of every production type without a duplicate', function (): void {

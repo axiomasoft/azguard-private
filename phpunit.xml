@@ -36,6 +36,9 @@
     <source>
         <include>
             <directory>packages/core/src</directory>
+            <directory>packages/core/modules/scopes/src</directory>
+            <directory>packages/core/modules/audit/src</directory>
+            <directory>packages/core/modules/devtools/src</directory>
             <directory>packages/filament/src</directory>
         </include>
     </source>

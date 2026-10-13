@@ -447,10 +447,7 @@ final class Storage
 
         if (! is_array($found) || count($found) !== count($expected)
             || array_filter($expected, static fn (int|string $value, string $key): bool => ($found[$key] ?? null) !== $value, ARRAY_FILTER_USE_BOTH) !== []) {
-            $hint = is_array($found) && ($found['version'] ?? null) === 1
-                ? ' Schema 1 predates subject revisions and the panel epoch: publish and run the AzGuard schema 2 upgrade migration.' : '';
-
-            throw new StorageMismatchException('Storage '.$this->id.' expected '.json_encode($expected).'; found '.json_encode($found).'.'.$hint);
+            throw new StorageMismatchException('Storage '.$this->id.' expected '.json_encode($expected).'; found '.json_encode($found).'.');
         }
     }
 

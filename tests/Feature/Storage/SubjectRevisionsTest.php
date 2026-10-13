@@ -3,11 +3,9 @@
 declare(strict_types=1);
 
 use AzGuard\Exceptions\StorageMismatchException;
-use AzGuard\Storage\Schema\StorageSchema;
 use AzGuard\Storage\StorageRegistry;
 use AzGuard\Tests\Fixtures\Changes\ChangeWorld as W;
 use AzGuard\Tests\Fixtures\Crm\CrmWorld;
-use Illuminate\Database\Schema\Blueprint;
 
 // Schema 2 (audits/2026-10-09-consistency-design.md, step 3): a grant change moves the panel version and the revision
 // of its subject; a change whose subjects are unknown (touch, reset, definitions) moves the version and the epoch.
@@ -70,25 +68,19 @@ it('writes no revision for a change rolled back with the host transaction', func
         ->and(CrmWorld::storage()->state('crm')->version)->toBe($state->version + 1);
 });
 
-it('upgrades a schema 1 storage in place and names the upgrade until then', function (): void {
+it('refuses a storage that records another schema version and names no upgrade path', function (): void {
     $storage = CrmWorld::storage();
-    $schema = $storage->connection()->getSchemaBuilder();
-    $schema->drop('azg_subject_revisions');
-    $schema->table('azg_panel_state', static fn (Blueprint $table) => $table->dropColumn('epoch'));
     $storage->table('storage_state')->update(['schema' => json_encode([...$storage->schema(), 'version' => 1], JSON_THROW_ON_ERROR | JSON_UNESCAPED_SLASHES)]);
     app()->forgetInstance(StorageRegistry::class);
     $stale = app(StorageRegistry::class)->get('default');
 
-    expect(fn () => $stale->verifySchema())->toThrow(StorageMismatchException::class, 'schema 2 upgrade migration');
+    $message = null;
 
-    app(StorageSchema::class)->upgrade('default');
-    app(StorageSchema::class)->upgrade('default');
-    app()->forgetInstance(StorageRegistry::class);
-    $upgraded = app(StorageRegistry::class)->get('default');
-    $upgraded->verifySchema();
+    try {
+        $stale->verifySchema();
+    } catch (StorageMismatchException $mismatch) {
+        $message = $mismatch->getMessage();
+    }
 
-    expect($schema->hasTable('azg_subject_revisions'))->toBeTrue()
-        ->and($upgraded->state('crm')?->epoch)->toBe(0);
-    W::grant(W::panel(), 'auditor', 2, null);
-    expect(subjectRevisions())->toBe(['2' => 1]);
+    expect($message)->toContain('"version":1')->not->toContain('upgrade');
 });

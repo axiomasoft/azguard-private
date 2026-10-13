@@ -56,7 +56,7 @@ function baselineSerializableTypes(): array
     $types = [];
     $root = dirname(__DIR__, 3).'/packages';
 
-    foreach (['core/src' => 'AzGuard\\', 'filament/src' => 'AzGuard\\Filament\\'] as $directory => $namespace) {
+    foreach (baselineProductionRoots($root) as $directory => $namespace) {
         $files = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($root.'/'.$directory, FilesystemIterator::SKIP_DOTS));
 
         foreach ($files as $file) {

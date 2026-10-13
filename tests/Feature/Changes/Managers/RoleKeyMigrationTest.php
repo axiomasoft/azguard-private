@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use AzGuard\Audit\AuditPlugin;
 use AzGuard\Authorization\Authorizer;
 use AzGuard\Changes\Change;
 use AzGuard\Changes\ChangeResult;
@@ -23,12 +24,12 @@ use AzGuard\Kernel\Decision\DecisionReason;
 use AzGuard\Kernel\Identity\ActorRef;
 use AzGuard\Kernel\Identity\RoleKey;
 use AzGuard\Panels\PanelBuilder;
-use AzGuard\Plugins\Audit\AuditPlugin;
 use AzGuard\Tests\Feature\Changes\Managers\LegacyRootRole;
 use AzGuard\Tests\Feature\Changes\Managers\ManagerWorld as M;
 use AzGuard\Tests\Fixtures\Changes\ChangeWorld as W;
 use AzGuard\Tests\Fixtures\Crm\CrmWorld;
 use AzGuard\Tests\Fixtures\Events\EventWorld;
+use AzGuard\Tests\Support\AuditTable;
 use Illuminate\Support\Carbon;
 
 function migration(): RoleKeyMigration
@@ -38,6 +39,7 @@ function migration(): RoleKeyMigration
 
 beforeEach(function (): void {
     CrmWorld::seed();
+    AuditTable::create();
     $this->panel = W::panel();
     // Grants of the former key `inspector` of AuditorRole, written before the rename.
     $this->rows = [

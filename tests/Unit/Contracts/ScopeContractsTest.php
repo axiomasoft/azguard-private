@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 use AzGuard\Context\AssignmentScopePhase;
 use AzGuard\Contracts\Scopes\AssignmentScopeDefinition;
-use AzGuard\Contracts\Scopes\AssignmentScopeMembership;
 use AzGuard\Contracts\Scopes\AssignmentScopeResolver;
 use AzGuard\Contracts\Scopes\ProvidesAccessScope;
 use AzGuard\Contracts\Scopes\ProvidesAssignmentScope;
@@ -19,6 +18,7 @@ use AzGuard\Kernel\Identity\AssignmentScopeRef;
 use AzGuard\Kernel\Identity\IdentityCodec;
 use AzGuard\Kernel\Identity\TenantRef;
 use AzGuard\Roles\BaseRole;
+use AzGuard\Scopes\Contracts\AssignmentScopeMembership;
 use AzGuard\Tests\Arch\ApiUsage;
 use AzGuard\Tests\Fixtures\Roles\AnalystRole;
 use AzGuard\Tests\Fixtures\Roles\SellerRole;

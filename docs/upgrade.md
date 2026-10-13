@@ -102,6 +102,23 @@ your code. Each line is `Find: <grep pattern> → Replace: <new form>`.
 - Find: a scope membership or access adapter class name without a container binding that failed panel compilation (`InvalidConfigurationException`
   check `membership`) → Replace: nothing at boot; the
   doctor check `scopes.membership` reports it as an error and the check fails closed at runtime, so run `azguard:doctor`.
+- Find: `AzGuard\Contracts\Scopes\AssignmentScopeFilter` → Replace: `AzGuard\Scopes\Contracts\AssignmentScopeFilter`.
+- Find: `AzGuard\Contracts\Scopes\AssignmentScopeAccessAdapter` → Replace: `AzGuard\Scopes\Contracts\AssignmentScopeAccessAdapter`.
+- Find: `AzGuard\Contracts\Scopes\AssignmentScopeMembership` → Replace: `AzGuard\Scopes\Contracts\AssignmentScopeMembership`.
+- Find: `AzGuard\Contracts\Scopes\ConfigurableAssignmentScopeDefinition` → Replace: `AzGuard\Scopes\Contracts\ConfigurableAssignmentScopeDefinition`.
+- Find: `AzGuard\Plugins\Audit\AuditPlugin` → Replace: `AzGuard\Audit\AuditPlugin`.
+- Find: `AzGuard\Directories\QueryScopeDirectory` → Replace: nothing; the default scope directory is internal to `ScopesPlugin`, type against
+  `AzGuard\Contracts\Scopes\AssignmentScopeDirectory` or write your own directory.
+- Find: `2026_10_09_000000_upgrade_azguard_storage_to_schema_2` (a published copy in `database/migrations`) → Replace: delete the file; core has one
+  migration, `2026_10_01_000000_create_azguard_storage`.
+- Find: `StorageSchema::class)->upgrade(` → Replace: nothing; `upgrade()` is gone, and a storage that records another schema version is a
+  `StorageMismatchException`.
+- Find: `audit_log` expected from `StorageSchema::create()`, the core migration or `azguard:storage:migration` → Replace: the Audit module creates it:
+  `php artisan vendor:publish --tag=azguard-audit-migrations && php artisan migrate` (default storage) or
+  `php artisan azguard:audit:migration <storage> && php artisan migrate` (named storage); `StorageSchema` creates and drops six tables.
+- Find: `app(StorageRegistry::class)->get(` or `use AzGuard\Storage\StorageRegistry;` in `stubs/azguard/models-migration.stub` or a migration
+  `azguard:make:models` generated → Replace: `$storage = app(AzGuard\AzGuard::class)->storage('<storage>')`, `Schema::connection($storage->connection)`
+  and `$storage->prefix.'role_grants'`; the registry is internal (republish the stubs with `azguard:stubs --force`).
 
 ## From 0.3 to 0.7.0
 

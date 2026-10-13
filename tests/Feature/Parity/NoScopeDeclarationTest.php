@@ -3,8 +3,8 @@
 declare(strict_types=1);
 
 use AzGuard\Scopes\ScopesPlugin;
-use AzGuard\Tests\Fixtures\Baseline070\Persistence\Dataset;
 use AzGuard\Tests\Fixtures\Crm\CrmWorld;
+use AzGuard\Tests\Fixtures\Parity\Dataset\Dataset;
 use AzGuard\Tests\Fixtures\Parity\NoScopeWorld;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Support\Carbon;
@@ -12,7 +12,7 @@ use Illuminate\Support\Carbon;
 /*
  * I7 harness (PLAN1 P1.3): without a scope declaration non-global requests are denied, scoped rows never apply to
  * global requests, non-global writes are rejected, and revocation and expiry still work without consulting scope
- * behavior — over the populated 0.7.0 `default` database of P1.1, on every driver.
+ * behavior — over the dataset of `NoScopeWorld`, written through the public API, on every driver.
  *
  * A declaration of mode `AssignmentScopeMode::None` and no declaration at all (no `ScopesPlugin`) behave the same:
  * mode `None`, no accepted types. Rebuilding panel `crm` of the dataset with a `None` declaration over its stored
@@ -23,7 +23,7 @@ use Illuminate\Support\Carbon;
  * a listed case must still fail exactly as recorded (a fixed one is a stale entry), any other case must hold.
  */
 
-beforeEach(fn () => NoScopeWorld::restore());
+beforeEach(fn () => NoScopeWorld::seed());
 
 afterEach(function (): void {
     CrmWorld::resetRuntime();
@@ -39,7 +39,7 @@ function i7Allowlist(): array
     return array_column($entries, null, 'case');
 }
 
-it('I7 holds over the populated 0.7.0 default database or fails exactly as allowlisted', function (string $case): void {
+it('I7 holds over the seeded dataset or fails exactly as allowlisted', function (string $case): void {
     [$holds, $observed] = NoScopeWorld::cases()[$case]();
     $listed = i7Allowlist()[$case] ?? null;
 

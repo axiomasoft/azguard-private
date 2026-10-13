@@ -278,7 +278,7 @@ $app = Orchestra\Testbench\Foundation\Application::create(null, static function 
             $app['config']->set('database.connections.'.$connection, ['driver' => 'sqlite', 'database' => ':memory:', 'prefix' => '']);
         }
     });
-}, ['extra' => ['providers' => [AzGuard\AzGuardServiceProvider::class]], 'enabled_package_discoveries' => false]);
+}, ['extra' => ['providers' => [AzGuard\AzGuardServiceProvider::class, AzGuard\Audit\AuditServiceProvider::class, AzGuard\DevTools\DevToolsServiceProvider::class]], 'enabled_package_discoveries' => false]);
 $storage = $app->make(AzGuard\Storage\StorageRegistry::class)->get('default');
 (require PACKAGE_MIGRATION)->up();
 $result = ['pid' => getmypid(), 'command' => $argv[1], 'connection' => $storage->connectionName(), 'host_keys' => $storage->hostKeys(),

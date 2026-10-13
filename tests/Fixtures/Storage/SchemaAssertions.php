@@ -19,10 +19,10 @@ final class SchemaAssertions
     public static function verify(Storage $storage): void
     {
         $schema = $storage->connection()->getSchemaBuilder();
-        foreach (['permissions', 'role_grants', 'permission_grants', 'audit_log', 'panel_state', 'storage_state'] as $table) {
+        foreach (['permissions', 'role_grants', 'permission_grants', 'panel_state', 'subject_revisions', 'storage_state'] as $table) {
             expect($schema->hasTable($storage->prefix().$table))->toBeTrue();
         }
-        foreach (['roles', 'role_permissions', 'role_contexts'] as $table) {
+        foreach (['roles', 'role_permissions', 'role_contexts', 'audit_log'] as $table) {
             expect($schema->hasTable($storage->prefix().$table))->toBeFalse();
         }
         foreach (['role', 'permission'] as $identity) {
@@ -52,6 +52,11 @@ final class SchemaAssertions
         expect(fn () => $permissions->insert(array_replace($permission, ['name' => 'bad', 'tenant_type' => 'org'])))->toThrow(QueryException::class);
         expect(fn () => (clone $permissions)->where('name', 'posts.view')->update(['tenant_id' => '1']))->toThrow(QueryException::class);
         expect(fn () => $storage->table('storage_state')->insert(['id' => 2, 'schema' => '{}']))->toThrow(QueryException::class);
+    }
+
+    /** The journal table `AuditSchema` creates: unique event id, required payload and the tenant pair constraint. */
+    public static function verifyAudit(Storage $storage): void
+    {
         $log = $storage->table('audit_log');
         $entry = ['event_id' => '01j00000000000000000000001', 'type' => 'role.granted', 'panel' => 'admin', 'tenant_key' => 'global',
             'correlation_id' => '01j00000000000000000000002', 'payload' => '{}', 'occurred_at' => '2026-10-07 12:00:00'];

@@ -394,15 +394,9 @@ it('resolves a file at an interim path by the FQCN it declares (D17), and nothin
     }
 });
 
-it('lists only violations the oracle can place in a phase', function (): void {
-    foreach (['i2', 'i3'] as $name) {
-        foreach (BoundaryScan::allowlist($name) as $entry) {
-            expect($entry)->toHaveKeys(['file', 'reference', 'kind', 'invariant', 'owner_phase'])
-                ->and($entry['invariant'])->toBe(strtoupper($name))
-                ->and($entry['owner_phase'])->toBeIn(['P2', 'P3'], $name.' entry '.$entry['file'].' '.$entry['reference'].' has no owner phase')
-                ->and(is_file(dirname(__DIR__, 2).'/'.$entry['file']))->toBeTrue($entry['file'].' is not a file');
-        }
-    }
+it('keeps the I2 and I3 allowlists empty once core names no module (P3.7)', function (): void {
+    expect(BoundaryScan::allowlist('i2'))->toBe([])
+        ->and(BoundaryScan::allowlist('i3'))->toBe([]);
 });
 
 it('I2 (report mode, blocking after P3): core references no module', function (): void {

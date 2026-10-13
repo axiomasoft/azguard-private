@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use AzGuard\Audit\AuditPlugin;
 use AzGuard\Authorization\Authorizer;
 use AzGuard\Authorization\Cache\PermissionSetCache;
 use AzGuard\Events\PanelStateTouched;
@@ -10,15 +11,18 @@ use AzGuard\Facades\AzGuard;
 use AzGuard\Kernel\Decision\DecisionReason;
 use AzGuard\Panels\PanelBuilder;
 use AzGuard\Panels\PanelRegistry;
-use AzGuard\Plugins\Audit\AuditPlugin;
 use AzGuard\Tests\Fixtures\Changes\ChangeWorld as W;
 use AzGuard\Tests\Fixtures\Crm\CrmWorld;
+use AzGuard\Tests\Support\AuditTable;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Event;
 
-beforeEach(fn () => CrmWorld::seed());
+beforeEach(function (): void {
+    CrmWorld::seed();
+    AuditTable::create();
+});
 afterEach(function (): void {
     app()->instance('env', 'testing');
     CrmWorld::resetRuntime();

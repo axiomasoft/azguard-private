@@ -17,23 +17,24 @@ use AzGuard\Kernel\Identity\SubjectRef;
 use AzGuard\Kernel\Identity\TenantRef;
 use AzGuard\Panels\PanelProvider;
 use AzGuard\Panels\PanelRegistry;
-use AzGuard\Tests\Fixtures\Baseline070\Persistence\Dataset;
-use AzGuard\Tests\Fixtures\Baseline070\Persistence\Panels\Crm\CrmPanelProvider;
-use AzGuard\Tests\Fixtures\Baseline070\Persistence\Panels\Ops\OpsPanelProvider;
-use AzGuard\Tests\Fixtures\Baseline070\Persistence\Restorer;
+use AzGuard\Storage\Schema\StorageSchema;
 use AzGuard\Tests\Fixtures\Crm\CrmWorld;
 use AzGuard\Tests\Fixtures\Crm\Guards\Crm\Filters\ActiveProjects;
 use AzGuard\Tests\Fixtures\Crm\Guards\Crm\Scopes\ProjectScope;
 use AzGuard\Tests\Fixtures\Crm\Models\User;
+use AzGuard\Tests\Fixtures\Parity\Dataset\Dataset;
+use AzGuard\Tests\Fixtures\Parity\Dataset\Panels\Crm\CrmPanelProvider;
+use AzGuard\Tests\Fixtures\Parity\Dataset\Panels\Ops\OpsPanelProvider;
 use AzGuard\Tests\Fixtures\Parity\Panels\NoScope\NoScopeCrmPanelProvider;
+use AzGuard\Tests\Support\AuditTable;
 use Closure;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Artisan;
-use ReflectionMethod;
 
 /**
- * The I7 world: the populated 0.7.0 `default` database of P1.1 (`Restorer`), its CRM host rows (`Dataset`), and
- * panel `crm` rebuilt with an explicit `AssignmentScopeMode::None` declaration (`NoScopeCrmPanelProvider`); panel `ops` as dumped.
+ * The I7 world: the `Dataset` written through the public API with the scope declaration of panel `crm`, its CRM host
+ * rows, and panel `crm` rebuilt with an explicit `AssignmentScopeMode::None` declaration (`NoScopeCrmPanelProvider`);
+ * panel `ops` as seeded.
  *
  * Rows the cases rely on (tenant A = crm.organization:1): user 2 has `auditor` tenant-wide (meta region R1),
  * `analyst` in P1 until 2026-12-01 and `clients.view` in P1 until 2027-01-01; user 1 has `seller` in P5; user 3 has
@@ -43,21 +44,17 @@ final class NoScopeWorld
 {
     public const string EXPIRED_CLOCK = '2026-12-02 00:00:00';
 
-    public static function restore(): void
+    /**
+     * Seeds the dataset through the public API with the scoped declaration of panel `crm` (`CrmPanelProvider`), then
+     * rebuilds `crm` without scope behavior.
+     */
+    public static function seed(): void
     {
-        $connection = app('db')->connection();
-        $dump = Restorer::load($connection->getDriverName(), 'default');
-        Restorer::configure(array_keys($dump['storages']));
-        Restorer::restore($dump, $connection);
-        // The data step of the 1.0 migration instruction (docs/upgrade.md): 0.7.0 stored the system actor type as
-        // `azguard.system`; the identity is `azguard:system` now (D16).
-        foreach ($dump['storages'] as $storage) {
-            foreach (['role_grants', 'permission_grants', 'audit_log'] as $table) {
-                $connection->table($storage['prefix'].$table)->where('actor_type', 'azguard.system')->update(['actor_type' => 'azguard:system']);
-            }
-        }
-        // The host tables and rows the dataset was written against, from the one definition in Dataset.
-        (new ReflectionMethod(Dataset::class, 'hostWorld'))->invoke(null);
+        $storage = AzGuard::storage();
+        app(StorageSchema::class)->create($storage->id);
+        AuditTable::create($storage->id);
+        Dataset::addApplicationColumns(app('db')->connection($storage->connection), $storage->prefix);
+        Dataset::seed($storage->id);
         Carbon::setTestNow(Carbon::parse(Dataset::PRUNE_CLOCK, 'UTC'));
         self::compile(NoScopeCrmPanelProvider::class);
     }

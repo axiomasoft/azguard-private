@@ -8,7 +8,7 @@ use AzGuard\Context\AssignmentScopeDeclaration;
 use AzGuard\Context\AssignmentScopeMode;
 use AzGuard\Panels\PanelBuilder;
 use AzGuard\Panels\PanelProvider;
-use AzGuard\Tests\Fixtures\Baseline070\Persistence\Panels\Crm\CrmPanelProvider;
+use AzGuard\Tests\Fixtures\Parity\Dataset\Panels\Crm\CrmPanelProvider;
 
 /**
  * Panel `crm` of the populated 0.7.0 dataset rebuilt without a scope declaration: the provider of the dataset, then

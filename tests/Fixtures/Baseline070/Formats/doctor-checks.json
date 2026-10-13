@@ -5,6 +5,13 @@
     ],
     "failed_check_id": "<key>.failed",
     "checks": {
+        "AzGuard\\Audit\\Internal\\Checks\\AuditTableExists": {
+            "key": "audit.table",
+            "finding_ids": {
+                "literal": [],
+                "uses_key": true
+            }
+        },
         "AzGuard\\Diagnostics\\Checks\\CacheStore": {
             "key": "cache.store",
             "finding_ids": {
@@ -209,13 +216,6 @@
                     "filament.stale_definition"
                 ],
                 "uses_key": false
-            }
-        },
-        "AzGuard\\Plugins\\Audit\\AuditTableExists": {
-            "key": "audit.table",
-            "finding_ids": {
-                "literal": [],
-                "uses_key": true
             }
         },
         "AzGuard\\Scopes\\Internal\\Checks\\ScopeMembershipConfigured": {

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace AzGuard\Tests\Fixtures\Parity;
 
+use AzGuard\Audit\AuditPlugin;
 use AzGuard\Authorization\Authorizer;
 use AzGuard\Context\AssignmentScopeDeclaration;
 use AzGuard\Context\AssignmentScopeMode;
@@ -11,7 +12,6 @@ use AzGuard\Kernel\Identity\AccessScope;
 use AzGuard\Kernel\Identity\TenantRef;
 use AzGuard\Panels\PanelBuilder;
 use AzGuard\Panels\PanelRegistry;
-use AzGuard\Plugins\Audit\AuditPlugin;
 use AzGuard\Scopes\Internal\ScopeEvaluator;
 use AzGuard\Storage\StorageMutation;
 use AzGuard\Tenancy\TenantPolicy;
@@ -25,6 +25,7 @@ use AzGuard\Tests\Fixtures\Crm\Guards\Crm\OrganizationMembership;
 use AzGuard\Tests\Fixtures\Crm\Guards\Crm\Scopes\ProjectScope;
 use AzGuard\Tests\Fixtures\Crm\Models\Organization;
 use AzGuard\Tests\Fixtures\Parity\Panels\Flat\FlatPanelProvider;
+use AzGuard\Tests\Support\AuditTable;
 use Generator;
 use ReflectionClass;
 
@@ -128,6 +129,10 @@ final class ParityWorld
                 $panel->plugins([AuditPlugin::make()]);
             }
         };
+
+        if ($audit) {
+            AuditTable::create();
+        }
         CrmWorld::$backofficeConfigure = static function (PanelBuilder $panel) use ($seed): void {
             $scope = ProjectScope::make()->filter(new ActiveProjects);
             self::common($panel)->assignmentScopes(new AssignmentScopeDeclaration($seed % 2 === 1 ? AssignmentScopeMode::Isolated : AssignmentScopeMode::Required, [$scope], evaluator: ScopeEvaluator::class));

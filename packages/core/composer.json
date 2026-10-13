@@ -41,7 +41,10 @@
     },
     "autoload": {
         "psr-4": {
-            "AzGuard\\": "src/"
+            "AzGuard\\": "src/",
+            "AzGuard\\Scopes\\": "modules/scopes/src/",
+            "AzGuard\\Audit\\": "modules/audit/src/",
+            "AzGuard\\DevTools\\": "modules/devtools/src/"
         }
     },
     "extra": {
@@ -50,7 +53,9 @@
         },
         "laravel": {
             "providers": [
-                "AzGuard\\AzGuardServiceProvider"
+                "AzGuard\\AzGuardServiceProvider",
+                "AzGuard\\Audit\\AuditServiceProvider",
+                "AzGuard\\DevTools\\DevToolsServiceProvider"
             ]
         }
     }

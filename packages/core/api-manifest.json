@@ -1,7 +1,10 @@
 {
     "package": "axiomasoft/azguard",
     "roots": {
-        "AzGuard\\": "src/"
+        "AzGuard\\": "src/",
+        "AzGuard\\Audit\\": "modules/audit/src/",
+        "AzGuard\\DevTools\\": "modules/devtools/src/",
+        "AzGuard\\Scopes\\": "modules/scopes/src/"
     },
     "facade": [
         {
@@ -755,6 +758,140 @@
                         }
                     ],
                     "return": null,
+                    "namedArguments": true,
+                    "contracts": []
+                }
+            ]
+        },
+        {
+            "name": "AzGuard\\Audit\\AuditPlugin",
+            "publication": "api",
+            "since": "0.7",
+            "kind": "class",
+            "final": true,
+            "abstract": false,
+            "readonly": false,
+            "parent": null,
+            "interfaces": [
+                "AzGuard\\Contracts\\Plugins\\Plugin"
+            ],
+            "namedArguments": true,
+            "contracts": [],
+            "constants": [],
+            "properties": [],
+            "methods": [
+                {
+                    "name": "id",
+                    "visibility": "public",
+                    "static": false,
+                    "abstract": false,
+                    "final": false,
+                    "parameters": [],
+                    "return": "string",
+                    "namedArguments": true,
+                    "contracts": []
+                },
+                {
+                    "name": "make",
+                    "visibility": "public",
+                    "static": true,
+                    "abstract": false,
+                    "final": false,
+                    "parameters": [
+                        {
+                            "name": "retentionDays",
+                            "type": "int",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "90"
+                        }
+                    ],
+                    "return": "self",
+                    "namedArguments": true,
+                    "contracts": []
+                },
+                {
+                    "name": "register",
+                    "visibility": "public",
+                    "static": false,
+                    "abstract": false,
+                    "final": false,
+                    "parameters": [
+                        {
+                            "name": "panel",
+                            "type": "AzGuard\\Panels\\PanelBuilder",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "context",
+                            "type": "AzGuard\\Plugins\\PluginContext",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "void",
+                    "namedArguments": true,
+                    "contracts": []
+                },
+                {
+                    "name": "retention",
+                    "visibility": "public",
+                    "static": false,
+                    "abstract": false,
+                    "final": false,
+                    "parameters": [
+                        {
+                            "name": "days",
+                            "type": "int",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "static",
+                    "namedArguments": true,
+                    "contracts": []
+                },
+                {
+                    "name": "retentionDays",
+                    "visibility": "public",
+                    "static": false,
+                    "abstract": false,
+                    "final": false,
+                    "parameters": [],
+                    "return": "int",
+                    "namedArguments": true,
+                    "contracts": []
+                }
+            ]
+        },
+        {
+            "name": "AzGuard\\Audit\\AuditServiceProvider",
+            "publication": "api",
+            "since": "1.0",
+            "kind": "class",
+            "final": true,
+            "abstract": false,
+            "readonly": false,
+            "parent": "Illuminate\\Support\\ServiceProvider",
+            "interfaces": [],
+            "namedArguments": true,
+            "contracts": [],
+            "constants": [],
+            "properties": [],
+            "methods": [
+                {
+                    "name": "boot",
+                    "visibility": "public",
+                    "static": false,
+                    "abstract": false,
+                    "final": false,
+                    "parameters": [],
+                    "return": "void",
                     "namedArguments": true,
                     "contracts": []
                 }
@@ -7499,107 +7636,6 @@
             ]
         },
         {
-            "name": "AzGuard\\Contracts\\Scopes\\AssignmentScopeAccessAdapter",
-            "publication": "spi-implement",
-            "since": "0.7",
-            "kind": "interface",
-            "final": false,
-            "abstract": false,
-            "readonly": false,
-            "parent": null,
-            "interfaces": [],
-            "namedArguments": true,
-            "contracts": [],
-            "constants": [],
-            "properties": [],
-            "methods": [
-                {
-                    "name": "allows",
-                    "visibility": "public",
-                    "static": false,
-                    "abstract": false,
-                    "final": false,
-                    "parameters": [
-                        {
-                            "name": "ref",
-                            "type": "AzGuard\\Kernel\\Identity\\AssignmentScopeRef",
-                            "byRef": false,
-                            "variadic": false,
-                            "hasDefault": false
-                        },
-                        {
-                            "name": "runtime",
-                            "type": "AzGuard\\Context\\AssignmentScopeRuntime",
-                            "byRef": false,
-                            "variadic": false,
-                            "hasDefault": false
-                        }
-                    ],
-                    "return": "bool",
-                    "namedArguments": true,
-                    "contracts": []
-                },
-                {
-                    "name": "allowsMany",
-                    "visibility": "public",
-                    "static": false,
-                    "abstract": false,
-                    "final": false,
-                    "parameters": [
-                        {
-                            "name": "refs",
-                            "type": "array",
-                            "byRef": false,
-                            "variadic": false,
-                            "hasDefault": false
-                        },
-                        {
-                            "name": "runtime",
-                            "type": "AzGuard\\Context\\AssignmentScopeRuntime",
-                            "byRef": false,
-                            "variadic": false,
-                            "hasDefault": false
-                        }
-                    ],
-                    "return": "array",
-                    "namedArguments": true,
-                    "contracts": [
-                        "@param list<AssignmentScopeRef> $refs",
-                        "@return array<string, bool> ref key => whether it is allowed"
-                    ]
-                },
-                {
-                    "name": "constrain",
-                    "visibility": "public",
-                    "static": false,
-                    "abstract": false,
-                    "final": false,
-                    "parameters": [
-                        {
-                            "name": "contextQuery",
-                            "type": "Illuminate\\Database\\Eloquent\\Builder",
-                            "byRef": false,
-                            "variadic": false,
-                            "hasDefault": false
-                        },
-                        {
-                            "name": "runtime",
-                            "type": "AzGuard\\Context\\AssignmentScopeRuntime",
-                            "byRef": false,
-                            "variadic": false,
-                            "hasDefault": false
-                        }
-                    ],
-                    "return": "Illuminate\\Database\\Eloquent\\Builder",
-                    "namedArguments": true,
-                    "contracts": [
-                        "@param Builder<Model> $contextQuery",
-                        "@return Builder<Model>"
-                    ]
-                }
-            ]
-        },
-        {
             "name": "AzGuard\\Contracts\\Scopes\\AssignmentScopeDefinition",
             "publication": "spi-implement",
             "since": "0.7",
@@ -7836,94 +7872,6 @@
             ]
         },
         {
-            "name": "AzGuard\\Contracts\\Scopes\\AssignmentScopeFilter",
-            "publication": "spi-implement",
-            "since": "0.7",
-            "kind": "interface",
-            "final": false,
-            "abstract": false,
-            "readonly": false,
-            "parent": null,
-            "interfaces": [],
-            "namedArguments": true,
-            "contracts": [],
-            "constants": [],
-            "properties": [],
-            "methods": [
-                {
-                    "name": "apply",
-                    "visibility": "public",
-                    "static": false,
-                    "abstract": false,
-                    "final": false,
-                    "parameters": [
-                        {
-                            "name": "query",
-                            "type": "Illuminate\\Database\\Eloquent\\Builder",
-                            "byRef": false,
-                            "variadic": false,
-                            "hasDefault": false
-                        },
-                        {
-                            "name": "runtime",
-                            "type": "AzGuard\\Context\\AssignmentScopeRuntime",
-                            "byRef": false,
-                            "variadic": false,
-                            "hasDefault": false
-                        }
-                    ],
-                    "return": "void",
-                    "namedArguments": true,
-                    "contracts": [
-                        "@param Builder<Model> $query"
-                    ]
-                }
-            ]
-        },
-        {
-            "name": "AzGuard\\Contracts\\Scopes\\AssignmentScopeMembership",
-            "publication": "spi-implement",
-            "since": "0.7",
-            "kind": "interface",
-            "final": false,
-            "abstract": false,
-            "readonly": false,
-            "parent": null,
-            "interfaces": [],
-            "namedArguments": true,
-            "contracts": [],
-            "constants": [],
-            "properties": [],
-            "methods": [
-                {
-                    "name": "isMember",
-                    "visibility": "public",
-                    "static": false,
-                    "abstract": false,
-                    "final": false,
-                    "parameters": [
-                        {
-                            "name": "subject",
-                            "type": "AzGuard\\Kernel\\Identity\\SubjectRef",
-                            "byRef": false,
-                            "variadic": false,
-                            "hasDefault": false
-                        },
-                        {
-                            "name": "context",
-                            "type": "AzGuard\\Kernel\\Identity\\AssignmentScopeRef",
-                            "byRef": false,
-                            "variadic": false,
-                            "hasDefault": false
-                        }
-                    ],
-                    "return": "bool",
-                    "namedArguments": true,
-                    "contracts": []
-                }
-            ]
-        },
-        {
             "name": "AzGuard\\Contracts\\Scopes\\AssignmentScopeResolver",
             "publication": "spi-implement",
             "since": "0.7",
@@ -7954,97 +7902,6 @@
                         }
                     ],
                     "return": "?AzGuard\\Kernel\\Identity\\AssignmentScopeRef",
-                    "namedArguments": true,
-                    "contracts": []
-                }
-            ]
-        },
-        {
-            "name": "AzGuard\\Contracts\\Scopes\\ConfigurableAssignmentScopeDefinition",
-            "publication": "spi-implement",
-            "since": "0.7",
-            "kind": "interface",
-            "final": false,
-            "abstract": false,
-            "readonly": false,
-            "parent": null,
-            "interfaces": [
-                "AzGuard\\Contracts\\Scopes\\AssignmentScopeDefinition"
-            ],
-            "namedArguments": true,
-            "contracts": [],
-            "constants": [],
-            "properties": [],
-            "methods": [
-                {
-                    "name": "directory",
-                    "visibility": "public",
-                    "static": false,
-                    "abstract": false,
-                    "final": false,
-                    "parameters": [
-                        {
-                            "name": "class",
-                            "type": "string",
-                            "byRef": false,
-                            "variadic": false,
-                            "hasDefault": false
-                        }
-                    ],
-                    "return": "static",
-                    "namedArguments": true,
-                    "contracts": [
-                        "@param class-string<AssignmentScopeDirectory> $class"
-                    ]
-                },
-                {
-                    "name": "filter",
-                    "visibility": "public",
-                    "static": false,
-                    "abstract": false,
-                    "final": false,
-                    "parameters": [
-                        {
-                            "name": "filter",
-                            "type": "AzGuard\\Contracts\\Scopes\\AssignmentScopeFilter|Closure|string",
-                            "byRef": false,
-                            "variadic": false,
-                            "hasDefault": false
-                        }
-                    ],
-                    "return": "static",
-                    "namedArguments": true,
-                    "contracts": [
-                        "@param AssignmentScopeFilter|class-string<AssignmentScopeFilter>|Closure $filter"
-                    ]
-                },
-                {
-                    "name": "label",
-                    "visibility": "public",
-                    "static": false,
-                    "abstract": false,
-                    "final": false,
-                    "parameters": [
-                        {
-                            "name": "label",
-                            "type": "string",
-                            "byRef": false,
-                            "variadic": false,
-                            "hasDefault": false
-                        }
-                    ],
-                    "return": "static",
-                    "namedArguments": true,
-                    "contracts": []
-                },
-                {
-                    "name": "settings",
-                    "visibility": "public",
-                    "static": false,
-                    "abstract": false,
-                    "final": false,
-                    "parameters": [],
-                    "return": "AzGuard\\Scopes\\AssignmentScopeSettings",
                     "namedArguments": true,
                     "contracts": []
                 }
@@ -9548,6 +9405,45 @@
                         }
                     ],
                     "return": "?AzGuard\\Kernel\\Identity\\TenantRef",
+                    "namedArguments": true,
+                    "contracts": []
+                }
+            ]
+        },
+        {
+            "name": "AzGuard\\DevTools\\DevToolsServiceProvider",
+            "publication": "api",
+            "since": "1.0",
+            "kind": "class",
+            "final": true,
+            "abstract": false,
+            "readonly": false,
+            "parent": "Illuminate\\Support\\ServiceProvider",
+            "interfaces": [],
+            "namedArguments": true,
+            "contracts": [],
+            "constants": [],
+            "properties": [],
+            "methods": [
+                {
+                    "name": "boot",
+                    "visibility": "public",
+                    "static": false,
+                    "abstract": false,
+                    "final": false,
+                    "parameters": [],
+                    "return": "void",
+                    "namedArguments": true,
+                    "contracts": []
+                },
+                {
+                    "name": "register",
+                    "visibility": "public",
+                    "static": false,
+                    "abstract": false,
+                    "final": false,
+                    "parameters": [],
+                    "return": "void",
                     "namedArguments": true,
                     "contracts": []
                 }
@@ -21280,112 +21176,6 @@
             ]
         },
         {
-            "name": "AzGuard\\Plugins\\Audit\\AuditPlugin",
-            "publication": "api",
-            "since": "0.7",
-            "kind": "class",
-            "final": true,
-            "abstract": false,
-            "readonly": false,
-            "parent": null,
-            "interfaces": [
-                "AzGuard\\Contracts\\Plugins\\Plugin"
-            ],
-            "namedArguments": true,
-            "contracts": [],
-            "constants": [],
-            "properties": [],
-            "methods": [
-                {
-                    "name": "id",
-                    "visibility": "public",
-                    "static": false,
-                    "abstract": false,
-                    "final": false,
-                    "parameters": [],
-                    "return": "string",
-                    "namedArguments": true,
-                    "contracts": []
-                },
-                {
-                    "name": "make",
-                    "visibility": "public",
-                    "static": true,
-                    "abstract": false,
-                    "final": false,
-                    "parameters": [
-                        {
-                            "name": "retentionDays",
-                            "type": "int",
-                            "byRef": false,
-                            "variadic": false,
-                            "hasDefault": true,
-                            "default": "90"
-                        }
-                    ],
-                    "return": "self",
-                    "namedArguments": true,
-                    "contracts": []
-                },
-                {
-                    "name": "register",
-                    "visibility": "public",
-                    "static": false,
-                    "abstract": false,
-                    "final": false,
-                    "parameters": [
-                        {
-                            "name": "panel",
-                            "type": "AzGuard\\Panels\\PanelBuilder",
-                            "byRef": false,
-                            "variadic": false,
-                            "hasDefault": false
-                        },
-                        {
-                            "name": "context",
-                            "type": "AzGuard\\Plugins\\PluginContext",
-                            "byRef": false,
-                            "variadic": false,
-                            "hasDefault": false
-                        }
-                    ],
-                    "return": "void",
-                    "namedArguments": true,
-                    "contracts": []
-                },
-                {
-                    "name": "retention",
-                    "visibility": "public",
-                    "static": false,
-                    "abstract": false,
-                    "final": false,
-                    "parameters": [
-                        {
-                            "name": "days",
-                            "type": "int",
-                            "byRef": false,
-                            "variadic": false,
-                            "hasDefault": false
-                        }
-                    ],
-                    "return": "static",
-                    "namedArguments": true,
-                    "contracts": []
-                },
-                {
-                    "name": "retentionDays",
-                    "visibility": "public",
-                    "static": false,
-                    "abstract": false,
-                    "final": false,
-                    "parameters": [],
-                    "return": "int",
-                    "namedArguments": true,
-                    "contracts": []
-                }
-            ]
-        },
-        {
             "name": "AzGuard\\Plugins\\PluginContext",
             "publication": "spi-call",
             "since": "0.7",
@@ -23944,9 +23734,9 @@
             "parent": null,
             "interfaces": [
                 "AzGuard\\Contracts\\Scopes\\AssignmentScopeDefinition",
-                "AzGuard\\Contracts\\Scopes\\ConfigurableAssignmentScopeDefinition",
                 "AzGuard\\Contracts\\Scopes\\DescribesAssignmentScope",
-                "AzGuard\\Contracts\\Scopes\\QueryableAssignmentScopeDefinition"
+                "AzGuard\\Contracts\\Scopes\\QueryableAssignmentScopeDefinition",
+                "AzGuard\\Scopes\\Contracts\\ConfigurableAssignmentScopeDefinition"
             ],
             "namedArguments": true,
             "contracts": [],
@@ -23992,7 +23782,7 @@
                     "parameters": [
                         {
                             "name": "filter",
-                            "type": "AzGuard\\Contracts\\Scopes\\AssignmentScopeFilter|Closure|string",
+                            "type": "AzGuard\\Scopes\\Contracts\\AssignmentScopeFilter|Closure|string",
                             "byRef": false,
                             "variadic": false,
                             "hasDefault": false
@@ -24167,6 +23957,286 @@
             ]
         },
         {
+            "name": "AzGuard\\Scopes\\Contracts\\AssignmentScopeAccessAdapter",
+            "publication": "spi-implement",
+            "since": "0.7",
+            "kind": "interface",
+            "final": false,
+            "abstract": false,
+            "readonly": false,
+            "parent": null,
+            "interfaces": [],
+            "namedArguments": true,
+            "contracts": [],
+            "constants": [],
+            "properties": [],
+            "methods": [
+                {
+                    "name": "allows",
+                    "visibility": "public",
+                    "static": false,
+                    "abstract": false,
+                    "final": false,
+                    "parameters": [
+                        {
+                            "name": "ref",
+                            "type": "AzGuard\\Kernel\\Identity\\AssignmentScopeRef",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "runtime",
+                            "type": "AzGuard\\Context\\AssignmentScopeRuntime",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "bool",
+                    "namedArguments": true,
+                    "contracts": []
+                },
+                {
+                    "name": "allowsMany",
+                    "visibility": "public",
+                    "static": false,
+                    "abstract": false,
+                    "final": false,
+                    "parameters": [
+                        {
+                            "name": "refs",
+                            "type": "array",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "runtime",
+                            "type": "AzGuard\\Context\\AssignmentScopeRuntime",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "array",
+                    "namedArguments": true,
+                    "contracts": [
+                        "@param list<AssignmentScopeRef> $refs",
+                        "@return array<string, bool> ref key => whether it is allowed"
+                    ]
+                },
+                {
+                    "name": "constrain",
+                    "visibility": "public",
+                    "static": false,
+                    "abstract": false,
+                    "final": false,
+                    "parameters": [
+                        {
+                            "name": "contextQuery",
+                            "type": "Illuminate\\Database\\Eloquent\\Builder",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "runtime",
+                            "type": "AzGuard\\Context\\AssignmentScopeRuntime",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "Illuminate\\Database\\Eloquent\\Builder",
+                    "namedArguments": true,
+                    "contracts": [
+                        "@param Builder<Model> $contextQuery",
+                        "@return Builder<Model>"
+                    ]
+                }
+            ]
+        },
+        {
+            "name": "AzGuard\\Scopes\\Contracts\\AssignmentScopeFilter",
+            "publication": "spi-implement",
+            "since": "0.7",
+            "kind": "interface",
+            "final": false,
+            "abstract": false,
+            "readonly": false,
+            "parent": null,
+            "interfaces": [],
+            "namedArguments": true,
+            "contracts": [],
+            "constants": [],
+            "properties": [],
+            "methods": [
+                {
+                    "name": "apply",
+                    "visibility": "public",
+                    "static": false,
+                    "abstract": false,
+                    "final": false,
+                    "parameters": [
+                        {
+                            "name": "query",
+                            "type": "Illuminate\\Database\\Eloquent\\Builder",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "runtime",
+                            "type": "AzGuard\\Context\\AssignmentScopeRuntime",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "void",
+                    "namedArguments": true,
+                    "contracts": [
+                        "@param Builder<Model> $query"
+                    ]
+                }
+            ]
+        },
+        {
+            "name": "AzGuard\\Scopes\\Contracts\\AssignmentScopeMembership",
+            "publication": "spi-implement",
+            "since": "0.7",
+            "kind": "interface",
+            "final": false,
+            "abstract": false,
+            "readonly": false,
+            "parent": null,
+            "interfaces": [],
+            "namedArguments": true,
+            "contracts": [],
+            "constants": [],
+            "properties": [],
+            "methods": [
+                {
+                    "name": "isMember",
+                    "visibility": "public",
+                    "static": false,
+                    "abstract": false,
+                    "final": false,
+                    "parameters": [
+                        {
+                            "name": "subject",
+                            "type": "AzGuard\\Kernel\\Identity\\SubjectRef",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "context",
+                            "type": "AzGuard\\Kernel\\Identity\\AssignmentScopeRef",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "bool",
+                    "namedArguments": true,
+                    "contracts": []
+                }
+            ]
+        },
+        {
+            "name": "AzGuard\\Scopes\\Contracts\\ConfigurableAssignmentScopeDefinition",
+            "publication": "spi-implement",
+            "since": "0.7",
+            "kind": "interface",
+            "final": false,
+            "abstract": false,
+            "readonly": false,
+            "parent": null,
+            "interfaces": [
+                "AzGuard\\Contracts\\Scopes\\AssignmentScopeDefinition"
+            ],
+            "namedArguments": true,
+            "contracts": [],
+            "constants": [],
+            "properties": [],
+            "methods": [
+                {
+                    "name": "directory",
+                    "visibility": "public",
+                    "static": false,
+                    "abstract": false,
+                    "final": false,
+                    "parameters": [
+                        {
+                            "name": "class",
+                            "type": "string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "static",
+                    "namedArguments": true,
+                    "contracts": [
+                        "@param class-string<AssignmentScopeDirectory> $class"
+                    ]
+                },
+                {
+                    "name": "filter",
+                    "visibility": "public",
+                    "static": false,
+                    "abstract": false,
+                    "final": false,
+                    "parameters": [
+                        {
+                            "name": "filter",
+                            "type": "AzGuard\\Scopes\\Contracts\\AssignmentScopeFilter|Closure|string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "static",
+                    "namedArguments": true,
+                    "contracts": [
+                        "@param AssignmentScopeFilter|class-string<AssignmentScopeFilter>|Closure $filter"
+                    ]
+                },
+                {
+                    "name": "label",
+                    "visibility": "public",
+                    "static": false,
+                    "abstract": false,
+                    "final": false,
+                    "parameters": [
+                        {
+                            "name": "label",
+                            "type": "string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "static",
+                    "namedArguments": true,
+                    "contracts": []
+                },
+                {
+                    "name": "settings",
+                    "visibility": "public",
+                    "static": false,
+                    "abstract": false,
+                    "final": false,
+                    "parameters": [],
+                    "return": "AzGuard\\Scopes\\AssignmentScopeSettings",
+                    "namedArguments": true,
+                    "contracts": []
+                }
+            ]
+        },
+        {
             "name": "AzGuard\\Scopes\\ModelAssignmentScopeDefinition",
             "publication": "api",
             "since": "0.7",
@@ -24177,9 +24247,9 @@
             "parent": "AzGuard\\Scopes\\BaseAssignmentScope",
             "interfaces": [
                 "AzGuard\\Contracts\\Scopes\\AssignmentScopeDefinition",
-                "AzGuard\\Contracts\\Scopes\\ConfigurableAssignmentScopeDefinition",
                 "AzGuard\\Contracts\\Scopes\\DescribesAssignmentScope",
-                "AzGuard\\Contracts\\Scopes\\QueryableAssignmentScopeDefinition"
+                "AzGuard\\Contracts\\Scopes\\QueryableAssignmentScopeDefinition",
+                "AzGuard\\Scopes\\Contracts\\ConfigurableAssignmentScopeDefinition"
             ],
             "namedArguments": true,
             "contracts": [],
@@ -24371,7 +24441,7 @@
                         },
                         {
                             "name": "adapter",
-                            "type": "AzGuard\\Contracts\\Scopes\\AssignmentScopeAccessAdapter|string",
+                            "type": "AzGuard\\Scopes\\Contracts\\AssignmentScopeAccessAdapter|string",
                             "byRef": false,
                             "variadic": false,
                             "hasDefault": false
@@ -24471,11 +24541,11 @@
                     "parameters": [
                         {
                             "name": "membership",
-                            "type": "AzGuard\\Contracts\\Scopes\\AssignmentScopeMembership|string",
+                            "type": "AzGuard\\Scopes\\Contracts\\AssignmentScopeMembership|string",
                             "byRef": false,
                             "variadic": false,
                             "hasDefault": true,
-                            "default": "'AzGuard\\\\Contracts\\\\Scopes\\\\AssignmentScopeMembership'"
+                            "default": "'AzGuard\\\\Scopes\\\\Contracts\\\\AssignmentScopeMembership'"
                         }
                     ],
                     "return": "self",
@@ -28633,25 +28703,6 @@
                 },
                 {
                     "name": "drop",
-                    "visibility": "public",
-                    "static": false,
-                    "abstract": false,
-                    "final": false,
-                    "parameters": [
-                        {
-                            "name": "storage",
-                            "type": "string",
-                            "byRef": false,
-                            "variadic": false,
-                            "hasDefault": false
-                        }
-                    ],
-                    "return": "void",
-                    "namedArguments": true,
-                    "contracts": []
-                },
-                {
-                    "name": "upgrade",
                     "visibility": "public",
                     "static": false,
                     "abstract": false,

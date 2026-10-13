@@ -29,11 +29,9 @@ use AzGuard\Roles\BaseRole;
 use AzGuard\Sources\Database\DatabaseSource;
 use AzGuard\Sources\Database\LockedReads;
 use AzGuard\Storage\PanelState;
-use AzGuard\Storage\StorageMutation;
 use Carbon\CarbonImmutable;
 use Closure;
 use DateTimeImmutable;
-use DateTimeZone;
 use Illuminate\Contracts\Container\Container;
 use Illuminate\Support\Str;
 use UnitEnum;
@@ -301,37 +299,6 @@ final readonly class ChangePipeline
         return $this->operate($panel, TenantRef::global(), static fn (LockedReads $reads, ?ActorRef $actor): array => [
             Change::touchPanel($panel->id(), 'reset', $actor),
         ], $actor, static fn (): PanelState => $storage->renewIncarnation($panel->id()))->state;
-    }
-
-    /**
-     * Deletes the rows of the change journal of the panel that occurred before `$before`, in every tenant, `$batch`
-     * rows at a time, each batch under the lock of the panel state. The journal is not authority: nothing is touched
-     * and no event is published. Returns the number of rows deleted.
-     */
-    public function pruneJournal(Panel $panel, DateTimeImmutable $before, int $batch = 1000): int
-    {
-        if ($batch < 1) {
-            throw InvalidConfigurationException::failing('changing', 'A prune batch holds at least one row.');
-        }
-        $writer = $panel->writerSource();
-
-        if (! $writer instanceof DatabaseSource) {
-            throw new PanelNotWritableException('Panel '.$panel->id().' has no database writer, so it keeps no journal.');
-        }
-        $storage = $writer->boundStorage();
-        $cutoff = $before->setTimezone(new DateTimeZone('UTC'))->format('Y-m-d H:i:s');
-        $removed = 0;
-        do {
-            $count = $storage->mutate($panel->id(), static function (StorageMutation $mutation) use ($panel, $cutoff, $batch): int {
-                $ids = $mutation->table('audit_log')->where('panel', $panel->id())->where('occurred_at', '<', $cutoff)
-                    ->orderBy('id')->limit($batch)->pluck('id')->all();
-
-                return $ids === [] ? 0 : $mutation->table('audit_log')->whereIn('id', $ids)->delete();
-            });
-            $removed += $count;
-        } while ($count >= $batch);
-
-        return $removed;
     }
 
     /**

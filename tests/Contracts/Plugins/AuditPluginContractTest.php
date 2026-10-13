@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace AzGuard\Tests\Contracts\Plugins;
 
+use AzGuard\Audit\AuditPlugin;
 use AzGuard\Contracts\Plugins\Plugin;
-use AzGuard\Plugins\Audit\AuditPlugin;
 use AzGuard\Testing\Contracts\PluginContractTests;
 use AzGuard\Tests\Fixtures\Contracts\DatabaseWriterPlugin;
 use AzGuard\Tests\TestCase;

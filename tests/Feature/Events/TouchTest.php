@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use AzGuard\Audit\AuditPlugin;
 use AzGuard\Changes\Change;
 use AzGuard\Changes\ChangeResult;
 use AzGuard\Changes\ChangeType;
@@ -13,15 +14,16 @@ use AzGuard\Exceptions\InvalidIdentityException;
 use AzGuard\Exceptions\PanelNotWritableException;
 use AzGuard\Kernel\Identity\ActorRef;
 use AzGuard\Kernel\Identity\TenantRef;
-use AzGuard\Plugins\Audit\AuditPlugin;
 use AzGuard\Storage\StorageMutation;
 use AzGuard\Tests\Fixtures\Changes\ChangeWorld as W;
 use AzGuard\Tests\Fixtures\Crm\CrmWorld;
 use AzGuard\Tests\Fixtures\Events\EventWorld;
 use AzGuard\Tests\Fixtures\Panels\ArraySource;
+use AzGuard\Tests\Support\AuditTable;
 
 beforeEach(function (): void {
     CrmWorld::seed();
+    AuditTable::create();
     EventWorld::listen();
     $this->panel = W::panel();
     $this->connection = CrmWorld::storage()->connection();

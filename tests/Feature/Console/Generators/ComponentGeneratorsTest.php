@@ -109,7 +109,7 @@ it('makes the grant models of a panel and the migration of their columns', funct
         ->and($migration)->toHaveCount(1)
         ->and($migration[0])->toMatch('#^database/migrations/\d{4}_\d{2}_\d{2}_\d{6}_add_admin_columns_to_azguard_tables\.php$#')
         ->and($this->generated->read('app/Guards/Admin/Models/AdminRoleGrant.php'))->toContain('final class AdminRoleGrant extends RoleGrant', 'public static function azguardFields(): array')
-        ->and($this->generated->read($migration[0]))->toContain("get('default')", "'role_grants'", "'permission_grants'")
+        ->and($this->generated->read($migration[0]))->toContain("storage('default')", "'role_grants'", "'permission_grants'")->not->toContain('StorageRegistry')
         ->and(Artisan::output())->toContain('DatabaseSource::make()->models(roleGrant: AdminRoleGrant::class');
 
     // The classes are the subclasses a DatabaseSource accepts.
@@ -149,7 +149,7 @@ it('publishes the stubs, keeps the published ones and replaces them with --force
 
     Artisan::call('azguard:stubs', ['--force' => true]);
 
-    expect($this->generated->read('stubs/azguard/role.stub'))->toBe(file_get_contents(__DIR__.'/../../../../packages/core/stubs/role.stub'));
+    expect($this->generated->read('stubs/azguard/role.stub'))->toBe(file_get_contents(__DIR__.'/../../../../packages/core/modules/devtools/stubs/role.stub'));
 });
 
 it('prefers a published stub to the stub of the package', function (): void {

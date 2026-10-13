@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use AzGuard\Audit\AuditPlugin;
 use AzGuard\Changes\ActingActor;
 use AzGuard\Changes\Change;
 use AzGuard\Changes\ChangeResult;
@@ -18,7 +19,6 @@ use AzGuard\Kernel\Decision\DecisionReason;
 use AzGuard\Kernel\Identity\ActorRef;
 use AzGuard\Panels\PanelBuilder;
 use AzGuard\Panels\PanelRegistry;
-use AzGuard\Plugins\Audit\AuditPlugin;
 use AzGuard\Schema\Field;
 use AzGuard\Schema\FieldTarget;
 use AzGuard\Storage\StorageTouched;
@@ -36,6 +36,7 @@ use AzGuard\Tests\Fixtures\Crm\Models\Client;
 use AzGuard\Tests\Fixtures\Crm\Models\Project;
 use AzGuard\Tests\Fixtures\Crm\Models\User;
 use AzGuard\Tests\Fixtures\Events\EventWorld;
+use AzGuard\Tests\Support\AuditTable;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Event;
 
@@ -214,6 +215,7 @@ it('R29 refuses a change prepared against an old build or owner revision through
 
 it('R27 keeps the actor identity and reason in the journal and the event of a delegated grant, and writes nothing for a refused escalation', function (): void {
     DelegationPipe::$delegations = ['crm.user:2' => ['roles' => ['seller'], 'contexts' => ['crm.project:5']]];
+    AuditTable::create();
     $panel = W::panel([DelegationPipe::class], static fn (PanelBuilder $builder): PanelBuilder => $builder->plugins([AuditPlugin::make()]));
     $manager = ActorRef::of('crm.user', 2, 'ticket CRM-27');
     EventWorld::listen();
@@ -231,6 +233,7 @@ it('R27 keeps the actor identity and reason in the journal and the event of a de
 });
 
 it('R30 publishes no event and writes no journal row for rolled back nested work or a silent repeat, and one for the real change', function (): void {
+    AuditTable::create();
     $panel = W::panel(configure: static fn (PanelBuilder $builder): PanelBuilder => $builder->plugins([AuditPlugin::make()]));
     $record = W::grant($panel, 'seller', 1, 5)->record;
     EventWorld::listen();

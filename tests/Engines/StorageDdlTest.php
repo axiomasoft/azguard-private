@@ -2,13 +2,16 @@
 
 declare(strict_types=1);
 
+use AzGuard\Audit\AuditPlugin;
+use AzGuard\Audit\Internal\AuditSchema;
+use AzGuard\Facades\AzGuard;
 use AzGuard\Kernel\Identity\ActorRef;
-use AzGuard\Plugins\Audit\AuditPlugin;
 use AzGuard\Storage\Schema\StorageSchema;
 use AzGuard\Tests\Fixtures\Changes\ChangeWorld as W;
 use AzGuard\Tests\Fixtures\Crm\CrmWorld;
 use AzGuard\Tests\Fixtures\Events\EventWorld;
 use AzGuard\Tests\Fixtures\Storage\DdlSnapshot;
+use AzGuard\Tests\Support\AuditTable;
 
 it('matches actual engine columns indexes constraints and collations for all host key types', function (): void {
     DdlSnapshot::verify();
@@ -17,6 +20,7 @@ it('matches actual engine columns indexes constraints and collations for all hos
 it('writes the journal in the transaction of the change, prunes expired grants and touches the panel on the engine', function (): void {
     $schema = CrmWorld::storage()->connection()->getSchemaBuilder();
     CrmWorld::seed();
+    AuditTable::create();
 
     try {
         EventWorld::listen();
@@ -42,6 +46,7 @@ it('writes the journal in the transaction of the change, prunes expired grants a
         foreach (['crm_weight', 'crm_active_build', 'crm_project_revisions', 'clients', 'project_members', 'projects', 'organization_user', 'users', 'cities', 'organizations'] as $table) {
             $schema->dropIfExists($table);
         }
+        AuditSchema::drop(AzGuard::storage());
         app(StorageSchema::class)->drop('default');
         CrmWorld::resetRuntime();
     }

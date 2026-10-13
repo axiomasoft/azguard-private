@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use AzGuard\Audit\AuditPlugin;
 use AzGuard\Audit\Internal\JournalParticipant;
 use AzGuard\Changes\Change;
 use AzGuard\Changes\ChangeEffect;
@@ -14,11 +15,11 @@ use AzGuard\Exceptions\ChangeCancelledException;
 use AzGuard\Kernel\Identity\ActorRef;
 use AzGuard\Panels\Panel;
 use AzGuard\Panels\PanelBuilder;
-use AzGuard\Plugins\Audit\AuditPlugin;
 use AzGuard\Storage\StorageMutation;
 use AzGuard\Tests\Fixtures\Changes\ChangeWorld as W;
 use AzGuard\Tests\Fixtures\Crm\CrmWorld;
 use AzGuard\Tests\Fixtures\Events\EventWorld;
+use AzGuard\Tests\Support\AuditTable;
 use Illuminate\Database\QueryException;
 
 function auditedPanel(array $pipes = [], bool $dynamic = false): Panel
@@ -32,6 +33,7 @@ function auditedPanel(array $pipes = [], bool $dynamic = false): Panel
 
 beforeEach(function (): void {
     CrmWorld::seed();
+    AuditTable::create();
     EventWorld::listen();
     $this->connection = CrmWorld::storage()->connection();
 });

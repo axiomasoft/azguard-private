@@ -18,8 +18,6 @@ use AzGuard\Kernel\Decision\AccessRequest;
 use AzGuard\Kernel\Identity\AccessScope;
 use AzGuard\Kernel\Identity\AssignmentScopeRef;
 use AzGuard\Kernel\Support\Narrow;
-use AzGuard\Scopes\Query\PredicateBuilder;
-use AzGuard\Scopes\Query\QueryGuard;
 use AzGuard\Support\ModelKey;
 use Illuminate\Contracts\Container\Container;
 use Illuminate\Database\Eloquent\Builder;

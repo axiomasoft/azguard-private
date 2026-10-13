@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use AzGuard\Audit\AuditPlugin;
 use AzGuard\Changes\Change;
 use AzGuard\Changes\ChangeResult;
 use AzGuard\Changes\ChangeStatus;
@@ -11,11 +12,11 @@ use AzGuard\Exceptions\ChangeCancelledException;
 use AzGuard\Exceptions\StaleSelectionException;
 use AzGuard\Exceptions\UnknownPermissionException;
 use AzGuard\Panels\PanelBuilder;
-use AzGuard\Plugins\Audit\AuditPlugin;
 use AzGuard\Tests\Fixtures\Changes\ChangeWorld as W;
 use AzGuard\Tests\Fixtures\Crm\CrmWorld;
 use AzGuard\Tests\Fixtures\Crm\Models\User;
 use AzGuard\Tests\Fixtures\Events\EventWorld;
+use AzGuard\Tests\Support\AuditTable;
 use Illuminate\Support\Carbon;
 
 beforeEach(function (): void {
@@ -23,6 +24,7 @@ beforeEach(function (): void {
         W::clean();
     }
     CrmWorld::seed();
+    AuditTable::create();
 });
 afterEach(function (): void {
     if (CrmWorld::storage()->connection()->getDriverName() !== 'sqlite') {

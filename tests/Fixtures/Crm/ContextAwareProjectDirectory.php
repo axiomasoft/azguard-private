@@ -8,8 +8,8 @@ use AzGuard\Context\AssignmentScopePhase;
 use AzGuard\Contracts\Scopes\AssignmentScopeDirectory;
 use AzGuard\Directories\AssignmentScopeOption;
 use AzGuard\Directories\LookupContext;
-use AzGuard\Directories\QueryScopeDirectory;
 use AzGuard\Kernel\Identity\AssignmentScopeRef;
+use AzGuard\Scopes\Internal\QueryScopeDirectory;
 
 final class ContextAwareProjectDirectory implements AssignmentScopeDirectory
 {

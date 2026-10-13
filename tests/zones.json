@@ -22,12 +22,12 @@
             "uses": ["kernel", "catalog", "storage"]
         },
         "changes": {
-            "src": ["packages/core/src/Changes", "packages/core/src/Audit"],
+            "src": ["packages/core/src/Changes", "packages/core/modules/audit/src"],
             "tests": ["Unit/Changes", "Feature/Changes", "Contracts/Hooks", "Contracts/Changes"],
             "uses": ["kernel", "catalog", "storage", "sources"]
         },
         "authorization": {
-            "src": ["packages/core/src/Authorization", "packages/core/src/Scopes", "packages/core/src/Concerns", "packages/core/src/Facades"],
+            "src": ["packages/core/src/Authorization", "packages/core/modules/scopes/src", "packages/core/src/Concerns", "packages/core/src/Facades"],
             "tests": ["Unit/Authorization", "Unit/Scopes", "Unit/Facades", "Feature/Authorization", "Feature/Scopes", "Feature/Gate", "Feature/Http", "Feature/InactiveCost", "Feature/Concerns", "Feature/Facade", "Contracts/Scopes", "Contracts/Restrictions"],
             "uses": ["kernel", "catalog", "storage", "sources"]
         },
@@ -42,7 +42,7 @@
             "uses": ["kernel", "storage", "sources", "changes", "authorization"]
         },
         "console": {
-            "src": ["packages/core/src/Laravel", "packages/core/src/Diagnostics", "packages/core/src/AzGuard.php", "packages/core/src/AzGuardServiceProvider.php"],
+            "src": ["packages/core/src/Laravel", "packages/core/modules/devtools/src", "packages/core/src/Diagnostics", "packages/core/src/AzGuard.php", "packages/core/src/AzGuardServiceProvider.php"],
             "tests": ["Feature/Console", "Feature/Diagnostics", "Feature/Laravel", "Feature/ServiceProviderTest.php", "Unit/ServiceProviderContractTest.php"],
             "uses": ["kernel", "catalog", "storage", "sources", "changes", "authorization", "visibility", "testing-kit"]
         },
@@ -83,7 +83,7 @@
     },
     "database": [
         "Feature/Storage", "Feature/Sources/Database", "Feature/Changes", "Feature/Visibility", "Feature/Directories",
-        "Feature/Parity", "Contracts", "Engines", "Regression/Baseline070/PopulatedDatabaseTest.php"
+        "Feature/Parity", "Contracts", "Engines"
     ],
     "global": ["composer.json", "composer.lock", "phpunit.xml", "tests/Pest.php", "tests/TestCase.php", "tests/zones.json", "bin/test-changed.php", "tests/Support", "tests/Fixtures", "packages/core/composer.json", "packages/filament/composer.json"]
 }

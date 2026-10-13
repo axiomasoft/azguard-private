@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+use AzGuard\Audit\Internal\AuditSchema;
+use AzGuard\Facades\AzGuard;
 use AzGuard\Storage\Schema\StorageSchema;
 use AzGuard\Storage\Storage;
 use AzGuard\Storage\StorageRegistry;
@@ -16,8 +18,31 @@ it('creates the complete grant action and state schema with identity and pair in
 
     try {
         SchemaAssertions::verify($storage);
+        AuditSchema::create(AzGuard::storage());
+        SchemaAssertions::verifyAudit($storage);
     } finally {
+        AuditSchema::drop(AzGuard::storage());
         $schema->drop('default');
+    }
+});
+
+it('creates and drops only the six core tables and leaves a table of another owner untouched', function (): void {
+    $storage = app(StorageRegistry::class)->get('default');
+    $schema = app(StorageSchema::class);
+    $builder = $storage->connection()->getSchemaBuilder();
+    $schema->drop('default');
+    $schema->create('default');
+    AuditSchema::create(AzGuard::storage());
+
+    try {
+        $schema->drop('default');
+
+        foreach (['permissions', 'role_grants', 'permission_grants', 'panel_state', 'subject_revisions', 'storage_state'] as $base) {
+            expect($builder->hasTable($storage->prefix().$base))->toBeFalse($base);
+        }
+        expect($builder->hasTable($storage->prefix().'audit_log'))->toBeTrue();
+    } finally {
+        AuditSchema::drop(AzGuard::storage());
     }
 });
 
@@ -28,9 +53,10 @@ it('keeps generated names within 63 bytes with the maximum prefix', function ():
     $schema = app(StorageSchema::class);
     $schema->drop('long');
     $schema->create('long');
+    AuditSchema::create(AzGuard::storage('long'));
 
     try {
-        foreach (['permissions', 'role_grants', 'permission_grants', 'audit_log', 'panel_state', 'storage_state'] as $base) {
+        foreach (['permissions', 'role_grants', 'permission_grants', 'audit_log', 'panel_state', 'subject_revisions', 'storage_state'] as $base) {
             foreach ($storage->connection()->getSchemaBuilder()->getIndexes($storage->prefix().$base) as $index) {
                 expect(strlen($index['name']))->toBeLessThanOrEqual(63);
             }
@@ -42,6 +68,7 @@ it('keeps generated names within 63 bytes with the maximum prefix', function ():
             }
         }
     } finally {
+        AuditSchema::drop(AzGuard::storage('long'));
         $schema->drop('long');
     }
 });

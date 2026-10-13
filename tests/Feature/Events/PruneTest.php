@@ -2,19 +2,21 @@
 
 declare(strict_types=1);
 
+use AzGuard\Audit\AuditPlugin;
 use AzGuard\Changes\Change;
 use AzGuard\Changes\ChangeResult;
 use AzGuard\Events\GrantExpired;
 use AzGuard\Exceptions\ChangeCancelledException;
 use AzGuard\Exceptions\InvalidConfigurationException;
 use AzGuard\Kernel\Identity\ActorRef;
-use AzGuard\Plugins\Audit\AuditPlugin;
 use AzGuard\Tests\Fixtures\Changes\ChangeWorld as W;
 use AzGuard\Tests\Fixtures\Crm\CrmWorld;
 use AzGuard\Tests\Fixtures\Events\EventWorld;
+use AzGuard\Tests\Support\AuditTable;
 
 beforeEach(function (): void {
     CrmWorld::seed();
+    AuditTable::create();
     $this->panel = W::panel();
     $this->soon = new DateTimeImmutable('2026-10-06T13:00:00Z');
     $this->later = new DateTimeImmutable('2026-10-07T12:00:00Z');

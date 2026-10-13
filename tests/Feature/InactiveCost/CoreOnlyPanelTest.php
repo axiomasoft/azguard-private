@@ -19,6 +19,7 @@ use AzGuard\Tests\Fixtures\Changes\Roles\RootRole;
 use AzGuard\Tests\Fixtures\Changes\Roles\SupportRole;
 use AzGuard\Tests\Fixtures\Crm\CrmWorld;
 use AzGuard\Tests\Fixtures\Crm\Guards\Crm\Scopes\ProjectScope;
+use AzGuard\Tests\Support\AuditTable;
 use Illuminate\Console\Application as ConsoleApplication;
 use Illuminate\Container\Container;
 use Illuminate\Contracts\Console\Kernel as ConsoleKernel;
@@ -34,8 +35,8 @@ use Illuminate\Support\Facades\DB;
  * `resolving` callback), no query may touch a module table (counted through `DB::listen`), the doctor may not need a
  * module table, and DevTools commands are absent when the application does not run in the console.
  *
- * Every cost 0.7.0 still has is listed in tests/Fixtures/InactiveCost/allowlist.json with owner P3: the costs found
- * must equal the list exactly (a new cost fails now, a gone one is a stale entry). At P3 exit the list is empty.
+ * tests/Fixtures/InactiveCost/allowlist.json is empty since the Audit module owns its table (P3.5): the costs found
+ * must equal the list exactly, so any inactive cost fails.
  */
 
 beforeEach(fn () => CrmWorld::seed());
@@ -179,6 +180,7 @@ it('I13: the services resolved and the queries run for a core-only panel belong 
 
 it('counts a query to a module table, a module service resolved in the window and one the container already held', function (): void {
     $inWindow = coreOnlyRun(during: static function (): void {
+        AuditTable::create();
         CrmWorld::storage()->table('audit_log')->count();
         app()->make(ScopeEligibility::class);
     })['costs'];
@@ -197,7 +199,7 @@ it('I13: the doctor of a core-only database needs no module table', function ():
     $storage = CrmWorld::storage();
 
     foreach (array_keys(Ownership::TABLES) as $table) {
-        $storage->connection()->getSchemaBuilder()->drop($storage->prefix().$table);
+        $storage->connection()->getSchemaBuilder()->dropIfExists($storage->prefix().$table);
     }
     $exit = Artisan::call('azguard:doctor', ['--json' => true]);
     $findings = json_decode(Artisan::output(), true, flags: JSON_THROW_ON_ERROR);
@@ -239,11 +241,6 @@ it('I13: no DevTools command is registered when the application does not run in 
         ->and($outside)->toBe($listed);
 });
 
-it('lists in the inactive-cost allowlist only costs of a known kind, each owned by P3', function (): void {
-    foreach (inactiveCostAllowlist() as $entry) {
-        expect($entry)->toHaveKeys(['cost', 'subject', 'invariant', 'owner_phase'])
-            ->and($entry['cost'])->toBeIn(['module-service', 'module-query', 'module-table-required', 'devtools-command'])
-            ->and($entry['invariant'])->toBe('I13')
-            ->and($entry['owner_phase'])->toBe('P3');
-    }
+it('keeps the inactive-cost allowlist empty once Audit owns its table (P3.5)', function (): void {
+    expect(inactiveCostAllowlist())->toBe([]);
 });

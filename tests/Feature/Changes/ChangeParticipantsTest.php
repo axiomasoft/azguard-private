@@ -17,6 +17,7 @@ use AzGuard\Testing\Contracts\ContractWorld;
 use AzGuard\Tests\Fixtures\Changes\ChangeWorld as W;
 use AzGuard\Tests\Fixtures\Crm\CrmWorld;
 use AzGuard\Tests\Fixtures\Events\EventWorld;
+use AzGuard\Tests\Support\AuditTable;
 use Illuminate\Database\QueryException;
 
 /*
@@ -76,6 +77,7 @@ function journalingProbe(): ChangeParticipant
 
 beforeEach(function (): void {
     CrmWorld::seed();
+    AuditTable::create();
     EventWorld::listen();
 });
 afterEach(function (): void {

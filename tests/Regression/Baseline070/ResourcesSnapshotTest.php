@@ -2,17 +2,18 @@
 
 declare(strict_types=1);
 
+use AzGuard\Audit\AuditPlugin;
+use AzGuard\Audit\AuditServiceProvider;
 use AzGuard\AzGuard;
 use AzGuard\AzGuardServiceProvider;
 use AzGuard\Configuration\AzGuardConfig;
 use AzGuard\Contracts\Plugins\Plugin;
+use AzGuard\DevTools\Internal\Scaffold\StubStore;
 use AzGuard\Exceptions\PluginConflictException;
 use AzGuard\Filament\AzGuardFilamentServiceProvider;
 use AzGuard\Kernel\Identity\ActorRef;
-use AzGuard\Laravel\Console\Scaffold\StubStore;
 use AzGuard\Laravel\Queue\PanelContext;
 use AzGuard\Panels\PanelBuilder;
-use AzGuard\Plugins\Audit\AuditPlugin;
 use AzGuard\Plugins\PluginContext;
 use AzGuard\Storage\Schema\StorageSchema;
 use AzGuard\Storage\StorageRegistry;
@@ -47,7 +48,7 @@ function baselinePublishTags(string $provider, string $package): array
 }
 
 /** @return list<string> the files the generator writes for a named storage, with their date and storage as placeholders */
-function baselineNamedStorageMigrations(): array
+function baselineNamedStorageMigrations(string $command = 'azguard:storage:migration', string $argument = 'name'): array
 {
     $scratch = sys_get_temp_dir().'/azguard-baseline-'.bin2hex(random_bytes(8));
     app()->useDatabasePath($scratch);
@@ -56,7 +57,7 @@ function baselineNamedStorageMigrations(): array
     app()->forgetInstance(StorageRegistry::class);
 
     try {
-        expect(Artisan::call('azguard:storage:migration', ['name' => 'archive']))->toBe(0);
+        expect(Artisan::call($command, [$argument => 'archive']))->toBe(0);
         $files = array_map('basename', glob($scratch.'/migrations/*') ?: []);
         sort($files, SORT_STRING);
 
@@ -81,15 +82,21 @@ it('keeps the publish tags, migrations, aliases, namespaces and reserved identit
     ksort($state, SORT_STRING);
     $named = baselineNamedStorageMigrations();
     $namedAudit = '<date>_create_azguard_<storage>_audit_log.php';
+    $auditMigrations = array_map(static fn (string $file): string => basename($file, '.php'), glob($root.'/core/modules/audit/database/migrations/*.php') ?: []);
+    $auditLoaded = array_values(array_filter(app('migrator')->paths(), static fn (string $path): bool => realpath($path) === realpath($root.'/core/modules/audit/database/migrations')));
+    $namedAuditFiles = baselineNamedStorageMigrations('azguard:audit:migration', 'storage');
 
     $snapshot = [
         'publish_tags' => [
             'core' => baselinePublishTags(AzGuardServiceProvider::class, $root.'/core'),
             'filament' => baselinePublishTags(AzGuardFilamentServiceProvider::class, $root.'/filament'),
+            'audit' => baselinePublishTags(AuditServiceProvider::class, $root.'/core'),
         ],
         'stub_publish_path' => StubStore::PUBLISHED,
         'core_migrations' => ['basenames' => $migrations, 'loaded_by_provider' => count($loaded) === 1],
         'named_storage_migration' => implode(', ', array_diff($named, [$namedAudit])),
+        'audit_migrations' => ['basenames' => $auditMigrations, 'loaded_by_provider' => count($auditLoaded) === 1],
+        'named_audit_migration' => implode(', ', $namedAuditFiles),
         'middleware_aliases' => array_filter($router->getMiddleware(), static fn (string $alias): bool => str_starts_with($alias, 'azguard'), ARRAY_FILTER_USE_KEY),
         'container_alias' => ['azguard' => app('azguard')::class, 'same_instance' => app('azguard') === app(AzGuard::class)],
         'translation_namespaces' => array_values(array_filter(array_keys(app('translator')->getLoader()->namespaces()), static fn (string $name): bool => str_starts_with($name, 'azguard'))),
@@ -101,8 +108,8 @@ it('keeps the publish tags, migrations, aliases, namespaces and reserved identit
         'storage_state_schema_default' => $state,
         'absent_at_070' => [
             'publish_tag azguard-audit-migrations (P3)' => ServiceProvider::pathsToPublish(null, 'azguard-audit-migrations') !== [],
-            'migration 2026_10_20_000000_create_azguard_audit_log (P3)' => in_array('2026_10_20_000000_create_azguard_audit_log', $migrations, true),
-            'generated migration '.$namedAudit.' (P3)' => in_array($namedAudit, $named, true),
+            'migration 2026_10_20_000000_create_azguard_audit_log (P3)' => in_array('2026_10_20_000000_create_azguard_audit_log', $auditMigrations, true),
+            'generated migration '.$namedAudit.' (P3)' => in_array($namedAudit, $namedAuditFiles, true),
             'command azguard:audit:migration (P3)' => array_key_exists('azguard:audit:migration', Artisan::all()),
             'plugin id azguard/scopes (P2)' => class_exists('AzGuard\\Scopes\\ScopesPlugin'),
             'provider AzGuard\\Audit\\AuditServiceProvider (P3)' => class_exists('AzGuard\\Audit\\AuditServiceProvider'),
