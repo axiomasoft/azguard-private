@@ -1,0 +1,1 @@
+{"name":"v2-p34","cmd":"test -z \"$(git grep -lF 'AzGuard\\Scopes\\' -- packages/core/src)$(git grep -lF 'AzGuard\\Audit\\' -- packages/core/src)\"","exit":0,"started":"2026-10-13T17:06:16Z","finished":"2026-10-13T17:06:16Z","head":"c3e2c07a8a448c4e6061b51270359f4f004498e1"}

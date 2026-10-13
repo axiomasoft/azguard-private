@@ -1,0 +1,1 @@
+{"name":"v1-p37","cmd":"php -d memory_limit=1G vendor/bin/pest tests/Feature/Console tests/Feature/Configuration tests/Feature/InactiveCost --fail-on-skipped","exit":0,"started":"2026-10-13T17:09:09Z","finished":"2026-10-13T17:09:31Z","head":"c3e2c07a8a448c4e6061b51270359f4f004498e1"}

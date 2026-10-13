@@ -1,0 +1,1 @@
+{"name":"v2-p37","cmd":"test \"$(cat tests/Arch/Allowlists/i2.json | tr -d '[:space:]')\" = '[]' && test \"$(cat tests/Arch/Allowlists/i4.json | tr -d '[:space:]')\" = '[]' && test -z \"$(ls packages/core/stubs | grep -v '^storage-migration.stub$')\"","exit":0,"started":"2026-10-13T17:06:16Z","finished":"2026-10-13T17:06:16Z","head":"c3e2c07a8a448c4e6061b51270359f4f004498e1"}

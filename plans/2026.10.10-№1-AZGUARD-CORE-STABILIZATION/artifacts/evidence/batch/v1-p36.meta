@@ -1,0 +1,1 @@
+{"name":"v1-p36","cmd":"php -d memory_limit=1G vendor/bin/pest tests/Feature/Console tests/Feature/Events tests/Feature/Plugins tests/Feature/Changes --fail-on-skipped","exit":0,"started":"2026-10-13T17:08:28Z","finished":"2026-10-13T17:09:08Z","head":"c3e2c07a8a448c4e6061b51270359f4f004498e1"}
