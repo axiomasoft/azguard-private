@@ -26,7 +26,7 @@ Event::listen(function (RoleGranted $event): void {
 | `occurredAt` | `DateTimeImmutable` | When the change happened (`toArray()` gives UTC ISO-8601) |
 | `panel` | `string` | Panel id |
 | `tenant` | `TenantRef` | Tenant, or the global tenant |
-| `actor` | `?ActorRef` | Who made the change: `type`, `id`, `reason`. A change made with `AzGuard::actingAs('reason', …)` has type `azguard.system` |
+| `actor` | `?ActorRef` | Who made the change: `type`, `id`, `reason`. A change made with `AzGuard::actingAs('reason', …)` has type `azguard:system` |
 | `correlationId` | `string` | Shared by all events of one change |
 | `state` | `StateToken\|CodeStateToken` | The revision the change produced |
 | `type()` | `EventType` | For example `role.granted` |

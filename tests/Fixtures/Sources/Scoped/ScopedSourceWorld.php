@@ -335,7 +335,7 @@ final class ScopedSourceWorld
         // Another connection revokes during the assignment read: the snapshot keeps the state the read started at.
         expect($decision->reason)->toBe(DecisionReason::Granted)->and($changed)->toBeTrue()->and($reads)->toBe(2)
             ->and($observed->readAttempt->catalog()->get('reports.export')->label)->toBe('Before')
-            ->and($decision->state)->toBeInstanceOf(StateToken::class)->and($decision->state->version)->toBe($version);
+            ->and($decision->state)->toBeInstanceOf(StateToken::class)->and($decision->state->version())->toBe($version);
     }
 
     private static function relations(): void

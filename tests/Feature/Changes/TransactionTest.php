@@ -27,7 +27,7 @@ it('marks a change inside a host transaction pending and commits it with the hos
     $this->connection->beginTransaction();
     $result = W::grant($this->panel, 'analyst', 2, 1);
 
-    expect($result->committed)->toBeFalse()->and($result->state->version)->toBe($version + 1);
+    expect($result->committed)->toBeFalse()->and($result->state->version())->toBe($version + 1);
     $commit ? $this->connection->commit() : $this->connection->rollBack();
 
     expect(W::version())->toBe($commit ? $version + 1 : $version)
@@ -38,7 +38,7 @@ it('gives two pipeline calls in one host transaction two storage roots: v+1 and 
     $version = W::version();
     [$first, $second] = $this->connection->transaction(fn (): array => [W::grant($this->panel, 'analyst', 2, 1), W::grant($this->panel, 'auditor', 2, null)]);
 
-    expect($first->state->version)->toBe($version + 1)->and($second->state->version)->toBe($version + 2)
+    expect($first->state->version())->toBe($version + 1)->and($second->state->version())->toBe($version + 2)
         ->and($first->correlationId)->not->toBe($second->correlationId)
         ->and(W::version())->toBe($version + 2);
 });
@@ -51,7 +51,7 @@ it('joins pipeline calls inside one active storage root into one bump; a no-op c
         W::grant($this->panel, 'auditor', 2, null),
     ]);
 
-    expect(array_map(fn (ChangeResult $result): array => [$result->status, $result->state->version, $result->committed], $results))->toBe([
+    expect(array_map(fn (ChangeResult $result): array => [$result->status, $result->state->version(), $result->committed], $results))->toBe([
         [ChangeStatus::Applied, $version + 1, false],
         [ChangeStatus::Unchanged, $version, false],
         [ChangeStatus::Applied, $version + 1, false],
@@ -98,7 +98,7 @@ it('retries the root with a fresh plan, clock, context and pipes after a concurr
         ->and($contexts[0])->not->toBe($contexts[1])
         ->and($contexts[0])->toBeInstanceOf(ChangeContext::class)
         ->and($result->effects)->toHaveCount(1)
-        ->and($result->state->version)->toBe($version + 1)
+        ->and($result->state->version())->toBe($version + 1)
         ->and(W::version())->toBe($version + 1);
 });
 
@@ -111,8 +111,8 @@ it('keeps a returned result frozen when a listener mutates after commit', functi
     });
     $result = W::grant($this->panel, 'analyst', 2, 1);
 
-    expect($listened?->state->version)->toBe($result->state->version + 1)
-        ->and(W::version())->toBe($result->state->version + 1)
+    expect($listened?->state->version())->toBe($result->state->version() + 1)
+        ->and(W::version())->toBe($result->state->version() + 1)
         ->and($result->records)->toHaveCount(1)->and($result->record?->role?->key())->toBe('analyst');
 });
 

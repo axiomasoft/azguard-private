@@ -38,7 +38,7 @@ it('sees tentative revoke before touch without publishing it on rollback', funct
     })->toThrow(RuntimeException::class, 'rollback');
 
     expect($engine->decide($panel, $request)->allowed())->toBeTrue()
-        ->and($storage->state('admin')->version)->toBe($before->state->version)
+        ->and($storage->state('admin')->version)->toBe($before->state->version())
         ->and($storage->authorityTransaction())->toBeNull();
     expect(fn () => $captured->assertActive())->toThrow(InvalidConfigurationException::class);
     app()->forgetScopedInstances();
@@ -63,7 +63,7 @@ it('publishes one root revision for nested mutations and only invokes callbacks 
         expect($events)->toBe([])->and($engine->decide($panel, DatabaseWorld::request())->allowed())->toBeFalse();
     });
     expect($events)->toBe(['committed', 'committed'])
-        ->and($storage->state('admin')->version)->toBe($before->state->version + 1)
+        ->and($storage->state('admin')->version)->toBe($before->state->version() + 1)
         ->and($engine->decide($panel, DatabaseWorld::request())->reason)->toBe(DecisionReason::NotGranted);
 });
 

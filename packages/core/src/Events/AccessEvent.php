@@ -58,10 +58,7 @@ abstract readonly class AccessEvent
             'tenant' => self::tenant($this->tenant),
             'actor' => $this->actor === null ? null : ['type' => $this->actor->type, 'id' => $this->actor->id, 'reason' => $this->actor->reason],
             'correlation_id' => $this->correlationId,
-            'state' => $this->state instanceof StateToken
-                ? ['kind' => 'state', 'storage' => $this->state->storageId, 'panel' => $this->state->panel, 'incarnation' => $this->state->incarnation,
-                    'version' => $this->state->version, 'generation' => $this->state->generation, 'fingerprint' => $this->state->fingerprint]
-                : ['kind' => 'code', 'panel' => $this->state->panel, 'build_id' => $this->state->buildId, 'fingerprint' => $this->state->fingerprint],
+            'state' => $this->state->payload(),
             ...$this->data(),
         ];
     }

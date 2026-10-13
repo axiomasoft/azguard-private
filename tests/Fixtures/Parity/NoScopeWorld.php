@@ -49,6 +49,13 @@ final class NoScopeWorld
         $dump = Restorer::load($connection->getDriverName(), 'default');
         Restorer::configure(array_keys($dump['storages']));
         Restorer::restore($dump, $connection);
+        // The data step of the 1.0 migration instruction (docs/upgrade.md): 0.7.0 stored the system actor type as
+        // `azguard.system`; the identity is `azguard:system` now (D16).
+        foreach ($dump['storages'] as $storage) {
+            foreach (['role_grants', 'permission_grants', 'audit_log'] as $table) {
+                $connection->table($storage['prefix'].$table)->where('actor_type', 'azguard.system')->update(['actor_type' => 'azguard:system']);
+            }
+        }
         // The host tables and rows the dataset was written against, from the one definition in Dataset.
         (new ReflectionMethod(Dataset::class, 'hostWorld'))->invoke(null);
         Carbon::setTestNow(Carbon::parse(Dataset::PRUNE_CLOCK, 'UTC'));

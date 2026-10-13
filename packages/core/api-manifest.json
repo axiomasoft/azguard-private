@@ -15692,7 +15692,7 @@
         {
             "name": "AzGuard\\Kernel\\Decision\\CodeStateToken",
             "publication": "api",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "class",
             "final": true,
             "abstract": false,
@@ -15702,32 +15702,7 @@
             "namedArguments": true,
             "contracts": [],
             "constants": [],
-            "properties": [
-                {
-                    "name": "buildId",
-                    "visibility": "public",
-                    "type": "string",
-                    "readonly": true,
-                    "static": false,
-                    "contracts": []
-                },
-                {
-                    "name": "fingerprint",
-                    "visibility": "public",
-                    "type": "string",
-                    "readonly": true,
-                    "static": false,
-                    "contracts": []
-                },
-                {
-                    "name": "panel",
-                    "visibility": "public",
-                    "type": "string",
-                    "readonly": true,
-                    "static": false,
-                    "contracts": []
-                }
-            ],
+            "properties": [],
             "methods": [
                 {
                     "name": "equals",
@@ -15745,6 +15720,25 @@
                         }
                     ],
                     "return": "bool",
+                    "namedArguments": true,
+                    "contracts": []
+                },
+                {
+                    "name": "fromString",
+                    "visibility": "public",
+                    "static": true,
+                    "abstract": false,
+                    "final": false,
+                    "parameters": [
+                        {
+                            "name": "token",
+                            "type": "string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "self",
                     "namedArguments": true,
                     "contracts": []
                 },
@@ -15778,6 +15772,28 @@
                         }
                     ],
                     "return": "self",
+                    "namedArguments": true,
+                    "contracts": []
+                },
+                {
+                    "name": "panel",
+                    "visibility": "public",
+                    "static": false,
+                    "abstract": false,
+                    "final": false,
+                    "parameters": [],
+                    "return": "string",
+                    "namedArguments": true,
+                    "contracts": []
+                },
+                {
+                    "name": "toString",
+                    "visibility": "public",
+                    "static": false,
+                    "abstract": false,
+                    "final": false,
+                    "parameters": [],
+                    "return": "string",
                     "namedArguments": true,
                     "contracts": []
                 }
@@ -17348,7 +17364,7 @@
         {
             "name": "AzGuard\\Kernel\\Decision\\StateToken",
             "publication": "api",
-            "since": "0.7",
+            "since": "1.0",
             "kind": "class",
             "final": true,
             "abstract": false,
@@ -17358,72 +17374,7 @@
             "namedArguments": true,
             "contracts": [],
             "constants": [],
-            "properties": [
-                {
-                    "name": "epoch",
-                    "visibility": "public",
-                    "type": "int",
-                    "readonly": true,
-                    "static": false,
-                    "contracts": []
-                },
-                {
-                    "name": "fingerprint",
-                    "visibility": "public",
-                    "type": "string",
-                    "readonly": true,
-                    "static": false,
-                    "contracts": []
-                },
-                {
-                    "name": "generation",
-                    "visibility": "public",
-                    "type": "int",
-                    "readonly": true,
-                    "static": false,
-                    "contracts": []
-                },
-                {
-                    "name": "incarnation",
-                    "visibility": "public",
-                    "type": "string",
-                    "readonly": true,
-                    "static": false,
-                    "contracts": []
-                },
-                {
-                    "name": "panel",
-                    "visibility": "public",
-                    "type": "string",
-                    "readonly": true,
-                    "static": false,
-                    "contracts": []
-                },
-                {
-                    "name": "storageId",
-                    "visibility": "public",
-                    "type": "string",
-                    "readonly": true,
-                    "static": false,
-                    "contracts": []
-                },
-                {
-                    "name": "subjectRevision",
-                    "visibility": "public",
-                    "type": "?int",
-                    "readonly": true,
-                    "static": false,
-                    "contracts": []
-                },
-                {
-                    "name": "version",
-                    "visibility": "public",
-                    "type": "int",
-                    "readonly": true,
-                    "static": false,
-                    "contracts": []
-                }
-            ],
+            "properties": [],
             "methods": [
                 {
                     "name": "equals",
@@ -17441,6 +17392,25 @@
                         }
                     ],
                     "return": "bool",
+                    "namedArguments": true,
+                    "contracts": []
+                },
+                {
+                    "name": "fromString",
+                    "visibility": "public",
+                    "static": true,
+                    "abstract": false,
+                    "final": false,
+                    "parameters": [
+                        {
+                            "name": "token",
+                            "type": "string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "self",
                     "namedArguments": true,
                     "contracts": []
                 },
@@ -17515,13 +17485,24 @@
                     "contracts": []
                 },
                 {
-                    "name": "panelState",
+                    "name": "panel",
                     "visibility": "public",
                     "static": false,
                     "abstract": false,
                     "final": false,
                     "parameters": [],
-                    "return": "self",
+                    "return": "string",
+                    "namedArguments": true,
+                    "contracts": []
+                },
+                {
+                    "name": "toString",
+                    "visibility": "public",
+                    "static": false,
+                    "abstract": false,
+                    "final": false,
+                    "parameters": [],
+                    "return": "string",
                     "namedArguments": true,
                     "contracts": []
                 }
@@ -17871,7 +17852,7 @@
                     "name": "SYSTEM_TYPE",
                     "visibility": "public",
                     "final": false,
-                    "value": "azguard.system"
+                    "value": "azguard:system"
                 }
             ],
             "properties": [

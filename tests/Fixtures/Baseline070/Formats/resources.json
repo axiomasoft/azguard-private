@@ -42,8 +42,8 @@
         "audit": "azguard/audit"
     },
     "system_actor_type": {
-        "constant": "azguard.system",
-        "system()": "azguard.system"
+        "constant": "azguard:system",
+        "system()": "azguard:system"
     },
     "storage_state_schema_keys": [
         "host_keys",

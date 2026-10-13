@@ -65,7 +65,7 @@ The snapshots keep the code value; each difference is logged in the plan (PLAN1 
 
 | Identity | knowledge/identities | 0.7.0 code |
 |:--|:--|:--|
-| system actor type | `azguard:system` | `azguard.system` (`ActorRef::SYSTEM_TYPE`) |
+| system actor type | `azguard:system` | `azguard.system` (`ActorRef::SYSTEM_TYPE`); P2.12 adopts the reference value and `Formats/resources.json` holds it (D16) |
 | reserved `azguard/*` plugin id prefix | frozen | not enforced: a host plugin with id `azguard/host-plugin` is accepted |
 | `InvalidConfigurationException` code | — | `invalid_configuration`, or `invalid_configuration.<check>` |
 | exit codes "all commands through `CommandSupport::attempt()`" | 2 for input/identity errors | no `CommandSupport`; `InteractsWithAzGuard::attempt()` is not used by `explain` (malformed or unknown subject exits 1), `storage:migration` (unknown storage exits 1), the generators, `doctor`, `install`, `stubs`, `catalog:cache/clear` |

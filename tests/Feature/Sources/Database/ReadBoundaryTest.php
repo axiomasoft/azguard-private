@@ -73,7 +73,7 @@ it('runs host hooks and model events once when another connection commits during
     // is hydrated once after the snapshot, and the state token names that state, not the newer one.
     expect($written)->toBeTrue()->and($before)->toBe(1)->and($after)->toBe(1)->and($grantReads)->toBe(1)
         ->and($retrieved)->toBe(1)->and($decision->reason)->toBe(DecisionReason::Granted)
-        ->and($decision->state->version)->toBe($version)
+        ->and($decision->state->version())->toBe($version)
         ->and(DatabaseWorld::storage()->state('admin')->version)->toBe($version + 1);
 });
 

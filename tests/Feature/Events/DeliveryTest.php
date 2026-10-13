@@ -122,7 +122,7 @@ it('keeps the historical state of each storage root of one host transaction: v+1
         expect(EventWorld::events())->toBe([]);
     });
 
-    expect(array_map(fn (AccessEvent $event): int => $event->state->version, EventWorld::events()))->toBe([$version + 1, $version + 2])
+    expect(array_map(fn (AccessEvent $event): int => $event->state->version(), EventWorld::events()))->toBe([$version + 1, $version + 2])
         ->and(EventWorld::levels())->toBe([0, 0]);
 });
 
@@ -135,7 +135,7 @@ it('joins children of one active storage root into one token and delivers after 
         expect(EventWorld::events())->toBe([]);
     });
 
-    expect(array_map(fn (AccessEvent $event): int => $event->state->version, EventWorld::events()))->toBe([$version + 1, $version + 1]);
+    expect(array_map(fn (AccessEvent $event): int => $event->state->version(), EventWorld::events()))->toBe([$version + 1, $version + 1]);
 });
 
 it('delivers nothing when the operation is cancelled or fails after a write', function (): void {

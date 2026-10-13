@@ -45,7 +45,7 @@ it('creates a dynamic permission with one Created effect, one bump and a committ
         ->and($effect->before)->toBeNull()
         ->and($effect->after)->toBe($result->record)
         ->and($effect->eventId)->toMatch('/\A[0-9a-z]{26}\z/')
-        ->and($result->state->version)->toBe($before + 1)
+        ->and($result->state->version())->toBe($before + 1)
         ->and(W::version())->toBe($before + 1)
         ->and(W::actionNames())->toBe(['crm.organization:1|campaigns.view']);
 });
@@ -106,7 +106,7 @@ it('treats an update equal to the stored details as Unchanged without a write or
     expect($again->status)->toBe(ChangeStatus::Unchanged)
         ->and($again->effects)->toBe([])
         ->and($again->record?->id)->toBe($created->record?->id)
-        ->and($again->state->version)->toBe($version)
+        ->and($again->state->version())->toBe($version)
         ->and(W::version())->toBe($version)
         ->and(W::actions())->toBe($rows);
 });

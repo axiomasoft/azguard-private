@@ -62,7 +62,7 @@ it('retries stale request state before reading the dynamic catalog and consumes 
     $set = $engine->decideMany([$dynamic, DatabaseWorld::request(DatabasePermission::Policy), $dynamic]);
     expect($set->get(0)->reason)->toBe(DecisionReason::NotGranted)->and($set->get(2)->reason)->toBe(DecisionReason::NotGranted)
         ->and($set->get(1)->allowed())->toBeTrue()->and($set->get(1)->state)->toBeInstanceOf(CodeStateToken::class)
-        ->and($set->get(0)->state)->toBeInstanceOf(StateToken::class)->and($set->get(0)->state->version)->toBeGreaterThan($old->state->version)
+        ->and($set->get(0)->state)->toBeInstanceOf(StateToken::class)->and($set->get(0)->state->version())->toBeGreaterThan($old->state->version())
         ->and($catalogReads)->toBe(1)->and($observed)->toHaveCount(2);
 
     foreach ($observed as $context) {

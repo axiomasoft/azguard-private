@@ -187,7 +187,7 @@ it('V101 rolls back a change nested in a host transaction on the engine', functi
     $pending = W::grant(W::panel(), 'analyst', 2, 1);
     $connection->rollBack();
 
-    expect($pending->committed)->toBeFalse()->and($pending->state->version)->toBe($version + 1)
+    expect($pending->committed)->toBeFalse()->and($pending->state->version())->toBe($version + 1)
         ->and(W::version())->toBe($version)
         ->and(W::keys())->not->toContain('crm.organization:1|analyst|2|crm.project:1|manual');
 })->group('engines');

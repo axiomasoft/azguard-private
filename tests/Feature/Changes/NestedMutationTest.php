@@ -105,7 +105,7 @@ it('accepts a dynamic permission created by a later pipe after an earlier siblin
     expect(W::keys('permission'))->toBe([
         'crm.organization:1|campaigns.view|1|global|manual',
         'crm.organization:1|campaigns.edit|1|global|manual',
-    ])->and($result->state->version)->toBe($version + 1)
+    ])->and($result->state->version())->toBe($version + 1)
         ->and(W::version())->toBe($version + 1);
 });
 
@@ -130,10 +130,10 @@ it('returns the committed root revision when a no-op pipe performs an effective 
 
     expect($result->status)->toBe(ChangeStatus::Unchanged)
         ->and($result->committed)->toBeTrue()
-        ->and($result->state->version)->toBe($version + 1)
+        ->and($result->state->version())->toBe($version + 1)
         ->and(W::version())->toBe($version + 1)
         ->and(EventWorld::types())->toBe(['role.granted'])
-        ->and(EventWorld::events()[0]->state->version)->toBe($result->state->version);
+        ->and(EventWorld::events()[0]->state->version())->toBe($result->state->version());
 })->with(['before terminal' => [false], 'after terminal' => [true]]);
 
 it('discards the touch and delivery of an effective grandchild when its parent mutation fails and is caught', function (): void {
@@ -162,7 +162,7 @@ it('discards the touch and delivery of an effective grandchild when its parent m
     $result = W::grant($panel, 'support', 1, null);
 
     expect($result->status)->toBe(ChangeStatus::Unchanged)
-        ->and($result->state->version)->toBe($before[1])
+        ->and($result->state->version())->toBe($before[1])
         ->and([W::keys(), W::version()])->toBe($before)
         ->and(EventWorld::events())->toBe([]);
 });

@@ -32,7 +32,7 @@ it('encodes a reference as a tagged list and decodes it back', function (object 
     'tenant-wide scope' => [AccessScope::in(TenantRef::global()), ['scope', null, null, null, null]],
     'actor' => [ActorRef::of('user', 42, 'edit'), ['actor', 'user', '42', 'edit']],
     'actor without reason' => [ActorRef::of('user', 42), ['actor', 'user', '42', null]],
-    'system actor' => [ActorRef::system('cleanup'), ['actor', 'azguard.system', null, 'cleanup']],
+    'system actor' => [ActorRef::system('cleanup'), ['actor', 'azguard:system', null, 'cleanup']],
 ]);
 
 it('rejects a malformed or invalid encoded reference', function (array $encoded, string $exception): void {
@@ -48,7 +48,7 @@ it('rejects a malformed or invalid encoded reference', function (array $encoded,
     'scope with bad context' => [['scope', null, null, 'w:a', '7'], InvalidAssignmentScopeException::class],
     'actor without id' => [['actor', 'user', null, null], InvalidIdentityException::class],
     'actor with int reason' => [['actor', 'user', '1', 5], InvalidIdentityException::class],
-    'system actor with id' => [['actor', 'azguard.system', '1', null], InvalidIdentityException::class],
+    'system actor with id' => [['actor', 'azguard:system', '1', null], InvalidIdentityException::class],
     'context alias with colon' => [['context', 'w:a', '7'], InvalidAssignmentScopeException::class],
     'bare wildcard pattern' => [['pattern', 'admin', '**'], InvalidPermissionKeyException::class],
 ]);

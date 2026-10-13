@@ -100,7 +100,7 @@ it('describes the system actor without an id', function (): void {
     $system = ActorRef::system('scheduled cleanup');
     $user = ActorRef::of('user', 42, 'manual edit');
 
-    expect($system->type)->toBe('azguard.system')
+    expect($system->type)->toBe('azguard:system')
         ->and($system->id)->toBeNull()
         ->and($system->reason)->toBe('scheduled cleanup')
         ->and(ActorRef::system()->reason)->toBeNull()

@@ -51,9 +51,9 @@ it('AC1 AC2 keeps the cache key of a subject when another subject is written and
     expect($cold->reason)->toBe(DecisionReason::Granted)->and($hit->reason)->toBe(DecisionReason::Granted)
         ->and($budget['grants'])->toBe(0)->and($budget['state'])->toBe(1)
         ->and($hit->state)->toBeInstanceOf(StateToken::class)
-        ->and($hit->state->version)->toBe($cold->state->version + 1)
-        ->and($hit->state->version)->toBe(DatabaseWorld::storage()->state('admin')->version)
-        ->and([$hit->state->epoch, $hit->state->subjectRevision])->toBe([$cold->state->epoch, $cold->state->subjectRevision]);
+        ->and($hit->state->version())->toBe($cold->state->version() + 1)
+        ->and($hit->state->version())->toBe(DatabaseWorld::storage()->state('admin')->version)
+        ->and([$hit->state->epoch(), $hit->state->subjectRevision()])->toBe([$cold->state->epoch(), $cold->state->subjectRevision()]);
 });
 
 it('AC6 never serves old grants after a completed revoke of the subject or a change of the epoch', function (Closure $write): void {

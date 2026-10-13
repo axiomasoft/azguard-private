@@ -35,7 +35,7 @@ it('inserts a new role grant with one Created effect, one bump and a committed s
         ->and($result->record?->scope->context->key())->toBe('crm.project:1')
         ->and($result->record?->actor)->toEqual(ActorRef::of('crm.user', 3, 'onboarding'))
         ->and($result->record?->createdAt?->format('Y-m-d H:i:s'))->toBe('2026-10-06 12:00:00')
-        ->and($result->state->version)->toBe($before + 1)
+        ->and($result->state->version())->toBe($before + 1)
         ->and(W::version())->toBe($before + 1)
         ->and(W::keys())->toContain('crm.organization:1|analyst|2|crm.project:1|manual');
 });
@@ -50,7 +50,7 @@ it('repeats the same grant as Unchanged without a bump, also for another actor',
     expect($again->status)->toBe(ChangeStatus::Unchanged)
         ->and($again->effects)->toBe([])
         ->and($again->record?->id)->toBe($first->record?->id)
-        ->and($again->state->version)->toBe($version)
+        ->and($again->state->version())->toBe($version)
         ->and(W::version())->toBe($version)
         ->and(W::rows())->toBe($rows);
 });

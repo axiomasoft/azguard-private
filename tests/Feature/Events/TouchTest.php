@@ -37,7 +37,7 @@ it('raises the version by one without a grant row and publishes PanelStateTouche
     $state = W::pipeline()->touch($this->panel, 'host import finished');
     $event = EventWorld::events()[0] ?? null;
 
-    expect($state->version)->toBe($version + 1)->and(W::version())->toBe($version + 1)
+    expect($state->version())->toBe($version + 1)->and(W::version())->toBe($version + 1)
         ->and([W::rows('role'), W::rows('permission')])->toBe($rows)
         ->and(EventWorld::types())->toBe(['panel.touched'])->and(EventWorld::levels())->toBe([0])
         ->and($event)->toBeInstanceOf(PanelStateTouched::class)
@@ -61,7 +61,7 @@ it('commits and rolls back with the host transaction like any other change', fun
     $commit ? $this->connection->commit() : $this->connection->rollBack();
 
     expect(W::version())->toBe($commit ? $version + 1 : $version)->and(EventWorld::types())->toBe($commit ? ['panel.touched'] : [])
-        ->and($state->version)->toBe($version + 1);
+        ->and($state->version())->toBe($version + 1);
 })->with(['commit' => [true], 'rollback' => [false]]);
 
 it('shares one bump with a grant inside one active storage root, and both events carry that revision', function (): void {
@@ -72,7 +72,7 @@ it('shares one bump with a grant inside one active storage root, and both events
     });
 
     expect(W::version())->toBe($version + 1)->and(EventWorld::types())->toBe(['role.granted', 'panel.touched'])
-        ->and(array_map(fn ($event): int => $event->state->version, EventWorld::events()))->toBe([$version + 1, $version + 1])
+        ->and(array_map(fn ($event): int => $event->state->version(), EventWorld::events()))->toBe([$version + 1, $version + 1])
         ->and(EventWorld::events()[1]->previousVersion)->toBe($version);
 });
 
@@ -84,7 +84,7 @@ it('gives two touches in one host transaction two bumps and two historical previ
     });
 
     expect(W::version())->toBe($version + 2)
-        ->and(array_map(fn (PanelStateTouched $event): array => [$event->previousVersion, $event->state->version], EventWorld::events()))
+        ->and(array_map(fn (PanelStateTouched $event): array => [$event->previousVersion, $event->state->version()], EventWorld::events()))
         ->toBe([[$version, $version + 1], [$version + 1, $version + 2]]);
 });
 

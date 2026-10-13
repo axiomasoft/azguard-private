@@ -136,8 +136,8 @@ try {
     $report['status'] = $result instanceof StateToken ? 'reset' : $result->status->value;
     $report['removed'] = $result instanceof StateToken ? 0 : count($result->removedGrantIds());
     $report['effects'] = $result instanceof StateToken ? 1 : count($result->effects);
-    $report['version'] = $state->version;
-    $report['incarnation'] = $state->incarnation;
+    $report['version'] = $state->version();
+    $report['incarnation'] = $state->incarnation();
 } catch (Throwable $error) {
     $report['error'] = $error::class;
     $report['message'] = $error->getMessage();

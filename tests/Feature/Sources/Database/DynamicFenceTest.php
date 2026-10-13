@@ -84,7 +84,7 @@ it('prepares once and decides at one state when another connection commits durin
         ->and($observed->readAttempt->catalog()->get('reports.export')->label)->toBe('Old')
         ->and($beforeTimes)->toHaveCount(1)->and($afterCalls)->toBe(1)
         ->and($reads)->toBe(['panel_state', 'permissions', 'panel_state', 'panel_state', 'permission_grants', 'role_grants'])
-        ->and($decision->reason)->toBe(DecisionReason::Granted)->and($decision->state->version)->toBe($version);
+        ->and($decision->reason)->toBe(DecisionReason::Granted)->and($decision->state->version())->toBe($version);
 
 });
 
@@ -216,8 +216,8 @@ it('pins dynamic metadata and grants to Default while Primary reads its own comp
     $decision = app(Authorizer::class)->decide($panel, $request);
     $frame = $observed;
     $catalog = $frame->readAttempt->catalog();
-    expect($catalog->get('reports.export')->label)->toBe('Replica')->and($frame->state()->version)->toBe(17)
-        ->and($frame->sourceStates['database']->version)->toBe(17)->and($frame->matchingGrants())->toBe([])->and($decision->reason)->toBe(DecisionReason::NotGranted);
+    expect($catalog->get('reports.export')->label)->toBe('Replica')->and($frame->state()->version())->toBe(17)
+        ->and($frame->sourceStates['database']->version())->toBe(17)->and($frame->matchingGrants())->toBe([])->and($decision->reason)->toBe(DecisionReason::NotGranted);
     [$primary] = DatabaseWorld::compile(DatabaseSource::make()->dynamicPermissions());
     expect(app(Authorizer::class)->decide($primary, $request)->allowed())->toBeTrue();
 })->group('sqlite', 'server-skip');

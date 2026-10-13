@@ -65,7 +65,7 @@ it('reads both capabilities in one snapshot while another connection commits a c
     // The write committed between the two reads; both rows and the state are those of the snapshot, before it.
     expect($changes)->toBe(1)->and($grantReads)->toBe(2)->and($snapshot['roles'][0]->role->key())->toBe('editor')
         ->and($snapshot['grants'][0]->pattern->local())->toBe('documents.view')
-        ->and($snapshot['state']->version)->toBe($version)
+        ->and($snapshot['state']->version())->toBe($version)
         ->and(DatabaseWorld::storage()->state('admin')->version)->toBe($version + 1);
 });
 
@@ -154,12 +154,12 @@ it('pins Default schema state and both grants to the configured read PDO despite
     [, $defaultFrame] = DatabaseWorld::compile($source, reads: Reads::Default);
     $snapshot = $source->readContributions(SubjectRef::of('user', 1), [$defaultFrame->scope()], $defaultFrame);
 
-    expect($snapshot['state']->version)->toBe(17)->and($snapshot['roles'][0]->role->key())->toBe('editor')
+    expect($snapshot['state']->version())->toBe(17)->and($snapshot['roles'][0]->role->key())->toBe('editor')
         ->and($snapshot['grants'][0]->pattern->local())->toBe('documents.view');
     $primary = DatabaseSource::make();
     [, $primaryFrame] = DatabaseWorld::compile($primary);
     $snapshot = $primary->readContributions(SubjectRef::of('user', 1), [$primaryFrame->scope()], $primaryFrame);
-    expect($snapshot['state']->version)->toBe(2)->and($snapshot['roles'][0]->role->key())->toBe('primary')
+    expect($snapshot['state']->version())->toBe(2)->and($snapshot['roles'][0]->role->key())->toBe('primary')
         ->and($snapshot['grants'][0]->pattern->local())->toBe('documents.edit');
 })->group('sqlite', 'server-skip');
 

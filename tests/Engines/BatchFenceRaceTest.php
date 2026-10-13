@@ -66,7 +66,7 @@ it('keeps every chunk in the snapshot when another process revokes between chunk
     $seen = [];
     $reads = [];
     $engine = BatchEngineWorld::compile(after: function (AccessRequest $request, EvaluationContext $context, Decision $decision) use (&$seen, &$reads): void {
-        $seen[] = [$decision->state->panel, $decision->reason, count($reads[$decision->state->panel])];
+        $seen[] = [$decision->state->panel(), $decision->reason, count($reads[$decision->state->panel()])];
     }, cabinet: true);
     $requests = BatchEngineWorld::requests();
     // Interleaving an independent panel also checks the returned request order.
@@ -92,7 +92,7 @@ it('keeps every chunk in the snapshot when another process revokes between chunk
         // One snapshot, no retry: chunk two is read at the state of chunk one, before the revoke.
         $attempts = 1;
         $reason = DecisionReason::Granted;
-        expect($barriers)->toBe(1)->and($set->get(0)->state->version)->toBe($version)
+        expect($barriers)->toBe(1)->and($set->get(0)->state->version())->toBe($version)
             ->and($set)->toHaveCount(102)
             ->and(count($set->states()))->toBe(2)
             ->and($reads['admin'])->toHaveCount(5 * $attempts)
@@ -100,7 +100,7 @@ it('keeps every chunk in the snapshot when another process revokes between chunk
             ->and($seen)->toHaveCount(102);
         foreach ($set as $index => $decision) {
             expect($decision->allowed())->toBeTrue()
-                ->and($decision->state->panel)->toBe($requests[$index]->permission()->panel());
+                ->and($decision->state->panel())->toBe($requests[$index]->permission()->panel());
 
             if ($index !== 50) {
                 expect($decision->reason)->toBe($reason)

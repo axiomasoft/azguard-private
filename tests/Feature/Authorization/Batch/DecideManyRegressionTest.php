@@ -109,7 +109,7 @@ it('runs a writing hook once and decides both subject groups at the one snapshot
         // Before hooks run before the set's snapshot (design doc, step 5): both subjects are read after the touch.
         ->and($set->get(0)->reason)->toBe(DecisionReason::Granted)->and($set->get(1)->reason)->toBe(DecisionReason::Granted)
         ->and($set->get(0)->state->panelState()->equals($set->get(1)->state->panelState()))->toBeTrue()
-        ->and($set->get(0)->state->version)->toBe(DatabaseWorld::storage()->state('admin')->version)
+        ->and($set->get(0)->state->version())->toBe(DatabaseWorld::storage()->state('admin')->version)
         ->and($set->get(2)->allowed())->toBeTrue()->and($set->get(2)->reason)->toBe(DecisionReason::Policy)
         ->and($set->get(2)->state)->toBeInstanceOf(CodeStateToken::class);
 

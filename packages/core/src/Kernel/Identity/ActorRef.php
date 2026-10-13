@@ -13,7 +13,7 @@ use AzGuard\Exceptions\InvalidIdentityException;
 #[Api(since: '0.7')]
 final readonly class ActorRef
 {
-    public const string SYSTEM_TYPE = 'azguard.system';
+    public const string SYSTEM_TYPE = 'azguard:system';
 
     private function __construct(
         public string $type,

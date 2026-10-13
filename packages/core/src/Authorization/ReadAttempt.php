@@ -324,7 +324,7 @@ final class ReadAttempt
         $memo = $this->memoized($this->memoKeys[$source->id()] ?? '');
 
         // A state this attempt already read (the dynamic catalog) is newer than a request memo.
-        if ($memo === null || $memo->subjectRevision === null || $this->cache === null || isset($this->states[$source->id()])) {
+        if ($memo === null || $memo->subjectRevision() === null || $this->cache === null || isset($this->states[$source->id()])) {
             return false;
         }
         $hits = [];
@@ -455,7 +455,7 @@ final class ReadAttempt
             $key = $this->memoKeys[$id] ?? $key;
             $state = $this->states[$id] ?? null;
 
-            if ($this->publish && $this->transaction === null && $state !== null && (! isset($this->memoKeys[$id]) || $state->subjectRevision !== null)) {
+            if ($this->publish && $this->transaction === null && $state !== null && (! isset($this->memoKeys[$id]) || $state->subjectRevision() !== null)) {
                 $this->cache?->rememberState($key, $state);
             }
         }
@@ -575,7 +575,7 @@ final class ReadAttempt
             : [$source::class];
         // DB panel_state covers all tenants; a custom state(panel, tenant) may partition its revision.
         $partition = $source instanceof DatabaseSource ? null : $this->initial->scope()->tenant;
-        $key = IdentityCodec::digest([$this->initial->panel()->id(), $this->initial->state()->fingerprint,
+        $key = IdentityCodec::digest([$this->initial->panel()->id(), $this->initial->state()->fingerprint(),
             $this->initial->panel()->settings()->cacheGeneration(), $partition, $source::class, $source->id(),
             $this->initial->panel()->settings()->reads()->value, $authority]);
         $this->stateKeys[$source->id()] = $key;
@@ -617,7 +617,7 @@ final class ReadAttempt
     {
         $authority = $source instanceof DatabaseSource ? $this->sessions[$source->id()]->authorityIdentity() : $source::class;
 
-        if ($source instanceof DatabaseSource && ($this->states[$source->id()]->subjectRevision ?? null) === null) {
+        if ($source instanceof DatabaseSource && ($this->states[$source->id()] ?? null)?->subjectRevision() === null) {
             $this->begin($source);
             $memoKey = $this->memoKeys[$source->id()] = IdentityCodec::digest([$this->stateKeys[$source->id()], $request->subject()]);
             // A state this attempt already read (the dynamic catalog) is newer than a request memo.
@@ -658,8 +658,8 @@ final class ReadAttempt
 
     private static function sameEpoch(StateToken $a, StateToken $b): bool
     {
-        return $a->storageId === $b->storageId && $a->panel === $b->panel && $a->incarnation === $b->incarnation
-            && $a->epoch === $b->epoch && $a->generation === $b->generation && $a->fingerprint === $b->fingerprint;
+        return $a->storageId() === $b->storageId() && $a->panel() === $b->panel() && $a->incarnation() === $b->incarnation()
+            && $a->epoch() === $b->epoch() && $a->generation() === $b->generation() && $a->fingerprint() === $b->fingerprint();
     }
 
     /**

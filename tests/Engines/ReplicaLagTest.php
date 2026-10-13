@@ -55,7 +55,7 @@ it('V46 R52 proves real paused-replay Default window and fresh Primary deny unti
         $connection->getEventDispatcher()->forget(QueryExecuted::class);
         [$strict, $strictPanel] = CacheWorld::database(DatabaseSource::make(), StateRefresh::Check, reads: Reads::Primary);
         $fresh = $strict->decide($strictPanel, DatabaseWorld::request());
-        expect($fresh->reason)->toBe(DecisionReason::NotGranted)->and($fresh->state->version)->toBeGreaterThan($stale->state->version);
+        expect($fresh->reason)->toBe(DecisionReason::NotGranted)->and($fresh->state->version())->toBeGreaterThan($stale->state->version());
         $replica->query('select pg_wal_replay_resume()');
         $paused = false;
         ReplicaStand::catchUp($replica, $lsn);

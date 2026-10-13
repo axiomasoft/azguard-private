@@ -16,6 +16,7 @@ use AzGuard\Contracts\Authorization\Restriction;
 use AzGuard\Kernel\Decision\AccessRequest;
 use AzGuard\Kernel\Decision\Decision;
 use AzGuard\Kernel\Decision\DecisionReason;
+use AzGuard\Kernel\Decision\StateToken;
 use Closure;
 use Throwable;
 
@@ -103,7 +104,7 @@ final readonly class AccessPipeline
         $decision = $decision->allowed()
             ? Decision::allow($decision->reason, $frame->state(), $decision->scope, $decision->component, $decision->grants, $decision->message, $decision->status, $decision->code)
             : Decision::deny($decision->reason, $frame->state(), $decision->scope, $decision->component, $decision->message, $decision->status, $decision->code);
-        $trace->record('state', $confirmed ? 'confirmed' : 'source_error', null, null, ['sources' => array_map(get_object_vars(...), $frame->sourceStates)], $confirmed ? 'pass' : 'error');
+        $trace->record('state', $confirmed ? 'confirmed' : 'source_error', null, null, ['sources' => array_map(static fn (StateToken $state): array => $state->fields(), $frame->sourceStates)], $confirmed ? 'pass' : 'error');
         $this->after->observe($request, $frame, $decision, $trace);
 
         return $decision;

@@ -29,8 +29,8 @@ it('V18 R52 observes independent root commit with Primary check and new request;
         }
         $after = $engine->decide($panel, DatabaseWorld::request());
         expect($after->reason)->toBe(DecisionReason::NotGranted)
-            ->and($after->state->version)->toBe($commit['version'])
-            ->and($after->state->version)->toBeGreaterThan($before->state->version);
+            ->and($after->state->version())->toBe($commit['version'])
+            ->and($after->state->version())->toBeGreaterThan($before->state->version());
     } finally {
         $worker->close();
     }

@@ -63,7 +63,7 @@ it('grants through the change pipeline as the system actor testing and signs in 
     $fake->assertPermissionGranted($user, OrdersPermission::View);
     $fake->assertPermissionGranted($user, 'seller:orders.cancel');
     expect($fake->changes())->toHaveCount(2)
-        ->and($fake->changes()[0]->actor?->type)->toBe('azguard.system')
+        ->and($fake->changes()[0]->actor?->type)->toBe('azguard:system')
         ->and($fake->changes()[0]->actor?->reason)->toBe('testing');
 });
 

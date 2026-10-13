@@ -292,7 +292,7 @@ trait InteractsWithAzGuard
     /** One line with the outcome of a change: its status, the number of effects and the resulting state version. */
     protected function reportChange(string $what, ChangeResult $result): int
     {
-        $this->components->info($what.': '.$result->status->value.', '.count($result->effects).' effect(s), state version '.$result->state->version.'.');
+        $this->components->info($what.': '.$result->status->value.', '.count($result->effects).' effect(s), state version '.$result->state->version().'.');
 
         return Command::SUCCESS;
     }

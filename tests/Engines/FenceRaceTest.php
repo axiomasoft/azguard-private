@@ -47,7 +47,7 @@ it('V99 reads one snapshot across a process barrier and never retries', function
         expect($decision->allowed())->toBe($granted)
             ->and($decision->reason)->toBe($granted ? DecisionReason::Granted : DecisionReason::NotGranted)
             ->and($barriers)->toBe(1)
-            ->and($decision->state->version)->toBe($granted ? $version : $version + 1);
+            ->and($decision->state->version())->toBe($granted ? $version : $version + 1);
     } finally {
         $worker->close();
     }

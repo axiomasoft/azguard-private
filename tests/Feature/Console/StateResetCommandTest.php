@@ -55,7 +55,7 @@ it('V100 R57 starts a new incarnation and version so a decision cached before a 
         ->and(CrmWorld::storage()->table('audit_log')->orderByDesc('id')->first())
         ->toMatchObject(['type' => 'panel.touched', 'actor_reason' => 'azguard:state:reset']);
     Event::assertDispatched(PanelStateTouched::class, static fn (PanelStateTouched $event): bool => $event->reason === 'reset'
-        && $event->previousVersion === $before->version && $event->state->incarnation === $after->incarnation
+        && $event->previousVersion === $before->version && $event->state->incarnation() === $after->incarnation
         && $event->actor?->reason === 'azguard:state:reset');
 });
 

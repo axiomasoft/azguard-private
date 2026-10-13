@@ -41,8 +41,8 @@ final readonly class DecisionSet implements Countable, IteratorAggregate
             // snapshot carry different subject revisions of that one state.
             $state = $decision->state instanceof StateToken ? $decision->state->panelState() : $decision->state;
             $key = $state instanceof CodeStateToken
-                ? IdentityCodec::compose(['code', $state->panel, $state->buildId])
-                : IdentityCodec::compose(['storage', $state->storageId, $state->panel]);
+                ? IdentityCodec::compose(['code', $state->panel(), $state->buildId()])
+                : IdentityCodec::compose(['storage', $state->storageId(), $state->panel()]);
             $known = $states[$key] ?? $state;
 
             if (! ($known instanceof CodeStateToken && $state instanceof CodeStateToken && $known->equals($state))

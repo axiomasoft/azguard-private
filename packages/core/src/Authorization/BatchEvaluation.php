@@ -99,7 +99,7 @@ final readonly class BatchEvaluation
 
                 if ($state instanceof StateToken) {
                     $state = $state->panelState();
-                    $key = IdentityCodec::compose([$state->storageId, $state->panel]);
+                    $key = IdentityCodec::compose([$state->storageId(), $state->panel()]);
 
                     if (isset($states[$key]) && ! $states[$key]->equals($state)) {
                         $conflicts[$key] = true;
@@ -110,7 +110,7 @@ final readonly class BatchEvaluation
             foreach ($decisions as $i => $decision) {
                 $state = $decision->state;
 
-                if ($state instanceof StateToken && isset($conflicts[IdentityCodec::compose([$state->storageId, $state->panel])])) {
+                if ($state instanceof StateToken && isset($conflicts[IdentityCodec::compose([$state->storageId(), $state->panel()])])) {
                     $frame = $finished[$i]['frame'];
                     $frame = $frame->readAttempt?->discardedFrame($frame) ?? $frame;
                     $finished[$i] = array_replace($finished[$i], ['frame' => $frame]);

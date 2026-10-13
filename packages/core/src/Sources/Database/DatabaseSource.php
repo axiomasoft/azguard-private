@@ -484,7 +484,7 @@ final class DatabaseSource implements ChecksHealth, DescribesSchema, FencesReads
     /** @internal Read both edges on the same attempt handle. */
     public function readState(StorageReadSession $session, EvaluationContext $context): StateToken
     {
-        return $this->token($session, $context->panel(), $context->state()->fingerprint);
+        return $this->token($session, $context->panel(), $context->state()->fingerprint());
     }
 
     /** @internal Unfenced capability; the engine owns the surrounding whole-attempt fence.
@@ -1155,7 +1155,7 @@ final class DatabaseSource implements ChecksHealth, DescribesSchema, FencesReads
     {
         $this->bindPanel($context->panel()->id());
 
-        return $this->consistently($session, $context->panel(), $context->state()->fingerprint, $rows, $before, $subject);
+        return $this->consistently($session, $context->panel(), $context->state()->fingerprint(), $rows, $before, $subject);
     }
 
     /**
@@ -1166,7 +1166,7 @@ final class DatabaseSource implements ChecksHealth, DescribesSchema, FencesReads
     {
         $this->bindPanel($context->panel()->id());
 
-        return $this->token($session, $context->panel(), $context->state()->fingerprint, $subject);
+        return $this->token($session, $context->panel(), $context->state()->fingerprint(), $subject);
     }
 
     /**
@@ -1189,7 +1189,7 @@ final class DatabaseSource implements ChecksHealth, DescribesSchema, FencesReads
             foreach ($byEntry as $n => $id) {
                 $panel = $entries[$n][0]->panel();
                 $tokens[$n] = StateToken::of($this->resolvedStorage()->id(), $panel->id(), $state->incarnation ?? 'uninitialized', $state->version ?? 0,
-                    $panel->settings()->cacheGeneration(), $entries[$n][0]->state()->fingerprint, $state->epoch ?? 0, $revisions[$id] ?? 0);
+                    $panel->settings()->cacheGeneration(), $entries[$n][0]->state()->fingerprint(), $state->epoch ?? 0, $revisions[$id] ?? 0);
             }
         }
 
@@ -1208,7 +1208,7 @@ final class DatabaseSource implements ChecksHealth, DescribesSchema, FencesReads
             // One snapshot: the state is read inside it, never taken from an earlier autocommit read.
             return $session->snapshot(fn (): array => [$this->token($session, $panel, $fingerprint, $subject), $rows()]);
         }
-        $earlier = $earlier !== null && ($subject === null) === ($earlier->subjectRevision === null) ? $earlier : null;
+        $earlier = $earlier !== null && ($subject === null) === ($earlier->subjectRevision() === null) ? $earlier : null;
 
         // Tentative authority (the panel is locked by this root) and a test baseline read inside an open transaction
         // of their own; they keep the bounded fence.

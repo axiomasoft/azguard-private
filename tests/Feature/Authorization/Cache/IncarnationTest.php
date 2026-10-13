@@ -25,8 +25,8 @@ it('does not resurrect request or durable authority after a restore to a smaller
     $schema->create('default');
     $storage->mutate('admin', static fn (): null => null);
     $restored = $storage->state('admin');
-    expect($restored->incarnation)->not->toBe($before->state->incarnation)
-        ->and($restored->version)->toBeLessThan($before->state->version);
+    expect($restored->incarnation)->not->toBe($before->state->incarnation())
+        ->and($restored->version)->toBeLessThan($before->state->version());
 
     if ($refresh === StateRefresh::Request) {
         // A new request reads the restored authority; request refresh intentionally keeps its warm token.

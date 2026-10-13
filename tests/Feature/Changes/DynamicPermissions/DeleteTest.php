@@ -58,7 +58,7 @@ it('removes the exact grants of the name in the tenant with every origin and con
         ->and(W::actionNames())->toBe(['crm.organization:2|campaigns.view', 'crm.organization:1|campaigns.edit'])
         ->and($result->applied())->toBeTrue()
         ->and(W::version())->toBe($version + 1)
-        ->and($result->state->version)->toBe($version + 1);
+        ->and($result->state->version())->toBe($version + 1);
 
     $removed = array_values(array_filter($before, fn (array $row): bool => $row['tenant_key'] === 'crm.organization:1' && $row['permission'] === 'campaigns.view'));
 

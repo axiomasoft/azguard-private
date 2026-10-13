@@ -118,7 +118,7 @@ it('gives a pipe a fresh checked context for every derived change', function ():
         ->and($first->role)->toBeInstanceOf(SellerRole::class)
         ->and($first->actor)->toEqual(ActorRef::of('crm.user', 3))
         ->and($first->phase)->toBe(AssignmentScopePhase::Assignment)
-        ->and($first->state->version)->toBe(W::version() - 1);
+        ->and($first->state->version())->toBe(W::version() - 1);
 });
 
 it('lets revocations pass pipes without a proposal and refuses withUntil on them', function (): void {

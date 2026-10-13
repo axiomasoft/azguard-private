@@ -70,7 +70,7 @@ it('V18 observes a committed revoke in a new Primary request or the next Primary
 
     $after = $engine->decide($panel, $request);
     expect($after->reason)->toBe(DecisionReason::NotGranted)->and($after->allowed())->toBeFalse()
-        ->and($after->state->version)->toBeGreaterThan($before->state->version);
+        ->and($after->state->version())->toBeGreaterThan($before->state->version());
 })->with([StateRefresh::Request, StateRefresh::Check]);
 
 it('promotes a newer revision discovered by a request-mode cold miss and clears old raw sets', function (): void {
@@ -87,7 +87,7 @@ it('promotes a newer revision discovered by a request-mode cold miss and clears 
     $otherSubject = AccessRequest::for(SubjectRef::of('user', 2), $request->permission());
     $miss = $engine->decide($panel, $otherSubject);
     expect($miss->reason)->toBe(DecisionReason::NotGranted)
-        ->and($miss->state->version)->toBeGreaterThan($before->state->version);
+        ->and($miss->state->version())->toBeGreaterThan($before->state->version());
 
     $after = $engine->decide($panel, $request);
     expect($after->reason)->toBe(DecisionReason::NotGranted)->and($after->allowed())->toBeFalse()
@@ -115,7 +115,7 @@ it('promotes a panel-wide DB revision discovered by a cold tenant miss before re
     });
     $miss = $engine->decide($panel, $requestB);
     expect($miss->reason)->toBe(DecisionReason::NotGranted)
-        ->and($miss->state->version)->toBeGreaterThan($before->state->version);
+        ->and($miss->state->version())->toBeGreaterThan($before->state->version());
     $after = $engine->decide($panel, $requestA);
     expect($after->reason)->toBe(DecisionReason::NotGranted)->and($after->allowed())->toBeFalse()
         ->and($after->state->equals($miss->state))->toBeTrue();

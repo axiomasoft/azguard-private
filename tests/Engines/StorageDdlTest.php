@@ -35,7 +35,7 @@ it('writes the journal in the transaction of the change, prunes expired grants a
             ->and($rows[0]['event_id'])->toBe($granted->effects[0]->eventId)
             ->and(array_column($rows, 'event_id'))->toBe(array_map(fn ($event): string => $event->eventId, EventWorld::events()))
             ->and($rows[0]['tenant_id'])->toBe('1')->and($rows[0]['subject_id'])->toBe('2')->and($rows[0]['actor_reason'])->toBe('onboarding')
-            ->and(json_decode($rows[1]['payload'], true)['previous_version'])->toBe($state->version - 1)
+            ->and(json_decode($rows[1]['payload'], true)['previous_version'])->toBe($state->version() - 1)
             ->and(EventWorld::levels())->toBe([0, 0, 0]);
     } finally {
         EventWorld::reset();

@@ -81,8 +81,8 @@ it('AC5 decides every subject of a set at one snapshot while another connection 
         ->and([$set->get(0)->reason, $set->get(1)->reason, $set->get(2)->reason])->toBe([DecisionReason::Granted, DecisionReason::NotGranted, DecisionReason::Granted])
         ->and($set->states())->toHaveCount(1)
         ->and($set->get(0)->state)->toBeInstanceOf(StateToken::class)
-        ->and($set->get(0)->state->version)->toBe($version)
-        ->and($set->get(1)->state->version)->toBe($version);
+        ->and($set->get(0)->state->version())->toBe($version)
+        ->and($set->get(1)->state->version())->toBe($version);
     // The decisions after the commit see the move.
     expect($engine->decideMany([snapshotRequest(1), snapshotRequest(2)])->get(1)->reason)->toBe(DecisionReason::Granted);
 })->with(['cold' => [false], 'warm cache for one subject' => [true]]);

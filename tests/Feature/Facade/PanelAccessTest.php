@@ -197,10 +197,10 @@ it('reads the state of the stored authority and renews it by hand', function ():
     $before = $access->state();
     $touched = $access->touch();
 
-    expect($before->panel)->toBe('crm')
-        ->and($touched->version)->toBeGreaterThan($before->version)
-        ->and($access->state()->version)->toBe($touched->version)
-        ->and($access->state()->incarnation)->toBe($before->incarnation);
+    expect($before->panel())->toBe('crm')
+        ->and($touched->version())->toBeGreaterThan($before->version())
+        ->and($access->state()->version())->toBe($touched->version())
+        ->and($access->state()->incarnation())->toBe($before->incarnation());
 });
 
 it('refuses the state of a panel that stores nothing', function (): void {

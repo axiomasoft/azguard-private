@@ -68,6 +68,13 @@ your code. Each line is `Find: <grep pattern> → Replace: <new form>`.
 - Find: `DatabaseSource::appendJournal(` → Replace: nothing; journal rows are written by the participant of `AuditPlugin` (or your own participant).
 - Find: `AuditPlugin` on a panel without `DatabaseSource` → Replace: attach the database writer or drop the plugin; a panel without the writer
   cannot take participants and fails to compile with `DefinitionException`.
+- Find: `->state->version`, `->state->fingerprint`, `->storageId`, `->incarnation`, `->generation`, `->epoch`, `->subjectRevision` or `->buildId` read on a
+  `StateToken`/`CodeStateToken` (for example `$decision->state->…`, `$result->state->…`, `$event->state->…`) → Replace: compare tokens with `equals()`,
+  keep one as text with `toString()` and read it back with `StateToken::fromString()` / `CodeStateToken::fromString()` (`st1.`/`ct1.` prefixes); the
+  recorded values are private, and `->state->panel` becomes `->state->panel()`. Event and journal payloads keep the same `state` keys.
+- Find: `'azguard.system'` (the system actor type, `ActorRef::SYSTEM_TYPE`) → Replace: `'azguard:system'`; rows a 0.7.0 install stored with the old value
+  need `UPDATE {prefix}role_grants SET actor_type = 'azguard:system' WHERE actor_type = 'azguard.system'` (also `{prefix}permission_grants` and
+  `{prefix}audit_log`), otherwise reading such a grant's actor raises `InvalidIdentityException`.
 
 ## From 0.3 to 0.7.0
 

@@ -45,8 +45,8 @@ it('R57 restore and generation changes cannot revive an older warm CRM authority
     $panel = World::compile(fn (PanelBuilder $p) => $p->cache('array', generation: 2));
     $after = World::decide($panel);
     expect($after->reason)->toBe(DecisionReason::NotGranted)
-        ->and($after->state->incarnation)->not->toBe($before->state->incarnation)
-        ->and($after->state->version)->toBeLessThan($before->state->version)
-        ->and($after->state->generation)->toBe(2)
-        ->and($after->state->fingerprint)->not->toBe($before->state->fingerprint);
+        ->and($after->state->incarnation())->not->toBe($before->state->incarnation())
+        ->and($after->state->version())->toBeLessThan($before->state->version())
+        ->and($after->state->generation())->toBe(2)
+        ->and($after->state->fingerprint())->not->toBe($before->state->fingerprint());
 });

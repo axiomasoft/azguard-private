@@ -28,11 +28,11 @@ final readonly class Explanation
         $data = [
             'decision' => ['effect' => $result->effect->value, 'reason' => $result->reason->value, 'component' => $result->component,
                 'message' => $result->message, 'status' => $result->status, 'code' => $result->code],
-            'panel' => $result->state->panel,
+            'panel' => $result->state->panel(),
             'subject' => ['type' => $subject->type(), 'id' => $subject->id()],
             'scope' => ['tenant' => $result->scope->tenant->key(), 'context' => $result->scope->context->key()],
             'resource' => $resource, 'now' => $evaluatedAt->format('Y-m-d\TH:i:s.uP'),
-            'state' => get_object_vars($result->state), 'steps' => $steps,
+            'state' => $result->state->fields(), 'steps' => $steps,
         ];
         $secrets = [];
         self::secrets($data, $secrets);

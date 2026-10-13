@@ -180,7 +180,7 @@ it('evaluates in the fixed panel of SubjectAccess or refuses a conflicting signa
         if ($guard !== null) {
             $access->hasPermission(selectionPermission($form), guard: $guard);
         }
-        $outcome = $access->decide(selectionPermission($form))->state->panel;
+        $outcome = $access->decide(selectionPermission($form))->state->panel();
     } catch (UnknownPermissionException $e) {
         // A local name of the other panel is evaluated in the fixed panel and is unknown there, never moved.
         $outcome = str_contains($e->getMessage(), 'catalog of panel "'.$fixed.'"') ? $fixed : $e::class;

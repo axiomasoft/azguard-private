@@ -32,7 +32,7 @@ final class HostFencePipe implements ChangePipe
         $connection = CrmWorld::storage()->connection();
         $marker = $connection->table('crm_active_build')->where('id', 1)->lockForUpdate()->first();
 
-        if ($marker === null || $marker->fingerprint !== self::$preparedBuild || $marker->fingerprint !== $context->state->fingerprint) {
+        if ($marker === null || $marker->fingerprint !== self::$preparedBuild || $marker->fingerprint !== $context->state->fingerprint()) {
             $change->cancel('The active build changed after the change was prepared.');
         }
 

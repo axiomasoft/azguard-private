@@ -35,7 +35,7 @@ it('uses an explicitly owned source storage without reading the default tables',
     try {
         $source = DatabaseSource::make()->storage($own);
         [$panel] = DatabaseWorld::compile($source);
-        expect($source->state($panel, TenantRef::global())->storageId)->toBe($own->id())
+        expect($source->state($panel, TenantRef::global())->storageId())->toBe($own->id())
             ->and(DatabaseWorld::storage()->connection()->getSchemaBuilder()->hasTable('azg_panel_state'))->toBeFalse();
     } finally {
         app(StorageSchema::class)->drop($own->id());

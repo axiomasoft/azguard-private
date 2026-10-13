@@ -42,7 +42,7 @@ final class PermissionSetCache
             }
         }
         foreach ($this->states as $key => $state) {
-            if ($state->panel === $panel) {
+            if ($state->panel() === $panel) {
                 unset($this->states[$key]);
             }
         }
@@ -57,11 +57,11 @@ final class PermissionSetCache
         // what the contributions depend on (incarnation, epoch, revision) and never the panel version, so a write of
         // another subject keeps it. A state without a revision (an opaque source state) keys by its version.
         $revision = match (true) {
-            $state instanceof StateToken && $state->subjectRevision !== null => ['subject', $state->storageId, $state->panel, $state->incarnation,
-                $state->epoch, $state->subjectRevision, $state->generation, $state->fingerprint],
-            $state instanceof StateToken => ['storage', $state->storageId, $state->panel, $state->incarnation, $state->version, $state->epoch,
-                $state->generation, $state->fingerprint],
-            default => ['code', $state->panel, $state->buildId, $state->fingerprint],
+            $state instanceof StateToken && $state->subjectRevision() !== null => ['subject', $state->storageId(), $state->panel(), $state->incarnation(),
+                $state->epoch(), $state->subjectRevision(), $state->generation(), $state->fingerprint()],
+            $state instanceof StateToken => ['storage', $state->storageId(), $state->panel(), $state->incarnation(), $state->version(), $state->epoch(),
+                $state->generation(), $state->fingerprint()],
+            default => ['code', $state->panel(), $state->buildId(), $state->fingerprint()],
         };
 
         return 'azguard:sets:'.IdentityCodec::digest([$revision, $generation, $subject, $tenant, array_values(array_unique($contexts)), $source, $readMode, $authority]);

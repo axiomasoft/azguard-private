@@ -56,7 +56,7 @@ it('real Redis serializes raw sets across requests, obeys the query budget, and 
     $budget = CacheWorld::emptyBudget();
     [$deployed, $deployedPanel] = CacheWorld::database(DatabaseSource::make(), configure: fn (PanelBuilder $p) => $p->cache('qualification', 60));
     $newBuild = $deployed->decide($deployedPanel, DatabaseWorld::request());
-    expect($newBuild->allowed())->toBeTrue()->and($newBuild->state->fingerprint)->not->toBe($first->state->fingerprint)
+    expect($newBuild->allowed())->toBeTrue()->and($newBuild->state->fingerprint())->not->toBe($first->state->fingerprint())
         ->and($budget['grants'])->toBe(2);
     DatabaseWorld::storage()->mutate('admin', static function (StorageMutation $m): void {
         $m->table('permission_grants')->where('panel', 'admin')->delete();
@@ -85,6 +85,6 @@ it('real Redis rejects absolute expiry in request memo and a new incarnation aft
     app()->forgetScopedInstances();
     $after = $engine->decide($panel, DatabaseWorld::request());
     expect($after->reason)->toBe(DecisionReason::NotGranted)
-        ->and($after->state->incarnation)->not->toBe($before->state->incarnation)
-        ->and($after->state->version)->toBeLessThan($before->state->version);
+        ->and($after->state->incarnation())->not->toBe($before->state->incarnation())
+        ->and($after->state->version())->toBeLessThan($before->state->version());
 })->group('redis', 'stand', 'server-skip');
