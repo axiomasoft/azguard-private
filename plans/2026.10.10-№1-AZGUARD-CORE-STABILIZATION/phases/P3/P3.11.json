@@ -1,0 +1,172 @@
+{
+  "$schema": "urn:swissknifeman:task:plan:item:v1",
+  "id": "P3.11",
+  "title": "Tests mirror owners: tests/Modules and the Scopes filter contract suite",
+  "status": "todo",
+  "summary": "Moves module tests to `tests/Modules/{Scopes,Audit,DevTools}` per knowledge/target-structure#tests (scope behavior, Audit plugin/prune/participant/migration tests, generators and install), keeps the algebra part of scope properties in core with a no-declaration variant, adds `AzGuard\\Scopes\\Testing\\AssignmentScopeFilterContractTests` (Spi(Call)) with a test using it on the module's own filter fixtures, and enforces that a module's tests import no other module.",
+  "why": "target-structure rule 7 and #tests: module tests travel with their module (relocation rehearsal in P4); the contract suite is the module's supported tool for third-party filters (oracle row new/P3). Hard risk: moving tests must not drop any test — the item records the test count before and after.",
+  "scope": {
+    "include": [
+      "Moves per the #tests table: `tests/Feature/Scopes` (behavior part), `tests/Fixtures/Scopes`, behavior part of `Authorization/Properties/ScopePropertiesTest` → `tests/Modules/Scopes/`; `tests/Feature/Plugins/Audit`, `tests/Contracts/Plugins/AuditPluginContractTest.php`, `tests/Feature/Console/AuditPruneCommandTest.php`, P3.5/P3.6 Audit tests → `tests/Modules/Audit/`; `tests/Feature/Console/Generators`, `tests/Feature/Console/InstallCommandTest.php` → `tests/Modules/DevTools/`",
+      "`packages/core/modules/scopes/src/Testing/AssignmentScopeFilterContractTests.php` (trait, #[Spi(kind: SpiKind::Call, since: '1.0')]) modeled on `Testing\\Contracts\\*ContractTests`: a filter only narrows (where-only), is pure for one runtime, refuses nothing core guards; used by `tests/Modules/Scopes/Contracts/FilterContractTest.php` for the fixture filters",
+      "`tests/zones.json` zones for the three modules (src = module root, tests = tests/Modules/<m>), `phpunit.xml` testsuite `Modules`, `tests/Pest.php` uses; `tests/README.md` ownership table",
+      "Arch rule (in `tests/Arch/OwnershipScanTest.php` or a new `tests/Arch/TestOwnershipTest.php`): files under `tests/Modules/<m>` reference no other module's namespace; files outside `tests/Modules` reference no module except the activation/parity fixtures listed in the rule",
+      "A test that imports two modules is split (record which)"
+    ],
+    "exclude": [
+      "Changing assertions",
+      "Filament tests (stay)",
+      "tests/Fixtures/Modules/{Blog,Shop} (host-application modules, stay)"
+    ]
+  },
+  "depends_on": [
+    "P3.10"
+  ],
+  "decisions": [
+    "D13"
+  ],
+  "reads": [
+    {
+      "ref": "knowledge/p3-execution#conventions",
+      "why": "Rules every P3 item follows (reference + amendments win, no shims, placement, oracle, allowlists, snapshots, migration lines, tests)",
+      "required": true
+    },
+    {
+      "ref": "knowledge/p3-execution#commands",
+      "why": "Exact validation commands, PHP 8.4, driver ports, composer update rule",
+      "required": true
+    },
+    {
+      "ref": "knowledge/target-structure#tests",
+      "why": "Test ownership table",
+      "required": true
+    },
+    {
+      "ref": "knowledge/target-structure#scopes",
+      "why": "Scopes Testing namespace",
+      "required": true
+    },
+    {
+      "path": "tests/zones.json",
+      "why": "Zone map",
+      "required": true
+    },
+    {
+      "path": "phpunit.xml",
+      "why": "Testsuites",
+      "required": true
+    },
+    {
+      "path": "tests/Pest.php",
+      "why": "Pest uses/groups",
+      "required": true
+    },
+    {
+      "path": "packages/core/src/Testing/Contracts/RestrictionContractTests.php",
+      "why": "Style of an existing contract suite",
+      "required": true
+    }
+  ],
+  "task_files": [
+    {
+      "path": "tests/Modules/**",
+      "change": "create"
+    },
+    {
+      "path": "tests/Feature/**",
+      "change": "modify"
+    },
+    {
+      "path": "tests/Fixtures/**",
+      "change": "modify"
+    },
+    {
+      "path": "tests/Contracts/**",
+      "change": "modify"
+    },
+    {
+      "path": "tests/zones.json",
+      "change": "modify"
+    },
+    {
+      "path": "phpunit.xml",
+      "change": "modify"
+    },
+    {
+      "path": "tests/Pest.php",
+      "change": "modify"
+    },
+    {
+      "path": "tests/README.md",
+      "change": "modify"
+    },
+    {
+      "path": "tests/Arch/*.php",
+      "change": "modify"
+    },
+    {
+      "path": "packages/core/modules/scopes/src/Testing/AssignmentScopeFilterContractTests.php",
+      "change": "create"
+    },
+    {
+      "path": "packages/core/api-manifest.json",
+      "change": "modify"
+    }
+  ],
+  "rules": [
+    "Total test count (`vendor/bin/pest --list-tests | wc -l`) after ≥ before, recorded in the result notes."
+  ],
+  "validation": [
+    {
+      "id": "V1",
+      "cmd": "php -d memory_limit=1G vendor/bin/pest tests/Modules --fail-on-skipped",
+      "expect": "exit 0",
+      "kind": "acceptance"
+    },
+    {
+      "id": "V2",
+      "cmd": "php -d memory_limit=1G vendor/bin/pest tests/Arch --fail-on-skipped",
+      "expect": "exit 0",
+      "kind": "acceptance"
+    },
+    {
+      "id": "V3",
+      "cmd": "php -d memory_limit=1G vendor/bin/pest tests/Feature/Parity tests/Feature/InactiveCost tests/Regression --fail-on-skipped",
+      "expect": "exit 0",
+      "kind": "acceptance"
+    },
+    {
+      "id": "V4",
+      "cmd": "composer analyse && composer lint:check && composer refactor:check && composer api:check",
+      "expect": "exit 0",
+      "kind": "acceptance"
+    },
+    {
+      "id": "V5",
+      "cmd": "composer test",
+      "expect": "exit 0",
+      "kind": "impact"
+    }
+  ],
+  "deliverables": [
+    "tests/Modules/{Scopes,Audit,DevTools}",
+    "AssignmentScopeFilterContractTests",
+    "Test-ownership arch rule"
+  ],
+  "route": {
+    "class": "implementation",
+    "effort": "medium"
+  },
+  "review": {
+    "mode": "none"
+  },
+  "authority": {
+    "kind": "routine"
+  },
+  "rag": {
+    "need": "none",
+    "status": "not_needed"
+  },
+  "result": null,
+  "updated_at": "2026-10-13T11:36:28Z"
+}

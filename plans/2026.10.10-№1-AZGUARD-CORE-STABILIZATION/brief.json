@@ -105,6 +105,13 @@
       "text": "вообщем не смотри на 0.7 - ее просто нет для тебя. Есть только цель создать идеальный нажеджный апи, идеальную архитектуру, гибкую и надежную. / мы базу отлично спроектировали, осталось следовать ей",
       "channel": "owner conversation (P2 design session)",
       "kind": "owner"
+    },
+    {
+      "id": "M16",
+      "date": "2026-10-13",
+      "text": "P3 design answers: Audit 0.7.0 scenarios — «Только чистая установка (Recommended)»; schema 1 — «Удалить путь апгрейда (Recommended)»; core↔Scopes — «Нейтральное описание (Recommended)»; «Да, Review P3 (Recommended)». Also: «используй perplexity если нужно»; «мы исходим из того, что публичная версия будет 1.0, поэтому все должно быть чисто».",
+      "channel": "owner conversation (P3 design session)",
+      "kind": "owner"
     }
   ],
   "requirements": [

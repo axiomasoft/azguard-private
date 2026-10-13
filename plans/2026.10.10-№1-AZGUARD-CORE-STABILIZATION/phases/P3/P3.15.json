@@ -1,0 +1,118 @@
+{
+  "$schema": "urn:swissknifeman:task:plan:item:v1",
+  "id": "P3.15",
+  "title": "Review P3",
+  "status": "todo",
+  "summary": "An independent read-only review checks P3.1–P3.14 against the reference and the P3 amendments (D19–D23, knowledge/p3-execution) and records a GREEN or RED verdict with findings in artifacts/reviews/P3-review.md.",
+  "why": "Owner requested a review of P3 (brief M16). P3 moves ~200 types, splits schema/installer/health/config ownership, removes legacy persistence paths and introduces two SPI types; a fresh reader catches silent placement drift, weakened or deleted tests, guard weakening in the module copy, prune races and a core→module edge hidden in strings.",
+  "scope": {
+    "include": [
+      "Placement: TargetPlacementTest result, no shim/alias, module roots and providers; I2–I5/I13 blocking with empty allowlists",
+      "D21: core sites vs #scope-description table; fingerprint and conflict rules; D22: module guard equals core guard (negative tests)",
+      "D19/D20: six-table schema, Audit chain, DDL fixtures per driver, fresh-install scenarios, prune model pairs with engine evidence",
+      "D5 item: stages free of concrete-source branches with unchanged read order",
+      "Tests: no weakened/skipped/deleted assertions except those removed by decision (git diff of tests since the P3 start commit); test counts",
+      "Migration instruction completeness; D23 cleanliness gate",
+      "Verdict, findings table {id, item, file:line, rule, severity, fix}, re-run of P3.14 V1–V4"
+    ],
+    "exclude": [
+      "Changing code or fixtures (read-only; fixes go through reopened items)",
+      "Re-designing the reference"
+    ]
+  },
+  "depends_on": [
+    "P3.14"
+  ],
+  "decisions": [
+    "D19",
+    "D20",
+    "D21",
+    "D22",
+    "D23"
+  ],
+  "reads": [
+    {
+      "ref": "knowledge/p3-execution#conventions",
+      "why": "Rules every P3 item follows (reference + amendments win, no shims, placement, oracle, allowlists, snapshots, migration lines, tests)",
+      "required": true
+    },
+    {
+      "ref": "knowledge/p3-execution#commands",
+      "why": "Exact validation commands, PHP 8.4, driver ports, composer update rule",
+      "required": true
+    },
+    {
+      "ref": "knowledge/p3-execution#amendments",
+      "why": "What P3 changed in the reference",
+      "required": true
+    },
+    {
+      "ref": "knowledge/p3-execution#scope-description",
+      "why": "D21 call-site map",
+      "required": true
+    },
+    {
+      "ref": "knowledge/p3-execution#module-guard",
+      "why": "D22 rules",
+      "required": true
+    },
+    {
+      "ref": "knowledge/p3-execution#persistence",
+      "why": "D19/D20 model and prune pairs",
+      "required": true
+    },
+    {
+      "ref": "knowledge/p3-execution#allowlists",
+      "why": "Blocking switch",
+      "required": true
+    },
+    {
+      "path": "tests/Arch/invariants.json",
+      "why": "Register",
+      "required": true
+    }
+  ],
+  "task_files": [
+    {
+      "path": "plans/2026.10.10-№1-AZGUARD-CORE-STABILIZATION/artifacts/reviews/P3-review.md",
+      "change": "create"
+    }
+  ],
+  "rules": [
+    "Read-only: no change outside artifacts/reviews/.",
+    "A finding needs a file:line and the violated reference rule; style preferences are not findings."
+  ],
+  "validation": [
+    {
+      "id": "V1",
+      "cmd": "test -s plans/2026.10.10-№1-AZGUARD-CORE-STABILIZATION/artifacts/reviews/P3-review.md && grep -Eq 'Verdict: \\*\\*(GREEN|RED)\\*\\*' plans/2026.10.10-№1-AZGUARD-CORE-STABILIZATION/artifacts/reviews/P3-review.md",
+      "expect": "exit 0",
+      "kind": "acceptance"
+    },
+    {
+      "id": "V2",
+      "cmd": "git diff --quiet HEAD -- packages tests bin docs",
+      "expect": "exit 0 (review changed nothing outside the plan)",
+      "kind": "acceptance"
+    }
+  ],
+  "deliverables": [
+    "artifacts/reviews/P3-review.md with verdict and findings"
+  ],
+  "route": {
+    "class": "frontier",
+    "effort": "high"
+  },
+  "review": {
+    "mode": "none"
+  },
+  "authority": {
+    "kind": "routine"
+  },
+  "rag": {
+    "need": "none",
+    "status": "not_needed"
+  },
+  "result": null,
+  "updated_at": "2026-10-13T11:36:28Z"
+}

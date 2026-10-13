@@ -1,0 +1,59 @@
+{
+  "$schema": "urn:swissknifeman:task:plan:decision:v1",
+  "id": "D19",
+  "title": "Audit installation chain for fresh installs only (replaces D11)",
+  "date": "2026-10-13",
+  "status": "accepted",
+  "question": "D16 requires the P3 design to re-evaluate the 0.7.0 installation and adoption scenarios of D11, B18 and release-gate condition 5 under M15 (0.7.0 does not exist; the package was never published). Which Audit installation chain does P3 build?",
+  "options": [
+    {
+      "id": "A",
+      "text": "Fresh installs only: the Audit migration with the fixed basename 2026_10_20_000000_create_azguard_audit_log (published under azguard-audit-migrations, not auto-loaded) creates the table; down() drops it (Laravel convention); no adoption or shape check of a pre-existing table; the populated 0.7.0 replays (default/named/published/schema1), tests/Fixtures/Baseline070/Persistence and PopulatedDatabaseTest are removed; I16 = fixed basenames + publishes() + fresh core-only and core+Audit installs (package-loaded, published, named storage) per driver."
+    },
+    {
+      "id": "B",
+      "text": "Keep revision 2 (D11): up() creates or adopts an existing audit_log after a full shape check, down() keeps data, every #persistence scenario on populated 0.7.0 fixtures per driver with zero row rewrite."
+    }
+  ],
+  "context": "P3 design session 2026-10-13. Owner M14/M15 (0.7.0 is no constraint, the package was never published) and M16 (public version is 1.0, everything clean). D11 built adoption only because 0.7.0 named-storage and default migrations created audit_log through core.",
+  "decision": "A — Fresh installs only: the Audit migration with the fixed basename 2026_10_20_000000_create_azguard_audit_log (published under azguard-audit-migrations, not auto-loaded) creates the table; down() drops it (Laravel convention); no adoption or shape check of a pre-existing table; the populated 0.7.0 replays (default/named/published/schema1), tests/Fixtures/Baseline070/Persistence and PopulatedDatabaseTest are removed; I16 = fixed basenames + publishes() + fresh core-only and core+Audit installs (package-loaded, published, named storage) per driver.",
+  "rationale": "Owner M16: «Только чистая установка (Recommended)»; no 0.7.0 installation exists (M14, M15).",
+  "consequences": [
+    "Supersedes D11; B18 and release-gate condition 5 read 'fresh installs on every driver' instead of 'populated 0.7.0 fixtures'.",
+    "tests/Fixtures/Baseline070/Persistence, tests/Regression/Baseline070/PopulatedDatabaseTest.php and the NoScope parity fixtures that restore 0.7.0 dumps are removed or rewritten to seed through the current API.",
+    "Fresh audited installs need one publish step (or one command per named storage); doctor audit.table names it.",
+    "knowledge/identities#resources: the Audit migration is 'create' (not create-or-adopt)."
+  ],
+  "applies_to": [
+    "P3",
+    "P4"
+  ],
+  "supersedes": [
+    "D11"
+  ],
+  "evidence": [
+    {
+      "kind": "owner",
+      "ref": "brief/M16",
+      "note": "«Только чистая установка (Recommended)»"
+    },
+    {
+      "kind": "owner",
+      "ref": "brief/M15"
+    },
+    {
+      "kind": "repo",
+      "ref": "tests/Fixtures/Baseline070/Persistence/README.md"
+    },
+    {
+      "kind": "repo",
+      "ref": "packages/core/src/Storage/Schema/StorageSchema.php"
+    }
+  ],
+  "actor": {
+    "provider": "claude-code",
+    "model": "claude-opus-5-5",
+    "effort": "high"
+  },
+  "answered_by": "owner"
+}

@@ -1,0 +1,232 @@
+{
+  "$schema": "urn:swissknifeman:task:plan:item:v1",
+  "id": "P3.9",
+  "title": "Core internal moves, part 2: diagnostics, directories, Laravel, sources, storage and testing zones",
+  "status": "todo",
+  "summary": "Mechanical relocation of the core internal types of Diagnostics, Directories, Laravel, Sources, Storage and Testing into `<Zone>\\Internal\\` exactly as the oracle rows say (≈93 rows, e.g. `Diagnostics\\Checks\\*` → `Diagnostics\\Internal\\Checks\\*`, `Laravel\\Console\\Commands\\*` → `Laravel\\Internal\\Console\\Commands\\*`, `Storage\\Storage` → `Storage\\Internal\\Storage` (close+move), `Directories\\ModelSubjectDirectory`/`ModelTenantDirectory` (close+move)); references, docblocks, string FQCNs, `__DIR__` paths, allowlist paths and pinned snapshots follow. No behavior change.",
+  "why": "D13: implementation lives under `<Zone>\\Internal\\` so boundaries are visible in the namespace and the I2–I4 scans stay mechanical; P3 moves each internal type once. Hard risk: a missed string FQCN (config, JSON fixture, phpstan ignore, stub, docs) or a stale `__DIR__` path breaks only at runtime — the sweep in #moves and the full suite catch it.",
+  "scope": {
+    "include": [
+      "Rows with action `move` or `close+move` and phase `P3` whose current FQCN is in Diagnostics, Directories, Laravel, Sources, Storage and Testing (knowledge/type-map #zone-diagnostics, #zone-directories, #zone-laravel, #zone-sources, #zone-storage, #zone-testing)",
+      "close+move rows lose their `#[Api]`/`#[Spi]` attribute; nothing supported may reference them afterwards (I4)",
+      "`StorageMigrationCommand` stub path and `AzGuardServiceProvider` paths (`config`, `database`, `resources`) recomputed after the move; `Laravel\\Internal\\Console\\GrantCommandSupport` stays where P2 put it",
+      "Pinned snapshots that name moved classes regenerated in writer mode (list them in the result)",
+      "Migration lines for the close+move rows: `Directories\\ModelSubjectDirectory`/`ModelTenantDirectory` → depend on `Contracts\\Subjects\\SubjectDirectory`/`Contracts\\Tenancy\\TenantDirectory`; `Storage\\Storage` → `Storage\\StorageDescriptor`"
+    ],
+    "exclude": [
+      "Any behavior or signature change",
+      "Rows of other zones",
+      "Published types (keep FQCN)"
+    ]
+  },
+  "depends_on": [
+    "P3.8"
+  ],
+  "decisions": [
+    "D13",
+    "D16"
+  ],
+  "reads": [
+    {
+      "ref": "knowledge/p3-execution#conventions",
+      "why": "Rules every P3 item follows (reference + amendments win, no shims, placement, oracle, allowlists, snapshots, migration lines, tests)",
+      "required": true
+    },
+    {
+      "ref": "knowledge/p3-execution#commands",
+      "why": "Exact validation commands, PHP 8.4, driver ports, composer update rule",
+      "required": true
+    },
+    {
+      "ref": "knowledge/p3-execution#moves",
+      "why": "Exact move procedure: oracle-driven Rector map, git mv, string sweep, __DIR__ depth, snapshot regeneration",
+      "required": true
+    },
+    {
+      "ref": "knowledge/target-structure#core",
+      "why": "Target core tree (directory → types)",
+      "required": true
+    },
+    {
+      "ref": "knowledge/type-map#zone-diagnostics",
+      "why": "Rows of this zone",
+      "required": true
+    },
+    {
+      "ref": "knowledge/type-map#zone-directories",
+      "why": "Rows of this zone",
+      "required": true
+    },
+    {
+      "ref": "knowledge/type-map#zone-laravel",
+      "why": "Rows of this zone",
+      "required": true
+    },
+    {
+      "ref": "knowledge/type-map#zone-sources",
+      "why": "Rows of this zone",
+      "required": true
+    },
+    {
+      "ref": "knowledge/type-map#zone-storage",
+      "why": "Rows of this zone",
+      "required": true
+    },
+    {
+      "ref": "knowledge/type-map#zone-testing",
+      "why": "Rows of this zone",
+      "required": true
+    },
+    {
+      "ref": "knowledge/upgrade-map#types",
+      "why": "Supported-symbol changes of this area to write as migration lines",
+      "required": true
+    }
+  ],
+  "task_files": [
+    {
+      "path": "packages/core/src/Diagnostics/**",
+      "change": "modify"
+    },
+    {
+      "path": "packages/core/src/Directories/**",
+      "change": "modify"
+    },
+    {
+      "path": "packages/core/src/Laravel/**",
+      "change": "modify"
+    },
+    {
+      "path": "packages/core/src/Sources/**",
+      "change": "modify"
+    },
+    {
+      "path": "packages/core/src/Storage/**",
+      "change": "modify"
+    },
+    {
+      "path": "packages/core/src/Testing/**",
+      "change": "modify"
+    },
+    {
+      "path": "packages/core/src/AzGuardServiceProvider.php",
+      "change": "modify"
+    },
+    {
+      "path": "packages/core/src/**/*.php",
+      "change": "modify"
+    },
+    {
+      "path": "packages/core/stubs/*.stub",
+      "change": "modify"
+    },
+    {
+      "path": "tests/Fixtures/Console/commands.json",
+      "change": "modify"
+    },
+    {
+      "path": "tests/Fixtures/Baseline070/Formats/*.json",
+      "change": "modify"
+    },
+    {
+      "path": "docs/upgrade.md",
+      "change": "modify"
+    },
+    {
+      "path": "packages/core/api-manifest.json",
+      "change": "modify"
+    },
+    {
+      "path": "packages/filament/src/**/*.php",
+      "change": "modify"
+    },
+    {
+      "path": "packages/core/modules/**/*.php",
+      "change": "modify"
+    },
+    {
+      "path": "tests/Arch/Allowlists/*.json",
+      "change": "modify"
+    },
+    {
+      "path": "phpstan.neon",
+      "change": "modify"
+    },
+    {
+      "path": "tests/zones.json",
+      "change": "modify"
+    },
+    {
+      "path": "docs/**",
+      "change": "modify"
+    },
+    {
+      "path": "tests/**",
+      "change": "modify"
+    },
+    {
+      "path": "bench/**",
+      "change": "modify"
+    },
+    {
+      "path": "bin/**",
+      "change": "modify"
+    }
+  ],
+  "rules": [
+    "After the item, for every moved row `git grep -nF '<old FQCN>' -- packages tests bench bin phpstan.neon` is empty (docs/upgrade.md excepted).",
+    "Each moved file declares exactly its oracle target FQCN at its oracle target_path."
+  ],
+  "validation": [
+    {
+      "id": "V1",
+      "cmd": "php -d memory_limit=1G vendor/bin/pest tests/Feature/Diagnostics tests/Feature/Directories tests/Feature/Console tests/Feature/Http tests/Feature/Laravel tests/Feature/Sources tests/Feature/Storage tests/Feature/Testing tests/Contracts --fail-on-skipped",
+      "expect": "exit 0",
+      "kind": "acceptance"
+    },
+    {
+      "id": "V2",
+      "cmd": "php -d memory_limit=1G vendor/bin/pest tests/Arch --fail-on-skipped",
+      "expect": "exit 0",
+      "kind": "acceptance"
+    },
+    {
+      "id": "V3",
+      "cmd": "php -d memory_limit=1G vendor/bin/pest tests/Feature/Parity tests/Feature/InactiveCost tests/Regression --fail-on-skipped",
+      "expect": "exit 0",
+      "kind": "acceptance"
+    },
+    {
+      "id": "V4",
+      "cmd": "composer analyse && composer lint:check && composer refactor:check && composer api:check",
+      "expect": "exit 0",
+      "kind": "acceptance"
+    },
+    {
+      "id": "V5",
+      "cmd": "composer test",
+      "expect": "exit 0",
+      "kind": "impact"
+    }
+  ],
+  "deliverables": [
+    "Diagnostics, Directories, Laravel, Sources, Storage and Testing internals under Internal namespaces",
+    "Updated references and regenerated snapshots"
+  ],
+  "route": {
+    "class": "implementation",
+    "effort": "medium"
+  },
+  "review": {
+    "mode": "none"
+  },
+  "authority": {
+    "kind": "routine"
+  },
+  "rag": {
+    "need": "none",
+    "status": "not_needed"
+  },
+  "result": null,
+  "updated_at": "2026-10-13T11:36:28Z"
+}

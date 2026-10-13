@@ -1,0 +1,51 @@
+{
+  "$schema": "urn:swissknifeman:task:plan:decision:v1",
+  "id": "D23",
+  "title": "Clean 1.0 baseline: no 0.7 traces in code, tests and docs",
+  "date": "2026-10-13",
+  "status": "accepted",
+  "question": "The owner states that the first public version is 1.0 and everything must be clean (M16). Which 0.7 traces does the plan remove, and where?",
+  "options": [
+    {
+      "id": "A",
+      "text": "P3 removes 0.7 traces from code, tests and docs: every since: '0.7' becomes '1.0'; tests/Fixtures/Baseline070 and tests/Regression/Baseline070 become current-format snapshots under Formats names without 0.7.0-only inventories (0.7.0 api-manifest byte copies, scopes-discovery and azg_ grant-field inventories, serializable-fqcn 0.7 targets); docs stop calling 0.7.0 the first public release. P4 sets version metadata (branch aliases, root requires) for the candidate. docs/upgrade.md 'From 0.7 to 1.0' stays as the owner-requested AI-agent instruction (M14)."
+    },
+    {
+      "id": "B",
+      "text": "Leave 0.7 markers until the P4 freeze."
+    }
+  ],
+  "context": "P3 design session 2026-10-13, owner message «мы исходим из того, что публичная версия будет 1.0, поэтому все должно быть чисто». knowledge/contracts#rules prescribed since: '0.7' for unchanged 0.7.0 types; 253 production files carry it.",
+  "decision": "A — P3 removes 0.7 traces from code, tests and docs: every since: '0.7' becomes '1.0'; tests/Fixtures/Baseline070 and tests/Regression/Baseline070 become current-format snapshots under Formats names without 0.7.0-only inventories (0.7.0 api-manifest byte copies, scopes-discovery and azg_ grant-field inventories, serializable-fqcn 0.7 targets); docs stop calling 0.7.0 the first public release. P4 sets version metadata (branch aliases, root requires) for the candidate. docs/upgrade.md 'From 0.7 to 1.0' stays as the owner-requested AI-agent instruction (M14).",
+  "rationale": "Owner M16: «публичная версия будет 1.0, поэтому все должно быть чисто»; agent placed the cleanup in P3 and version metadata in P4.",
+  "consequences": [
+    "D14's byte copies of the 0.7.0 manifests and sha256 pins are retired together with the copies.",
+    "Snapshot tests keep pinning current formats (I17) under neutral names; tests/zones.json and tests/README.md follow the rename.",
+    "Open for the owner: whether docs/upgrade.md 'From 0.7 to 1.0' ships in the public docs or moves to an internal location (default: stays, M14)."
+  ],
+  "applies_to": [
+    "P3",
+    "P4"
+  ],
+  "evidence": [
+    {
+      "kind": "owner",
+      "ref": "brief/M16"
+    },
+    {
+      "kind": "repo",
+      "ref": "tests/Fixtures/Baseline070/README.md"
+    },
+    {
+      "kind": "repo",
+      "ref": "README.md",
+      "note": "'0.7.0 is the first public release'"
+    }
+  ],
+  "actor": {
+    "provider": "claude-code",
+    "model": "claude-opus-5-5",
+    "effort": "high"
+  },
+  "answered_by": "owner"
+}

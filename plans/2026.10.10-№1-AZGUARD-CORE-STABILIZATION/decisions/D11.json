@@ -3,7 +3,7 @@
   "id": "D11",
   "title": "Migration identity and Audit installation chain",
   "date": "2026-10-10",
-  "status": "accepted",
+  "status": "superseded",
   "question": "How does Audit take ownership of audit_log without breaking 0.7.0 installations, published migrations or named storages?",
   "options": [
     {
@@ -31,6 +31,7 @@
     "P3",
     "P4"
   ],
+  "superseded_by": "D19",
   "evidence": [
     {
       "kind": "repo",

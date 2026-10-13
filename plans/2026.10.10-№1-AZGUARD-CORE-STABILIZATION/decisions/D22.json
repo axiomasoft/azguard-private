@@ -1,0 +1,49 @@
+{
+  "$schema": "urn:swissknifeman:task:plan:decision:v1",
+  "id": "D22",
+  "title": "The Scopes module guards and invokes its own extension inputs",
+  "date": "2026-10-13",
+  "status": "accepted",
+  "question": "The Scopes module's EligibilityBuilder and QueryScopeDirectory use core internals PredicateBuilder, QueryGuard, Narrow, RuntimeInvoker and ModelLookup (i4.json, owner P3). After P3 a module may use only attributed core symbols (I4), and PredicateBuilder/QueryGuard stay core internals because core uses them in ResourceContextMapping and the Relation adapter. How does the module guard and invoke its own extension inputs?",
+  "options": [
+    {
+      "id": "A",
+      "text": "The module owns the guard of its own SPI inputs: a module-internal narrowing-only builder and guard (Scopes\\Internal\\Query\\FilterQuery, FilterGuard) for filters and access adapters; closure filters are called positionally as AssignmentScopeFilter::apply($query, $runtime) with a compile-time signature check (RuntimeInvoker dropped); Narrow checks inlined; lookup/label helpers as Scopes\\Internal\\ScopeLookup."
+    },
+    {
+      "id": "B",
+      "text": "Publish a core Spi(Call) guarded-query factory for modules and third-party evaluators."
+    }
+  ],
+  "context": "P3 design session 2026-10-13. Phase P3 scope.exclude forbids exposing internal database mechanisms as public SPI; core already hands eligibleContexts() a guarded group it built itself (D18).",
+  "decision": "A — The module owns the guard of its own SPI inputs: a module-internal narrowing-only builder and guard (Scopes\\Internal\\Query\\FilterQuery, FilterGuard) for filters and access adapters; closure filters are called positionally as AssignmentScopeFilter::apply($query, $runtime) with a compile-time signature check (RuntimeInvoker dropped); Narrow checks inlined; lookup/label helpers as Scopes\\Internal\\ScopeLookup.",
+  "rationale": "No public surface added before the freeze (P3 scope.exclude); each owner guards its own slot inputs; follows D21/D18.",
+  "consequences": [
+    "New module-internal types (not in the P1 oracle; ownership resolved by FQCN per D17): Scopes\\Internal\\Query\\FilterQuery, Scopes\\Internal\\Query\\FilterGuard, Scopes\\Internal\\ScopeLookup.",
+    "Behavior change (migration line): name-injected filter closures (parameters named user, role, grant, actor, panel, scope, now, phase, proposed…) are rejected; use ($query, $runtime) and read the runtime fields.",
+    "i4.json loses every EligibilityBuilder and QueryScopeDirectory entry."
+  ],
+  "applies_to": [
+    "P3"
+  ],
+  "evidence": [
+    {
+      "kind": "repo",
+      "ref": "tests/Arch/Allowlists/i4.json"
+    },
+    {
+      "kind": "repo",
+      "ref": "packages/core/src/Scopes/Query/EligibilityBuilder.php"
+    },
+    {
+      "kind": "repo",
+      "ref": "packages/core/src/Directories/QueryScopeDirectory.php"
+    }
+  ],
+  "actor": {
+    "provider": "claude-code",
+    "model": "claude-opus-5-5",
+    "effort": "high"
+  },
+  "answered_by": "agent"
+}
