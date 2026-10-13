@@ -68,6 +68,18 @@ it('counts the rows of the tables of its own database only', function (): void {
     expect(ContractWorld::rowCounts())->toHaveKey('testbench.contract_probe', 2);
 });
 
+it('counts tables of a connection that has a table prefix without prefixing the physical name twice', function (): void {
+    $connection = app('db')->connection();
+    $connection->table('contract_probe')->insert([['note' => 'a']]);
+    $connection->setTablePrefix('az_');
+
+    try {
+        expect(ContractWorld::rowCounts())->toHaveKey($connection->getName().'.contract_probe', 1);
+    } finally {
+        $connection->setTablePrefix('');
+    }
+});
+
 it('leaves out the tables of another schema or attached database that the connection can see', function (): void {
     $connection = app('db')->connection();
     $driver = $connection->getDriverName();

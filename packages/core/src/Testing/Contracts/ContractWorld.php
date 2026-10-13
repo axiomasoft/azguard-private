@@ -13,6 +13,7 @@ use AzGuard\Panels\PanelBuilder;
 use AzGuard\Panels\PanelRegistry;
 use AzGuard\Testing\FakeSubject;
 use Closure;
+use Illuminate\Database\Connection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Events\QueryExecuted;
 use RuntimeException;
@@ -137,12 +138,13 @@ final class ContractWorld
             } catch (Throwable) {
                 continue;
             }
-            $grammar = $connection->getQueryGrammar();
-
             foreach ($tables as $table) {
                 $owner = is_string($table['schema'] ?? null) ? $table['schema'] : null;
                 $key = $owner === null || $owner === ($current[0] ?? null) ? $table['name'] : $owner.'.'.$table['name'];
-                $row = $connection->selectOne('select count(*) as aggregate from '.$grammar->wrap($owner === null ? $table['name'] : $owner.'.'.$table['name']));
+                // The listing holds physical names: wrapping them with the connection prefix would prefix them twice.
+                $row = $connection->withoutTablePrefix(static fn (Connection $bare): mixed => $bare->selectOne(
+                    'select count(*) as aggregate from '.$bare->getQueryGrammar()->wrap($owner === null ? $table['name'] : $owner.'.'.$table['name']),
+                ));
                 $count = is_object($row) ? ($row->aggregate ?? null) : null;
                 $counts[$name.'.'.$key] = is_numeric($count) ? (int) $count : throw new RuntimeException('Table '.$table['name'].' of '.$name.' could not be counted.');
             }

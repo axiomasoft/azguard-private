@@ -155,7 +155,8 @@ final class GrantLedger implements ChangeParticipant
 ```
 
 An exception from `record()` rolls the whole operation back. A repeat that changes nothing calls no participant. Only a
-panel with the database writer takes participants; a participant may not name an AzGuard table, and two participants
+panel with the database writer takes participants; a participant may not name one of the six core tables (`permissions`, `role_grants`, `permission_grants`, `panel_state`,
+`subject_revisions`, `storage_state`), and two participants
 of one panel may not share a table. The built-in `AuditPlugin` journals through a participant of its own.
 
 ## Plugins
