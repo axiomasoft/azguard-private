@@ -47,7 +47,7 @@ A panel setting is resolved from these layers. The first layer that sets it wins
 | `ids.host_keys` | `string` | Default key type for storages. `string` accepts every key type |
 | `sources.{name}` | — | Parameters of a named source (see [Sources](/advanced/sources)) |
 | `discovery.*` | `Permissions`, `Policies`, `Roles`, `Scopes`, `Abilities`, `Queries`, `Shared` | Folder names relative to a panel provider. `Shared` is a sibling of the panel directories that holds `#[AsSource]` sources |
-| `scaffold.namespace` / `scaffold.path` | `App\Guards` / `app/Guards` | Where the generators create panels |
+| `scaffold.namespace` / `scaffold.path` | `App\Guards` / `app/Guards` | Where the generators create panels. Owned by the development tools module: the published file does not list them, add the section to change them |
 
 ### Environment variables
 

@@ -198,19 +198,4 @@ return [
         'shared' => 'Shared',
     ],
 
-    /*
-    |--------------------------------------------------------------------------
-    | Generators
-    |--------------------------------------------------------------------------
-    |
-    | Where the generators put the directory of a new panel: the namespace and
-    | the path relative to the application.
-    |
-    */
-
-    'scaffold' => [
-        'namespace' => 'App\\Guards',
-        'path' => 'app/Guards',
-    ],
-
 ];

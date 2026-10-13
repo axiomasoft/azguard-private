@@ -63,10 +63,12 @@ it('publishes the file with exactly the keys of the snapshot', function (): void
 it('accepts exactly the keys of the published file', function (): void {
     $snapshot = json_decode((string) file_get_contents(dirname(__DIR__, 2).'/Fixtures/Configuration/config-keys.json'), true, flags: JSON_THROW_ON_ERROR);
 
-    $known = [...AzGuardConfig::knownKeys(), ...array_map(static fn (string $key): string => 'scaffold.'.$key, ScaffoldConfig::KEYS)];
+    // `scaffold.*` belongs to DevTools: core accepts it only where DevTools registered its owner, and its default is not in the file.
+    $known = AzGuardConfig::knownKeys();
     sort($known, SORT_STRING);
 
     expect($known)->toBe($snapshot)
+        ->and(array_values(array_intersect($snapshot, array_map(static fn (string $key): string => 'scaffold.'.$key, ScaffoldConfig::KEYS))))->toBe([])
         ->and(AzGuardConfig::fromRepository(new Repository(['azguard' => publishedConfiguration()])))->toBeInstanceOf(AzGuardConfig::class);
 });
 

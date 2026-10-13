@@ -24,8 +24,6 @@
     "gate.enabled",
     "ids.host_keys",
     "panels.providers",
-    "scaffold.namespace",
-    "scaffold.path",
     "schedule.enabled",
     "schedule.prune_expired",
     "sources",

@@ -70,10 +70,6 @@
             "abilities": "Abilities",
             "queries": "Queries",
             "shared": "Shared"
-        },
-        "scaffold": {
-            "namespace": "App\\Guards",
-            "path": "app/Guards"
         }
     },
     "azguard-filament": {
