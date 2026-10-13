@@ -37,8 +37,11 @@ function azguardTestModules(): array
 function azguardModuleReferences(string $code, array $modules): array
 {
     $names = implode('|', array_map('preg_quote', $modules));
-    preg_match_all('/AzGuard\\\\{1,2}(?:Tests\\\\{1,2}Modules\\\\{1,2})?('.$names.')\\\\/', $code, $matches);
-    $found = array_values(array_unique($matches[1]));
+    $moduleByLowercase = array_combine(array_map('strtolower', $modules), $modules);
+    // The module segment ends at a namespace token boundary (`\`, `;`, a quote, whitespace, a comma), so `namespace AzGuard\Audit;` and
+    // `autoloadClass('AzGuard\Scopes', …)` count as well as `use AzGuard\Audit\AuditPlugin;`; `AzGuard\Auditor` does not.
+    preg_match_all('/AzGuard\\\\{1,2}(?:Tests\\\\{1,2}Modules\\\\{1,2})?('.$names.')(?![A-Za-z0-9_])/i', $code, $matches);
+    $found = array_values(array_unique(array_map(static fn (string $module): string => $moduleByLowercase[strtolower($module)], $matches[1])));
     sort($found);
 
     return $found;
@@ -78,7 +81,9 @@ it('finds a module by its namespace in every form a test can name it', function 
 
     expect(azguardTestModules())->toBe(['Scopes', 'Audit', 'DevTools'])
         ->and(azguardModuleReferences($code, azguardTestModules()))->toBe(['Audit', 'DevTools', 'Scopes'])
-        ->and(azguardModuleReferences('<?php use AzGuard\Contracts\Scopes\TenantMembership; use AzGuard\Audits\X;', azguardTestModules()))->toBe([]);
+        ->and(azguardModuleReferences('<?php use AzGuard\Contracts\Scopes\TenantMembership; use AzGuard\Audits\X;', azguardTestModules()))->toBe([])
+        ->and(azguardModuleReferences('<?php namespace AzGuard\Audit; autoloadClass(\'AzGuard\Scopes\', \'Policy\'); $a = "AzGuard\\\\DevTools"; use AzGuard\audit\X;', azguardTestModules()))->toBe(['Audit', 'DevTools', 'Scopes'])
+        ->and(azguardModuleReferences('<?php use AzGuard\Auditor\X; use AzGuard\Tests\Modules\Scopes\Fixtures\Y;', azguardTestModules()))->toBe(['Scopes']);
 });
 
 /**
