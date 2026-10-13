@@ -2,7 +2,7 @@
   "$schema": "urn:swissknifeman:task:plan:item:v1",
   "id": "P3.9",
   "title": "Core internal moves, part 2: diagnostics, directories, Laravel, sources, storage and testing zones",
-  "status": "todo",
+  "status": "done_with_deviations",
   "summary": "Mechanical relocation of the core internal types of Diagnostics, Directories, Laravel, Sources, Storage and Testing into `<Zone>\\Internal\\` exactly as the oracle rows say (≈93 rows, e.g. `Diagnostics\\Checks\\*` → `Diagnostics\\Internal\\Checks\\*`, `Laravel\\Console\\Commands\\*` → `Laravel\\Internal\\Console\\Commands\\*`, `Storage\\Storage` → `Storage\\Internal\\Storage` (close+move), `Directories\\ModelSubjectDirectory`/`ModelTenantDirectory` (close+move)); references, docblocks, string FQCNs, `__DIR__` paths, allowlist paths and pinned snapshots follow. No behavior change.",
   "why": "D13: implementation lives under `<Zone>\\Internal\\` so boundaries are visible in the namespace and the I2–I4 scans stay mechanical; P3 moves each internal type once. Hard risk: a missed string FQCN (config, JSON fixture, phpstan ignore, stub, docs) or a stale `__DIR__` path breaks only at runtime — the sweep in #moves and the full suite catch it.",
   "scope": {
@@ -227,6 +227,58 @@
     "need": "none",
     "status": "not_needed"
   },
-  "result": null,
-  "updated_at": "2026-10-13T11:36:28Z"
+  "result": {
+    "started_at": "2026-10-13T18:37:30Z",
+    "finished_at": "2026-10-13T19:21:29Z",
+    "executor": {
+      "provider": "claude-code",
+      "model": "claude-sonnet-5-5",
+      "effort": "medium",
+      "session": "f65b7276-a38a-4b7c-93ad-e08317a40206"
+    },
+    "notes": "93 rows moved (Diagnostics, Directories, Laravel, Sources, Storage, Testing); regenerated Baseline070/Formats/doctor-checks.json, resources.json, serializable-fqcn.json; StorageMigrationCommand stub path recomputed; migration lines for close+move rows. V1-V5 green.",
+    "deviations": [
+      "Writer-mode fixtures; stub path depth"
+    ],
+    "checks": [
+      {
+        "id": "V1",
+        "exit": 0,
+        "at": "2026-10-13T19:21:29Z",
+        "evidence": "plans/2026.10.10-№1-AZGUARD-CORE-STABILIZATION/artifacts/evidence/P3.9/V1.json"
+      },
+      {
+        "id": "V2",
+        "exit": 0,
+        "at": "2026-10-13T19:21:29Z",
+        "evidence": "plans/2026.10.10-№1-AZGUARD-CORE-STABILIZATION/artifacts/evidence/P3.9/V2.json"
+      },
+      {
+        "id": "V3",
+        "exit": 0,
+        "at": "2026-10-13T19:21:29Z",
+        "evidence": "plans/2026.10.10-№1-AZGUARD-CORE-STABILIZATION/artifacts/evidence/P3.9/V3.json"
+      },
+      {
+        "id": "V4",
+        "exit": 0,
+        "at": "2026-10-13T19:21:29Z",
+        "evidence": "plans/2026.10.10-№1-AZGUARD-CORE-STABILIZATION/artifacts/evidence/P3.9/V4.json"
+      },
+      {
+        "id": "V5",
+        "exit": 0,
+        "at": "2026-10-13T19:21:29Z",
+        "evidence": "plans/2026.10.10-№1-AZGUARD-CORE-STABILIZATION/artifacts/evidence/P3.9/V5.json"
+      }
+    ],
+    "evidence": [
+      "plans/2026.10.10-№1-AZGUARD-CORE-STABILIZATION/artifacts/evidence/P3.9/V1.json",
+      "plans/2026.10.10-№1-AZGUARD-CORE-STABILIZATION/artifacts/evidence/P3.9/V2.json",
+      "plans/2026.10.10-№1-AZGUARD-CORE-STABILIZATION/artifacts/evidence/P3.9/V3.json",
+      "plans/2026.10.10-№1-AZGUARD-CORE-STABILIZATION/artifacts/evidence/P3.9/V4.json",
+      "plans/2026.10.10-№1-AZGUARD-CORE-STABILIZATION/artifacts/evidence/P3.9/V5.json"
+    ]
+  },
+  "updated_at": "2026-10-13T19:21:29Z"
 }
