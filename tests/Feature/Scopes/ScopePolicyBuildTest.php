@@ -2,10 +2,13 @@
 
 declare(strict_types=1);
 
+use AzGuard\Context\AssignmentScopeDeclaration;
+use AzGuard\Context\AssignmentScopeMode;
 use AzGuard\Exceptions\DefinitionException;
 use AzGuard\Exceptions\InvalidConfigurationException;
 use AzGuard\Panels\PanelBuilder;
 use AzGuard\Roles\BaseRole;
+use AzGuard\Scopes\Internal\Checks\ScopeMembershipConfigured;
 use AzGuard\Scopes\ModelAssignmentScopeDefinition;
 use AzGuard\Scopes\ScopesPlugin;
 use AzGuard\Tenancy\TenantPolicy;
@@ -90,4 +93,40 @@ it('accepts model shortcuts only with a structural owner in tenant panels', func
         ->plugins([ScopesPlugin::inherit(Project::class)])]))->toThrow(InvalidConfigurationException::class, 'authoritative tenant owner');
     [, , $registry] = PanelWorld::compile([AdminPanel::class => fn (PanelBuilder $panel) => $panel->for(User::class)->plugins([ScopesPlugin::inherit(Project::class)])]);
     expect(array_values($registry->get('admin')->scopeDefinitions())[0])->toBeInstanceOf(ModelAssignmentScopeDefinition::class);
+});
+
+it('rejects role filters when the panel declares scopes but names no evaluator', function (): void {
+    $role = new class extends BaseRole
+    {
+        public function key(): string
+        {
+            return 'filtered';
+        }
+
+        public function permissions(): array
+        {
+            return [];
+        }
+
+        public function scopes(): array
+        {
+            return [ConfiguredProjectScope::make()->filter(new ActiveProjects)];
+        }
+    };
+
+    expect(fn () => PanelWorld::compile([AdminPanel::class => fn (PanelBuilder $panel) => $panel->for(User::class)
+        ->assignmentScopes(new AssignmentScopeDeclaration(AssignmentScopeMode::Inherit, [ConfiguredProjectScope::make()]))
+        ->roles([$role::class])]))
+        ->toThrow(DefinitionException::class, 'without an evaluator that applies them');
+});
+
+it('reports a scope membership that cannot be created as a doctor error, not a compile failure', function (): void {
+    Relation::morphMap(['project' => Project::class], false);
+    [, , $registry] = PanelWorld::compile([AdminPanel::class => fn (PanelBuilder $panel) => $panel->for(User::class)
+        ->plugins([ScopesPlugin::inherit(Project::class)->requireMembership()])]);
+
+    $findings = ScopeMembershipConfigured::check($registry->get('admin'), app());
+
+    expect(array_map(static fn ($finding): string => $finding->key, $findings))->toContain('membership.configured')
+        ->and(implode("\n", array_map(static fn ($finding): string => $finding->message, $findings)))->toContain('AssignmentScopeMembership');
 });

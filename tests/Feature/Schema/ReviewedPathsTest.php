@@ -3,13 +3,17 @@
 declare(strict_types=1);
 
 use AzGuard\Kernel\Identity\TenantRef;
+use AzGuard\Panels\PanelBuilder;
 use AzGuard\Panels\PanelRegistry;
 use AzGuard\Schema\Field;
 use AzGuard\Schema\FieldSchema;
 use AzGuard\Schema\SchemaBuilder;
+use AzGuard\Scopes\ScopesPlugin;
 use AzGuard\Tests\Fixtures\Authorization\GeneratedSource;
 use AzGuard\Tests\Fixtures\Schema\SchemaAssertions;
+use AzGuard\Tests\Fixtures\Scopes\EligibilityExternalAdapter;
 use AzGuard\Tests\Fixtures\Scopes\ScopeWorld;
+use AzGuard\Tests\Fixtures\Scopes\StoreScope;
 use AzGuard\Tests\Fixtures\Storage\Department;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Database\Schema\Blueprint;
@@ -27,6 +31,16 @@ it('V72 describes a role binding of a scope that is not configurable, with the t
     expect($bindings)->toBe([['context_type' => 'store', 'filters' => [], 'label' => 'store', 'directory' => null, 'exact_support' => false]])
         ->and($schema->toArray()['scopes'])->toHaveCount(1)
         ->and(SchemaAssertions::nonScalars($schema->toArray()))->toBe([]);
+});
+
+it('V72 reports no exact support for an adapter-backed scope without a model', function (): void {
+    [, $panel] = ScopeWorld::compile(new GeneratedSource, configure: static fn (PanelBuilder $panel) => $panel->plugins([
+        ScopesPlugin::inherit(new StoreScope)->accessAdapter('store', new EligibilityExternalAdapter),
+    ]));
+    $schema = (new SchemaBuilder(app(PanelRegistry::class), app()))->for($panel, TenantRef::of('org', 'A'));
+    $bindings = array_merge(...array_map(static fn ($role): array => $role->toArray()['context_bindings'], $schema->roles()));
+
+    expect(array_column($bindings, 'exact_support'))->toBe([false]);
 });
 
 it('V72 gives a model field the rules that accept and refuse exactly what the grant writer does', function (mixed $value, bool $multiple): void {
