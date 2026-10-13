@@ -2,7 +2,7 @@
   "$schema": "urn:swissknifeman:task:plan:item:v1",
   "id": "P3.13",
   "title": "Clean 1.0 baseline: no 0.7 traces in code, tests and docs (D23)",
-  "status": "in_progress",
+  "status": "done_with_deviations",
   "summary": "Every `#[Api]`/`#[Spi]` attribute gets `since: '1.0'` and both manifests are regenerated; `tests/Fixtures/Baseline070` and `tests/Regression/Baseline070` become `tests/Fixtures/Formats` and `tests/Regression/Formats` with only current-format snapshots (0.7.0 api-manifest byte copies, 0.7.0-only inventories and their sha pins removed); README files and docs stop presenting 0.7.0 (docs/upgrade.md stays).",
   "why": "Owner M16: the first public version is 1.0 and everything must be clean (D23). Hard risk: renaming snapshot trees must not drop a pinned format (I17): every snapshot test keeps its assertions, only names and 0.7.0-only inventories change.",
   "scope": {
@@ -191,12 +191,63 @@
   },
   "result": {
     "started_at": "2026-10-13T20:39:32Z",
+    "finished_at": "2026-10-13T22:33:21Z",
     "executor": {
       "provider": "claude-code",
       "model": "claude-sonnet-5-5",
       "effort": "high",
       "session": "d5c0ac3a-b857-41e1-9c7c-d7ac82baa845"
-    }
+    },
+    "notes": "since: '1.0' on all 253 files and both manifests; Baseline070 -> Formats trees; docs and READMEs without 0.7.0 statements; docs/reference/commands.md regenerated (adds azguard:audit:migration); V1 gate empty; composer test 4795 passed",
+    "deviations": [
+      "Removed the two 0.7.0 byte-copy manifest tests; inlined grant-field-names and scopes-discovery assertions; serializable-fqcn.json replaced by serializable-types.json; AZGUARD_BASELINE_WRITE renamed AZGUARD_FORMATS_WRITE; 0.7.0 names of the I7/I9 parity ledgers and bin/consumer-fixture.sh default version left (outside the gate; version metadata is P4)"
+    ],
+    "checks": [
+      {
+        "id": "V1",
+        "exit": 0,
+        "at": "2026-10-13T22:33:21Z",
+        "evidence": "plans/2026.10.10-№1-AZGUARD-CORE-STABILIZATION/artifacts/evidence/P3.13/V1.json"
+      },
+      {
+        "id": "V2",
+        "exit": 0,
+        "at": "2026-10-13T22:33:21Z",
+        "evidence": "plans/2026.10.10-№1-AZGUARD-CORE-STABILIZATION/artifacts/evidence/P3.13/V2.json"
+      },
+      {
+        "id": "V3",
+        "exit": 0,
+        "at": "2026-10-13T22:33:21Z",
+        "evidence": "plans/2026.10.10-№1-AZGUARD-CORE-STABILIZATION/artifacts/evidence/P3.13/V3.json"
+      },
+      {
+        "id": "V4",
+        "exit": 0,
+        "at": "2026-10-13T22:33:21Z",
+        "evidence": "plans/2026.10.10-№1-AZGUARD-CORE-STABILIZATION/artifacts/evidence/P3.13/V4.json"
+      },
+      {
+        "id": "V5",
+        "exit": 0,
+        "at": "2026-10-13T22:33:21Z",
+        "evidence": "plans/2026.10.10-№1-AZGUARD-CORE-STABILIZATION/artifacts/evidence/P3.13/V5.json"
+      },
+      {
+        "id": "V6",
+        "exit": 0,
+        "at": "2026-10-13T22:33:21Z",
+        "evidence": "plans/2026.10.10-№1-AZGUARD-CORE-STABILIZATION/artifacts/evidence/P3.13/V6.json"
+      }
+    ],
+    "evidence": [
+      "plans/2026.10.10-№1-AZGUARD-CORE-STABILIZATION/artifacts/evidence/P3.13/V1.json",
+      "plans/2026.10.10-№1-AZGUARD-CORE-STABILIZATION/artifacts/evidence/P3.13/V2.json",
+      "plans/2026.10.10-№1-AZGUARD-CORE-STABILIZATION/artifacts/evidence/P3.13/V3.json",
+      "plans/2026.10.10-№1-AZGUARD-CORE-STABILIZATION/artifacts/evidence/P3.13/V4.json",
+      "plans/2026.10.10-№1-AZGUARD-CORE-STABILIZATION/artifacts/evidence/P3.13/V5.json",
+      "plans/2026.10.10-№1-AZGUARD-CORE-STABILIZATION/artifacts/evidence/P3.13/V6.json"
+    ]
   },
-  "updated_at": "2026-10-13T20:39:32Z"
+  "updated_at": "2026-10-13T22:33:21Z"
 }

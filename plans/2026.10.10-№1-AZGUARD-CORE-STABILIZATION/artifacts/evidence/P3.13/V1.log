@@ -1,0 +1,1 @@
+gate: no '0.7' trace in packages README.md docs (except docs/upgrade.md, CHANGELOG.md, composer.json) and no 'Baseline070' in tests bin .github: exit 0
