@@ -2,7 +2,7 @@
   "$schema": "urn:swissknifeman:task:plan:item:v1",
   "id": "P3.6",
   "title": "Audit retention without the authority lock; prune command moves to Audit",
-  "status": "todo",
+  "status": "in_progress",
   "summary": "`Audit\\Internal\\JournalPruner` deletes expired journal rows by selected ids in short transactions on the storage connection, with per-batch deadlock retry, without the panel lock (knowledge/p3-execution#persistence prune model); `ChangePipeline::pruneJournal` is deleted; `AuditPruneCommand` moves to `Audit\\Internal\\Console\\AuditPruneCommand` and is registered by `AuditServiceProvider`; core provider no longer imports it. Engine tests prove the interfering pairs on pgsql, mysql and mariadb.",
   "why": "Audit owns retention (architecture#operation-chains H, D19); core must not name audit_log (I2). Hard risk (architecture#risks): range deletes next to concurrent journal inserts on MySQL/MariaDB can deadlock or delete rows newer than the cutoff; the model fixes the selection rule, batch size and retry, and engine suites must show no lost row and no writer-visible deadlock.",
   "scope": {
@@ -206,6 +206,14 @@
     "need": "none",
     "status": "not_needed"
   },
-  "result": null,
-  "updated_at": "2026-10-13T11:36:28Z"
+  "result": {
+    "started_at": "2026-10-13T15:43:18Z",
+    "executor": {
+      "provider": "claude-code",
+      "model": "claude-opus-5-5",
+      "effort": "high",
+      "session": "6489227b-678c-4234-b409-ba5159d2c195"
+    }
+  },
+  "updated_at": "2026-10-13T15:43:18Z"
 }
