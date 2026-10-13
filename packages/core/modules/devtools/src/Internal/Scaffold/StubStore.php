@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace AzGuard\Laravel\Console\Scaffold;
+namespace AzGuard\DevTools\Internal\Scaffold;
 
 use AzGuard\Laravel\Console\InvalidCommandInput;
 use Illuminate\Filesystem\Filesystem;
@@ -21,7 +21,7 @@ final readonly class StubStore
 
     public static function packaged(): string
     {
-        return dirname(__DIR__, 4).'/stubs';
+        return dirname(__DIR__, 3).'/stubs';
     }
 
     public function published(): string

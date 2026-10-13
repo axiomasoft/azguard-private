@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace AzGuard\Laravel\Console\Commands\Make;
+namespace AzGuard\DevTools\Internal\Console\Make;
 
+use AzGuard\DevTools\Internal\Scaffold\GeneratedFile;
+use AzGuard\DevTools\Internal\Scaffold\Layout;
+use AzGuard\DevTools\Internal\Scaffold\ProviderRegistration;
+use AzGuard\DevTools\Internal\Scaffold\StubStore;
 use AzGuard\Laravel\Console\InvalidCommandInput;
-use AzGuard\Laravel\Console\Scaffold\GeneratedFile;
-use AzGuard\Laravel\Console\Scaffold\Layout;
-use AzGuard\Laravel\Console\Scaffold\ProviderRegistration;
-use AzGuard\Laravel\Console\Scaffold\StubStore;
 use AzGuard\Panels\PanelBuilder;
 use AzGuard\Panels\PanelProvider;
 use AzGuard\Sources\Database\DatabaseSource;

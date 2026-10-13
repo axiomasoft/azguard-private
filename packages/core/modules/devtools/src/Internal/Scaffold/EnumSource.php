@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace AzGuard\Laravel\Console\Scaffold;
+namespace AzGuard\DevTools\Internal\Scaffold;
 
 /**
  * @internal The string-backed enum a PHP source declares, read as text: the generators look at files that are not

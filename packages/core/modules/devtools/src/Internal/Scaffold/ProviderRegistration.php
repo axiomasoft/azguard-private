@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace AzGuard\Laravel\Console\Scaffold;
+namespace AzGuard\DevTools\Internal\Scaffold;
 
 use Illuminate\Filesystem\Filesystem;
 

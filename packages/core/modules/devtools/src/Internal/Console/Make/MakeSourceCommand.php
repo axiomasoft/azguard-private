@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace AzGuard\Laravel\Console\Commands\Make;
+namespace AzGuard\DevTools\Internal\Console\Make;
 
 use AzGuard\Attributes\AsSource;
 use AzGuard\Catalog\PermissionDefinition;
@@ -13,13 +13,13 @@ use AzGuard\Contracts\Sources\ProvidesPolicies;
 use AzGuard\Contracts\Sources\ProvidesRoles;
 use AzGuard\Contracts\Sources\Source;
 use AzGuard\Contracts\Sources\Volatility;
+use AzGuard\DevTools\Internal\Scaffold\GeneratedFile;
+use AzGuard\DevTools\Internal\Scaffold\Layout;
+use AzGuard\DevTools\Internal\Scaffold\StubStore;
 use AzGuard\Kernel\Decision\Grant;
 use AzGuard\Kernel\Identity\AccessScope;
 use AzGuard\Kernel\Identity\SubjectRef;
 use AzGuard\Kernel\Identity\TenantRef;
-use AzGuard\Laravel\Console\Scaffold\GeneratedFile;
-use AzGuard\Laravel\Console\Scaffold\Layout;
-use AzGuard\Laravel\Console\Scaffold\StubStore;
 use AzGuard\Panels\Panel;
 use AzGuard\Policies\PolicyBinding;
 use AzGuard\Roles\BaseRole;

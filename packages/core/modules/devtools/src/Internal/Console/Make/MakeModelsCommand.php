@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace AzGuard\Laravel\Console\Commands\Make;
+namespace AzGuard\DevTools\Internal\Console\Make;
 
 use AzGuard\AzGuard;
+use AzGuard\DevTools\Internal\Scaffold\GeneratedFile;
+use AzGuard\DevTools\Internal\Scaffold\Layout;
+use AzGuard\DevTools\Internal\Scaffold\StubStore;
 use AzGuard\Laravel\Console\InvalidCommandInput;
-use AzGuard\Laravel\Console\Scaffold\GeneratedFile;
-use AzGuard\Laravel\Console\Scaffold\Layout;
-use AzGuard\Laravel\Console\Scaffold\StubStore;
 use AzGuard\Schema\Field;
 use AzGuard\Storage\Models\PermissionGrant;
 use AzGuard\Storage\Models\RoleGrant;

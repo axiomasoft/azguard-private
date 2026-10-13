@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace AzGuard\Laravel\Console\Scaffold;
+namespace AzGuard\DevTools\Internal\Scaffold;
 
-use AzGuard\Configuration\AzGuardConfig;
+use AzGuard\DevTools\Internal\ScaffoldConfig;
 use AzGuard\Kernel\Grammar\PermissionGrammar;
 use AzGuard\Laravel\Console\InvalidCommandInput;
 use Illuminate\Support\Str;
@@ -17,7 +17,7 @@ final readonly class Layout
 {
     private const string SEGMENT = '/\A[A-Z][A-Za-z0-9]*\z/';
 
-    public function __construct(private AzGuardConfig $config, private string $basePath) {}
+    public function __construct(private ScaffoldConfig $config, private string $basePath) {}
 
     /** The panel directory name such as `Admin`; the folder of `discovery.shared` is not a panel. */
     public function panelName(string $input): string
@@ -86,7 +86,7 @@ final readonly class Layout
     /** The folder name of discovery such as `Permissions`. */
     public function folder(string $kind): string
     {
-        return $this->config->discovery()[$kind] ?? throw new InvalidCommandInput('Unknown discovery folder "'.$kind.'".');
+        return $this->config->folder($kind) ?? throw new InvalidCommandInput('Unknown discovery folder "'.$kind.'".');
     }
 
     public function panel(string $panel): Place
@@ -102,7 +102,7 @@ final readonly class Layout
 
     public function root(): Place
     {
-        return new Place(rtrim($this->basePath, '/').'/'.$this->config->scaffoldPath(), $this->config->scaffoldNamespace());
+        return new Place(rtrim($this->basePath, '/').'/'.$this->config->path, $this->config->namespace);
     }
 
     /** The place of a panel that already has its directory; a generator never creates a panel by the way. */

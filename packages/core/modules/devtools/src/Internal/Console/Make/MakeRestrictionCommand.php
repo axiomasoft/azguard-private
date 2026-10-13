@@ -2,15 +2,15 @@
 
 declare(strict_types=1);
 
-namespace AzGuard\Laravel\Console\Commands\Make;
+namespace AzGuard\DevTools\Internal\Console\Make;
 
 use AzGuard\Contracts\Authorization\EvaluationContext;
 use AzGuard\Contracts\Authorization\Restriction;
+use AzGuard\DevTools\Internal\Scaffold\GeneratedFile;
+use AzGuard\DevTools\Internal\Scaffold\Layout;
+use AzGuard\DevTools\Internal\Scaffold\StubStore;
 use AzGuard\Kernel\Decision\AccessRequest;
 use AzGuard\Kernel\Decision\RestrictionResult;
-use AzGuard\Laravel\Console\Scaffold\GeneratedFile;
-use AzGuard\Laravel\Console\Scaffold\Layout;
-use AzGuard\Laravel\Console\Scaffold\StubStore;
 use Illuminate\Support\Str;
 
 /**

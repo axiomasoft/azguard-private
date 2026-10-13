@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace AzGuard\Laravel\Console\Commands;
+namespace AzGuard\DevTools\Internal\Console;
 
-use AzGuard\Configuration\AzGuardConfig;
+use AzGuard\DevTools\Internal\Scaffold\Layout;
+use AzGuard\DevTools\Internal\Scaffold\ProviderRegistration;
+use AzGuard\DevTools\Internal\ScaffoldConfig;
 use AzGuard\Laravel\Console\CommandSupport;
 use AzGuard\Laravel\Console\InvalidCommandInput;
-use AzGuard\Laravel\Console\Scaffold\Layout;
-use AzGuard\Laravel\Console\Scaffold\ProviderRegistration;
 use Illuminate\Console\Command;
 use Illuminate\Filesystem\Filesystem;
 use Symfony\Component\Process\Process;
@@ -150,7 +150,7 @@ final class InstallCommand extends Command
             return;
         }
         $this->files->ensureDirectoryExists(dirname($target));
-        $source = (string) file_get_contents(__DIR__.'/../../../../config/azguard.php');
+        $source = (string) file_get_contents(__DIR__.'/../../../../../config/azguard.php');
         $edited = preg_replace_callback(
             '/([\'"]ids[\'"]\s*=>\s*\[\s*[\'"]host_keys[\'"]\s*=>\s*)([\'"])[^\'"]*\2/',
             static fn (array $match): string => $match[1]."'".$hostKeys."'",
@@ -175,7 +175,7 @@ final class InstallCommand extends Command
         if ($this->option('force') === true) {
             return false;
         }
-        $layout = new Layout($this->laravel->make(AzGuardConfig::class), $this->laravel->basePath());
+        $layout = new Layout(ScaffoldConfig::fromRepository($this->laravel->make('config')), $this->laravel->basePath());
         $name = $layout->panelName($panel);
         $place = $layout->panel($name);
 
@@ -239,7 +239,7 @@ final class InstallCommand extends Command
 
     private function listMigrations(): void
     {
-        $files = glob(__DIR__.'/../../../../database/migrations/*.php') ?: [];
+        $files = glob(__DIR__.'/../../../../../database/migrations/*.php') ?: [];
         sort($files);
         $this->components->info('Migrations of AzGuard:');
 

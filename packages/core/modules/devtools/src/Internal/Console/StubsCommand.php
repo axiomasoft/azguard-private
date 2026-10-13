@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace AzGuard\Laravel\Console\Commands;
+namespace AzGuard\DevTools\Internal\Console;
 
+use AzGuard\DevTools\Internal\Scaffold\StubStore;
 use AzGuard\Laravel\Console\CommandSupport;
-use AzGuard\Laravel\Console\Scaffold\StubStore;
 use Illuminate\Console\Command;
 use Illuminate\Filesystem\Filesystem;
 

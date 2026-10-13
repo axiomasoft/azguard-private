@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace AzGuard\Laravel\Console\Commands\Make;
+namespace AzGuard\DevTools\Internal\Console\Make;
 
+use AzGuard\DevTools\Internal\Scaffold\EnumSource;
+use AzGuard\DevTools\Internal\Scaffold\GeneratedFile;
+use AzGuard\DevTools\Internal\Scaffold\Layout;
+use AzGuard\DevTools\Internal\Scaffold\PolicyFile;
+use AzGuard\DevTools\Internal\Scaffold\StubStore;
 use AzGuard\Laravel\Console\InvalidCommandInput;
-use AzGuard\Laravel\Console\Scaffold\EnumSource;
-use AzGuard\Laravel\Console\Scaffold\GeneratedFile;
-use AzGuard\Laravel\Console\Scaffold\Layout;
-use AzGuard\Laravel\Console\Scaffold\PolicyFile;
-use AzGuard\Laravel\Console\Scaffold\StubStore;
 use AzGuard\Permissions\PolicyOnly;
 use ReflectionEnum;
 use ReflectionEnumUnitCase;

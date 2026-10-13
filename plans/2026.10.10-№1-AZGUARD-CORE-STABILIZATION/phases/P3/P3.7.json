@@ -2,7 +2,7 @@
   "$schema": "urn:swissknifeman:task:plan:item:v1",
   "id": "P3.7",
   "title": "DevTools module: provider, scaffold section, generators, install and stubs",
-  "status": "todo",
+  "status": "in_progress",
   "summary": "Adds the `AzGuard\\DevTools\\ → modules/devtools/src/` root, `DevToolsServiceProvider` (console-only command registration, stub publishing, owner of the `scaffold` config section through `ConfigSections` with `DevTools\\Internal\\ScaffoldConfig`), moves `azguard:install`, `azguard:stubs`, every `azguard:make:*` and the scaffold classes to `DevTools\\Internal\\…`, and the code stubs to `modules/devtools/stubs`; core keeps only `stubs/storage-migration.stub`. The core provider and `AzGuardConfig` lose every DevTools literal; remaining i2/i4 entries disappear.",
   "why": "architecture#ownership: DevTools owns generators, onboarding and the scaffold section; I2 (core provider imports DevTools commands), I4 (DevTools code uses AzGuardConfig/StorageRegistry), I13 (DevTools absent outside console). Hard risks: command names, options, stub publish path `stubs/azguard`, config key paths `scaffold.namespace|path` and generated output must not change; `__DIR__`-relative stub paths change depth.",
   "scope": {
@@ -227,6 +227,14 @@
     "need": "none",
     "status": "not_needed"
   },
-  "result": null,
-  "updated_at": "2026-10-13T11:36:28Z"
+  "result": {
+    "started_at": "2026-10-13T15:43:18Z",
+    "executor": {
+      "provider": "claude-code",
+      "model": "claude-opus-5-5",
+      "effort": "high",
+      "session": "6489227b-678c-4234-b409-ba5159d2c195"
+    }
+  },
+  "updated_at": "2026-10-13T15:43:18Z"
 }
