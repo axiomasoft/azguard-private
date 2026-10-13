@@ -91,17 +91,16 @@ Re-checks in a second follow-up pass, clean worktree at `a52e3db5` (PHP 8.4 shim
 | f-list-test | `pest --list-tests --exclude-group=engines --exclude-group=redis --exclude-group=replica --exclude-group=extended` (the `composer test` filter) | 4734 tests — the count of the run in row a; includes `ScopeQueryTest` (10), `ChangeParticipantsTest` (29), `ParityPropertyTest` (8); no `tests/Engines` class | `log-f-list-test.txt` |
 | f-list-engines | `pest --list-tests --group=engines` (the `test:db -- <driver> --engines` filter) | 68 tests in 19 classes of `tests/Engines` — the count of rows e-*; `ReplicaLagTest` (group `replica`) is not among them | `log-f-list-engines.txt` |
 | f-d-v2 | P2.14 V2 command, transcript | exit 0 | `log-f-d-v2.txt` |
+| f-replica | `bash tests/Engines/Support/replica-fixture.sh` (`composer test:replica`), `authority-replica` compose profile (PostgreSQL 16 primary 25433 + replica 25434) | 1/1, 15 assertions (`ReplicaLagTest`) | `log-f-replica.txt` |
 | f-redis | `pest --ci --fail-on-skipped --group=redis` (`composer test:redis`) | 2/2, 26 assertions (`RedisStoreTest`, Redis on 26379) | `log-f-redis.txt` |
 
 Correction of the earlier wording: `composer test` includes `ScopeQueryTest`, `ChangeParticipantsTest` and
 `ParityPropertyTest` (confirmed by the listing above). The engine runs cover `tests/Engines/*` **except**
 `ReplicaLagTest`, which belongs to `composer test:replica`, and `Support/` holds no tests.
 
-Not run: `composer test:replica` — it needs the `authority-replica` stand (PostgreSQL replica on 25433, started with
-docker; docker is not reachable from this session, the run fails with connection refused). It exercises the replica
-lag fence only; F1/F2 and the follow-up touch scopes, panels and the change pipeline, none of which reads replicas.
-`composer test:extended` (group `extended`, scale tests of nightly CI) is not part of the P2.15 acceptance and was not
-run. `composer test:redis` is cheap and the stand was up, so it was run (row f-redis); it also does not touch F1/F2.
+`composer test:redis` and `composer test:replica` are not part of the P2.15 acceptance; both were run for completeness (rows
+f-redis, f-replica) and neither touches F1/F2. `composer test:extended` (group `extended`, scale tests of nightly CI) was not
+run.
 
 ## Research for F1
 
