@@ -26,8 +26,8 @@ your code. Each line is `Find: <grep pattern> → Replace: <new form>`.
 - Find: `extends BasePlugin` or `AzGuard\Plugins\BasePlugin` → Replace: `implements AzGuard\Contracts\Plugins\Plugin`; `BasePlugin` is gone.
 - Find: `function boot(Panel $panel, PluginContext $context)` in a plugin → Replace: nothing; `Plugin::boot()` is gone, a plugin only
   declares in `register()`, and a leftover `boot()` method compiles and is never called.
-- Find: `DependsOnPlugins`, `function requires(): array` or `$context->dependencies()` or `PluginDependencyMissingException` → Replace:
-  nothing; plugins no longer name other plugins, and `new PluginContext(...)` takes `panelId, pluginId, buildId` only.
+- Find: `AzGuard\Contracts\Plugins\DependsOnPlugins`, `function requires(): array`, `$context->dependencies()` or
+  `AzGuard\Exceptions\PluginDependencyMissingException` → Replace: nothing; plugins no longer name other plugins, and `new PluginContext(...)` takes `panelId, pluginId, buildId` only.
 - Find: a before hook, after hook or change pipe class → Replace: `implements AzGuard\Contracts\Authorization\BeforeHook` (`before(AccessRequest, EvaluationContext): BeforeResult`),
   `AfterHook` (`after(AccessRequest, EvaluationContext, Decision): void`) or `AzGuard\Contracts\Changes\ChangePipe` (`handle(Change, Closure): ChangeResult`); an invokable
   hook class or a pipe with only a `handle()` method is rejected when the panel compiles.
@@ -41,12 +41,12 @@ your code. Each line is `Find: <grep pattern> → Replace: <new form>`.
 - Find: `new PanelSettings(` with a `GateMode` argument → Replace: drop the argument (constructor is `@internal`).
 - Find: a call of `Panel::changing()`, `before()`, `after()`, `restrictions()`, `grantConditions()`, `doctorChecks()`, `attachedSources()`, `scopeDefinition()`, `scopeDefinitions()`, `scopeResolvers()`, `tenantResolvers()` or `resourceScopes()` in application or extension code → Replace: nothing supported; these raw compiled lists are `@internal` now.
 - Find: `Field::…('azg_…')` (a grant field whose name starts with `azg_`) → Replace: another name; the prefix `azg_` is reserved like `tenant_`, `subject_`, `context_` and `actor_`.
-- Find: `StoresGrants` (an implementation, `instanceof`, or a source `describe()` that lists it) → Replace: nothing; the interface is gone, `DatabaseSource` is the only writer, and a source that only reads has no writer capability.
+- Find: `AzGuard\Contracts\Sources\StoresGrants` (an implementation, `instanceof`, or a source `describe()` that lists it) → Replace: nothing; the interface is gone, `DatabaseSource` is the only writer, and a source that only reads has no writer capability.
 - Find: `$panel->writer()` that expects a source (`->apply(`, `->transaction(`, `instanceof DatabaseSource`, `->isDynamic()`) → Replace: `$panel->writer()` returns `?AzGuard\Schema\WriterSchema` (`storage`, `dynamicPermissions`, `rolesOnly`; null for a read-only panel); read capabilities from it or from `PanelSchema::writer()`.
 - Find: the capability string `StoresGrants` in `azguard:panels:list` output or in `SourceDescription::$capabilities` → Replace: use the `writer` column and `WriterSchema`.
 - Find: `SourceContractTests` `writerStoresOnlyInsideThePipelineTransaction` → Replace: nothing; the writer case left the shipped contract suite.
 - Find: a `WriterConflictException` caught for two different writer ids → Replace: it is thrown when the database source is attached twice.
-- Find: `AssignmentScopePolicy` → Replace: `AzGuard\Scopes\ScopesPlugin`, attached as a plugin: `->scopes(AssignmentScopePolicy::inherit(X))` becomes `->plugins([ScopesPlugin::inherit(X)])` (also `isolated`, `required`; `requireMembership()` and `accessAdapter()` are unchanged).
+- Find: `AzGuard\Scopes\AssignmentScopePolicy` → Replace: `AzGuard\Scopes\ScopesPlugin`, attached as a plugin: `->scopes(AssignmentScopePolicy::inherit(X))` becomes `->plugins([ScopesPlugin::inherit(X)])` (also `isolated`, `required`; `requireMembership()` and `accessAdapter()` are unchanged).
 - Find: `AssignmentScopePolicy::none()` → Replace: nothing (a panel without `ScopesPlugin` is mode `None`); to switch off scopes an earlier layer declared, `->assignmentScopes(new AssignmentScopeDeclaration(AssignmentScopeMode::None, []))`.
 - Find: `->scopes(` in a plugin `register()`, `configurePanels()` or a provider that already attaches `ScopesPlugin` → Replace: `->assignmentScopes(new AzGuard\Context\AssignmentScopeDeclaration(AssignmentScopeMode::…, [definition objects]))`; a panel takes one `ScopesPlugin` (id `azguard/scopes`), which also supplies the evaluator that applies filters and adapters.
 - Find: a panel provider whose `->scopes(…)` decided the mode against a plugin that also declared scopes → Replace: attach `ScopesPlugin` and settle the mode in the provider with `->assignmentScopes(new AssignmentScopeDeclaration(AssignmentScopeMode::…, []))`; `ScopesPlugin` contributes on the plugin layer, and two plugins with different modes are a conflict.
@@ -61,6 +61,7 @@ your code. Each line is `Find: <grep pattern> → Replace: <new form>`.
 - Find: `RelationSource::make(` for a scope type that only a role `scopes()` or a `Scopes/` folder class names → Replace: declare the type in the scope declaration of the panel (`ScopesPlugin` or `assignmentScopes()`); a relation source binds only declared queryable types.
 - Find: `visibleTo(` on scoped resources of a panel whose declaration names no evaluator, or one that does not implement `QueryableAssignmentScopeEvaluator` → Replace: attach `ScopesPlugin` or implement the queryable evaluator; otherwise the list raises `VisibilityNotSupportedException` with reason `scope_query`.
 - Find: a custom `FiltersQueries` source whose tenant-wide witnesses hold in every assignment scope (like `#[GrantedToAll]`) → Replace: return `AssignmentScopeSelection::inEveryContext($witnesses)`; `everywhere()` witnesses do not reach isolated scopes.
+- Find: `AzGuard\Scopes\CurrentContext::get()` or `AzGuard\Scopes\WithinContext` → Replace: `PanelAccess::scope()` / `AzGuard::currentScope()` and `AzGuard::withinScope()`; both classes are internal now.
 - Find: `Panel::scopes()`, `->scopes()->mode()` or a scope mode string `'none'`/`'inherit'`/`'isolated'`/`'required'` → Replace: `$panel->scopeDeclaration()?->mode` (`AzGuard\Context\AssignmentScopeMode`; a null declaration is `None`); membership and access adapters are no longer readable from the panel.
 - Find: `AzGuard\Changes\ChangeJournal` (`append()`, `row()`, `COLUMNS`) or a change pipe that writes journal rows → Replace: a
   `AzGuard\Contracts\Changes\ChangeParticipant` registered with `->participants([...])`; it receives `ChangeRecord`s (final change, effect,

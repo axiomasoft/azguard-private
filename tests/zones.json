@@ -38,7 +38,7 @@
         },
         "testing-kit": {
             "src": ["packages/core/src/Testing"],
-            "tests": ["Unit/Testing", "Feature/Testing", "Contracts/Plugins", "Contracts/NegativeFixturesTest.php"],
+            "tests": ["Unit/Testing", "Feature/Testing", "Contracts/Plugins", "Contracts/Consumer", "Contracts/NegativeFixturesTest.php"],
             "uses": ["kernel", "storage", "sources", "changes", "authorization"]
         },
         "console": {

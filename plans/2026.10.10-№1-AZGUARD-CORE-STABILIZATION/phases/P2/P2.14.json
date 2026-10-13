@@ -2,7 +2,7 @@
   "$schema": "urn:swissknifeman:task:plan:item:v1",
   "id": "P2.14",
   "title": "P2 exit: migration instruction, allowlists and full qualification",
-  "status": "todo",
+  "status": "in_progress",
   "summary": "The P2 exit criterion holds on one commit: every supported change of P2 has a line in the AI-agent migration instruction, all allowlists hold only owner-P3 entries, I4/I6/I7/I8/I10/I11/I14/I20 are green, and the full matrix passes on SQLite, PostgreSQL, MySQL and MariaDB including engine suites.",
   "why": "P2#validation V1 and P2#exit: P3 may relocate files only if scope, audit and generators already run through the final contracts. Collecting the proof in one item catches drift between items (an entry fixed in one item and reintroduced in another).",
   "scope": {
@@ -177,6 +177,14 @@
     "need": "none",
     "status": "not_needed"
   },
-  "result": null,
-  "updated_at": "2026-10-11T16:11:50Z"
+  "result": {
+    "started_at": "2026-10-13T08:47:46Z",
+    "executor": {
+      "provider": "claude-code",
+      "model": "claude-sonnet-5-5",
+      "effort": "high",
+      "session": "cbda3651-d7cd-4f9c-a447-d9413c755313"
+    }
+  },
+  "updated_at": "2026-10-13T08:47:46Z"
 }

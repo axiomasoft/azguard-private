@@ -51,7 +51,9 @@
         "status": "exists",
         "checks": [
             "tests/Engines/DirectWritesEngineTest.php",
-            "tests/Arch/FilamentWritesArchTest.php"
+            "tests/Arch/FilamentWritesArchTest.php",
+            "tests/Feature/Sources/Database/WriterSchemaTest.php",
+            "tests/Feature/Changes/ChangeParticipantsTest.php"
         ],
         "blocking": "after P2",
         "owner_phase": "P2"
@@ -70,7 +72,12 @@
         "status": "exists",
         "checks": [
             "tests/Feature/Authorization/Properties/EnginePropertiesTest.php",
-            "tests/Contracts/NegativeFixturesTest.php"
+            "tests/Contracts/NegativeFixturesTest.php",
+            "tests/Contracts/Consumer/ConsumerPluginContractTest.php",
+            "tests/Contracts/Consumer/ConsumerHooksContractTest.php",
+            "tests/Contracts/Consumer/ConsumerRestrictionContractTest.php",
+            "tests/Contracts/Consumer/ConsumerParticipantContractTest.php",
+            "tests/Contracts/Consumer/ConsumerEvaluatorContractTest.php"
         ],
         "blocking": "after P2",
         "owner_phase": "P2"
@@ -101,7 +108,9 @@
             "tests/Feature/Plugins/Audit/AuditPluginTest.php",
             "tests/Feature/Authorization/Properties/TransactionPropertiesTest.php",
             "tests/Feature/Changes/NestedMutationTest.php",
-            "tests/Engines/ChangeRaceTest.php"
+            "tests/Engines/ChangeRaceTest.php",
+            "tests/Feature/Changes/ChangeParticipantsTest.php",
+            "tests/Contracts/Changes/JournalParticipantContractTest.php"
         ],
         "blocking": "after P2",
         "owner_phase": "P2"
@@ -131,7 +140,9 @@
         "checks": [
             "tests/Feature/Plugins/PluginIsolationTest.php",
             "tests/Feature/Laravel/QueueContextTest.php",
-            "tests/Acceptance/Crm/QueueTest.php"
+            "tests/Acceptance/Crm/QueueTest.php",
+            "tests/Feature/Panels/ModuleOptionsTest.php",
+            "tests/Feature/Panels/SlotContractsTest.php"
         ],
         "blocking": "after P2",
         "owner_phase": "P2"
