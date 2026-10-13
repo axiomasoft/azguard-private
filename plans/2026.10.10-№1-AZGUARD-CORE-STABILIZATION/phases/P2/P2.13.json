@@ -2,7 +2,7 @@
   "$schema": "urn:swissknifeman:task:plan:item:v1",
   "id": "P2.13",
   "title": "Console support SPI, uniform exit codes and config section registration",
-  "status": "in_progress",
+  "status": "done_with_deviations",
   "summary": "`Laravel\\Console\\CommandSupport` (Spi(Call) trait) and `Laravel\\Console\\InvalidCommandInput` give every AzGuard command one exit-code mapping (0 success, 2 input/panel/tenant/identity, 1 other) and panel selection; core grant helpers become `Laravel\\Internal\\Console\\GrantCommandSupport`; every command — core, generators, install, stubs, audit prune — runs through `attempt()`; `Configuration\\ConfigSections` lets an owner register its config root section (core registers `scaffold` on behalf of DevTools until P3).",
   "why": "Module commands depend on the internal console trait for exit codes and panel selection (R15); identities fix one exit-code contract for all commands (D16), which 0.7.0 applied only partly; core config validation must stop knowing module keys while still rejecting unknown roots (architecture#ownership). Hard risk: commands.json changes are intended and must match the identities rule exactly, nothing else.",
   "scope": {
@@ -182,12 +182,63 @@
   },
   "result": {
     "started_at": "2026-10-13T05:08:51Z",
+    "finished_at": "2026-10-13T08:42:29Z",
     "executor": {
       "provider": "claude-code",
       "model": "claude-opus-5-5",
-      "effort": "high",
-      "session": "f49906af-be96-4080-a159-0586585c6205"
-    }
+      "effort": "high"
+    },
+    "registered_by": {
+      "provider": "claude-code",
+      "model": "claude-sonnet-5-5",
+      "effort": "medium"
+    },
+    "notes": "Изменены: commands.json (explain unknown/malformed subject 1->2, storage:migration default/unknown storage 1->2), serializable-fqcn.json, i4 (-10), api-manifest.",
+    "deviations": [
+      "Команды V из плана test:<driver>/test:engines:<driver> удалены владельцем, заменены на composer test:db -- <pgsql|mysql|mariadb> --full [--engines] (порты 25432/23306/23307); статические проверки (analyse/lint:check/refactor:check/api:check) прогнаны на чистом worktree HEAD из-за незакоммиченной работы владельца (KitCase, phpstan.neon). Ревью Grok 4.7 round1: RED, находки исправлены fix-коммитами. Тест StorageMigrationCommandTest исправлен (26e032a6): ожидал старый код выхода 1."
+    ],
+    "checks": [
+      {
+        "id": "V1",
+        "exit": 0,
+        "at": "2026-10-13T08:42:29Z",
+        "evidence": "@plan/artifacts/evidence/P2.13/V1.json"
+      },
+      {
+        "id": "V2",
+        "exit": 0,
+        "at": "2026-10-13T08:42:29Z",
+        "evidence": "@plan/artifacts/evidence/P2.13/V2.json"
+      },
+      {
+        "id": "V3",
+        "exit": 0,
+        "at": "2026-10-13T08:42:29Z",
+        "evidence": "@plan/artifacts/evidence/P2.13/V3.json"
+      },
+      {
+        "id": "V4",
+        "exit": 0,
+        "at": "2026-10-13T08:42:29Z",
+        "evidence": "@plan/artifacts/evidence/P2.13/V4.json"
+      },
+      {
+        "id": "V5",
+        "exit": 0,
+        "at": "2026-10-13T08:42:29Z",
+        "evidence": "@plan/artifacts/evidence/P2.13/V5.json"
+      }
+    ],
+    "commits": [
+      "6fcb5177"
+    ],
+    "evidence": [
+      "@plan/artifacts/evidence/P2.13/V1.json",
+      "@plan/artifacts/evidence/P2.13/V2.json",
+      "@plan/artifacts/evidence/P2.13/V3.json",
+      "@plan/artifacts/evidence/P2.13/V4.json",
+      "@plan/artifacts/evidence/P2.13/V5.json"
+    ]
   },
-  "updated_at": "2026-10-13T05:08:51Z"
+  "updated_at": "2026-10-13T08:42:29Z"
 }
