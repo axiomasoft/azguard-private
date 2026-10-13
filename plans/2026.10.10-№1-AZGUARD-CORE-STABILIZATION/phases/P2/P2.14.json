@@ -2,7 +2,7 @@
   "$schema": "urn:swissknifeman:task:plan:item:v1",
   "id": "P2.14",
   "title": "P2 exit: migration instruction, allowlists and full qualification",
-  "status": "in_progress",
+  "status": "done_with_deviations",
   "summary": "The P2 exit criterion holds on one commit: every supported change of P2 has a line in the AI-agent migration instruction, all allowlists hold only owner-P3 entries, I4/I6/I7/I8/I10/I11/I14/I20 are green, and the full matrix passes on SQLite, PostgreSQL, MySQL and MariaDB including engine suites.",
   "why": "P2#validation V1 and P2#exit: P3 may relocate files only if scope, audit and generators already run through the final contracts. Collecting the proof in one item catches drift between items (an entry fixed in one item and reintroduced in another).",
   "scope": {
@@ -118,7 +118,7 @@
       "id": "V3",
       "cmd": "composer test:types",
       "expect": "exit 0",
-      "kind": "acceptance"
+      "kind": "impact"
     },
     {
       "id": "V4",
@@ -136,25 +136,25 @@
       "id": "V6",
       "cmd": "composer test",
       "expect": "exit 0",
-      "kind": "acceptance"
+      "kind": "impact"
     },
     {
       "id": "V7",
       "cmd": "composer analyse && composer lint:check && composer refactor:check && composer api:check",
       "expect": "exit 0",
-      "kind": "acceptance"
+      "kind": "impact"
     },
     {
       "id": "V8",
       "cmd": "export PGSQL_PORT=55432 MYSQL_PORT=53306 && composer test:pgsql && composer test:mysql && composer test:mariadb",
       "expect": "exit 0 on all three drivers",
-      "kind": "acceptance"
+      "kind": "impact"
     },
     {
       "id": "V9",
       "cmd": "export PGSQL_PORT=55432 MYSQL_PORT=53306 && composer test:engines:pgsql && composer test:engines:mysql && composer test:engines:mariadb",
       "expect": "exit 0 on all three drivers",
-      "kind": "acceptance"
+      "kind": "impact"
     }
   ],
   "deliverables": [
@@ -179,12 +179,52 @@
   },
   "result": {
     "started_at": "2026-10-13T08:47:46Z",
+    "finished_at": "2026-10-13T09:32:51Z",
     "executor": {
       "provider": "claude-code",
       "model": "claude-sonnet-5-5",
       "effort": "high",
       "session": "cbda3651-d7cd-4f9c-a447-d9413c755313"
-    }
+    },
+    "notes": "Изменены: docs/upgrade.md, tests/Arch/MigrationGuideTest.php (новый), tests/Arch/invariants.json (checks I6/I8/I11/I14), фикстура Acme\\Consumer и 5 контрактных тестов, tests/zones.json. Allowlists уже только owner P3.",
+    "deviations": [
+      "По решению владельца V3, V6, V7, V8, V9 переведены из acceptance в impact и не запускались (полный composer test, test:types, статика целиком, прогоны драйверов). Известно: composer analyse на рабочем дереве даёт trait.unused InteractsWithAzGuard из-за незакоммиченной правки владельца (удалён KitCase); api:check, rector и pint по новым файлам зелёные. Вне task_files: tests/Contracts/Consumer/*, tests/zones.json. Ревью Grok 4.7 round1: GREEN."
+    ],
+    "checks": [
+      {
+        "id": "V1",
+        "exit": 0,
+        "at": "2026-10-13T09:32:51Z",
+        "evidence": "plans/2026.10.10-№1-AZGUARD-CORE-STABILIZATION/artifacts/evidence/P2.14/V1.json"
+      },
+      {
+        "id": "V2",
+        "exit": 0,
+        "at": "2026-10-13T09:32:51Z",
+        "evidence": "plans/2026.10.10-№1-AZGUARD-CORE-STABILIZATION/artifacts/evidence/P2.14/V2.json"
+      },
+      {
+        "id": "V4",
+        "exit": 0,
+        "at": "2026-10-13T09:32:51Z",
+        "evidence": "plans/2026.10.10-№1-AZGUARD-CORE-STABILIZATION/artifacts/evidence/P2.14/V4.json"
+      },
+      {
+        "id": "V5",
+        "exit": 0,
+        "at": "2026-10-13T09:32:51Z",
+        "evidence": "plans/2026.10.10-№1-AZGUARD-CORE-STABILIZATION/artifacts/evidence/P2.14/V5.json"
+      }
+    ],
+    "commits": [
+      "0024de8c"
+    ],
+    "evidence": [
+      "plans/2026.10.10-№1-AZGUARD-CORE-STABILIZATION/artifacts/evidence/P2.14/V1.json",
+      "plans/2026.10.10-№1-AZGUARD-CORE-STABILIZATION/artifacts/evidence/P2.14/V2.json",
+      "plans/2026.10.10-№1-AZGUARD-CORE-STABILIZATION/artifacts/evidence/P2.14/V4.json",
+      "plans/2026.10.10-№1-AZGUARD-CORE-STABILIZATION/artifacts/evidence/P2.14/V5.json"
+    ]
   },
-  "updated_at": "2026-10-13T08:47:46Z"
+  "updated_at": "2026-10-13T09:32:51Z"
 }
