@@ -82,7 +82,9 @@ your code. Each line is `Find: <grep pattern> → Replace: <new form>`.
 - Find: a script that checks the exit code of `azguard:explain` (malformed or missing subject, malformed `--tenant`/`--context`) or of
   `azguard:storage:migration` (`default` or an unknown storage) for `1` → Replace: `2`; input errors of every command exit with 2.
 - Find: a package that adds a root key to `config/azguard.php` → Replace: register it from your provider's `register()` with
-  `app(AzGuard\Configuration\ConfigSections::class)->own('<root>', fn (array $section) => …)`; an unregistered root key is rejected.
+  `$this->app->singletonIf(AzGuard\Configuration\ConfigSections::class)` followed by
+  `$this->app->make(AzGuard\Configuration\ConfigSections::class)->own('<root>', fn (array $section) => …)` (the registry is shared only once bound,
+  and your provider may register before core's); an unregistered root key is rejected.
 
 ## From 0.3 to 0.7.0
 
