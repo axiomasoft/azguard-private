@@ -15,8 +15,8 @@ use AzGuard\Sources\Database\DatabaseSource;
 use AzGuard\Storage\Schema\StorageSchema;
 use AzGuard\Tests\Fixtures\Authorization\GeneratedSource;
 use AzGuard\Tests\Fixtures\Authorization\GrantableRootRole;
-use AzGuard\Tests\Fixtures\Scopes\ScopeWorld;
 use AzGuard\Tests\Fixtures\Sources\Database\DatabaseWorld;
+use AzGuard\Tests\Modules\Scopes\Fixtures\ScopeWorld;
 
 it('P01b rejects bare wildcard contributions rather than manufacturing superadmin', function (string $wildcard): void {
     expect(fn () => PermissionPattern::of('admin', $wildcard))->toThrow(InvalidPermissionKeyException::class);

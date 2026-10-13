@@ -20,10 +20,10 @@ use AzGuard\Tests\Fixtures\Panels\AdminPanel;
 use AzGuard\Tests\Fixtures\Panels\CabinetPanel;
 use AzGuard\Tests\Fixtures\Panels\PanelWorld;
 use AzGuard\Tests\Fixtures\Panels\User;
-use AzGuard\Tests\Fixtures\Scopes\StoreScope;
 use AzGuard\Tests\Fixtures\Sources\Database\DatabasePermission;
 use AzGuard\Tests\Fixtures\Sources\Database\DatabasePolicy;
 use AzGuard\Tests\Fixtures\Sources\Database\DatabaseWorld;
+use AzGuard\Tests\Modules\Scopes\Fixtures\StoreScope;
 use Closure;
 use Illuminate\Database\Events\QueryExecuted;
 

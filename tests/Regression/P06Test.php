@@ -23,7 +23,7 @@ use AzGuard\Tests\Fixtures\Panels\AdminPanel;
 use AzGuard\Tests\Fixtures\Panels\CabinetPanel;
 use AzGuard\Tests\Fixtures\Panels\PanelWorld;
 use AzGuard\Tests\Fixtures\Panels\User;
-use AzGuard\Tests\Fixtures\Scopes\ScopeWorld;
+use AzGuard\Tests\Modules\Scopes\Fixtures\ScopeWorld;
 use Illuminate\Database\Eloquent\Relations\Relation;
 
 afterEach(fn () => Relation::morphMap([], false));

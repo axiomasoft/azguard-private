@@ -19,9 +19,7 @@ use AzGuard\Tests\Arch\SourceScan;
  */
 
 /** @var array<string, string> target path => the P3 item that creates it */
-const TARGET_PLACEMENT_PENDING = [
-    'packages/core/modules/scopes/src/Testing/AssignmentScopeFilterContractTests.php' => 'P3.11',
-];
+const TARGET_PLACEMENT_PENDING = [];
 
 /**
  * @param  list<array<string, mixed>>  $rows

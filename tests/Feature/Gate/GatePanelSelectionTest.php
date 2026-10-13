@@ -10,7 +10,7 @@ use AzGuard\Tests\Fixtures\Authorization\GeneratedSource;
 use AzGuard\Tests\Fixtures\Authorization\ScenarioGenerator;
 use AzGuard\Tests\Fixtures\Gate\GateWorld;
 use AzGuard\Tests\Fixtures\Panels\User;
-use AzGuard\Tests\Fixtures\Scopes\ScopedResource;
+use AzGuard\Tests\Modules\Scopes\Fixtures\ScopedResource;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Gate;

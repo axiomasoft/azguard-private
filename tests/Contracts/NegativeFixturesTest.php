@@ -57,7 +57,7 @@ use AzGuard\Tests\Fixtures\Contracts\Probes\ScopeResolverProbe;
 use AzGuard\Tests\Fixtures\Contracts\Probes\SourceProbe;
 use AzGuard\Tests\Fixtures\Contracts\Probes\SubjectResolverProbe;
 use AzGuard\Tests\Fixtures\Contracts\ReadOnlyEditRestriction;
-use AzGuard\Tests\Fixtures\Scopes\RecordingEvaluator;
+use AzGuard\Tests\Modules\Scopes\Fixtures\RecordingEvaluator;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Foundation\Testing\DatabaseMigrations;
 use Illuminate\Support\Facades\Schema;

@@ -24,9 +24,9 @@ use AzGuard\Tests\Fixtures\Authorization\AuthorizationWorld;
 use AzGuard\Tests\Fixtures\Authorization\Cache\CacheSource;
 use AzGuard\Tests\Fixtures\Authorization\Cache\CacheWorld;
 use AzGuard\Tests\Fixtures\Panels\User;
-use AzGuard\Tests\Fixtures\Scopes\Membership;
-use AzGuard\Tests\Fixtures\Scopes\Organization;
 use AzGuard\Tests\Fixtures\Sources\Database\DatabaseWorld;
+use AzGuard\Tests\Modules\Scopes\Fixtures\Membership;
+use AzGuard\Tests\Modules\Scopes\Fixtures\Organization;
 
 beforeEach(function (): void {
     app(StorageSchema::class)->create('default');

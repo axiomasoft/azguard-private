@@ -45,7 +45,7 @@ it('assigns every source directory of the packages to a zone', function (): void
         foreach (glob("{$root}/{$package}/*") ?: [] as $path) {
             $relative = substr($path, strlen($root) + 1);
 
-            if (! in_array($relative, $assigned, true) && ! in_array($package, $assigned, true)) {
+            if (! in_array($relative, $assigned, true) && ! in_array($package, $assigned, true) && ! in_array(dirname($package), $assigned, true)) {
                 $unassigned[] = $relative;
             }
         }

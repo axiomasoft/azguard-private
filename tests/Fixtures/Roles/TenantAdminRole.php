@@ -7,7 +7,7 @@ namespace AzGuard\Tests\Fixtures\Roles;
 use AzGuard\Roles\Attributes\Role;
 use AzGuard\Roles\Attributes\SuperAdmin;
 use AzGuard\Roles\BaseRole;
-use AzGuard\Tests\Fixtures\Scopes\StoreScope;
+use AzGuard\Tests\Modules\Scopes\Fixtures\StoreScope;
 
 #[Role('tenant-admin')]
 #[SuperAdmin]

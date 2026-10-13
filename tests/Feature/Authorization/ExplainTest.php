@@ -21,8 +21,8 @@ use AzGuard\Tests\Fixtures\Authorization\RecordingRestriction;
 use AzGuard\Tests\Fixtures\Authorization\RuntimePolicy;
 use AzGuard\Tests\Fixtures\Authorization\ScenarioGenerator;
 use AzGuard\Tests\Fixtures\Authorization\WeekdaysCondition;
-use AzGuard\Tests\Fixtures\Scopes\EligibilityExternalAdapter;
-use AzGuard\Tests\Fixtures\Scopes\StoreScope;
+use AzGuard\Tests\Modules\Scopes\Fixtures\EligibilityExternalAdapter;
+use AzGuard\Tests\Modules\Scopes\Fixtures\StoreScope;
 use Illuminate\Auth\Access\Response;
 use Illuminate\Support\Carbon;
 

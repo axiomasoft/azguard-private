@@ -10,7 +10,7 @@ use AzGuard\Kernel\Identity\TenantRef;
 use AzGuard\Panels\PanelBuilder;
 use AzGuard\Tests\Fixtures\Authorization\GeneratedSource;
 use AzGuard\Tests\Fixtures\Authorization\GrantableRootRole;
-use AzGuard\Tests\Fixtures\Scopes\ScopeWorld;
+use AzGuard\Tests\Modules\Scopes\Fixtures\ScopeWorld;
 
 it('P01a never promotes a role from another panel to superadmin authority', function (): void {
     $scope = AccessScope::in(TenantRef::global());

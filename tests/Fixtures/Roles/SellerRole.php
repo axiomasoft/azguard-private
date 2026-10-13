@@ -7,7 +7,7 @@ namespace AzGuard\Tests\Fixtures\Roles;
 use AzGuard\Roles\Attributes\FormerKeys;
 use AzGuard\Roles\Attributes\Role;
 use AzGuard\Roles\BaseRole;
-use AzGuard\Tests\Fixtures\Scopes\ProjectScope;
+use AzGuard\Tests\Modules\Scopes\Fixtures\ProjectScope;
 
 /**
  * Declares everything by attributes; `AnalystRole` declares the same kind of values by methods.

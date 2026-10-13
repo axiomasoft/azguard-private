@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace AzGuard\Tests\Fixtures\Roles;
 
 use AzGuard\Roles\BaseRole;
-use AzGuard\Tests\Fixtures\Scopes\ProjectScope;
+use AzGuard\Tests\Modules\Scopes\Fixtures\ProjectScope;
 
 /**
  * Declares everything by method overrides, without attributes.

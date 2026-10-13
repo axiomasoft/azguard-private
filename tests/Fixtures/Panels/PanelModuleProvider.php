@@ -9,7 +9,7 @@ use AzGuard\Panels\PanelBuilder;
 use AzGuard\Scopes\ScopesPlugin;
 use AzGuard\Tests\Fixtures\Roles\AnalystRole;
 use AzGuard\Tests\Fixtures\Roles\RootRole;
-use AzGuard\Tests\Fixtures\Scopes\ProjectScope;
+use AzGuard\Tests\Modules\Scopes\Fixtures\ProjectScope;
 use Illuminate\Support\ServiceProvider;
 
 /**

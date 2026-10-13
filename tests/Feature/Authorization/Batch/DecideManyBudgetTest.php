@@ -15,10 +15,10 @@ use AzGuard\Storage\Schema\StorageSchema;
 use AzGuard\Tenancy\TenantPolicy;
 use AzGuard\Tests\Fixtures\Authorization\BatchPolicy;
 use AzGuard\Tests\Fixtures\Authorization\Cache\CacheWorld;
-use AzGuard\Tests\Fixtures\Scopes\Membership;
-use AzGuard\Tests\Fixtures\Scopes\Organization;
-use AzGuard\Tests\Fixtures\Scopes\StoreScope;
 use AzGuard\Tests\Fixtures\Sources\Database\DatabaseWorld;
+use AzGuard\Tests\Modules\Scopes\Fixtures\Membership;
+use AzGuard\Tests\Modules\Scopes\Fixtures\Organization;
+use AzGuard\Tests\Modules\Scopes\Fixtures\StoreScope;
 
 uses()->group('batch');
 

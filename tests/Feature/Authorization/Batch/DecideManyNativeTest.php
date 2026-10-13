@@ -19,8 +19,8 @@ use AzGuard\Tests\Fixtures\Authorization\BatchNativeRole;
 use AzGuard\Tests\Fixtures\Authorization\GeneratedSource;
 use AzGuard\Tests\Fixtures\Crm\Models\Organization;
 use AzGuard\Tests\Fixtures\Panels\User;
-use AzGuard\Tests\Fixtures\Scopes\ConfiguredProjectScope;
-use AzGuard\Tests\Fixtures\Scopes\Membership;
+use AzGuard\Tests\Modules\Scopes\Fixtures\ConfiguredProjectScope;
+use AzGuard\Tests\Modules\Scopes\Fixtures\Membership;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 

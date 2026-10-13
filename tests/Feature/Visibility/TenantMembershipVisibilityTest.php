@@ -6,11 +6,11 @@ use AzGuard\Kernel\Decision\AccessRequest;
 use AzGuard\Kernel\Identity\PermissionKey;
 use AzGuard\Panels\PanelBuilder;
 use AzGuard\Tenancy\TenantPolicy;
-use AzGuard\Tests\Fixtures\Scopes\Membership;
-use AzGuard\Tests\Fixtures\Scopes\Organization;
 use AzGuard\Tests\Fixtures\Visibility\VisibilityProject;
 use AzGuard\Tests\Fixtures\Visibility\VisibilitySource;
 use AzGuard\Tests\Fixtures\Visibility\VisibilityWorld as W;
+use AzGuard\Tests\Modules\Scopes\Fixtures\Membership;
+use AzGuard\Tests\Modules\Scopes\Fixtures\Organization;
 
 afterEach(fn () => W::reset());
 it('denies ordinary granted visibility when fixed tenant membership is absent', function () {

@@ -22,8 +22,8 @@ use AzGuard\Scopes\Contracts\AssignmentScopeMembership;
 use AzGuard\Tests\Arch\ApiUsage;
 use AzGuard\Tests\Fixtures\Roles\AnalystRole;
 use AzGuard\Tests\Fixtures\Roles\SellerRole;
-use AzGuard\Tests\Fixtures\Scopes\Project;
-use AzGuard\Tests\Fixtures\Scopes\ProjectScope;
+use AzGuard\Tests\Modules\Scopes\Fixtures\Project;
+use AzGuard\Tests\Modules\Scopes\Fixtures\ProjectScope;
 
 /**
  * @return list<string> declared public methods as `name(Type $param = default): Return`

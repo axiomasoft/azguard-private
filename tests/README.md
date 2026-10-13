@@ -12,9 +12,12 @@ in no zone).
 | `catalog` | core `Catalog`, `Panels`, `Roles`, `Permissions`, `Configuration`, `Plugins`, `Policies`, `Schema`, `Events` | `Unit/{Catalog,Panels,Roles,…}`, `Feature/{Catalog,Panels,…}` | kernel |
 | `storage` | core `Storage` | `Unit/Storage`, `Feature/Storage` | kernel |
 | `sources` | core `Sources` | `Unit/Sources`, `Feature/Sources`, `Contracts/Sources`, `Contracts/Resolvers` | kernel, catalog, storage |
-| `changes` | core `Changes`, `Audit` | `Unit/Changes`, `Feature/Changes`, `Contracts/Hooks` | kernel, catalog, storage, sources |
-| `authorization` | core `Authorization`, `Scopes`, `Concerns`, `Facades` | `Unit/{Authorization,Scopes,Facades}`, `Feature/{Authorization,Scopes,Gate,Http,…}`, `Contracts/{Scopes,Restrictions}` | kernel, catalog, storage, sources |
+| `changes` | core `Changes` | `Unit/Changes`, `Feature/Changes`, `Contracts/Hooks` | kernel, catalog, storage, sources |
+| `authorization` | core `Authorization`, `Concerns`, `Facades` | `Unit/{Authorization,Facades}`, `Feature/{Authorization,Gate,Http,…}`, `Contracts/Restrictions` | kernel, catalog, storage, sources |
 | `visibility` | core `Directories` | `Unit/Directories`, `Feature/{Visibility,Directories,Parity}` | kernel, authorization, storage, sources |
+| `scopes` | module `scopes` | `Modules/Scopes` | kernel, catalog, storage, sources, authorization |
+| `audit` | module `audit` | `Modules/Audit` | kernel, catalog, storage, sources, changes |
+| `devtools` | module `devtools` | `Modules/DevTools` | kernel, catalog, storage, sources, changes, testing-kit |
 | `testing-kit` | core `Testing` | `Unit/Testing`, `Feature/Testing`, `Contracts/Plugins`, `Contracts/NegativeFixturesTest.php` | kernel, storage, sources, changes, authorization |
 | `console` | core `Laravel`, `Diagnostics`, the service provider | `Feature/{Console,Diagnostics,Laravel}`, `Feature/ServiceProviderTest.php` | all of core |
 | `filament` | `filament/src` | `Feature/Filament` | core |
@@ -23,12 +26,28 @@ in no zone).
 | `acceptance`, `regression` | — | `Acceptance/Crm`, `Regression` (tail zones: they use everything) | core, filament |
 | `arch` | — | `Arch` (always selected, a tail zone) | — |
 
+## Ownership of module tests
+
+A module's tests live in `tests/Modules/<Module>` and travel with it: `Feature` (behavior), `Unit`, `Contracts` (the module's
+own contract suites and their negative controls), `Properties`, `Fixtures` (namespace `AzGuard\Tests\Modules\<Module>\Fixtures`).
+`tests/Arch/TestOwnershipTest.php` pins the rule: a file under `tests/Modules/<Module>` references no other module, and a
+file outside `tests/Modules` references none either unless `tests/Arch/Fixtures/module-consumers.json` lists it (core
+tests, world fixtures and snapshots that use a module as a consumer does; the list is exact and only shrinks). The algebra
+of scope properties stays in core (`Feature/Authorization/Properties/ScopePropertiesTest.php`, with a no-declaration
+variant); the scope-mode tables are in `Modules/Scopes/Properties`.
+
+| Module | Tests |
+|---|---|
+| Scopes | `Modules/Scopes/{Feature,Unit,Contracts,Properties,Fixtures}`; `Contracts/FilterContractTest.php` runs the supported `AzGuard\Scopes\Testing\AssignmentScopeFilterContractTests` on the module's own filters |
+| Audit | `Modules/Audit/{Feature,Contracts}`: plugin, prune command, plugin and journal-participant contracts (concurrency stays in `Engines`) |
+| DevTools | `Modules/DevTools/Feature`: `InstallCommandTest`, `Generators/*` |
+
 ## Groups
 
 | Group | What it selects |
 |---|---|
 | `zone:<name>` | The tests of a zone. |
-| `database` | The directories whose result depends on the database engine, listed in `zones.json`: `Feature/Storage`, `Feature/Sources/Database`, `Feature/Changes`, `Feature/Visibility`, `Feature/Directories`, `Feature/Parity`, `Contracts`, `Engines`. Only these run on PostgreSQL, MySQL and MariaDB. |
+| `database` | The directories whose result depends on the database engine, listed in `zones.json`: `Feature/Storage`, `Feature/Sources/Database`, `Feature/Changes`, `Feature/Visibility`, `Feature/Directories`, `Feature/Parity`, `Contracts`, `Modules/Scopes/Contracts`, `Modules/Audit/Contracts`, `Engines`. Only these run on PostgreSQL, MySQL and MariaDB. |
 | `database:<zone>` | The part of a zone that is also in `database`. |
 | `extended` | The scale tests (R58): minutes at 10000 resources, the same budgets run at 1000 on every run. Nightly CI and a release run them. |
 | `engines`, `redis`, `replica` | Tests that need their own services (the engine suite, Redis, a streaming replica). |

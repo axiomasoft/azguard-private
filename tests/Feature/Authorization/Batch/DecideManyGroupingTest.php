@@ -24,10 +24,10 @@ use AzGuard\Tests\Fixtures\Authorization\BatchExternalAdapter;
 use AzGuard\Tests\Fixtures\Authorization\GeneratedSource;
 use AzGuard\Tests\Fixtures\Authorization\ScenarioGenerator;
 use AzGuard\Tests\Fixtures\Panels\User;
-use AzGuard\Tests\Fixtures\Scopes\Membership;
-use AzGuard\Tests\Fixtures\Scopes\Organization;
-use AzGuard\Tests\Fixtures\Scopes\ReaderRole;
-use AzGuard\Tests\Fixtures\Scopes\StoreScope;
+use AzGuard\Tests\Modules\Scopes\Fixtures\Membership;
+use AzGuard\Tests\Modules\Scopes\Fixtures\Organization;
+use AzGuard\Tests\Modules\Scopes\Fixtures\ReaderRole;
+use AzGuard\Tests\Modules\Scopes\Fixtures\StoreScope;
 
 uses()->group('batch');
 

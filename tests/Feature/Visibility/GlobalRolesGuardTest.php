@@ -11,11 +11,11 @@ use AzGuard\Kernel\Identity\TenantRef;
 use AzGuard\Panels\PanelBuilder;
 use AzGuard\Tenancy\TenantPolicy;
 use AzGuard\Tests\Fixtures\Authorization\GrantableRootRole;
-use AzGuard\Tests\Fixtures\Scopes\Membership;
-use AzGuard\Tests\Fixtures\Scopes\Organization;
 use AzGuard\Tests\Fixtures\Visibility\VisibilityClient;
 use AzGuard\Tests\Fixtures\Visibility\VisibilitySource;
 use AzGuard\Tests\Fixtures\Visibility\VisibilityWorld as W;
+use AzGuard\Tests\Modules\Scopes\Fixtures\Membership;
+use AzGuard\Tests\Modules\Scopes\Fixtures\Organization;
 
 beforeEach(fn () => W::seed());
 afterEach(fn () => W::reset());

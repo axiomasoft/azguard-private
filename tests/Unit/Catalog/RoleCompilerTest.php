@@ -30,8 +30,8 @@ use AzGuard\Tests\Fixtures\Roles\ManagerRole;
 use AzGuard\Tests\Fixtures\Roles\OtherManagerRole;
 use AzGuard\Tests\Fixtures\Roles\SelfFormerRole;
 use AzGuard\Tests\Fixtures\Roles\SellerRole;
-use AzGuard\Tests\Fixtures\Scopes\ProjectScope;
 use AzGuard\Tests\Fixtures\Sources\StaticSource;
+use AzGuard\Tests\Modules\Scopes\Fixtures\ProjectScope;
 
 /**
  * The admin panel with client permissions and the given roles, from a source of the provider and optional extra

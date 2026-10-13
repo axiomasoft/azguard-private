@@ -105,12 +105,12 @@
         "id": "I11",
         "status": "exists",
         "checks": [
-            "tests/Feature/Plugins/Audit/AuditPluginTest.php",
+            "tests/Modules/Audit/Feature/AuditPluginTest.php",
             "tests/Feature/Authorization/Properties/TransactionPropertiesTest.php",
             "tests/Feature/Changes/NestedMutationTest.php",
             "tests/Engines/ChangeRaceTest.php",
             "tests/Feature/Changes/ChangeParticipantsTest.php",
-            "tests/Contracts/Changes/JournalParticipantContractTest.php"
+            "tests/Modules/Audit/Contracts/JournalParticipantContractTest.php"
         ],
         "blocking": "after P2",
         "owner_phase": "P2"

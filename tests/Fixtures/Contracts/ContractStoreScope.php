@@ -7,7 +7,7 @@ namespace AzGuard\Tests\Fixtures\Contracts;
 use AzGuard\Contracts\Scopes\ResolvedAssignmentScope;
 use AzGuard\Kernel\Identity\AssignmentScopeRef;
 use AzGuard\Kernel\Identity\TenantRef;
-use AzGuard\Tests\Fixtures\Scopes\StoreScope;
+use AzGuard\Tests\Modules\Scopes\Fixtures\StoreScope;
 
 /** The scope type of the evaluator suites: stores 1 and 2 of the global tenant. */
 final class ContractStoreScope

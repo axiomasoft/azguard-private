@@ -24578,6 +24578,111 @@
             ]
         },
         {
+            "name": "AzGuard\\Scopes\\Testing\\AssignmentScopeFilterContractTests",
+            "publication": "spi-call",
+            "since": "1.0",
+            "kind": "trait",
+            "final": false,
+            "abstract": true,
+            "readonly": false,
+            "parent": null,
+            "interfaces": [],
+            "namedArguments": true,
+            "contracts": [],
+            "constants": [],
+            "properties": [],
+            "methods": [
+                {
+                    "name": "azguardDefinition",
+                    "visibility": "protected",
+                    "static": false,
+                    "abstract": true,
+                    "final": false,
+                    "parameters": [],
+                    "return": "AzGuard\\Contracts\\Scopes\\QueryableAssignmentScopeDefinition",
+                    "namedArguments": true,
+                    "contracts": []
+                },
+                {
+                    "name": "azguardFilter",
+                    "visibility": "protected",
+                    "static": false,
+                    "abstract": true,
+                    "final": false,
+                    "parameters": [],
+                    "return": "AzGuard\\Scopes\\Contracts\\AssignmentScopeFilter",
+                    "namedArguments": true,
+                    "contracts": []
+                },
+                {
+                    "name": "azguardRuntime",
+                    "visibility": "protected",
+                    "static": false,
+                    "abstract": true,
+                    "final": false,
+                    "parameters": [],
+                    "return": "AzGuard\\Context\\AssignmentScopeRuntime",
+                    "namedArguments": true,
+                    "contracts": []
+                },
+                {
+                    "name": "filterAddsOnlyConditions",
+                    "visibility": "public",
+                    "static": false,
+                    "abstract": false,
+                    "final": false,
+                    "parameters": [],
+                    "return": "void",
+                    "namedArguments": true,
+                    "contracts": []
+                },
+                {
+                    "name": "filterIsPureForOneRuntime",
+                    "visibility": "public",
+                    "static": false,
+                    "abstract": false,
+                    "final": false,
+                    "parameters": [],
+                    "return": "void",
+                    "namedArguments": true,
+                    "contracts": []
+                },
+                {
+                    "name": "filterOnlyNarrowsTheStructuralQuery",
+                    "visibility": "public",
+                    "static": false,
+                    "abstract": false,
+                    "final": false,
+                    "parameters": [],
+                    "return": "void",
+                    "namedArguments": true,
+                    "contracts": []
+                },
+                {
+                    "name": "filterPassesTheGuardOfTheModule",
+                    "visibility": "public",
+                    "static": false,
+                    "abstract": false,
+                    "final": false,
+                    "parameters": [],
+                    "return": "void",
+                    "namedArguments": true,
+                    "contracts": []
+                },
+                {
+                    "name": "filterWritesNothingWhileItNarrows",
+                    "visibility": "public",
+                    "static": false,
+                    "abstract": false,
+                    "final": false,
+                    "parameters": [],
+                    "return": "void",
+                    "namedArguments": true,
+                    "contracts": []
+                }
+            ]
+        },
+        {
             "name": "AzGuard\\Sources\\Database\\DatabaseSource",
             "publication": "api",
             "since": "0.7",

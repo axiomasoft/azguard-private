@@ -29,8 +29,8 @@ use AzGuard\Tests\Fixtures\Panels\User;
 use AzGuard\Tests\Fixtures\Roles\AnalystRole;
 use AzGuard\Tests\Fixtures\Roles\RootRole;
 use AzGuard\Tests\Fixtures\Roles\SellerRole;
-use AzGuard\Tests\Fixtures\Scopes\ProjectScope;
 use AzGuard\Tests\Fixtures\Sources\StaticSource;
+use AzGuard\Tests\Modules\Scopes\Fixtures\ProjectScope;
 use Illuminate\Support\ServiceProvider;
 
 beforeEach(function (): void {

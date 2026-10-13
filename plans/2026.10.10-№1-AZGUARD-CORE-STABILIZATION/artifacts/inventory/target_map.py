@@ -177,6 +177,7 @@ NEW = [
     ('scopes', 'AzGuard\\Scopes\\Internal\\Query\\FilterQuery', 'class', INTERNAL, 'P3', 'narrowing-only builder for module filters/adapters (D22)'),
     ('scopes', 'AzGuard\\Scopes\\Internal\\Query\\FilterGuard', 'class', INTERNAL, 'P3', 'guard of FilterQuery (D22)'),
     ('core', 'AzGuard\\Sources\\Internal\\EvaluatesAutomaticRoles', 'interface', INTERNAL, 'P3', 'marker of the source that evaluates GrantedAutomatically roles (D5)'),
+    ('core', 'AzGuard\\Storage\\Internal\\ModelBinding', 'class', INTERNAL, 'P3', 'private storage slot of the storage models, written and read only here (owner decision on P3.9 review F2)'),
     ('audit', 'AzGuard\\Audit\\AuditOptions', 'class', API, 'P2', 'typed options: retentionDays'),
     ('audit', 'AzGuard\\Audit\\AuditServiceProvider', 'class', API, 'P3', 'composition root (FQCN is an identity)'),
     ('audit', 'AzGuard\\Audit\\Internal\\AuditSchema', 'class', INTERNAL, 'P3', 'audit DDL, create-or-adopt with shape check'),

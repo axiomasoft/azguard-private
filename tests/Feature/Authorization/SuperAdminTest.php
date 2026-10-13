@@ -33,12 +33,12 @@ use AzGuard\Tests\Fixtures\Authorization\RecordingRestriction;
 use AzGuard\Tests\Fixtures\Authorization\RuntimePolicy;
 use AzGuard\Tests\Fixtures\Authorization\WeekdaysCondition;
 use AzGuard\Tests\Fixtures\Roles\TenantAdminRole;
-use AzGuard\Tests\Fixtures\Scopes\Membership;
-use AzGuard\Tests\Fixtures\Scopes\Organization;
-use AzGuard\Tests\Fixtures\Scopes\ScopedResource;
-use AzGuard\Tests\Fixtures\Scopes\ScopeSource;
-use AzGuard\Tests\Fixtures\Scopes\ScopeWorld;
-use AzGuard\Tests\Fixtures\Scopes\StoreScope;
+use AzGuard\Tests\Modules\Scopes\Fixtures\Membership;
+use AzGuard\Tests\Modules\Scopes\Fixtures\Organization;
+use AzGuard\Tests\Modules\Scopes\Fixtures\ScopedResource;
+use AzGuard\Tests\Modules\Scopes\Fixtures\ScopeSource;
+use AzGuard\Tests\Modules\Scopes\Fixtures\ScopeWorld;
+use AzGuard\Tests\Modules\Scopes\Fixtures\StoreScope;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Schema;
 

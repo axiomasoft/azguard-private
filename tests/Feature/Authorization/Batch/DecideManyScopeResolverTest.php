@@ -11,7 +11,7 @@ use AzGuard\Scopes\BaseAssignmentScope;
 use AzGuard\Scopes\ScopesPlugin;
 use AzGuard\Tests\Fixtures\Authorization\AuthorizationWorld;
 use AzGuard\Tests\Fixtures\Authorization\GeneratedSource;
-use AzGuard\Tests\Fixtures\Scopes\Project;
+use AzGuard\Tests\Modules\Scopes\Fixtures\Project;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Schema\Blueprint;

@@ -6,7 +6,7 @@ namespace AzGuard\Tests\Fixtures\Sources\Scoped;
 
 use AzGuard\Roles\Attributes\Role;
 use AzGuard\Roles\BaseRole;
-use AzGuard\Tests\Fixtures\Scopes\StoreScope;
+use AzGuard\Tests\Modules\Scopes\Fixtures\StoreScope;
 
 #[Role('orders')]
 class OrderRole extends BaseRole

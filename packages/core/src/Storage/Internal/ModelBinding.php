@@ -19,7 +19,7 @@ use ReflectionProperty;
 final class ModelBinding
 {
     /** The classes that declare the private slot, one per model kind. */
-    private const BASES = [RoleGrant::class, PermissionGrant::class, Permission::class];
+    private const array BASES = [RoleGrant::class, PermissionGrant::class, Permission::class];
 
     public static function bind(Model $model, Storage $storage, string $table): Model
     {

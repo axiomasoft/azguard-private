@@ -14,7 +14,7 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Schema;
 
-uses(TestCase::class)->in('Unit', 'Feature', 'Regression', 'Engines', 'Acceptance', 'Contracts');
+uses(TestCase::class)->in('Unit', 'Feature', 'Modules', 'Regression', 'Engines', 'Acceptance', 'Contracts');
 
 /*
  * Zone groups from tests/zones.json: `zone:<name>` for the zone a test directory belongs to, `database` for the
@@ -80,4 +80,4 @@ uses()->beforeEach(function (): void {
 })->afterEach(function (): void {
     Carbon::setTestNow();
     Relation::morphMap([], false);
-})->in('Feature/Authorization');
+})->in('Feature/Authorization', 'Modules/Scopes/Properties');

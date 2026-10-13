@@ -8,7 +8,7 @@ use AzGuard\Kernel\Identity\AssignmentScopeRef;
 use AzGuard\Kernel\Identity\TenantRef;
 use AzGuard\Tests\Fixtures\Authorization\AuthorizationWorld;
 use AzGuard\Tests\Fixtures\Authorization\GeneratedSource;
-use AzGuard\Tests\Fixtures\Scopes\ScopeWorld;
+use AzGuard\Tests\Modules\Scopes\Fixtures\ScopeWorld;
 use Illuminate\Database\Eloquent\Relations\Relation;
 
 afterEach(fn () => Relation::morphMap([], false));

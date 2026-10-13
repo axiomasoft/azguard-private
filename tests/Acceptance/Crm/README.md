@@ -67,7 +67,7 @@ Run: `DB_CONNECTION=sqlite php -d memory_limit=1G vendor/bin/pest tests/Acceptan
 | R52 | [ConsistencyTest.php](ConsistencyTest.php), [RevocationRaceTest.php](../../Engines/RevocationRaceTest.php), [ReplicaLagTest.php](../../Engines/ReplicaLagTest.php) |
 | R53 | [QueueTest.php](QueueTest.php) |
 | R54 | [HttpTest.php](HttpTest.php) |
-| R56 | [GeneratedPanelTest.php](../../Feature/Console/Generators/GeneratedPanelTest.php) |
+| R56 | [GeneratedPanelTest.php](../../Modules/DevTools/Feature/Generators/GeneratedPanelTest.php) |
 | R57 | [BuildInputsTest.php](BuildInputsTest.php), [BuildStateTest.php](BuildStateTest.php), [RedisStoreTest.php](../../Feature/Authorization/Cache/RedisStoreTest.php), [StateResetCommandTest.php](../../Feature/Console/StateResetCommandTest.php), [StateResetRaceTest.php](../../Engines/StateResetRaceTest.php) |
 | R58 | [ScaleBatchTest.php](ScaleBatchTest.php), [ScaleVisibilityTest.php](ScaleVisibilityTest.php), [VisibilityExplainTest.php](../../Engines/VisibilityExplainTest.php) |
 | R59 | [DynamicActionsTest.php](DynamicActionsTest.php), [DynamicActionRaceTest.php](../../Engines/DynamicActionRaceTest.php) |

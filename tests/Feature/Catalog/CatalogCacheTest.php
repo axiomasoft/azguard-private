@@ -15,9 +15,9 @@ use AzGuard\Tests\Fixtures\Permissions\ClientPermission;
 use AzGuard\Tests\Fixtures\Plugins\ProbePlugin;
 use AzGuard\Tests\Fixtures\Roles\ManagerRole;
 use AzGuard\Tests\Fixtures\Roles\SellerRole;
-use AzGuard\Tests\Fixtures\Scopes\ProjectScope;
 use AzGuard\Tests\Fixtures\Sources\BootsWithCatalogCache;
 use AzGuard\Tests\Fixtures\Sources\StaticSource;
+use AzGuard\Tests\Modules\Scopes\Fixtures\ProjectScope;
 
 uses(BootsWithCatalogCache::class);
 
