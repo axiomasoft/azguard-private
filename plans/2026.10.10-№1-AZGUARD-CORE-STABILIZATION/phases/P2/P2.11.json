@@ -2,7 +2,7 @@
   "$schema": "urn:swissknifeman:task:plan:item:v1",
   "id": "P2.11",
   "title": "Transactional change participants and the Audit journal on them",
-  "status": "in_progress",
+  "status": "done_with_deviations",
   "summary": "Write operations hand their committed-attempt records to `ChangeParticipant`s inside the operation transaction through the append-only `OwnedRowsWriter` (`Changes\\Internal\\OperationRows`), with `ChangeRecord` carrying the core-built event; the public `ChangeJournal` sink and `DatabaseSource::appendJournal()` are gone; the audit journal is `Audit\\Internal\\JournalParticipant` + `Audit\\Internal\\JournalRow`; `Storage\\Schema\\IdentityColumns` and the participant contract suite exist; `ContractWorld::rowCounts()` counts only the current schema.",
   "why": "D8/R6: the journal needs exactly same-transaction append of rows carrying the published event ids; an append-only capability limited to declared tables is the narrowest contract, and core must stop hard-coding the audit table (I2, I13 entries). Hard risks (participant-model): rows of discarded attempts must vanish on rollback, nested host rollback and deadlock retry; events are built once and dispatched only after the root commit; a participant can never touch authority tables.",
   "scope": {
@@ -262,12 +262,84 @@
   },
   "result": {
     "started_at": "2026-10-13T05:08:51Z",
+    "finished_at": "2026-10-13T08:42:28Z",
     "executor": {
       "provider": "claude-code",
       "model": "claude-opus-5-5",
-      "effort": "high",
-      "session": "f49906af-be96-4080-a159-0586585c6205"
-    }
+      "effort": "high"
+    },
+    "registered_by": {
+      "provider": "claude-code",
+      "model": "claude-sonnet-5-5",
+      "effort": "medium"
+    },
+    "notes": "Formats не менялись. Изменены allowlists: i2 (-3), i4 (-2), i5 (Audit -> P3), InactiveCost (-ChangeJournal), api-manifest.",
+    "deviations": [
+      "Команды V из плана test:<driver>/test:engines:<driver> удалены владельцем, заменены на composer test:db -- <pgsql|mysql|mariadb> --full [--engines] (порты 25432/23306/23307); статические проверки (analyse/lint:check/refactor:check/api:check) прогнаны на чистом worktree HEAD из-за незакоммиченной работы владельца (KitCase, phpstan.neon). Ревью Grok 4.7 round1: RED, находки исправлены fix-коммитами. V2: pathspec дополнен ':!plans' ':!audits' ':!tests/Arch/LegacyNamesTest.php'. V7/V8 прогнаны на f4404a06, итоговый HEAD 6943da92 отличается лишь замыканием в ContractWorld::rowCounts() (ZonesArchTest и ContractKitRegressionTest перезапущены зелёными)."
+    ],
+    "checks": [
+      {
+        "id": "V1",
+        "exit": 0,
+        "at": "2026-10-13T08:42:28Z",
+        "evidence": "@plan/artifacts/evidence/P2.11/V1.json"
+      },
+      {
+        "id": "V2",
+        "exit": 0,
+        "at": "2026-10-13T08:42:28Z",
+        "evidence": "@plan/artifacts/evidence/P2.11/V2.json"
+      },
+      {
+        "id": "V3",
+        "exit": 0,
+        "at": "2026-10-13T08:42:28Z",
+        "evidence": "@plan/artifacts/evidence/P2.11/V3.json"
+      },
+      {
+        "id": "V4",
+        "exit": 0,
+        "at": "2026-10-13T08:42:28Z",
+        "evidence": "@plan/artifacts/evidence/P2.11/V4.json"
+      },
+      {
+        "id": "V5",
+        "exit": 0,
+        "at": "2026-10-13T08:42:28Z",
+        "evidence": "@plan/artifacts/evidence/P2.11/V5.json"
+      },
+      {
+        "id": "V6",
+        "exit": 0,
+        "at": "2026-10-13T08:42:28Z",
+        "evidence": "@plan/artifacts/evidence/P2.11/V6.json"
+      },
+      {
+        "id": "V7",
+        "exit": 0,
+        "at": "2026-10-13T08:42:28Z",
+        "evidence": "@plan/artifacts/evidence/P2.11/V7.json"
+      },
+      {
+        "id": "V8",
+        "exit": 0,
+        "at": "2026-10-13T08:42:28Z",
+        "evidence": "@plan/artifacts/evidence/P2.11/V8.json"
+      }
+    ],
+    "commits": [
+      "a004f0b7"
+    ],
+    "evidence": [
+      "@plan/artifacts/evidence/P2.11/V1.json",
+      "@plan/artifacts/evidence/P2.11/V2.json",
+      "@plan/artifacts/evidence/P2.11/V3.json",
+      "@plan/artifacts/evidence/P2.11/V4.json",
+      "@plan/artifacts/evidence/P2.11/V5.json",
+      "@plan/artifacts/evidence/P2.11/V6.json",
+      "@plan/artifacts/evidence/P2.11/V7.json",
+      "@plan/artifacts/evidence/P2.11/V8.json"
+    ]
   },
-  "updated_at": "2026-10-13T05:08:51Z"
+  "updated_at": "2026-10-13T08:42:28Z"
 }
