@@ -12,6 +12,7 @@ use AzGuard\Panels\PanelRecipe;
 use AzGuard\Panels\PanelRegistry;
 use AzGuard\Plugins\Audit\AuditPlugin;
 use AzGuard\Schema\Field;
+use AzGuard\Sources\Database\DatabaseSource;
 use AzGuard\Tests\Fixtures\Panels\AdminPanel;
 use AzGuard\Tests\Fixtures\Panels\CabinetPanel;
 use AzGuard\Tests\Fixtures\Panels\Options\HoldingOptions;
@@ -122,8 +123,8 @@ it('conflicts two plugins that give different options of one class and accepts e
 
 it('has the audit plugin contribute AuditOptions and no static reader of its retention', function (): void {
     [, , $registry] = PanelWorld::compile([
-        AdminPanel::class => static fn (PanelBuilder $panel): PanelBuilder => $panel->plugins([AuditPlugin::make(retentionDays: 30)]),
-        CabinetPanel::class => static fn (PanelBuilder $panel): PanelBuilder => $panel->plugins([AuditPlugin::make()]),
+        AdminPanel::class => static fn (PanelBuilder $panel): PanelBuilder => $panel->permissions([DatabaseSource::make()])->plugins([AuditPlugin::make(retentionDays: 30)]),
+        CabinetPanel::class => static fn (PanelBuilder $panel): PanelBuilder => $panel->permissions([DatabaseSource::make()])->plugins([AuditPlugin::make()]),
     ]);
 
     expect($registry->get('admin')->options(AuditOptions::class)?->retentionDays)->toBe(30)

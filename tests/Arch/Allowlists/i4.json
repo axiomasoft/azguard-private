@@ -112,20 +112,6 @@
         "owner_phase": "P3"
     },
     {
-        "file": "packages/core/src/Plugins/Audit/RecordChange.php",
-        "reference": "AzGuard\\Changes\\ChangeEventPublisher",
-        "kind": "type",
-        "invariant": "I4",
-        "owner_phase": "P3"
-    },
-    {
-        "file": "packages/core/src/Plugins/Audit/RecordChange.php",
-        "reference": "AzGuard\\Kernel\\Support\\Narrow",
-        "kind": "type",
-        "invariant": "I4",
-        "owner_phase": "P3"
-    },
-    {
         "file": "packages/core/src/Scopes/Query/EligibilityBuilder.php",
         "reference": "AzGuard\\Kernel\\Support\\Narrow",
         "kind": "type",

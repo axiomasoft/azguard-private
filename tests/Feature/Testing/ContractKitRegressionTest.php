@@ -67,3 +67,38 @@ it('counts the rows of the tables of its own database only', function (): void {
     // another database through this connection fails and used to drop the whole connection from the result.
     expect(ContractWorld::rowCounts())->toHaveKey('testbench.contract_probe', 2);
 });
+
+it('leaves out the tables of another schema or attached database that the connection can see', function (): void {
+    $connection = app('db')->connection();
+    $driver = $connection->getDriverName();
+    // SQLite sees attached files and PostgreSQL every schema unless the listing names the current one; MySQL and
+    // MariaDB were already narrowed to the current database and keep that.
+    $foreign = match ($driver) {
+        'sqlite' => static fn () => $connection->statement("ATTACH DATABASE ':memory:' AS contract_other"),
+        'pgsql' => static fn () => $connection->statement('CREATE SCHEMA contract_other'),
+        default => null,
+    };
+
+    if ($foreign !== null) {
+        $foreign();
+        $connection->statement('CREATE TABLE contract_other.contract_foreign (note varchar(10))');
+        $connection->statement("INSERT INTO contract_other.contract_foreign (note) VALUES ('other')");
+    }
+
+    try {
+        $counts = ContractWorld::rowCounts();
+        $own = array_values(array_filter(array_keys($counts), static fn (string $key): bool => str_starts_with($key, $connection->getName().'.')));
+
+        expect($counts)->toHaveKey($connection->getName().'.contract_probe', 0)
+            ->and($counts)->not->toHaveKey($connection->getName().'.contract_foreign')
+            ->and($counts)->not->toHaveKey($connection->getName().'.contract_other.contract_foreign')
+            ->and($own)->toBe(array_map(static fn (string $table): string => $connection->getName().'.'.$table,
+                $connection->getSchemaBuilder()->getTableListing($connection->getSchemaBuilder()->getCurrentSchemaName(), false)));
+    } finally {
+        match ($driver) {
+            'sqlite' => $connection->statement('DETACH DATABASE contract_other'),
+            'pgsql' => $connection->statement('DROP SCHEMA contract_other CASCADE'),
+            default => null,
+        };
+    }
+});

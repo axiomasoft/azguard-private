@@ -10,6 +10,7 @@ use AzGuard\Contracts\Authorization\AfterHook;
 use AzGuard\Contracts\Authorization\BeforeHook;
 use AzGuard\Contracts\Authorization\GrantCondition;
 use AzGuard\Contracts\Authorization\Restriction;
+use AzGuard\Contracts\Changes\ChangeParticipant;
 use AzGuard\Contracts\Changes\ChangePipe;
 use AzGuard\Contracts\Diagnostics\DoctorCheck;
 use AzGuard\Contracts\Scopes\AssignmentScopeDefinition;
@@ -74,6 +75,8 @@ final readonly class Panel
         private array $resourceScopes = [],
         /** @var list<ChangePipe|class-string<ChangePipe>|Closure> */
         private array $changingPipes = [],
+        /** @var list<array{participant: ChangeParticipant, tables: list<string>}> */
+        private array $changeParticipants = [],
         /** @var list<SubjectDescriptor> */
         private array $subjectDescriptors = [],
         private string|UnitEnum|null $entryPermission = null,
@@ -157,6 +160,19 @@ final readonly class Panel
     public function changing(): array
     {
         return $this->changingPipes;
+    }
+
+    /**
+     * Participants of the write operations with the base names of the tables each declared, in the order provider,
+     * plugins, `configure`.
+     *
+     * @return list<array{participant: ChangeParticipant, tables: list<string>}>
+     *
+     * @internal read by the change pipeline and the panel fingerprint
+     */
+    public function participants(): array
+    {
+        return $this->changeParticipants;
     }
 
     /**

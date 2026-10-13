@@ -59,6 +59,8 @@ use AzGuard\Storage\Models\PermissionGrant;
 use AzGuard\Storage\Models\RoleGrant;
 use AzGuard\Storage\Schema\HostKeyColumns;
 use AzGuard\Storage\Storage;
+use AzGuard\Storage\StorageDescriptor;
+use AzGuard\Storage\StorageMutation;
 use AzGuard\Storage\StorageReadSession;
 use AzGuard\Storage\StorageRegistry;
 use Closure;
@@ -647,26 +649,26 @@ final class DatabaseSource implements ChecksHealth, DescribesSchema, FencesReads
     }
 
     /**
-     * @internal Appends one row to the journal table in the active mutation of the panel, so a rollback removes it.
-     *
-     * @param  array<string, mixed>  $row  the columns of the journal, `payload` as an array
+     * @internal The active mutation of the panel, for the participants of the change pipeline.
      *
      * @throws UnsupportedDirectWriteException outside the active mutation of the panel
      */
-    public function appendJournal(Panel $panel, array $row): void
+    public function mutation(Panel $panel): StorageMutation
     {
         $this->bindPanel($panel->id());
-        $storage = $this->resolvedStorage();
-        $mutation = $storage->mutation($panel->id());
-        $keys = $storage->hostKeys();
 
-        foreach (['subject_id', 'actor_id'] as $column) {
-            if (is_int($row[$column] ?? null) || is_string($row[$column] ?? null)) {
-                $row[$column] = HostKeyColumns::canonical($keys, $row[$column]);
-            }
+        return $this->resolvedStorage()->mutation($panel->id());
+    }
+
+    /** @internal What identifies the storage this source reads and writes. */
+    public function descriptor(): StorageDescriptor
+    {
+        if (! $this->selectedStorage instanceof Storage) {
+            return app(StorageRegistry::class)->descriptor($this->selectedStorage);
         }
-        $row['payload'] = json_encode($row['payload'] ?? [], JSON_THROW_ON_ERROR | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
-        $mutation->table('audit_log')->insert($row);
+        $storage = $this->selectedStorage;
+
+        return new StorageDescriptor($storage->id(), $storage->connectionName(), $storage->prefix(), $storage->hostKeys());
     }
 
     /**

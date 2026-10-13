@@ -81,7 +81,7 @@ final readonly class RestrictionStage
                     continue;
                 }
                 $result = $restriction->check($request, $frame);
-                $trace->record('restriction', $result->reason() ?? 'pass', $component, outcome: $result->denied() ? 'deny' : 'pass');
+                $trace->record('restriction', $result->reason() ?? 'pass', $component, null, [], $result->denied() ? 'deny' : 'pass');
 
                 if ($result->denied()) {
                     return Decision::deny(DecisionReason::Restricted, $frame->state(), $frame->scope(), $component);

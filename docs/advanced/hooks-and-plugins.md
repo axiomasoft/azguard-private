@@ -120,9 +120,47 @@ final class TimeBoxedSuperAdmin implements ChangePipe
 `$change->actor` is the actor. A change from the console without `AzGuard::actingAs()` has the system actor
 with the reason `console`.
 
+## Change participants
+
+A participant writes rows of its own tables in the transaction of a write operation, so they become durable together
+with the grants and vanish with a rollback or a retry. It implements `ChangeParticipant`: `tables()` lists the base names
+(without the storage prefix) of the tables it appends to, and `record()` receives the records of an operation that
+changed something, after its last change: each `ChangeRecord` carries the final change, one effect and the event the
+engine dispatches after the commit. The `OwnedRowsWriter` it gets inserts rows of scalar values into those tables only,
+on the connection and with the prefix of the storage, and only while `record()` runs. Create the tables with your own
+migration; `Storage\Schema\IdentityColumns` gives tenant, context and host key columns the shape of the core tables.
+
+```php
+use AzGuard\Changes\ChangeRecord;
+use AzGuard\Contracts\Changes\ChangeParticipant;
+use AzGuard\Contracts\Changes\OwnedRowsWriter;
+
+final class GrantLedger implements ChangeParticipant
+{
+    public function tables(): array
+    {
+        return ['grant_ledger'];
+    }
+
+    public function record(array $records, OwnedRowsWriter $rows): void
+    {
+        $rows->insert('grant_ledger', array_map(static fn (ChangeRecord $record): array => [
+            'event_id' => $record->event->eventId,
+            'type' => $record->event->type()->value,
+        ], $records));
+    }
+}
+
+->participants([GrantLedger::class])
+```
+
+An exception from `record()` rolls the whole operation back. A repeat that changes nothing calls no participant. Only a
+panel with the database writer takes participants; a participant may not name an AzGuard table, and two participants
+of one panel may not share a table. The built-in `AuditPlugin` journals through a participant of its own.
+
 ## Plugins
 
-A plugin bundles sources, roles, restrictions and pipes. It implements `Plugin`: an `id()` and a `register()` that only
+A plugin bundles sources, roles, restrictions, pipes and participants. It implements `Plugin`: an `id()` and a `register()` that only
 declares through the panel builder (no I/O, no current user, tenant, request or clock, no global listener). There is no
 `boot()` and no base class. Its settings are typed parameters of its own factory. Each panel gets its own copy.
 

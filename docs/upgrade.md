@@ -62,6 +62,12 @@ your code. Each line is `Find: <grep pattern> → Replace: <new form>`.
 - Find: `visibleTo(` on scoped resources of a panel whose declaration names no evaluator, or one that does not implement `QueryableAssignmentScopeEvaluator` → Replace: attach `ScopesPlugin` or implement the queryable evaluator; otherwise the list raises `VisibilityNotSupportedException` with reason `scope_query`.
 - Find: a custom `FiltersQueries` source whose tenant-wide witnesses hold in every assignment scope (like `#[GrantedToAll]`) → Replace: return `AssignmentScopeSelection::inEveryContext($witnesses)`; `everywhere()` witnesses do not reach isolated scopes.
 - Find: `Panel::scopes()`, `->scopes()->mode()` or a scope mode string `'none'`/`'inherit'`/`'isolated'`/`'required'` → Replace: `$panel->scopeDeclaration()?->mode` (`AzGuard\Context\AssignmentScopeMode`; a null declaration is `None`); membership and access adapters are no longer readable from the panel.
+- Find: `AzGuard\Changes\ChangeJournal` (`append()`, `row()`, `COLUMNS`) or a change pipe that writes journal rows → Replace: a
+  `AzGuard\Contracts\Changes\ChangeParticipant` registered with `->participants([...])`; it receives `ChangeRecord`s (final change, effect,
+  dispatched event) once per operation with effects and appends to its declared tables through `OwnedRowsWriter::insert()`.
+- Find: `DatabaseSource::appendJournal(` → Replace: nothing; journal rows are written by the participant of `AuditPlugin` (or your own participant).
+- Find: `AuditPlugin` on a panel without `DatabaseSource` → Replace: attach the database writer or drop the plugin; a panel without the writer
+  cannot take participants and fails to compile with `DefinitionException`.
 
 ## From 0.3 to 0.7.0
 

@@ -182,7 +182,7 @@ final readonly class BoundaryStage
             return true;
         }
         $allowed = $inputs === null ? $evaluator->allows($runtime, $resolved) : $inputs->allows($evaluator, $runtime, $resolved, $frame);
-        $trace?->record('filter', $allowed ? 'pass' : 'false', $evaluator::class, outcome: $allowed ? 'pass' : 'deny');
+        $trace?->record('filter', $allowed ? 'pass' : 'false', $evaluator::class, null, [], $allowed ? 'pass' : 'deny');
 
         return $allowed;
     }

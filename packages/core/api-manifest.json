@@ -1931,6 +1931,47 @@
             "methods": []
         },
         {
+            "name": "AzGuard\\Changes\\ChangeRecord",
+            "publication": "spi-call",
+            "since": "1.0",
+            "kind": "class",
+            "final": true,
+            "abstract": false,
+            "readonly": true,
+            "parent": null,
+            "interfaces": [],
+            "namedArguments": true,
+            "contracts": [],
+            "constants": [],
+            "properties": [
+                {
+                    "name": "change",
+                    "visibility": "public",
+                    "type": "AzGuard\\Changes\\Change",
+                    "readonly": true,
+                    "static": false,
+                    "contracts": []
+                },
+                {
+                    "name": "effect",
+                    "visibility": "public",
+                    "type": "AzGuard\\Changes\\ChangeEffect",
+                    "readonly": true,
+                    "static": false,
+                    "contracts": []
+                },
+                {
+                    "name": "event",
+                    "visibility": "public",
+                    "type": "AzGuard\\Events\\AccessEvent",
+                    "readonly": true,
+                    "static": false,
+                    "contracts": []
+                }
+            ],
+            "methods": []
+        },
+        {
             "name": "AzGuard\\Changes\\ChangeResult",
             "publication": "api",
             "since": "0.7",
@@ -6296,6 +6337,64 @@
             ]
         },
         {
+            "name": "AzGuard\\Contracts\\Changes\\ChangeParticipant",
+            "publication": "spi-implement",
+            "since": "1.0",
+            "kind": "interface",
+            "final": false,
+            "abstract": false,
+            "readonly": false,
+            "parent": null,
+            "interfaces": [],
+            "namedArguments": true,
+            "contracts": [],
+            "constants": [],
+            "properties": [],
+            "methods": [
+                {
+                    "name": "record",
+                    "visibility": "public",
+                    "static": false,
+                    "abstract": false,
+                    "final": false,
+                    "parameters": [
+                        {
+                            "name": "records",
+                            "type": "array",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "rows",
+                            "type": "AzGuard\\Contracts\\Changes\\OwnedRowsWriter",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "void",
+                    "namedArguments": true,
+                    "contracts": [
+                        "@param non-empty-list<ChangeRecord> $records"
+                    ]
+                },
+                {
+                    "name": "tables",
+                    "visibility": "public",
+                    "static": false,
+                    "abstract": false,
+                    "final": false,
+                    "parameters": [],
+                    "return": "array",
+                    "namedArguments": true,
+                    "contracts": [
+                        "@return list<non-empty-string>"
+                    ]
+                }
+            ]
+        },
+        {
             "name": "AzGuard\\Contracts\\Changes\\ChangePipe",
             "publication": "spi-implement",
             "since": "1.0",
@@ -6443,6 +6542,62 @@
                         }
                     ],
                     "return": "AzGuard\\Changes\\ChangeResult",
+                    "namedArguments": true,
+                    "contracts": []
+                }
+            ]
+        },
+        {
+            "name": "AzGuard\\Contracts\\Changes\\OwnedRowsWriter",
+            "publication": "spi-call",
+            "since": "1.0",
+            "kind": "interface",
+            "final": false,
+            "abstract": false,
+            "readonly": false,
+            "parent": null,
+            "interfaces": [],
+            "namedArguments": true,
+            "contracts": [],
+            "constants": [],
+            "properties": [],
+            "methods": [
+                {
+                    "name": "insert",
+                    "visibility": "public",
+                    "static": false,
+                    "abstract": false,
+                    "final": false,
+                    "parameters": [
+                        {
+                            "name": "table",
+                            "type": "string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "rows",
+                            "type": "array",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "void",
+                    "namedArguments": true,
+                    "contracts": [
+                        "@param non-empty-list<array<string, scalar|null>> $rows"
+                    ]
+                },
+                {
+                    "name": "storage",
+                    "visibility": "public",
+                    "static": false,
+                    "abstract": false,
+                    "final": false,
+                    "parameters": [],
+                    "return": "AzGuard\\Storage\\StorageDescriptor",
                     "namedArguments": true,
                     "contracts": []
                 }
@@ -19844,6 +19999,27 @@
                     "contracts": []
                 },
                 {
+                    "name": "participants",
+                    "visibility": "public",
+                    "static": false,
+                    "abstract": false,
+                    "final": false,
+                    "parameters": [
+                        {
+                            "name": "participants",
+                            "type": "array",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "static",
+                    "namedArguments": true,
+                    "contracts": [
+                        "@param list<ChangeParticipant|class-string<ChangeParticipant>> $participants"
+                    ]
+                },
+                {
                     "name": "permissions",
                     "visibility": "public",
                     "static": false,
@@ -27884,6 +28060,169 @@
             ]
         },
         {
+            "name": "AzGuard\\Storage\\Schema\\IdentityColumns",
+            "publication": "spi-call",
+            "since": "1.0",
+            "kind": "class",
+            "final": true,
+            "abstract": false,
+            "readonly": false,
+            "parent": null,
+            "interfaces": [],
+            "namedArguments": true,
+            "contracts": [],
+            "constants": [],
+            "properties": [],
+            "methods": [
+                {
+                    "name": "hostKey",
+                    "visibility": "public",
+                    "static": true,
+                    "abstract": false,
+                    "final": false,
+                    "parameters": [
+                        {
+                            "name": "table",
+                            "type": "Illuminate\\Database\\Schema\\Blueprint",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "column",
+                            "type": "string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "storage",
+                            "type": "AzGuard\\Storage\\StorageDescriptor",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "Illuminate\\Database\\Schema\\ColumnDefinition",
+                    "namedArguments": true,
+                    "contracts": []
+                },
+                {
+                    "name": "identifier",
+                    "visibility": "public",
+                    "static": true,
+                    "abstract": false,
+                    "final": false,
+                    "parameters": [
+                        {
+                            "name": "table",
+                            "type": "Illuminate\\Database\\Schema\\Blueprint",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "column",
+                            "type": "string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "length",
+                            "type": "int",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "storage",
+                            "type": "AzGuard\\Storage\\StorageDescriptor",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "Illuminate\\Database\\Schema\\ColumnDefinition",
+                    "namedArguments": true,
+                    "contracts": []
+                },
+                {
+                    "name": "scope",
+                    "visibility": "public",
+                    "static": true,
+                    "abstract": false,
+                    "final": false,
+                    "parameters": [
+                        {
+                            "name": "table",
+                            "type": "Illuminate\\Database\\Schema\\Blueprint",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "scope",
+                            "type": "string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "storage",
+                            "type": "AzGuard\\Storage\\StorageDescriptor",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "void",
+                    "namedArguments": true,
+                    "contracts": []
+                },
+                {
+                    "name": "scopeConstraint",
+                    "visibility": "public",
+                    "static": true,
+                    "abstract": false,
+                    "final": false,
+                    "parameters": [
+                        {
+                            "name": "storage",
+                            "type": "AzGuard\\Storage\\StorageDescriptor",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "table",
+                            "type": "string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "short",
+                            "type": "string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "scope",
+                            "type": "string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "void",
+                    "namedArguments": true,
+                    "contracts": []
+                }
+            ]
+        },
+        {
             "name": "AzGuard\\Storage\\Schema\\StorageSchema",
             "publication": "api",
             "since": "0.7",
@@ -29423,6 +29762,100 @@
                 },
                 {
                     "name": "scopeSurvivesTheCodecAndHasNoColonInItsType",
+                    "visibility": "public",
+                    "static": false,
+                    "abstract": false,
+                    "final": false,
+                    "parameters": [],
+                    "return": "void",
+                    "namedArguments": true,
+                    "contracts": []
+                }
+            ]
+        },
+        {
+            "name": "AzGuard\\Testing\\Contracts\\ChangeParticipantContractTests",
+            "publication": "spi-call",
+            "since": "1.0",
+            "kind": "trait",
+            "final": false,
+            "abstract": true,
+            "readonly": false,
+            "parent": null,
+            "interfaces": [],
+            "namedArguments": true,
+            "contracts": [],
+            "constants": [],
+            "properties": [],
+            "methods": [
+                {
+                    "name": "azguardParticipant",
+                    "visibility": "protected",
+                    "static": false,
+                    "abstract": true,
+                    "final": false,
+                    "parameters": [],
+                    "return": "AzGuard\\Contracts\\Changes\\ChangeParticipant",
+                    "namedArguments": true,
+                    "contracts": []
+                },
+                {
+                    "name": "azguardSubject",
+                    "visibility": "protected",
+                    "static": false,
+                    "abstract": false,
+                    "final": false,
+                    "parameters": [],
+                    "return": "Illuminate\\Database\\Eloquent\\Model",
+                    "namedArguments": true,
+                    "contracts": []
+                },
+                {
+                    "name": "participantDeclaresItsOwnTables",
+                    "visibility": "public",
+                    "static": false,
+                    "abstract": false,
+                    "final": false,
+                    "parameters": [],
+                    "return": "void",
+                    "namedArguments": true,
+                    "contracts": []
+                },
+                {
+                    "name": "participantIsNotCalledWithoutAnEffect",
+                    "visibility": "public",
+                    "static": false,
+                    "abstract": false,
+                    "final": false,
+                    "parameters": [],
+                    "return": "void",
+                    "namedArguments": true,
+                    "contracts": []
+                },
+                {
+                    "name": "participantRowsRollBackWithTheOperation",
+                    "visibility": "public",
+                    "static": false,
+                    "abstract": false,
+                    "final": false,
+                    "parameters": [],
+                    "return": "void",
+                    "namedArguments": true,
+                    "contracts": []
+                },
+                {
+                    "name": "participantRunsAgainOnARetryAndKeepsOnlyTheCommittedAttempt",
+                    "visibility": "public",
+                    "static": false,
+                    "abstract": false,
+                    "final": false,
+                    "parameters": [],
+                    "return": "void",
+                    "namedArguments": true,
+                    "contracts": []
+                },
+                {
+                    "name": "participantWritesOnlyThroughItsWriterWhileRecording",
                     "visibility": "public",
                     "static": false,
                     "abstract": false,

@@ -9,7 +9,6 @@ use AzGuard\Authorization\Authorizer;
 use AzGuard\Authorization\Cache\PermissionSetCache;
 use AzGuard\Catalog\CatalogCache;
 use AzGuard\Changes\ActingActor;
-use AzGuard\Changes\ChangeJournal;
 use AzGuard\Configuration\AzGuardConfig;
 use AzGuard\Context\Internal\CurrentContext;
 use AzGuard\Context\Internal\WithinContext;
@@ -117,7 +116,6 @@ final class AzGuardServiceProvider extends ServiceProvider
         });
 
         $this->app->scoped(ActingActor::class);
-        $this->app->scoped(ChangeJournal::class);
         $this->app->scoped(CurrentPanel::class);
         $this->app->scoped(CurrentContext::class);
         $this->app->scoped(WithinContext::class);

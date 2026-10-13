@@ -16,7 +16,8 @@ use PHPUnit\Framework\Attributes\Test;
  * For the authors of plugins: what every plugin guarantees, checked against the real engine.
  *
  * Use the trait in a test case that boots a Laravel application and implement `azguardPlugin()`; the plugins yours
- * needs next to it go in `azguardCompanions()`.
+ * needs next to it go in `azguardCompanions()` (a plugin that declares participants needs one that attaches the
+ * database writer).
  *
  * - the id is stable and the panel lists the plugin;
  * - it builds on a clean panel and on two panels, and a panel without it is the panel it was before;
@@ -93,8 +94,9 @@ trait PluginContractTests
             $register();
         });
 
-        $writes = ContractWorld::writesDuring(static function () use ($plugin): void {
-            ContractWorld::build(null, static fn (PanelBuilder $builder): null => null, static fn (PanelBuilder $builder): PanelBuilder => $builder->plugins([$plugin]));
+        $companions = $this->azguardCompanions();
+        $writes = ContractWorld::writesDuring(static function () use ($plugin, $companions): void {
+            ContractWorld::build(null, static fn (PanelBuilder $builder): null => null, static fn (PanelBuilder $builder): PanelBuilder => $builder->plugins([...$companions, $plugin]));
         });
 
         $this->assertSame([], $writes, 'register() wrote to the database: '.implode('; ', $writes));

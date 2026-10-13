@@ -15,6 +15,7 @@ use AzGuard\Testing\FakeSubject;
 use Closure;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Events\QueryExecuted;
+use RuntimeException;
 use Throwable;
 use UnitEnum;
 
@@ -116,7 +117,8 @@ final class ContractWorld
     }
 
     /**
-     * The number of rows of every table of every configured connection that can be reached.
+     * The number of rows of every table in the current database or schema of every configured connection that can be
+     * reached. A connection that cannot be reached is left out; a table it lists is always counted.
      *
      * @return array<string, int>
      */
@@ -127,15 +129,22 @@ final class ContractWorld
         foreach (array_keys((array) config('database.connections')) as $name) {
             try {
                 $connection = app('db')->connection((string) $name);
-
-                // MySQL and MariaDB list the tables of every database on the server unless told which one.
-                $schema = in_array($connection->getDriverName(), ['mysql', 'mariadb'], true) ? $connection->getDatabaseName() : null;
-
-                foreach ($connection->getSchemaBuilder()->getTables($schema) as $table) {
-                    $counts[$name.'.'.$table['name']] = $connection->table((string) $table['name'])->count();
-                }
+                $schema = $connection->getSchemaBuilder();
+                // Only the current database (MySQL, MariaDB), the search path (PostgreSQL) or `main` (SQLite): without
+                // it the list holds tables of other databases or attached files that this connection does not write.
+                $current = $schema->getCurrentSchemaListing();
+                $tables = $schema->getTables($current);
             } catch (Throwable) {
                 continue;
+            }
+            $grammar = $connection->getQueryGrammar();
+
+            foreach ($tables as $table) {
+                $owner = is_string($table['schema'] ?? null) ? $table['schema'] : null;
+                $key = $owner === null || $owner === ($current[0] ?? null) ? $table['name'] : $owner.'.'.$table['name'];
+                $row = $connection->selectOne('select count(*) as aggregate from '.$grammar->wrap($owner === null ? $table['name'] : $owner.'.'.$table['name']));
+                $count = is_object($row) ? ($row->aggregate ?? null) : null;
+                $counts[$name.'.'.$key] = is_numeric($count) ? (int) $count : throw new RuntimeException('Table '.$table['name'].' of '.$name.' could not be counted.');
             }
         }
         ksort($counts);

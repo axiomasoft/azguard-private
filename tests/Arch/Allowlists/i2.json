@@ -8,13 +8,6 @@
     },
     {
         "file": "packages/core/src/AzGuardServiceProvider.php",
-        "reference": "AzGuard\\Changes\\ChangeJournal",
-        "kind": "import",
-        "invariant": "I2",
-        "owner_phase": "P3"
-    },
-    {
-        "file": "packages/core/src/AzGuardServiceProvider.php",
         "reference": "AzGuard\\Laravel\\Console\\Commands\\AuditPruneCommand",
         "kind": "import",
         "invariant": "I2",
@@ -99,13 +92,6 @@
     },
     {
         "file": "packages/core/src/Changes/ChangePipeline.php",
-        "reference": "AzGuard\\Changes\\ChangeJournal",
-        "kind": "reference",
-        "invariant": "I2",
-        "owner_phase": "P3"
-    },
-    {
-        "file": "packages/core/src/Changes/ChangePipeline.php",
         "reference": "audit_log",
         "kind": "table",
         "invariant": "I2",
@@ -122,13 +108,6 @@
         "file": "packages/core/src/Schema/SchemaBuilder.php",
         "reference": "AzGuard\\Scopes\\RoleBindings",
         "kind": "import",
-        "invariant": "I2",
-        "owner_phase": "P3"
-    },
-    {
-        "file": "packages/core/src/Sources/Database/DatabaseSource.php",
-        "reference": "audit_log",
-        "kind": "table",
         "invariant": "I2",
         "owner_phase": "P3"
     },

@@ -2,11 +2,15 @@
 
 declare(strict_types=1);
 
+use AzGuard\Audit\Internal\JournalParticipant;
 use AzGuard\Changes\Change;
-use AzGuard\Changes\ChangeJournal;
+use AzGuard\Changes\ChangeEffect;
+use AzGuard\Changes\ChangeRecord;
 use AzGuard\Changes\ChangeResult;
+use AzGuard\Contracts\Changes\ChangeParticipant;
+use AzGuard\Contracts\Changes\OwnedRowsWriter;
+use AzGuard\Events\AccessEvent;
 use AzGuard\Exceptions\ChangeCancelledException;
-use AzGuard\Exceptions\UnsupportedDirectWriteException;
 use AzGuard\Kernel\Identity\ActorRef;
 use AzGuard\Panels\Panel;
 use AzGuard\Panels\PanelBuilder;
@@ -127,52 +131,60 @@ it('keeps one row after a retried root', function (): void {
     expect($attempts)->toBe(2)->and($rows)->toHaveCount(1)->and($rows[0]['event_id'])->toBe($result->effects[0]->eventId);
 });
 
-it('rolls the change back with it when the journal cannot be written', function (): void {
+it('rolls the change back with the journal row when a later participant fails', function (): void {
     W::grant(W::panel(), 'analyst', 3, 1);
     EventWorld::reset();
     $keys = W::keys();
     $version = W::version();
-    $failing = auditedPanel([static function (Change $change, Closure $next): ChangeResult {
-        $result = $next($change);
-        $journal = app(ChangeJournal::class);
-        $row = ['event_id' => $result->effects[0]->eventId, 'type' => 'role.granted', 'panel' => 'crm', 'tenant_key' => 'global', 'tenant_type' => null,
-            'tenant_id' => null, 'subject_type' => null, 'subject_id' => null, 'actor_type' => null, 'actor_id' => null, 'actor_reason' => null,
-            'correlation_id' => $result->correlationId, 'payload' => [], 'occurred_at' => '2026-10-06 12:00:00'];
-        $journal->append($row);
-        $journal->append($row);
+    $failing = W::panel(configure: static fn (PanelBuilder $builder): PanelBuilder => $builder->plugins([AuditPlugin::make()])
+        ->participants([new class implements ChangeParticipant
+        {
+            public function tables(): array
+            {
+                return [];
+            }
 
-        return $result;
-    }]);
+            public function record(array $records, OwnedRowsWriter $rows): void
+            {
+                throw new RuntimeException('after the journal');
+            }
+        }]));
 
-    expect(fn () => W::grant($failing, 'analyst', 2, 1))->toThrow(QueryException::class)
+    expect(fn () => W::grant($failing, 'analyst', 2, 1))->toThrow(RuntimeException::class, 'after the journal')
         ->and(W::keys())->toBe($keys)->and(W::version())->toBe($version)->and(EventWorld::auditRows())->toBe([])->and(EventWorld::events())->toBe([]);
 });
 
-it('refuses a journal write outside the pipes of a change, a malformed row and a row of another panel', function (): void {
-    $journal = app(ChangeJournal::class);
-    $row = ChangeJournal::row((function () {
-        W::grant(auditedPanel(), 'analyst', 2, 1);
+it('journals through the participant of the plugin, not a change pipe', function (): void {
+    $panel = auditedPanel();
 
-        return EventWorld::events()[0];
-    })());
-    EventWorld::reset();
+    expect($panel->changing())->toBe([])
+        ->and(array_map(static fn (array $participant): string => $participant['participant']::class, $panel->participants()))->toBe([JournalParticipant::class])
+        ->and(array_column($panel->participants(), 'tables'))->toBe([['audit_log']]);
+});
 
-    expect(fn () => $journal->append($row))->toThrow(UnsupportedDirectWriteException::class);
+it('hands the participants the records of the operation with the events the root commit dispatches', function (): void {
+    $recorder = new class implements ChangeParticipant
+    {
+        /** @var list<ChangeRecord> */
+        public array $seen = [];
 
-    $panel = auditedPanel([static function (Change $change, Closure $next) use ($row): ChangeResult {
-        $journal = app(ChangeJournal::class);
-
-        try {
-            $journal->append([...$row, 'panel' => 'other']);
-        } catch (UnsupportedDirectWriteException) {
-            $journal->append(array_diff_key($row, ['payload' => 1]));
+        public function tables(): array
+        {
+            return [];
         }
 
-        return $next($change);
-    }]);
+        public function record(array $records, OwnedRowsWriter $rows): void
+        {
+            array_push($this->seen, ...$records);
+        }
+    };
+    $panel = W::panel(configure: static fn (PanelBuilder $builder): PanelBuilder => $builder->plugins([AuditPlugin::make()])->participants([$recorder]));
+    $result = W::pipeline()->sync($panel, W::tenant(), W::user(1), 'role', [W::role('seller'), W::role('analyst')], W::project(5));
 
-    expect(fn () => W::grant($panel, 'analyst', 3, 1))->toThrow(InvalidArgumentException::class)
-        ->and(EventWorld::auditRows())->toHaveCount(1);
+    expect($recorder->seen)->toHaveCount(2)
+        ->and(array_map(static fn (ChangeRecord $record): AccessEvent => $record->event, $recorder->seen))->toBe(EventWorld::events())
+        ->and(array_map(static fn (ChangeRecord $record): ChangeEffect => $record->effect, $recorder->seen))->toBe($result->effects)
+        ->and(array_map(static fn (ChangeRecord $record): string => $record->event->eventId, $recorder->seen))->toBe(array_column(EventWorld::auditRows(), 'event_id'));
 });
 
 it('returns the writer result untouched', function (): void {

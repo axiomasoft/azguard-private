@@ -202,8 +202,14 @@ const AZGUARD_CHANGE_VALUES = [
     'AzGuard\Changes\Change', 'AzGuard\Changes\ChangeType', 'AzGuard\Changes\ChangeContext', 'AzGuard\Changes\ChangeResult',
     'AzGuard\Changes\ChangeStatus', 'AzGuard\Changes\ChangeEffect', 'AzGuard\Changes\EffectKind', 'AzGuard\Changes\GrantRecord',
     'AzGuard\Changes\GrantDetails', 'AzGuard\Changes\PermissionRecord', 'AzGuard\Changes\PermissionDetails',
-    'AzGuard\Changes\GrantFilter', 'AzGuard\Changes\GrantPage',
+    'AzGuard\Changes\GrantFilter', 'AzGuard\Changes\GrantPage', 'AzGuard\Changes\ChangeRecord',
 ];
+
+/*
+ * `OwnedRowsWriter::storage()` names the storage a participant writes to: the immutable descriptor of the storage zone,
+ * never a storage, a mutation or a builder.
+ */
+const AZGUARD_STORAGE_VALUES = ['AzGuard\Storage\StorageDescriptor'];
 
 /*
  * `PanelAccess::visibility()` returns the @api query-visibility entry point of the engine, a final class of the
@@ -223,7 +229,7 @@ arch('contracts do not import implementations')
         'AzGuard\Authorization', 'AzGuard\Changes', 'AzGuard\Storage', 'AzGuard\Sources', 'AzGuard\Laravel',
         'AzGuard\Internal', 'AzGuard\Testing', 'AzGuard\Diagnostics', 'AzGuard\Configuration',
     ])
-    ->ignoring([...AZGUARD_CHANGE_VALUES, ...AZGUARD_CONTRACT_ENTRY_POINTS, ...AZGUARD_DIAGNOSTICS_VALUES]);
+    ->ignoring([...AZGUARD_CHANGE_VALUES, ...AZGUARD_CONTRACT_ENTRY_POINTS, ...AZGUARD_DIAGNOSTICS_VALUES, ...AZGUARD_STORAGE_VALUES]);
 
 forbidDependencies('authorization and schema never change access', ['AzGuard\Authorization', 'AzGuard\Schema'], ['AzGuard\Changes']);
 
@@ -424,9 +430,9 @@ it('only storage and database sources call storage models statically', function 
     expect(SourceScan::modelStaticCallsIn(SourceScan::files()))->toBe([]);
 });
 
-it('only storage database sources change pipeline and testing use storage mutation', function (): void {
+it('only storage database sources change pipeline its participant writer and testing use storage mutation', function (): void {
     expect(SourceScan::restrictedReferencesIn(SourceScan::files(), ['AzGuard\Storage\StorageMutation'], [
-        'AzGuard\Storage', 'AzGuard\Sources\Database', 'AzGuard\Changes\ChangePipeline', 'AzGuard\Testing',
+        'AzGuard\Storage', 'AzGuard\Sources\Database', 'AzGuard\Changes\ChangePipeline', 'AzGuard\Changes\Internal\OperationRows', 'AzGuard\Testing',
     ]))->toBe([]);
 });
 

@@ -70,7 +70,7 @@ final readonly class AuthorityStage
             $membership = new TenantMembershipRestriction($this->container);
 
             $denied = $membership->check($request, $frame)->denied();
-            $trace->record('membership', $denied ? 'restricted' : 'pass', 'membership', outcome: $denied ? 'deny' : 'pass');
+            $trace->record('membership', $denied ? 'restricted' : 'pass', 'membership', null, [], $denied ? 'deny' : 'pass');
 
             if ($denied) {
                 return [$frame, Decision::deny(reason: DecisionReason::Restricted, state: $frame->state(), scope: $frame->scope(), component: 'membership')];
@@ -85,9 +85,9 @@ final readonly class AuthorityStage
             $veto = $this->policies->decide($request, $frame, $catalog, $definition->authority, qualified: $qualified);
             $binding = $catalog->policyBindings()[$request->permission()->local()] ?? null;
             $trace->record('policy', $binding === null ? 'skipped' : ($veto?->allowed() === false ? 'deny' : 'pass'),
-                $binding === null ? null : ($binding->policy ?? $binding->ability),
-                detail: ['message' => $veto?->message, 'status' => $veto?->status, 'code' => $veto?->code],
-                outcome: $binding === null ? 'skipped' : ($veto?->allowed() === false ? 'deny' : 'pass'));
+                $binding === null ? null : ($binding->policy ?? $binding->ability), null,
+                ['message' => $veto?->message, 'status' => $veto?->status, 'code' => $veto?->code],
+                $binding === null ? 'skipped' : ($veto?->allowed() === false ? 'deny' : 'pass'));
 
             if ($veto !== null) {
                 return [$frame, $veto];
@@ -132,7 +132,7 @@ final readonly class AuthorityStage
                         $trace->record('contribution', 'qualified_empty_super_admin', $source::class);
                     }
                 } else {
-                    $trace->record('contribution', 'not_matching', $source::class, outcome: 'skipped');
+                    $trace->record('contribution', 'not_matching', $source::class, null, [], 'skipped');
                 }
             });
 
@@ -140,7 +140,7 @@ final readonly class AuthorityStage
             return [$frame, false, $denial];
         }
         $frame = $frame->withAuthority($matching, $superAdmin);
-        $trace->record('sources', 'evaluated', detail: ['count' => $count]);
+        $trace->record('sources', 'evaluated', null, null, ['count' => $count]);
         $trace->record('superadmin', $superAdmin ? 'qualified' : 'not_granted');
 
         return [$frame, $qualified, null];

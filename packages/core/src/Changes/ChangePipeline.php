@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace AzGuard\Changes;
 
+use AzGuard\Changes\Internal\OperationRows;
 use AzGuard\Exceptions\InvalidConfigurationException;
 use AzGuard\Exceptions\PanelNotWritableException;
 use AzGuard\Exceptions\StaleSelectionException;
 use AzGuard\Exceptions\UnknownPermissionException;
 use AzGuard\Exceptions\UnknownRoleException;
-use AzGuard\Exceptions\UnsupportedDirectWriteException;
 use AzGuard\Kernel\Decision\StateToken;
 use AzGuard\Kernel\Identity\AccessScope;
 use AzGuard\Kernel\Identity\ActorRef;
@@ -21,7 +21,6 @@ use AzGuard\Kernel\Identity\PermissionPattern;
 use AzGuard\Kernel\Identity\RoleKey;
 use AzGuard\Kernel\Identity\SubjectRef;
 use AzGuard\Kernel\Identity\TenantRef;
-use AzGuard\Kernel\Support\Narrow;
 use AzGuard\Panels\Panel;
 use AzGuard\Panels\PanelRegistry;
 use AzGuard\Roles\BaseRole;
@@ -46,12 +45,14 @@ use UnitEnum;
  * is validated under the lock and the writer applies it. Any failure rolls back every sibling. A retry of the root
  * transaction plans again from fresh reads, clock, frames and pipes.
  *
- * Events of the effects are built inside the mutation from the writer's results and handed to the root commit: a
- * rollback, a retry or an operation without effects delivers nothing, and a listener's failure changes nothing.
+ * Events of the effects are built once inside the mutation from the writer's results. After the last change of an
+ * operation with effects, the participants of the panel record them in the same transaction, and the root commit
+ * dispatches the same event objects: a rollback, a retry or an operation without effects writes and delivers nothing,
+ * and a listener's failure changes nothing.
  */
 final readonly class ChangePipeline
 {
-    public function __construct(private Container $container, private ActingActor $actors, private ChangeJournal $journal, private ChangeEventPublisher $events) {}
+    public function __construct(private Container $container, private ActingActor $actors, private ChangeEventPublisher $events) {}
 
     /**
      * Grants a role or a permission to the subject in one assignment scope and origin.
@@ -230,7 +231,7 @@ final readonly class ChangePipeline
 
     /**
      * The plan `migrateRoleKey()` would carry out now, read under the panel lock without a write, a version bump, a
-     * pipe, a journal row or an event: for each stored grant of `$from`, the grant of `$to` it would merge into, if
+     * pipe, a participant or an event: for each stored grant of `$from`, the grant of `$to` it would merge into, if
      * any, and the expiry the kept grant would have.
      *
      * @return list<array{source: GrantRecord, target: ?GrantRecord, until: ?DateTimeImmutable}>
@@ -263,7 +264,7 @@ final readonly class ChangePipeline
 
     /**
      * Raises the state version of the panel by one without changing a grant: every cached decision of the panel is
-     * renewed. It runs through the `changing` pipes and the journal like any other change and publishes
+     * renewed. It runs through the `changing` pipes and the participants like any other change and publishes
      * `PanelStateTouched` after the commit. Returns the state the touch produced.
      */
     public function touch(Panel $panel, string $reason, ?ActorRef $actor = null): StateToken
@@ -277,7 +278,7 @@ final readonly class ChangePipeline
      * Gives the panel state a new incarnation and raises its version, under the lock of `panel_state` that every write
      * of the panel takes: the reset after a manual change of the tables or a restore of the database. Tokens, cached
      * decisions and permission sets of the old incarnation no longer pass the fence. The reset runs through the
-     * `changing` pipes and the journal as a touch with the reason `reset` and publishes `PanelStateTouched` after the
+     * `changing` pipes and the participants as a touch with the reason `reset` and publishes `PanelStateTouched` after the
      * commit. It is its own root transaction. Returns the new state.
      *
      * @throws InvalidConfigurationException inside an open transaction of the writer
@@ -451,25 +452,33 @@ final readonly class ChangePipeline
             $now = CarbonImmutable::now('UTC')->startOfSecond()->toDateTimeImmutable();
             $validator = new ChangeValidator($this->container, $panel, $tenant, $reads, $now, $reads->token(), $actor, $actorModel, $writer->isRolesOnly(), $writer->isDynamic());
             $frame = new ChangeFrame($validator->context(...), $correlation, $now);
-            $append = static function (array $row) use ($writer, $panel): void {
-                if (($row['panel'] ?? null) !== $panel->id()) {
-                    throw new UnsupportedDirectWriteException('The journal of panel '.$panel->id().' takes only rows of that panel.');
-                }
-                $writer->appendJournal($panel, Narrow::map($row, 'journal row'));
-            };
-            $results = $events = [];
+            $results = $events = $records = [];
             $effects = 0;
             foreach ($plan($reads, $actor) as $change) {
                 if ($change->panel !== $panel->id() || ! $change->scope->tenant->equals($tenant)) {
                     throw InvalidConfigurationException::failing('changing', 'A planned change leaves the panel or tenant of its operation.');
                 }
                 $planned = $change->bind($frame);
-                $result = $this->journal->within($append, fn (): ChangeResult => OnceTerminal::run($this->container, $planned, $panel->changing(),
-                    static fn (mixed $final): ChangeResult => $writer->apply($validator->finalize($planned, $final))));
-                array_push($events, ...$this->events->events($planned, $result));
+                $applied = $planned;
+                $result = OnceTerminal::run($this->container, $planned, $panel->changing(),
+                    static function (mixed $final) use ($writer, $validator, $planned, &$applied): ChangeResult {
+                        $applied = $validator->finalize($planned, $final);
+
+                        return $writer->apply($applied);
+                    });
+                // Built once: the participants record exactly the events the root commit dispatches.
+                $built = $this->events->events($planned, $result);
+                foreach ($result->effects as $position => $effect) {
+                    $records[] = new ChangeRecord($applied, $effect, $built[$position]);
+                }
+                array_push($events, ...$built);
                 $frame->record($result);
                 $effects += count($result->effects);
                 $results[] = $result;
+            }
+
+            if ($records !== []) {
+                $this->participate($panel, $writer, $records);
             }
 
             if ($events !== []) {
@@ -480,6 +489,33 @@ final readonly class ChangePipeline
         });
 
         return ChangeResult::combine($outcome[0], $outcome[1], ! $nested, $correlation);
+    }
+
+    /**
+     * Hands the records of the operation to the participants of the panel, in their order, inside the transaction of
+     * the operation; each gets a writer of its own tables that closes when its `record()` returns.
+     *
+     * @param  non-empty-list<ChangeRecord>  $records
+     */
+    private function participate(Panel $panel, DatabaseSource $writer, array $records): void
+    {
+        $participants = $panel->participants();
+
+        if ($participants === []) {
+            return;
+        }
+        $mutation = $writer->mutation($panel);
+        $storage = $writer->descriptor();
+
+        foreach ($participants as ['participant' => $participant, 'tables' => $tables]) {
+            $rows = new OperationRows($mutation, $storage, $tables);
+
+            try {
+                $participant->record($records, $rows);
+            } finally {
+                $rows->close();
+            }
+        }
     }
 
     /** Step 2: the panel of this operation is the panel of the registry build that is current under the lock. */

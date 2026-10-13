@@ -69,6 +69,8 @@ final class PanelFingerprint
         }
 
         $options = array_map(static fn (object $options): mixed => CanonicalMetadata::metadata($options), $panel->optionObjects());
+        $participants = array_map(static fn (array $participant): array => ['class' => $participant['participant']::class, 'tables' => $participant['tables']],
+            $panel->participants());
 
         return [
             'id' => $panel->id(),
@@ -121,6 +123,7 @@ final class PanelFingerprint
                 PanelCompiler::items($recipe, PanelRecipe::RESOURCE_SCOPES),
             ),
             ...($options === [] ? [] : ['options' => $options]),
+            ...($participants === [] ? [] : ['participants' => $participants]),
         ];
     }
 

@@ -6,15 +6,16 @@ namespace AzGuard\Plugins\Audit;
 
 use AzGuard\Attributes\Api;
 use AzGuard\Audit\AuditOptions;
+use AzGuard\Audit\Internal\JournalParticipant;
 use AzGuard\Contracts\Plugins\Plugin;
 use AzGuard\Panels\PanelBuilder;
 use AzGuard\Plugins\PluginContext;
 use InvalidArgumentException;
 
 /**
- * The change journal of a panel: after each effective change a pipe writes one row of the audit log in the same
- * transaction as the stored grants, with the `eventId` of the event published for that change. A panel without this
- * plugin keeps no journal.
+ * The change journal of a panel: for each effect of a write operation a participant writes one row of the audit log in
+ * the same transaction as the stored grants, with the `eventId` of the event published for that effect. A panel
+ * without this plugin keeps no journal.
  *
  * `retentionDays` is how long a row is kept; the journal is cleaned by the maintenance command, never by this plugin.
  * Doctor checks that the journal table exists (`audit.table`).
@@ -54,7 +55,7 @@ final class AuditPlugin implements Plugin
 
     public function register(PanelBuilder $panel, PluginContext $context): void
     {
-        $panel->changing([RecordChange::class])->options(new AuditOptions($this->retentionDays))->doctorChecks([AuditTableExists::class]);
+        $panel->participants([JournalParticipant::class])->options(new AuditOptions($this->retentionDays))->doctorChecks([AuditTableExists::class]);
     }
 
     private static function assertRetention(int $days): void

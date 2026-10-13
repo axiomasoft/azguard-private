@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use AzGuard\Configuration\AzGuardConfig;
+use AzGuard\Exceptions\DefinitionException;
 use AzGuard\Panels\PanelBuilder;
 use AzGuard\Plugins\Audit\AuditPlugin;
 use AzGuard\Sources\Database\DatabaseSource;
@@ -89,7 +90,7 @@ it('storage.schema of a database source fails a column field its model declares 
     expect(storageFindings('storage.schema'))->toBe([]);
 });
 
-it('audit.table passes a migrated journal and fails a missing journal or a panel without a database writer', function (): void {
+it('audit.table passes a migrated journal and fails a missing journal; a panel without a database writer does not compile', function (): void {
     DoctorWorld::migrate();
     storagePanel(more: static fn (PanelBuilder $panel) => $panel->plugins([AuditPlugin::make()]));
     expect(storageFindings('audit.table'))->toBe([]);
@@ -99,9 +100,9 @@ it('audit.table passes a migrated journal and fails a missing journal or a panel
     expect(DoctorWorld::summary($finding))->toBe(['plugin:azguard/audit audit.table error'])
         ->and($finding[0]->details)->toBe(['panel' => 'test', 'storage' => 'default']);
 
-    DoctorWorld::panels([TestPanel::class => static fn (PanelBuilder $panel) => $panel->for(User::class)->permissions([OrderPermission::class])
-        ->plugins([AuditPlugin::make()])]);
-    expect(storageFindings('audit.table'))->toBe(['plugin:azguard/audit error Panel test has the audit plugin but no database source that stores its grants, so no journal is written.']);
+    // The journal participant needs the database writer, so such a panel is a definition error before any check runs.
+    expect(fn () => DoctorWorld::panels([TestPanel::class => static fn (PanelBuilder $panel) => $panel->for(User::class)->permissions([OrderPermission::class])
+        ->plugins([AuditPlugin::make()])]))->toThrow(DefinitionException::class, 'participants need the database writer');
 });
 
 it('storage.sqlite warns about an SQLite file outside WAL or without a busy timeout and never changes it', function (): void {

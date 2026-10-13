@@ -23,7 +23,7 @@
         },
         "changes": {
             "src": ["packages/core/src/Changes", "packages/core/src/Audit"],
-            "tests": ["Unit/Changes", "Feature/Changes", "Contracts/Hooks"],
+            "tests": ["Unit/Changes", "Feature/Changes", "Contracts/Hooks", "Contracts/Changes"],
             "uses": ["kernel", "catalog", "storage", "sources"]
         },
         "authorization": {

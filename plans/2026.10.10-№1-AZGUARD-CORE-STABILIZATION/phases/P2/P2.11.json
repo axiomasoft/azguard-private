@@ -2,7 +2,7 @@
   "$schema": "urn:swissknifeman:task:plan:item:v1",
   "id": "P2.11",
   "title": "Transactional change participants and the Audit journal on them",
-  "status": "todo",
+  "status": "in_progress",
   "summary": "Write operations hand their committed-attempt records to `ChangeParticipant`s inside the operation transaction through the append-only `OwnedRowsWriter` (`Changes\\Internal\\OperationRows`), with `ChangeRecord` carrying the core-built event; the public `ChangeJournal` sink and `DatabaseSource::appendJournal()` are gone; the audit journal is `Audit\\Internal\\JournalParticipant` + `Audit\\Internal\\JournalRow`; `Storage\\Schema\\IdentityColumns` and the participant contract suite exist; `ContractWorld::rowCounts()` counts only the current schema.",
   "why": "D8/R6: the journal needs exactly same-transaction append of rows carrying the published event ids; an append-only capability limited to declared tables is the narrowest contract, and core must stop hard-coding the audit table (I2, I13 entries). Hard risks (participant-model): rows of discarded attempts must vanish on rollback, nested host rollback and deadlock retry; events are built once and dispatched only after the root commit; a participant can never touch authority tables.",
   "scope": {
@@ -260,6 +260,14 @@
     "need": "none",
     "status": "not_needed"
   },
-  "result": null,
-  "updated_at": "2026-10-11T20:17:31Z"
+  "result": {
+    "started_at": "2026-10-13T05:08:51Z",
+    "executor": {
+      "provider": "claude-code",
+      "model": "claude-opus-5-5",
+      "effort": "high",
+      "session": "f49906af-be96-4080-a159-0586585c6205"
+    }
+  },
+  "updated_at": "2026-10-13T05:08:51Z"
 }

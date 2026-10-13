@@ -67,12 +67,12 @@ final class Trace
         if (! $this->enabled) {
             return;
         }
-        $this->record('contribution', 'observed', $component, detail: [
+        $this->record('contribution', 'observed', $component, null, [
             'source' => $item->source, 'origin' => $item->origin, 'role' => $item->role?->full(),
             'permission' => $item instanceof Grant ? $item->pattern->full() : null,
             'tenant' => $item->scope->tenant->key(), 'context' => $item->scope->context->key(),
             'expires_at' => $item->expiresAt?->format(DATE_ATOM), 'fields' => $item->fields(),
-        ], outcome: 'contribution');
+        ], 'contribution');
     }
 
     public function qualifying(Grant|RoleContribution $item): void

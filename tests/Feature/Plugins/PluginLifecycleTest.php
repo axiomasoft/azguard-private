@@ -10,6 +10,7 @@ use AzGuard\Panels\PanelRecipe;
 use AzGuard\Panels\PanelRegistry;
 use AzGuard\Plugins\Audit\AuditPlugin;
 use AzGuard\Plugins\PluginContext;
+use AzGuard\Sources\Database\DatabaseSource;
 use AzGuard\Tests\Fixtures\Authorization\RecordingRestriction;
 use AzGuard\Tests\Fixtures\Contracts\Broken\ForeignPlugins;
 use AzGuard\Tests\Fixtures\Panels\AdminPanel;
@@ -313,7 +314,8 @@ it('rejects the reserved azguard/ id prefix on a plugin class outside the packag
 it('accepts the azguard/ id prefix on a plugin class of the package and other prefixes outside it', function (): void {
     $foreign = ForeignPlugins::reservedId('acme/own');
 
-    [, , $registry] = PanelWorld::compile([AdminPanel::class => static fn (PanelBuilder $panel): PanelBuilder => $panel->plugins([
+    // The journal participant of the audit plugin needs the database writer.
+    [, , $registry] = PanelWorld::compile([AdminPanel::class => static fn (PanelBuilder $panel): PanelBuilder => $panel->permissions([DatabaseSource::make()])->plugins([
         AuditPlugin::make(), $foreign, ProbePlugin::make('azguard/probe'),
     ])]);
 

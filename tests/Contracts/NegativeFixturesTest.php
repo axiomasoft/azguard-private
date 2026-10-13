@@ -6,6 +6,7 @@ use AzGuard\Kernel\Decision\BeforeResult;
 use AzGuard\Testing\FakeSource;
 use AzGuard\Tests\Fixtures\Contracts\Broken\ColonScopeResolver;
 use AzGuard\Tests\Fixtures\Contracts\Broken\ColonSubjectResolver;
+use AzGuard\Tests\Fixtures\Contracts\Broken\CoreTableParticipant;
 use AzGuard\Tests\Fixtures\Contracts\Broken\CrossedSubjectResolver;
 use AzGuard\Tests\Fixtures\Contracts\Broken\DriftingIdPlugin;
 use AzGuard\Tests\Fixtures\Contracts\Broken\DriftingIdSource;
@@ -20,7 +21,9 @@ use AzGuard\Tests\Fixtures\Contracts\Broken\ForeignPlugins;
 use AzGuard\Tests\Fixtures\Contracts\Broken\GhostSubjectResolver;
 use AzGuard\Tests\Fixtures\Contracts\Broken\GlobalScopeResolver;
 use AzGuard\Tests\Fixtures\Contracts\Broken\InvalidIdSource;
+use AzGuard\Tests\Fixtures\Contracts\Broken\LeakyParticipant;
 use AzGuard\Tests\Fixtures\Contracts\Broken\LeakyPipe;
+use AzGuard\Tests\Fixtures\Contracts\Broken\OnceOnlyParticipant;
 use AzGuard\Tests\Fixtures\Contracts\Broken\OnePanelPlugin;
 use AzGuard\Tests\Fixtures\Contracts\Broken\OwnClockSource;
 use AzGuard\Tests\Fixtures\Contracts\Broken\PermissiveSubjectResolver;
@@ -33,6 +36,7 @@ use AzGuard\Tests\Fixtures\Contracts\Broken\ThrowingEvaluator;
 use AzGuard\Tests\Fixtures\Contracts\Broken\ThrowingRestriction;
 use AzGuard\Tests\Fixtures\Contracts\Broken\UnderstatedSource;
 use AzGuard\Tests\Fixtures\Contracts\Broken\WritingAfterHook;
+use AzGuard\Tests\Fixtures\Contracts\Broken\WritingAroundParticipant;
 use AzGuard\Tests\Fixtures\Contracts\Broken\WritingBeforeHook;
 use AzGuard\Tests\Fixtures\Contracts\Broken\WritingPipe;
 use AzGuard\Tests\Fixtures\Contracts\Broken\WritingRegisterPlugin;
@@ -43,8 +47,10 @@ use AzGuard\Tests\Fixtures\Contracts\GoodSubjectResolver;
 use AzGuard\Tests\Fixtures\Contracts\LabelPlugin;
 use AzGuard\Tests\Fixtures\Contracts\ObservingAfterHook;
 use AzGuard\Tests\Fixtures\Contracts\PassThroughPipe;
+use AzGuard\Tests\Fixtures\Contracts\ProbeRowsParticipant;
 use AzGuard\Tests\Fixtures\Contracts\Probes\EvaluatorProbe;
 use AzGuard\Tests\Fixtures\Contracts\Probes\HookProbe;
+use AzGuard\Tests\Fixtures\Contracts\Probes\ParticipantProbe;
 use AzGuard\Tests\Fixtures\Contracts\Probes\PluginProbe;
 use AzGuard\Tests\Fixtures\Contracts\Probes\RestrictionProbe;
 use AzGuard\Tests\Fixtures\Contracts\Probes\ScopeResolverProbe;
@@ -70,6 +76,10 @@ beforeEach(function (): void {
         $table->id();
         $table->string('note');
     });
+    Schema::create('azg_contract_rows', static function (Blueprint $table): void {
+        $table->id();
+        $table->string('note');
+    });
     app('db')->connection('secondary')->getSchemaBuilder()->create('contract_leak', static function (Blueprint $table): void {
         $table->id();
         $table->string('note');
@@ -78,6 +88,7 @@ beforeEach(function (): void {
     OnePanelPlugin::$panel = null;
     FlipFlopSource::$reads = 0;
     FlipFlopBeforeHook::$calls = 0;
+    OnceOnlyParticipant::$written = false;
 });
 
 it('fails the source suite on a source that breaks a guarantee and passes it on one that keeps it', function (string $method, Closure $broken, string $failure): void {
@@ -164,4 +175,14 @@ it('fails the evaluator suite on an evaluator that breaks a guarantee and passes
     'answers out of order' => ['evaluatorAnswersManyChecksLikeOneInTheirOrder', static fn () => new ReversingEvaluator, AssertionFailedError::class],
     'drops an answer' => ['evaluatorAnswersManyChecksLikeOneInTheirOrder', static fn () => new ShortEvaluator, AssertionFailedError::class],
     'throws on an ordinary request' => ['evaluatorDoesNotFailOnOrdinaryRequests', static fn () => new ThrowingEvaluator, AssertionFailedError::class],
+]);
+
+it('fails the participant suite on a participant that breaks a guarantee and passes it on one that keeps it', function (string $method, Closure $broken, string $failure): void {
+    (new ParticipantProbe(static fn () => new ProbeRowsParticipant))->run($method);
+    expect(fn () => (new ParticipantProbe($broken))->run($method))->toThrow($failure);
+})->with([
+    'claims a core table' => ['participantDeclaresItsOwnTables', static fn () => new CoreTableParticipant, AssertionFailedError::class],
+    'writes around its writer' => ['participantWritesOnlyThroughItsWriterWhileRecording', static fn () => new WritingAroundParticipant, AssertionFailedError::class],
+    'leaves a row after a rollback' => ['participantRowsRollBackWithTheOperation', static fn () => new LeakyParticipant, AssertionFailedError::class],
+    'skips the retried attempt' => ['participantRunsAgainOnARetryAndKeepsOnlyTheCommittedAttempt', static fn () => new OnceOnlyParticipant, AssertionFailedError::class],
 ]);

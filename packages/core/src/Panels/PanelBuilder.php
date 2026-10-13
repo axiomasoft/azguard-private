@@ -9,6 +9,7 @@ use AzGuard\Context\AssignmentScopeDeclaration;
 use AzGuard\Contracts\Authorization\AfterHook;
 use AzGuard\Contracts\Authorization\BeforeHook;
 use AzGuard\Contracts\Authorization\EvaluationContext;
+use AzGuard\Contracts\Changes\ChangeParticipant;
 use AzGuard\Contracts\Changes\ChangePipe;
 use AzGuard\Contracts\Plugins\Plugin;
 use AzGuard\Contracts\Scopes\AssignmentScopeResolver;
@@ -368,6 +369,29 @@ final class PanelBuilder
     public function changing(array $pipes): static
     {
         return $this->hooks(PanelRecipe::CHANGING, 'changing', $pipes);
+    }
+
+    /**
+     * Adds participants of the write operations: each appends rows to its own declared tables inside the transaction
+     * of an operation that changed something, in the order they are declared. Only a panel with the database writer
+     * takes participants.
+     *
+     * @param  list<ChangeParticipant|class-string<ChangeParticipant>>  $participants
+     *
+     * @throws DefinitionException
+     * @throws RegistryFrozenException
+     */
+    public function participants(array $participants): static
+    {
+        $participants = self::input($participants);
+
+        foreach ($participants as $participant) {
+            if (! $participant instanceof ChangeParticipant && (! is_string($participant) || ! is_subclass_of($participant, ChangeParticipant::class))) {
+                throw $this->invalid('participants() expects '.ChangeParticipant::class.' objects or class names, got '.self::describe($participant));
+            }
+        }
+
+        return $this->record(PanelRecipe::PARTICIPANTS, array_values($participants));
     }
 
     /**

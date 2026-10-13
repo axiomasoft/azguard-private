@@ -11,6 +11,7 @@ use AzGuard\Contracts\Authorization\AfterHook;
 use AzGuard\Contracts\Authorization\BeforeHook;
 use AzGuard\Contracts\Authorization\GrantCondition;
 use AzGuard\Contracts\Authorization\Restriction;
+use AzGuard\Contracts\Changes\ChangeParticipant;
 use AzGuard\Contracts\Changes\ChangePipe;
 use AzGuard\Contracts\Diagnostics\DoctorCheck;
 use AzGuard\Contracts\Plugins\Plugin;
@@ -65,6 +66,9 @@ final class PanelCompiler
     private const string PLUGIN_ID = '/\A[a-z0-9][a-z0-9_.-]*(\/[a-z0-9][a-z0-9_.-]*)?\z/';
 
     private const int PLUGIN_ID_BYTES = 128;
+
+    /** Base names of the authority tables only the core writer touches; no participant may declare one. */
+    private const array CORE_TABLES = ['permissions', 'role_grants', 'permission_grants', 'panel_state', 'subject_revisions', 'storage_state'];
 
     /**
      * @param  (Closure(): array<string, bool|int|string|null>)|null  $defaults  values of the `defaults` section
@@ -172,6 +176,7 @@ final class PanelCompiler
             scopeResolvers: [...$this->components($recipe, PanelRecipe::SCOPE_RESOLVERS, AssignmentScopeResolver::class), ...$this->configured('scopes', AssignmentScopeResolver::class)],
             resourceScopes: $this->resourceScopes($recipe),
             changingPipes: $this->slot($recipe, PanelRecipe::CHANGING, ChangePipe::class, 'handle'),
+            changeParticipants: $this->participants($recipe, $sources, $container),
             subjectDescriptors: $subjects,
             entryPermission: $this->entry($recipe),
             deniedResponse: $this->deniedResponse($recipe),
@@ -211,6 +216,84 @@ final class PanelCompiler
         ksort($options, SORT_STRING);
 
         return $options;
+    }
+
+    /**
+     * Participants of `participants()` as objects with the tables they declare. Only a panel with the core writer takes
+     * participants; a participant may not declare an authority table, and two participants of one panel may not
+     * declare the same table.
+     *
+     * @return list<array{participant: ChangeParticipant, tables: list<string>}>
+     *
+     * @throws DefinitionException
+     */
+    private function participants(PanelRecipe $recipe, ?PanelSources $sources, ?Container $container): array
+    {
+        $panel = $recipe->panelId();
+        $participants = $owners = [];
+
+        foreach ($recipe->layered(PanelRecipe::PARTICIPANTS) as $record) {
+            foreach (is_array($record['value']) ? $record['value'] : [] as $item) {
+                $where = 'Panel '.$panel.' participant '.self::describe($item).' from '.json_encode($record['origin']).': ';
+
+                if ($sources === null || ! $sources->writable()) {
+                    throw new DefinitionException($where.'participants need the database writer of the panel.');
+                }
+                $participant = $this->participant($where, $item, $container);
+                $tables = [];
+
+                foreach (self::declared($participant->tables()) as $table) {
+                    if (! is_string($table) || $table === '') {
+                        throw new DefinitionException($where.'tables() lists base names of tables, got '.self::describe($table).'.');
+                    }
+
+                    if (in_array($table, self::CORE_TABLES, true)) {
+                        throw new DefinitionException($where.'the table '.$table.' belongs to the core writer.');
+                    }
+
+                    if (isset($owners[$table])) {
+                        throw new DefinitionException($where.'the table '.$table.' is already declared by '.$owners[$table].'.');
+                    }
+                    $owners[$table] = $participant::class;
+                    $tables[] = $table;
+                }
+                $participants[] = ['participant' => $participant, 'tables' => $tables];
+            }
+        }
+
+        return $participants;
+    }
+
+    /**
+     * The tables as a participant returned them: the documented type is a promise of the implementation, not a fact.
+     *
+     * @param  array<mixed>  $tables
+     * @return array<mixed>
+     */
+    private static function declared(array $tables): array
+    {
+        return $tables;
+    }
+
+    /** @throws DefinitionException */
+    private function participant(string $where, mixed $item, ?Container $container): ChangeParticipant
+    {
+        if ($item instanceof ChangeParticipant) {
+            return $item;
+        }
+
+        if (! is_string($item) || ! is_subclass_of($item, ChangeParticipant::class)) {
+            throw new DefinitionException($where.'expects '.ChangeParticipant::class.' or its class name.');
+        }
+
+        try {
+            $participant = $container === null ? new $item : $container->make($item);
+        } catch (Throwable $error) {
+            throw new DefinitionException($where.'the participant cannot be created: '.$error->getMessage(), previous: $error);
+        }
+
+        return $participant instanceof ChangeParticipant ? $participant
+            : throw new DefinitionException($where.'the container did not build a '.ChangeParticipant::class.'.');
     }
 
     /**

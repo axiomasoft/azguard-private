@@ -4,7 +4,7 @@
         "reference": "Audit",
         "kind": "directory",
         "invariant": "I5",
-        "owner_phase": "P2"
+        "owner_phase": "P3"
     },
     {
         "file": "packages/core/src/Plugins/Audit",

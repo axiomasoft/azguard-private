@@ -32,7 +32,7 @@ final readonly class AccessPipeline
 
         if ($decision === null) {
             [$frame,$decision] = $this->authority->decide($request, $frame, $catalog, $definition, $trace);
-            $trace->record('authority', $decision->reason->value, outcome: $decision->allowed() ? 'pass' : 'deny');
+            $trace->record('authority', $decision->reason->value, null, null, [], $decision->allowed() ? 'pass' : 'deny');
         } else {
             foreach (['sources', 'superadmin', 'policy', 'authority'] as $stage) {
                 $trace->record($stage, 'skipped');
@@ -71,7 +71,7 @@ final readonly class AccessPipeline
         $restrictionDenial ??= $this->restrictions->validateKeys($frame, $restrictions, $trace);
 
         $decision = $denial ?? $this->boundary->decide($frame);
-        $trace->record('boundary', $decision?->reason->value ?? 'pass', outcome: $decision === null ? 'pass' : 'deny');
+        $trace->record('boundary', $decision?->reason->value ?? 'pass', null, null, [], $decision === null ? 'pass' : 'deny');
 
         if ($decision === null) {
             $decision = $this->before->decide($request, $frame, $trace);
@@ -103,7 +103,7 @@ final readonly class AccessPipeline
         $decision = $decision->allowed()
             ? Decision::allow($decision->reason, $frame->state(), $decision->scope, $decision->component, $decision->grants, $decision->message, $decision->status, $decision->code)
             : Decision::deny($decision->reason, $frame->state(), $decision->scope, $decision->component, $decision->message, $decision->status, $decision->code);
-        $trace->record('state', $confirmed ? 'confirmed' : 'source_error', detail: ['sources' => array_map(get_object_vars(...), $frame->sourceStates)], outcome: $confirmed ? 'pass' : 'error');
+        $trace->record('state', $confirmed ? 'confirmed' : 'source_error', null, null, ['sources' => array_map(get_object_vars(...), $frame->sourceStates)], $confirmed ? 'pass' : 'error');
         $this->after->observe($request, $frame, $decision, $trace);
 
         return $decision;

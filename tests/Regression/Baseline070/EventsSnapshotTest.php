@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use AzGuard\Changes\ChangeJournal;
+use AzGuard\Audit\Internal\JournalRow;
 use AzGuard\Changes\PermissionDetails;
 use AzGuard\Events\AccessEvent;
 use AzGuard\Events\EventType;
@@ -61,12 +61,12 @@ it('keeps the journal row of every event: its columns and the payload equal to t
     $rows = [];
 
     foreach (EventSamples::all() as $type => $event) {
-        $row = ChangeJournal::row($event);
+        $row = JournalRow::of($event);
 
         expect($row['payload'])->toBe($event->toArray());
         $rows[$type] = $row;
     }
-    [$actual, $stored] = FormatSnapshot::compare('audit-rows', ['columns' => ChangeJournal::COLUMNS, 'rows' => $rows]);
+    [$actual, $stored] = FormatSnapshot::compare('audit-rows', ['columns' => JournalRow::COLUMNS, 'rows' => $rows]);
 
     expect($actual)->toBe($stored);
 });
@@ -102,10 +102,10 @@ describe('the journal rows the Audit plugin writes', function (): void {
 
         $events = array_values(array_filter(EventWorld::events(), static fn (AccessEvent $event): bool => $event->type() !== EventType::AccessDecided));
         $written = array_map(static fn (array $row): array => [...array_map(static fn (mixed $value): ?string => $value === null ? null : (string) $value,
-            array_intersect_key($row, array_flip(ChangeJournal::COLUMNS))), 'payload' => baselineSortedKeys(json_decode((string) $row['payload'], true, flags: JSON_THROW_ON_ERROR))],
+            array_intersect_key($row, array_flip(JournalRow::COLUMNS))), 'payload' => baselineSortedKeys(json_decode((string) $row['payload'], true, flags: JSON_THROW_ON_ERROR))],
             EventWorld::auditRows());
         $expected = array_map(static function (AccessEvent $event): array {
-            $row = ChangeJournal::row($event);
+            $row = JournalRow::of($event);
 
             return [...array_map(static fn (mixed $value): ?string => $value === null ? null : (string) $value, array_diff_key($row, ['payload' => true])),
                 'payload' => baselineSortedKeys(json_decode(json_encode($row['payload'], JSON_THROW_ON_ERROR), true))];

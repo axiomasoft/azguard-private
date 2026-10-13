@@ -70,6 +70,8 @@ final class PanelRecipe
 
     public const string CHANGING = 'changing';
 
+    public const string PARTICIPANTS = 'participants';
+
     public const string GRANT_CONDITIONS = 'grant_conditions';
 
     public const string DOCTOR_CHECKS = 'doctor_checks';
