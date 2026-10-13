@@ -1,0 +1,21 @@
+### composer test:db -- pgsql --engines  (exit 0)
+> Composer\Config::disableProcessTimeout
+> @php bin/test-db.php 'pgsql' '--engines'
+[pgsql] php -d memory_limit=1G vendor/bin/pest --fail-on-skipped --group=engines
+Engine: pgsql PostgreSQL 16.15 on x86_64-pc-linux-musl, compiled by gcc (Alpine 15.2.0) 15.2.0, 64-bit
+{"tool":"pest","result":"passed","tests":71,"passed":71,"assertions":2670,"duration_ms":273871}
+
+### composer test:db -- mysql --engines  (exit 0)
+> Composer\Config::disableProcessTimeout
+> @php bin/test-db.php 'mysql' '--engines'
+[mysql] php -d memory_limit=1G vendor/bin/pest --fail-on-skipped --group=engines
+Engine: mysql 8.4.11
+{"tool":"pest","result":"passed","tests":71,"passed":71,"assertions":2670,"duration_ms":842836}
+
+### composer test:db -- mariadb --engines  (exit 0)
+> Composer\Config::disableProcessTimeout
+> @php bin/test-db.php 'mariadb' '--engines'
+[mariadb] php -d memory_limit=1G vendor/bin/pest --fail-on-skipped --group=engines
+Engine: mariadb 10.11.19-MariaDB-ubu2204
+{"tool":"pest","result":"passed","tests":71,"passed":71,"assertions":2728,"duration_ms":662345}
+
