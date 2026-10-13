@@ -52,7 +52,7 @@ final class AzGuardBaselineTest extends TestCase
         $this->actingAsWithPermissions($user, [StoredPermission::Refund], panel: 'stored');
         $this->assertDatabaseHas('azg_permission_grants', [
             'panel' => 'stored', 'permission' => 'orders.refund',
-            'subject_id' => $user->getKey(), 'actor_type' => 'azguard.system', 'actor_reason' => 'testing',
+            'subject_id' => $user->getKey(), 'actor_type' => 'azguard:system', 'actor_reason' => 'testing',
         ]);
         $this->get('/stored/refund')->assertOk()->assertSeeText('refunded');
 

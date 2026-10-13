@@ -11,7 +11,8 @@ use Closure;
 
 /**
  * The root sections of `config/azguard.php` that an owner other than core validates. A module registers its section
- * from its provider's `register()`; the configuration then accepts `azguard.<root>` and hands its value to the
+ * from its provider's `register()` after `$this->app->singletonIf(ConfigSections::class)` (the registry is shared only
+ * once bound, and a provider may register before core's); the configuration then accepts `azguard.<root>` and hands its value to the
  * owner's closure, and still rejects every root key nobody owns.
  *
  * Registration closes when the configuration is read for the first time: a section registered later would never be
