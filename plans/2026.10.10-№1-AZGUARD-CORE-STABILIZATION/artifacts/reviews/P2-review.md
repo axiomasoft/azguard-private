@@ -62,6 +62,27 @@ and do not block the phase.
 - Not run here (owner instruction): `composer test`, `composer test:types`, full `composer analyse`, drivers and
   engine suites — handed to the follow-up session together with the P2.14 acceptance re-run.
 
+## Checks run in the follow-up session
+
+Clean worktree at HEAD `abc937e6` (detached, `composer install` from the main `composer.lock`), PHP 8.4 via PATH shim,
+drivers on ports 25432/23306/23307. Owner working-tree edits were not part of the run. All green.
+
+| Check | Command | Result | Log |
+|---|---|---|---|
+| a | `composer test` | passed, 4734 tests, 399544 assertions | `plans/2026.10.10-№1-AZGUARD-CORE-STABILIZATION/artifacts/reviews/P2/P2.15/followup/log-a-test.txt` |
+| b | `composer test:types` | 99.9 % (min 98) | `plans/2026.10.10-№1-AZGUARD-CORE-STABILIZATION/artifacts/reviews/P2/P2.15/followup/log-b-types.txt` |
+| c | `composer analyse && lint:check && refactor:check && api:check` | phpstan 0 errors, pint, rector 0, api manifest clean | `plans/2026.10.10-№1-AZGUARD-CORE-STABILIZATION/artifacts/reviews/P2/P2.15/followup/log-c-static.txt` |
+| d-V1 | `pest tests/Arch/MigrationGuideTest.php tests/Arch/InvariantRegisterTest.php --fail-on-skipped` | 10/10 | `plans/2026.10.10-№1-AZGUARD-CORE-STABILIZATION/artifacts/reviews/P2/P2.15/followup/log-d-v1.txt` |
+| d-V2 | allowlists owner-P3 only (`php -r` from P2.14 V2) | exit 0 | `plans/2026.10.10-№1-AZGUARD-CORE-STABILIZATION/artifacts/reviews/P2/P2.15/followup/log-d-v2.txt` |
+| d-V4 | `pest tests/Arch --fail-on-skipped` | 166/166 | `plans/2026.10.10-№1-AZGUARD-CORE-STABILIZATION/artifacts/reviews/P2/P2.15/followup/log-d-v4.txt` |
+| d-V5 | `pest tests/Feature/Parity tests/Feature/InactiveCost tests/Regression/Baseline070 --fail-on-skipped` | 42/42 | `plans/2026.10.10-№1-AZGUARD-CORE-STABILIZATION/artifacts/reviews/P2/P2.15/followup/log-d-v5.txt` |
+| e-pgsql | `composer test:db -- pgsql --full --engines` | 68/68, 2656 assertions (PostgreSQL 16.15) | `plans/2026.10.10-№1-AZGUARD-CORE-STABILIZATION/artifacts/reviews/P2/P2.15/followup/log-e-pgsql.txt` |
+| e-mysql | `composer test:db -- mysql --full --engines` | 68/68, 2656 assertions (MySQL 8.4.11) | `plans/2026.10.10-№1-AZGUARD-CORE-STABILIZATION/artifacts/reviews/P2/P2.15/followup/log-e-mysql.txt` |
+| e-mariadb | `composer test:db -- mariadb --full --engines` | 68/68, 2714 assertions (MariaDB 10.11.19) | `plans/2026.10.10-№1-AZGUARD-CORE-STABILIZATION/artifacts/reviews/P2/P2.15/followup/log-e-mariadb.txt` |
+
+`composer test` includes `ScopeQueryTest`, `ChangeParticipantsTest` and `ParityPropertyTest`; the engine suites cover
+`tests/Engines/*`. No failures attributable to F1/F2; no code changes were needed in this session.
+
 ## Research for F1
 
 Query and answer: `artifacts/reviews/P2/P2.15/f1-perplexity-query.txt`, `f1-perplexity.md`. Sources: Cerbos
