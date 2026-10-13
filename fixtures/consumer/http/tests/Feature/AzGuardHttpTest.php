@@ -8,7 +8,7 @@ use App\Guards\Shop\Permissions\OrderPermission;
 use App\Http\Controllers\ShopOrderController;
 use App\Models\User;
 use AzGuard\Exceptions\MissingPermissionCheckException;
-use AzGuard\Laravel\Http\Middleware\CheckPermission;
+use AzGuard\Laravel\Internal\Http\Middleware\CheckPermission;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Routing\Attributes\Controllers\Middleware;
 use Illuminate\Support\Facades\Route;
