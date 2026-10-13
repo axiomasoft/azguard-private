@@ -1,0 +1,32 @@
+{
+    "$schema": "urn:swissknifeman:task:plan:check-evidence:v1",
+    "evidence_id": "PLAN1.P2.7.V1.2026-10-13T03:13:21Z",
+    "check_id": "V1",
+    "subject": "PLAN1.P2.7",
+    "procedure": {
+        "cmd": "php -d memory_limit=1G vendor/bin/pest tests/Feature/Scopes tests/Feature/Panels tests/Feature/Parity --fail-on-skipped",
+        "cwd": "."
+    },
+    "candidate": {
+        "head": "fed259a35625589bf576733fe1809068b1018c0c"
+    },
+    "exit": 0,
+    "environment": {
+        "platform": "Linux",
+        "php": "8.4.26 (PATH shim; system php is 8.3)"
+    },
+    "log": {
+        "path": "plans/2026.10.10-№1-AZGUARD-CORE-STABILIZATION/artifacts/evidence/P2.7/V1.log",
+        "sha256": "ef81b7e70067f3911e5dbbcd812d0e165b19de3d13d6a187795c8bb495e8c772"
+    },
+    "started_at": "2026-10-13T03:13:21Z",
+    "finished_at": "2026-10-13T03:14:39Z",
+    "producer": {
+        "kind": "executor",
+        "actor": {
+            "provider": "claude-code",
+            "model": "claude-sonnet-5-5",
+            "effort": "high"
+        }
+    }
+}
