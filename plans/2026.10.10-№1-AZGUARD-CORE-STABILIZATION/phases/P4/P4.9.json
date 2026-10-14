@@ -2,7 +2,7 @@
   "$schema": "urn:swissknifeman:task:plan:item:v1",
   "id": "P4.9",
   "title": "Review P4",
-  "status": "in_progress",
+  "status": "done_with_deviations",
   "summary": "An independent read-only review checks P4.1–P4.8 against the amended release gate and knowledge/p4-execution and records a GREEN or RED verdict with findings in artifacts/reviews/P4-review.md.",
   "why": "Owner requested a review of P4 (M17, D27). The freeze is the last point where a weak rule is cheap: a fresh reader catches comparator rules that let a break through (try one unlisted break per category), a release graph a tag can bypass, fixes that silently changed a frozen format, evidence from a different sha than C, and 0.x leftovers.",
   "scope": {
@@ -119,12 +119,35 @@
   },
   "result": {
     "started_at": "2026-10-14T19:11:41Z",
+    "finished_at": "2026-10-14T19:26:40Z",
     "executor": {
       "provider": "claude-code",
       "model": "claude-opus-5-5",
       "effort": "high",
       "session": "0e79e301-122c-4011-8b41-732402f96167"
-    }
+    },
+    "notes": "Review P4: Verdict GREEN after corrections (reviewed candidate C=3d789538 RED on R1). R1 medium: ContractWorld::rowCounts on Laravel 11 x PostgreSQL counted every schema (F2 fallback) - fixed in 2360df2b (ContractWorld + ContractKitRegressionTest, fixes.md F10), checked by php -l and pint only. R2 low: CompatibilityTest names v0.3.0/v0.7.0 as D26 requires but conventions item 3 / P4.1 V2 do not list it as an exception - plan amendment for the owner. Gate evidence, comparator (20 unlisted in-memory breaks, all rejected), release graph, fixes, tests diff since ebf36ad2, D24/D25, relocation and load checked: no other finding. The fix is after the freeze: owner decides between moving C (CI-PUSH, new pointer) and tagging C+1 with the fix in 1.0.1.",
+    "deviations": [
+      "Owner: 'прогоны не делай', 'только ревью и исправление кода и тесты': the review fixed R1 in packages/** and tests/** instead of staying read-only; no test/drill/qualification run (comparator breaks probed in memory instead of a throwaway clone). V2 evaluated with the owner WIP paths excluded by pathspec; the unfiltered diff hash equals the session-start hash."
+    ],
+    "checks": [
+      {
+        "id": "V1",
+        "exit": 0,
+        "at": "2026-10-14T19:26:40Z",
+        "evidence": "plans/2026.10.10-№1-AZGUARD-CORE-STABILIZATION/artifacts/evidence/P4.9/V1.json"
+      },
+      {
+        "id": "V2",
+        "exit": 0,
+        "at": "2026-10-14T19:26:40Z",
+        "evidence": "plans/2026.10.10-№1-AZGUARD-CORE-STABILIZATION/artifacts/evidence/P4.9/V2.json"
+      }
+    ],
+    "evidence": [
+      "plans/2026.10.10-№1-AZGUARD-CORE-STABILIZATION/artifacts/evidence/P4.9/V1.json",
+      "plans/2026.10.10-№1-AZGUARD-CORE-STABILIZATION/artifacts/evidence/P4.9/V2.json"
+    ]
   },
-  "updated_at": "2026-10-14T19:11:41Z"
+  "updated_at": "2026-10-14T19:26:40Z"
 }

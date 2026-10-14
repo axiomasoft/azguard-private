@@ -1,0 +1,23 @@
+{
+  "$schema": "urn:swissknifeman:task:plan:check-evidence:v1",
+  "evidence_id": "PLAN1.P4.9.V2",
+  "check_id": "V2",
+  "subject": "PLAN1.P4.9",
+  "procedure": {
+    "cmd": "git diff --quiet HEAD -- packages tests bin docs .github compatibility.json composer.json ':!.github/workflows/tests-nightly.yml' ':!bin/test-db.php' ':!tests/Feature/Authorization/Batch/DecideManyParityTest.php' ':!tests/Feature/Gate/GateParityTest.php' ':!tests/Feature/Visibility/ParityPropertyTest.php' ':!tests/Fixtures/Authorization/ScenarioGenerator.php' ':!tests/Fixtures/Testing/KitCase.php' ':!tests/README.md'",
+    "cwd": "."
+  },
+  "candidate": {
+    "head": "2360df2bb54b1f0f8da3eb9d081f49a463a1e3c8"
+  },
+  "started_at": "2026-10-14T19:26:28Z",
+  "finished_at": "2026-10-14T19:26:28Z",
+  "exit": 0,
+  "log": {
+    "path": "plans/2026.10.10-№1-AZGUARD-CORE-STABILIZATION/artifacts/evidence/P4.9/V2.log",
+    "sha256": "168c1c6e46476a2e434612a98c46d1742d9dc704c2a6c011739000e969d20f80"
+  },
+  "producer": {
+    "kind": "executor"
+  }
+}

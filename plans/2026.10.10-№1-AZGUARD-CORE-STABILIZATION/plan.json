@@ -3,9 +3,9 @@
   "id": "2026.10.10-№1-AZGUARD-CORE-STABILIZATION",
   "short_id": "PLAN1",
   "title": "Plan №1 — AzGuard modular core and API stabilization for 1.0",
-  "status": "active",
+  "status": "done",
   "created": "2026-10-10",
-  "updated_at": "2026-10-10T10:58:42Z",
+  "updated_at": "2026-10-14T19:26:40Z",
   "repository": "axiomasoft/azguard-private",
   "owner": "repository owner",
   "authoring": {
