@@ -27,12 +27,17 @@ final class DoctorWorld
     /**
      * The doctor redacts every database password wherever it occurs; the password of the server test databases is
      * `azguard`, which would also be cut out of `azguard.storages…` or `azguard.can:…` in a message. The connection
-     * is opened first, then the password leaves the configuration the doctor reads.
+     * is opened first, then the password leaves the configuration the doctor reads: of every configured connection,
+     * because the skeleton connections `mysql` and `mariadb` take `MYSQL_PASSWORD` and `MARIADB_PASSWORD` from the
+     * environment, which CI sets to the same value for every driver job.
      */
     public static function withoutPasswordInMessages(): void
     {
         DB::connection()->getPdo();
-        config(['database.connections.testbench.password' => null, 'database.connections.secondary.password' => null]);
+
+        foreach (array_keys((array) config('database.connections')) as $name) {
+            config(["database.connections.{$name}.password" => null]);
+        }
     }
 
     /**

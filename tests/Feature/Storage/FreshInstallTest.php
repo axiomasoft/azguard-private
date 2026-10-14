@@ -126,16 +126,7 @@ it('installs the journal of the default storage from the published audit migrati
     Artisan::call('migrate');
     freshAuditedPanel();
 
-    $diag = [];
-    $walk = function (array $values, string $path, bool $secret) use (&$walk, &$diag): void {
-        foreach ($values as $name => $value) {
-            $named = $secret || preg_match('/pass(word)?|secret|token|dsn|url|credential|api[_-]?key|private/i', (string) $name) === 1;
-            is_array($value) ? $walk($value, $path.'.'.$name, $named) : ($named && is_string($value) && str_contains($value, 'azguard') ? $diag[] = $path.'.'.$name.'='.$value : null);
-        }
-    };
-    $walk((array) config('database.connections'), 'database.connections', false);
-    $walk((array) config('azguard'), 'azguard', false);
-    expect(['DIAG' => $diag, 'findings' => freshFindings('audit.table')])->toBe(['DIAG' => [], 'findings' => ['audit.table error The storage default of panel test has no audit_log table: run php artisan vendor:publish --tag=azguard-audit-migrations and php artisan migrate.']]);
+    expect(freshFindings('audit.table'))->toBe(['audit.table error The storage default of panel test has no audit_log table: run php artisan vendor:publish --tag=azguard-audit-migrations and php artisan migrate.']);
 
     freshPublish('azguard-audit-migrations');
 
