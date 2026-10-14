@@ -21,7 +21,7 @@ declare(strict_types=1);
 
 const COMPAT_SCHEMA = 'urn:azguard:compatibility:1';
 
-/** The stable tag form `auto` accepts: major >= 1, no pre-release, so v0.x tags never qualify. */
+/** The stable tag form `auto` accepts: major >= 1 and no pre-release suffix. */
 const COMPAT_STABLE_TAG = '/^v[1-9][0-9]*\.[0-9]+\.[0-9]+$/';
 
 /** Columns that identify the objects of a list in a format artifact, in order of preference. */

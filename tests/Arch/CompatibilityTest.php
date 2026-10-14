@@ -529,7 +529,7 @@ it('skips a baseline artifact that did not exist yet, but requires the ones its 
 it('selects the newest stable tag of major 1 or later', function (array $tags, ?string $expected): void {
     expect(compatSelectTag($tags))->toBe($expected);
 })->with([
-    'only 0.x tags' => [['v0.3.0', 'v0.7.0'], null],
+    'only major-zero tags' => [['v0.3.0', 'v0.7.0'], null],
     'pre-releases' => [['v0.7.0', 'v1.0.0-rc.1', 'v1.0.0-beta'], null],
     'no tags' => [[], null],
     'versions, not strings' => [['v0.7.0', 'v1.0.0', 'v1.2.0', 'v1.10.0', 'v2.0.0-rc.1'], 'v1.10.0'],
