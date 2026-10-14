@@ -1,0 +1,18 @@
+# P4.5 V2
+# cmd: bash bin/test-compat-baseline-guard.sh
+# cwd: /home/vostrikov/projects/packages/azguard
+# HEAD: 70c5d153d408670015fe646e29761472d0b4e91e
+# php: 8.4 (PATH shim; system php is 8.3)
+# started: 2026-10-14T12:30:13Z
+ok: no pointer change, no labels (main moved the pointer after the branch point) (exit 0)
+ok: no pointer change, other labels (exit 0)
+ok: pointer change with the label (exit 0)
+ok: pointer change without labels (exit 1)
+ok: pointer change with similar labels only (exit 1)
+ok: malformed labels (exit 2)
+ok: labels not a list (exit 2)
+ok: labels not names (exit 2)
+ok: unknown head ref (exit 2)
+ok: missing argument (exit 2)
+# exit: 0
+# finished: 2026-10-14T12:30:13Z

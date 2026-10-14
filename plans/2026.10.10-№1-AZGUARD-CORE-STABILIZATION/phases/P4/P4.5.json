@@ -2,7 +2,7 @@
   "$schema": "urn:swissknifeman:task:plan:item:v1",
   "id": "P4.5",
   "title": "Blocking compatibility CI and release gating that a tag cannot bypass",
-  "status": "in_progress",
+  "status": "done_with_deviations",
   "summary": "Adds `compatibility.yml` (push/PR/workflow_call: api:check, api:compat with full history and tags, PR baseline guard by label `compat-baseline`), gives tests, static-analysis, code-style, docs and tests-nightly a `workflow_call` trigger, makes release.yml call all of them plus validate (with the relocation rehearsal) before split and release, adds the rehearsal to the tests.yml consumer job, pins the graph in `tests/Arch/ReleaseWorkflowTest.php`, and documents baseline and gating in RELEASING.md.",
   "why": "Conditions 9 and 10: today release.yml re-runs only analyse, style, SQLite tests, extended and the consumer archives — no DB lanes, engines, replica, Redis, PHP/Laravel matrix, type coverage, coverage, docs or compatibility — so a tag can ship what the matrix never qualified; and nothing compares with a baseline. Hard risks: called workflows cancelling each other through the tag ref concurrency group; PR label text interpolated into a shell (zizmor template injection); a shallow checkout without tags turning `--against=auto` into 'no baseline'; continue-on-error hiding a failure; the docs deploy job running on a call.",
   "scope": {
@@ -218,12 +218,57 @@
   },
   "result": {
     "started_at": "2026-10-14T11:12:50Z",
+    "finished_at": "2026-10-14T12:33:41Z",
     "executor": {
       "provider": "claude-code",
       "model": "claude-opus-5-5",
       "effort": "high",
       "session": "08eaf266-671e-4e64-bc8a-e9019ea4371d"
-    }
+    },
+    "notes": "Grok 4.7 review round1: no P4.5 findings. V3 is the same Arch run as P4.3 V4 (HEAD unchanged). compatibility.yml also triggers on labeled/unlabeled; called workflows get no secrets (Codecov upload tokenless on a tag call, existing continue-on-error).",
+    "deviations": [
+      "docs.yml deploy and the Pages upload run for push OR workflow_dispatch on main (not only push): the manual dispatch deploy existed before; in a call from release.yml the event is the tag push with a tag ref, so a call never deploys. release.yml grants the docs call pages: write and id-token: write because GitHub refuses a called workflow whose skipped job requests more permissions than the caller grants; ReleaseWorkflowTest allows write only for release (contents) and docs (pages, id-token).",
+      "V5 (zizmor, impact kind) not run: no pipx, uvx or zizmor on the host; the proof is the CI Zizmor job (P4.8)."
+    ],
+    "checks": [
+      {
+        "id": "V1",
+        "exit": 0,
+        "at": "2026-10-14T12:33:41Z",
+        "evidence": "plans/2026.10.10-№1-AZGUARD-CORE-STABILIZATION/artifacts/evidence/P4.5/V1.json"
+      },
+      {
+        "id": "V2",
+        "exit": 0,
+        "at": "2026-10-14T12:33:41Z",
+        "evidence": "plans/2026.10.10-№1-AZGUARD-CORE-STABILIZATION/artifacts/evidence/P4.5/V2.json"
+      },
+      {
+        "id": "V3",
+        "exit": 0,
+        "at": "2026-10-14T12:33:41Z",
+        "evidence": "plans/2026.10.10-№1-AZGUARD-CORE-STABILIZATION/artifacts/evidence/P4.5/V3.json"
+      },
+      {
+        "id": "V4",
+        "exit": 0,
+        "at": "2026-10-14T12:33:41Z",
+        "evidence": "plans/2026.10.10-№1-AZGUARD-CORE-STABILIZATION/artifacts/evidence/P4.5/V4.json"
+      },
+      {
+        "id": "V5",
+        "exit": 127,
+        "at": "2026-10-14T12:33:41Z",
+        "evidence": "plans/2026.10.10-№1-AZGUARD-CORE-STABILIZATION/artifacts/evidence/P4.5/V5.json"
+      }
+    ],
+    "evidence": [
+      "plans/2026.10.10-№1-AZGUARD-CORE-STABILIZATION/artifacts/evidence/P4.5/V1.json",
+      "plans/2026.10.10-№1-AZGUARD-CORE-STABILIZATION/artifacts/evidence/P4.5/V2.json",
+      "plans/2026.10.10-№1-AZGUARD-CORE-STABILIZATION/artifacts/evidence/P4.5/V3.json",
+      "plans/2026.10.10-№1-AZGUARD-CORE-STABILIZATION/artifacts/evidence/P4.5/V4.json",
+      "plans/2026.10.10-№1-AZGUARD-CORE-STABILIZATION/artifacts/evidence/P4.5/V5.json"
+    ]
   },
-  "updated_at": "2026-10-14T11:12:50Z"
+  "updated_at": "2026-10-14T12:33:41Z"
 }

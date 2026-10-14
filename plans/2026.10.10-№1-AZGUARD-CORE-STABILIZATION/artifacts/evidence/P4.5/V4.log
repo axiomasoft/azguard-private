@@ -1,0 +1,9 @@
+# P4.5 V4
+# cmd: bash bin/test-release-preflight.sh
+# cwd: /home/vostrikov/projects/packages/azguard
+# HEAD: 70c5d153d408670015fe646e29761472d0b4e91e
+# php: 8.4 (PATH shim; system php is 8.3)
+# started: 2026-10-14T12:30:13Z
+release-preflight fixtures: PASS
+# exit: 0
+# finished: 2026-10-14T12:30:13Z
