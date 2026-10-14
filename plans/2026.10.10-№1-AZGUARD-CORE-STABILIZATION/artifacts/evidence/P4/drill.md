@@ -14,3 +14,7 @@
 Baseline `HEAD` = `70c5d153d408670015fe646e29761472d0b4e91e` tagged v1.0.0 in a throwaway clone; main repository tags unchanged.
 
 Targets: the named examples of p4-execution#breaks fit (Plugin is `spi-implement` interface, `AzGuard\AzGuard` is a final `api` class with `namedArguments` true, `TenantMode` is `enum: closed`, `GrantFilter` is a final `api` class). D1 also adds `boot()` to the package's own Plugin implementers (AuditPlugin, ScopesPlugin, ObservedPlugin) so that the manifest generator can load them; D4 renames `role` in `RoleGranted::data()`, which the writer-mode run turns into the `events` and `audit-rows` fixtures; D5 renames the core migration file and regenerates `resources`.
+
+## Against the frozen candidate (P4.8)
+
+`bash bin/compat-drill.sh --baseline=3d789538c65710ff77cc13bfc3109312b7f9e455` with `compatibility.json` `candidate` = C: exit 0, D1–D5 rejected with their rule ids, D6 accepted, main repository tags unchanged (logs/P48-V13-drill.log). `composer api:compat`: `compatible with baseline 3d789538c65710ff77cc13bfc3109312b7f9e455: 0 addition(s)` (logs/P48-V13-api-compat.log).

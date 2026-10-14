@@ -11,3 +11,14 @@ Failing run: GitHub Actions on `feat/1.0-candidate` at `93c98eef` (workflow runs
 | F5 | Tests, P8.3 × L11 (lowest, stable) at d196325a: `Tests\Feature\Laravel\OptimizeTest`: `There are no commands defined in the "icons" namespace` | `ServiceProvider::$optimizeCommands` is static; a task registered by a provider an earlier test booted (blade-icons through Filament) stays in the list, and `optimize --except` only excluded the framework tasks. Depends on the random test order; reproduced by registering a foreign task (old test fails, new passes) | `tests/Feature/Laravel/OptimizeTest.php` | f67c6962 |
 
 Not defects of the code: Zizmor and CodeQL run only on `main` and by `workflow_dispatch`; they are started with `gh workflow run --ref feat/1.0-candidate` on the final sha.
+
+# P4.8 demonstrated fixes
+
+| id | failing check (command or CI job + log line) | root cause | file:line | fix commit |
+|:--|:--|:--|:--|:--|
+| F6 | Tests, every PHP/Laravel job and Coverage at b0fb0b8c (run 38600790831): `RISKY Tests\Arch\InvariantRegisterTest > it states for every build entry…` — `This test did not perform any assertions`, `1 risky`, exit 1 | With every register entry `status: exists` (V12) the loop of the test had no `build` entry and made no assertion; CI fails on risky tests | `tests/Arch/InvariantRegisterTest.php` (the test now asserts that no entry is `build` or non-blocking) | 3d789538 |
+| F7 | Grok 4.7 review round 1 (artifacts/reviews/P4/P4.8/round1/grok-4.7.md, F4), reproduced by reading `compatBaseline()` and by the new test `compares the commit that carries the first stable tag with the candidate, not with itself` (fails on b0fb0b8c~1, passes after) | `--against=auto` took the newest stable tag merged into HEAD, including a tag on HEAD: the `release.yml` run on `v1.0.0` would compare the tagged tree with itself | `bin/api-compat.php` (`compatSelectTag` exclusion, `compatBaseline`) | b0fb0b8c |
+| F8 | Grok review F1 + V11: Zizmor and CodeQL do not run on a `feat/**` push (`on.push.branches: [main]`; Zizmor additionally `paths:`), so `gh run list --commit C` lacked both | triggers written for `main` only | `.github/workflows/codeql.yml:4`, `.github/workflows/zizmor.yml:4` | b0fb0b8c |
+| F9 | Grok review F5: RELEASING.md steps tag "that commit" without the pointer commit C+1 | documentation gap | `RELEASING.md` step 3/4 | b0fb0b8c |
+
+Not changed: Grok F2 — `zizmor.yml` stays advisory (`|| true`): zizmor 1.30.1 reports 122 findings (54 high, mostly unpinned `uses:`) on `.github/workflows`, so a failing job would be red permanently; the workflow says so and a green Zizmor run is evidence that the audit ran. Grok F3 — I22 `blocking: now` is the smoke suite (`LoadBenchSmokeTest`); the comparison with the recorded reference needs the same host and is a RELEASING.md checklist step; `InvariantRegisterTest` documents it.

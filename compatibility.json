@@ -1,6 +1,6 @@
 {
     "schema": "urn:azguard:compatibility:1",
-    "candidate": "2d7ff14d113053707e653e00bd8f21bbf1b27079",
+    "candidate": "3d789538c65710ff77cc13bfc3109312b7f9e455",
     "artifacts": [
         {
             "id": "api.core",

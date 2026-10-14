@@ -20,3 +20,24 @@ Final sha: `4a429068883a2e47642cb12272445beb976081e5` (pushed to origin `feat/1.
 | V12 | 4a429068883a2e47642cb12272445beb976081e5 | CI evidence ci-runs-4a429068883a2e47642cb12272445beb976081e5.json | 0 | Tests, Static Analysis, Code Style, Zizmor, CodeQL, Tests (nightly) succeeded | logs/V12.log |
 
 Zizmor, CodeQL and Tests (nightly) were started with `gh workflow run --ref feat/1.0-candidate` (they do not run on a feat/** push). The failures that came up and their fixes are in fixes.md (F1–F5).
+
+# P4.8 qualification of the candidate
+
+Candidate C = `3d789538c65710ff77cc13bfc3109312b7f9e455` (pushed to origin `feat/1.0-candidate`; fast-forward pushes only). The first C (b0fb0b8c) failed Tests on F6 (fixes.md); the final C is the fix commit 3d789538. No production code (`packages/**`, `bench/**`) changed after the last P4.6 commit 8c39e224 (`git diff --name-only 8c39e224 C -- packages bench` is empty), so the P4.6 bench reference stays valid.
+
+Owner instruction in the session: no local test or long runs; the evidence is GitHub Actions on C. The main checkout carries owner WIP, and a worktree with the shared vendor autoloads the main tree's packages (V1/V2 attempts failed for that environmental reason, logs deleted), so local V1, V2, V4–V9 are replaced by the same commands' CI jobs, as in P4.2.
+
+| check | sha | evidence | result |
+|:--|:--|:--|:--|
+| V1 tests/Arch | C | Tests run 38603960397, jobs P8.3/P8.4/P8.5 × L11–L13 (full pest incl. tests/Arch, fail-on-skipped) | 15 matrix jobs success |
+| V2 Parity/InactiveCost/Regression | C | same Tests run (part of the full suite) | success |
+| V3 analyse, lint, refactor, api:check | C | Static Analysis run 38603960357 and Code Style run 38603960149 success; local `composer analyse && lint:check && refactor:check && api:check` exit 0 (logs/P48-V3.log) | success |
+| V4 types, coverage | C | Tests run job Coverage success (4918 tests, `--coverage --min=85`); the type-coverage gate is the Static Analysis step `pest --type-coverage --min=98` | success |
+| V5 composer test | C | Tests run, P8.4 jobs | success |
+| V6 DB lanes | C | Tests run: DB lane pgsql/mysql/mariadb × L12/L13 (6 jobs) | success |
+| V7 engines | C | Tests run: step "Engine qualification without skips" of the six DB lane jobs; Tests (nightly) run 38604026382 (all parity seeds on pgsql, mysql, mariadb, extended scale tests) | success |
+| V8 replica/redis/extended | C | Tests run: "PostgreSQL · authority replica", "Redis · cross-process cache"; nightly "Extended · scale tests" | success |
+| V9 consumer archives | C | Tests run: "Consumer fixture · built archives" (core, core+Filament, core-only, relocated-audit) | success |
+| V10 docs gates, release-preflight and guard tests | C | local `composer docs:language && docs:php && bash bin/test-release-preflight.sh && bash bin/test-compat-baseline-guard.sh` exit 0 (logs/P48-V10.log) | success |
+| V11 CI | C | ci-runs-3d789538c65710ff77cc13bfc3109312b7f9e455.json: Tests, Static Analysis, Code Style, Zizmor, CodeQL, Compatibility, Tests (nightly) success | exit 0 |
+| V12 invariants | C | python check of tests/Arch/invariants.json | exit 0 |

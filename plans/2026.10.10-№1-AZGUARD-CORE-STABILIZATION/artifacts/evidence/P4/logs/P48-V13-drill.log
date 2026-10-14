@@ -1,0 +1,14 @@
+D1 ok: exit 1 implement.method_added (method boot() added to the spi-implement interface AzGuard\Contracts\Plugins\Plugin)
+    D1 implement.method_added api.core AzGuard\Contracts\Plugins\Plugin::boot(): absent -> public boot(): void
+D2 ok: exit 1 parameter.renamed (parameter $subject of AzGuard\AzGuard::check() renamed to $who)
+    D2 parameter.renamed api.core AzGuard\AzGuard::check()$subject: subject -> who
+    D2 facade.changed api.core facade/check: public check(Illuminate\Database\Eloquent\Model|Illuminate\Contracts\Auth\Authenticatable|AzGuard\Kernel\Identity\SubjectRef $subject, UnitEnum|string $permi... -> public check(Illuminate\Database\Eloquent\Model|Illuminate\Contracts\Auth\Authenticatable|AzGuard\Kernel\Identity\SubjectRef $who, UnitEnum|string $permissio...
+D3 ok: exit 1 enum.closed_case_added (case Optional added to the closed enum AzGuard\Tenancy\TenantMode)
+    D3 enum.closed_case_added api.core AzGuard\Tenancy\TenantMode::Optional: absent -> optional
+D4 ok: exit 1 format.removed (payload key role of role.granted renamed to role_key)
+    D4 format.removed audit-rows rows/role.granted/payload/role: crm:analyst -> absent
+    D4 format.removed events events/role.granted/data/role: role -> absent
+D5 ok: exit 1 format.removed (core migration 2026_10_01_000000_create_azguard_storage renamed)
+    D5 format.removed resources core_migrations/basenames/2026_10_01_000000_create_azguard_storage: 2026_10_01_000000_create_azguard_storage -> absent
+D6 ok: exit 0 - (public method isUnbounded() added to the final api class AzGuard\Changes\GrantFilter)
+main repository tags unchanged
