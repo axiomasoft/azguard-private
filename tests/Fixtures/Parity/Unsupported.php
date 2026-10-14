@@ -6,7 +6,7 @@ namespace AzGuard\Tests\Fixtures\Parity;
 
 /**
  * A path that cannot answer a case exactly, with its stable reason. It is never agreement: the case leaves the
- * equality count and the ledger records it against `unsupported-0.7.0.json`.
+ * equality count and the ledger records it against `unsupported.json`.
  */
 final readonly class Unsupported
 {

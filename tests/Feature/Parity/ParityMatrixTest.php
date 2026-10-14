@@ -10,13 +10,13 @@ use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Support\Carbon;
 
 /*
- * I9 parity matrix on the unchanged 0.7.0 code (PLAN1 P1.3): scalar, batch and SQL visibility agree for every
+ * I9 parity matrix (PLAN1 P1.3): scalar, batch and SQL visibility agree for every
  * supported decision, and directory eligibility equals write admission, over the CRM stand with expiry, NULL columns,
  * tenant ownership, global/scoped roles, tenant-wide rows, Audit on/off, two scoped panels on one storage and a panel
  * without a scope declaration (ParityWorld). The matrix compares paths with each other, never with hand-written
  * verdicts; an unsupported path is recorded, never counted as agreement, and the set is frozen in
- * tests/Fixtures/Parity/unsupported-0.7.0.json. An I9 disagreement is a finding for the owner: the ones 0.7.0 has
- * are logged in the plan and listed by finding in tests/Fixtures/Parity/i9-findings-0.7.0.json, and any other one fails.
+ * tests/Fixtures/Parity/unsupported.json. An I9 disagreement is a finding for the owner: the ones the code has
+ * are logged in the plan and listed by finding in tests/Fixtures/Parity/i9-findings.json, and any other one fails.
  */
 
 beforeEach(fn () => CrmWorld::seed());

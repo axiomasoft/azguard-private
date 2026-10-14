@@ -2,7 +2,7 @@
 
 ## Supported Versions
 
-AzGuard is pre-1.0. Security fixes land on the latest `0.x` release and `main`.
+Security fixes land on the latest `1.x` release and `main`.
 
 ## Reporting a Vulnerability
 

@@ -1,17 +1,14 @@
 # AzGuard — Development
 
-## State of 0.7.0
+## State of 1.0
 
-This monorepo holds AzGuard 0.7.0, the first public release. The API may change before 1.0. The 0.3 code is not part of any build.
+This monorepo holds AzGuard 1.0, the first public release.
 
 | Path | What it is |
 |---|---|
 | `packages/core` | `axiomasoft/azguard`, namespace `AzGuard\` (the core) |
 | `packages/filament` | `axiomasoft/azguard-filament`, namespace `AzGuard\Filament\` |
 | `tests/` | Pest suites `Arch`, `Unit`, `Feature`, `Regression` on Orchestra Testbench |
-
-The 0.3 reference tree was removed; read it with `git show 491980a:legacy/0.3/<path>`. The 0.3 `context` package
-is not recreated; its behavior is part of the core package.
 
 ## Local development
 
@@ -62,8 +59,8 @@ lane; [tests/README.md](tests/README.md) has the zone map and the lane rules.
 
 ## Optional mutation testing
 
-The owner has deferred mutation testing while the API is unstable before 1.0. Mutation is not an
-acceptance or release gate for 0.7.0 and is excluded from `composer check`. The workflow runs only via
+The owner has deferred mutation testing. Mutation is not an
+acceptance or release gate for 1.0 and is excluded from `composer check`. The workflow runs only via
 `workflow_dispatch`; `composer mutate`, `composer mutate:core` and `composer mutate:filament` remain
 available with their existing thresholds and fail on errors. Further validation of the existing
 mutation-runner compatibility patch is a separate task.
@@ -193,7 +190,7 @@ is a hard failure, not a silent pass.
   classes with stable keys declared by `#[Role]` or `key()`.
 - Role definitions live in the panel catalog. The database stores assignments
   in `role_grants`, partitioned by panel, tenant, subject, scope and origin;
-  there is no role-definition table or DB-only role in 0.7.0.
+  there is no role-definition table or DB-only role.
 
 ## Git workflow
 

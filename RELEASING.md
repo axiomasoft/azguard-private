@@ -19,8 +19,8 @@ with a user-visible change edits `[Unreleased]`; the release moves it under the 
 
 ## Versioning: lockstep
 
-0.7.0 is the first public release. The API may change before 1.0; during 0.x, a minor release
-may include breaking changes. Mutation testing is deferred by the owner and does not block 0.7.0.
+1.0.0 is the first public release. From 1.0, versions follow SemVer: a breaking change of a supported contract bumps
+the major version of both packages. Mutation testing is deferred by the owner and does not block 1.0.0.
 
 Both packages share **one version**. A release tags the monorepo and
 splits the same tag into every package repo, so `azguard` and
@@ -29,7 +29,7 @@ splits the same tag into every package repo, so `azguard` and
 Consequences:
 
 - The Filament package requires the core as `"axiomasoft/azguard": "self.version"`.
-- After 1.0, a breaking change in any package bumps the major for both.
+- A breaking change in any package bumps the major for both.
 - Never tag a single package independently — always tag the monorepo.
 
 The package `composer.json` files intentionally carry **no `version` field**:
@@ -55,7 +55,7 @@ Composer derives the version from the git tag the split action pushes.
    before making the candidate commit.
 3. Verify the candidate tree read-only:
    ```bash
-   bash bin/release-preflight.sh 0.7.0 HEAD
+   bash bin/release-preflight.sh 1.0.0 HEAD
    ```
    The script reads `git show REF:CHANGELOG.md`; a working-tree-only edit fails.
    Run `bash bin/test-release-preflight.sh` for isolated matching, missing,
@@ -63,8 +63,8 @@ Composer derives the version from the git tag the split action pushes.
 4. After explicit owner approval, create and push an annotated tag from that
    commit:
    ```bash
-   git tag -a v0.7.0 -m "AzGuard 0.7.0"
-   git push origin v0.7.0
+   git tag -a v1.0.0 -m "AzGuard 1.0.0"
+   git push origin v1.0.0
    ```
 5. CI takes over:
    - **`release.yml`** repeats `release-preflight` on the tagged commit, validates
@@ -77,9 +77,9 @@ Composer derives the version from the git tag the split action pushes.
 There is **no** post-tag workflow that commits `CHANGELOG.md` back to `main`; the
 tagged commit must already contain the version section.
 
-Local resolution of the `self.version` and `^0.7` constraints between packages is handled by the
+Local resolution of the `self.version` and `^1.0` constraints between packages is handled by the
 `versions` map in the root `composer.json` path repository — keep it in sync with
-the current release when bumping (for 0.7.0, both aliases are `0.7.x-dev`).
+the current release when bumping (for 1.0.0, both aliases are `1.0.x-dev`).
 
 ## Split and Packagist status — 2026-10-10
 

@@ -68,7 +68,6 @@ const sidebar = [
   {
     text: 'More',
     items: [
-      { text: 'Upgrading', link: '/upgrade' },
       { text: 'Comparison', link: '/comparison' },
     ],
   },

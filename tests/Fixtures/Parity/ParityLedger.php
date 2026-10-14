@@ -10,22 +10,22 @@ use RuntimeException;
 /**
  * The result ledger of the matrix: every path verdict per case. A case agrees when every path answers and all answers
  * are equal; a case with an unsupported path is never counted as agreement, its answering paths must still agree,
- * and its unsupported paths are compared with `unsupported-0.7.0.json`.
+ * and its unsupported paths are compared with `unsupported.json`.
  *
  * The snapshot is the set itself, without loss: per reason and group (one list query or directory search), the
  * unsupported paths, the seeds and the members (clients, contexts). Seeds with the same paths and members share one
  * line. A new unsupported case fails, and a case that became supported fails until it is deleted from the snapshot.
  * It is rewritten only in writer mode, `AZGUARD_FORMATS_WRITE=1`, like the other baseline fixtures (D16).
  *
- * A disagreement is an I9 finding. The ones 0.7.0 has are reported to the owner in the plan log and listed, by
- * finding, in the hand-written `i9-findings-0.7.0.json`; the matrix fails on any other disagreement and on a listed
+ * A disagreement is an I9 finding. The ones the code has are reported to the owner in the plan log and listed, by
+ * finding, in the hand-written `i9-findings.json`; the matrix fails on any other disagreement and on a listed
  * one that no longer occurs. That file is never generated.
  */
 final class ParityLedger
 {
-    public const string SNAPSHOT = __DIR__.'/unsupported-0.7.0.json';
+    public const string SNAPSHOT = __DIR__.'/unsupported.json';
 
-    public const string FINDINGS = __DIR__.'/i9-findings-0.7.0.json';
+    public const string FINDINGS = __DIR__.'/i9-findings.json';
 
     /** @var array<string, array<string, Verdict|Unsupported>> */
     private array $cases = [];
@@ -69,7 +69,7 @@ final class ParityLedger
     }
 
     /**
-     * The disagreements of a section reported as I9 findings of 0.7.0, in the shape of `disagreements()`.
+     * The disagreements of a section reported as I9 findings, in the shape of `disagreements()`.
      *
      * @return array<string, string>
      */
@@ -185,7 +185,7 @@ final class ParityLedger
         $actual = FormatSnapshot::encode($this->unsupported());
 
         if (FormatSnapshot::writing()) {
-            $stored = ['baseline' => '0.7.0', ...$stored ?? [], $section => $this->unsupported()];
+            $stored = [...$stored ?? [], $section => $this->unsupported()];
             file_put_contents(self::SNAPSHOT, FormatSnapshot::encode($stored));
         }
 

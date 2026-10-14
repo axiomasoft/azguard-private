@@ -5,7 +5,7 @@ declare(strict_types=1);
 /*
  * The AI-agent migration instruction guard (PLAN1 P2.14, widened in P3.14): every supported symbol the type map renames, moves, retires
  * or splits in P2 or P3 — a type published at 0.7.0 (`api`, `spi`, also by directory) — is named by its old FQCN in the
- * `## From 0.7 to 1.0 (instructions for AI agents)` section of docs/upgrade.md, so a consumer can grep its code for it.
+ * `## From 0.7 to 1.0 (instructions for AI agents)` section of UPGRADING.md, so a consumer can grep its code for it.
  * Internal and unmarked types carry no promise and need no line (knowledge/p2-execution#conventions, rule 8).
  */
 
@@ -44,13 +44,13 @@ function typeMapRows(): array
     return $rows;
 }
 
-/** The 0.7 → 1.0 section of the upgrade guide. */
+/** The 0.7 → 1.0 section of UPGRADING.md. */
 function migrationInstruction(): string
 {
-    $guide = (string) file_get_contents(dirname(__DIR__, 2).'/docs/upgrade.md');
+    $guide = (string) file_get_contents(dirname(__DIR__, 2).'/UPGRADING.md');
     $start = strpos($guide, '## From 0.7 to 1.0');
 
-    expect($start)->not->toBeFalse('docs/upgrade.md has no 0.7 to 1.0 section');
+    expect($start)->not->toBeFalse('UPGRADING.md has no 0.7 to 1.0 section');
 
     $end = strpos($guide, "\n## ", (int) $start + 1);
 

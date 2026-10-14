@@ -33,7 +33,7 @@ use ReflectionClass;
  * The world of the parity matrix (I9): the CRM stand (`CrmWorld`: tenants A=1/B=2, users 1–4, projects P1–P5 with P3
  * inactive and P4 of tenant B, clients 1–6) with three panels on one storage and different scope declarations:
  *
- * - `crm`: `inherit` (the stand), Audit plugin on or off (the 0.7.0 "module on/off");
+ * - `crm`: `inherit` (the stand), Audit plugin on or off ("module on/off");
  * - `backoffice`: `isolated` on odd seeds, `required` on even seeds; never journaled;
  * - `flat`: mode `AssignmentScopeMode::None`, the panel without a scope declaration.
  *

@@ -16,10 +16,10 @@ use Illuminate\Support\Carbon;
  *
  * A declaration of mode `AssignmentScopeMode::None` and no declaration at all (no `ScopesPlugin`) behave the same:
  * mode `None`, no accepted types. Rebuilding panel `crm` of the dataset with a `None` declaration over its stored
- * project rows is therefore the database a removed scope module leaves behind (0.7.0: the `none()` policy
+ * project rows is therefore the database a removed scope module leaves behind (formerly the `none()` policy
  * through the removed `scopes()` slot).
  *
- * A case 0.7.0 fails is listed in tests/Fixtures/Parity/i7-allowlist.json with its observed behavior and owner P2:
+ * A case that fails is listed in tests/Fixtures/Parity/i7-allowlist.json with its observed behavior and owner P2:
  * a listed case must still fail exactly as recorded (a fixed one is a stale entry), any other case must hold.
  */
 
@@ -44,14 +44,14 @@ it('I7 holds over the seeded dataset or fails exactly as allowlisted', function 
     $listed = i7Allowlist()[$case] ?? null;
 
     if ($listed === null) {
-        expect($holds)->toBeTrue('I7 case "'.$case.'" fails at 0.7.0: '.$observed);
+        expect($holds)->toBeTrue('I7 case "'.$case.'" fails: '.$observed);
     } else {
         expect($holds)->toBeFalse('I7 case "'.$case.'" now holds; delete its stale entry from i7-allowlist.json')
             ->and($observed)->toBe($listed['observed']);
     }
 })->with(array_keys(NoScopeWorld::cases()));
 
-it('I7 allowlists only known cases of 0.7.0, each owned by P2', function (): void {
+it('I7 allowlists only known cases, each owned by P2', function (): void {
     $entries = i7Allowlist();
 
     expect(array_diff(array_keys($entries), array_keys(NoScopeWorld::cases())))->toBe([]);

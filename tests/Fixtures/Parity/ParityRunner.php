@@ -43,7 +43,7 @@ use Illuminate\Support\Carbon;
  *
  * Assignment paths, per (panel, target, role, tenant, project|tenant-wide, expiry):
  * - `directory`: the project is offered by the panel's assignment-scope directory in the Assignment phase for the
- *   target and the role (`PanelDirectories::scopes()->search()`), the only eligibility query of 0.7.0;
+ *   target and the role (`PanelDirectories::scopes()->search()`), the only eligibility query;
  * - `write`: the final validation of `ChangePipeline::grant()` accepts the proposed grant (applied or unchanged),
  *   inside a host transaction the runner rolls back, so the world never changes.
  *

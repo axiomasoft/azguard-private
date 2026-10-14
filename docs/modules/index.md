@@ -52,8 +52,7 @@ modules are always present. Only a panel that attaches the plugin pays for it.
 ## Configuration
 
 There is one `config/azguard.php`. The core owns every key except `scaffold.*`, which DevTools owns. Audit retention
-and scope settings are options of the plugin, not config keys. A package of your own can own a root key too; see
-[Upgrading](/upgrade#from-0-7-to-1-0-instructions-for-ai-agents).
+and scope settings are options of the plugin, not config keys. A package of your own can own a root key too.
 
 ## Storage
 

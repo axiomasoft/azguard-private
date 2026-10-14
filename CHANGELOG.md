@@ -6,31 +6,7 @@ version) are documented here. Format: [Keep a Changelog](https://keepachangelog.
 
 ## [Unreleased]
 
-### Fixed
-
-- **core:** `ContractWorld::rowCounts()` lists only the tables of the connection's own database on MySQL and MariaDB; it used to
-  list the tables of every database of the server and so dropped the connection from the result.
-
-## [0.7.0] - 2026-10-10
-
-The first public release, 0.7.0. The API may change before 1.0. Earlier 0.x versions were never published; moving data from 0.3 is described in
-[UPGRADING.md](UPGRADING.md). Requires PHP 8.3–8.5 and Laravel 11–13; the Filament package requires Filament 5.
-
-### Fixed
-
-- **core:** SQLite authority reads reject handles configured for dirty reads, which can expose uncommitted grants
-  when SQLite shared cache is enabled.
-- **core:** The 0.3 role-copy upgrade example resolves morph aliases and exact model keys as well as class names.
-- **filament:** Export chunks discard malformed integer record keys before resource queries, using the same exact-key
-  rules as subject and scope resolution.
-- **core:** Panels sharing one physical database handle use one decision-set snapshot even across different
-  logical stores, table prefixes or read modes; cache namespaces remain scoped to each store and read route.
-- **core:** Write results retain the panel epoch and report its increment for touches, resets and dynamic permission
-  changes, matching the committed authority state.
-- **core:** Completed and failed decision batches release pinned database handles immediately, including when
-  observers retain evaluation contexts or PHP cycle collection is disabled.
-- **core:** Batch authorization preserves each supplied subject model and qualifies scope access against that
-  instance, even when adjacent requests use the same primary key or a database fallback.
+The 1.0.0 draft. Requires PHP 8.3–8.5 and Laravel 11–13; the Filament package requires Filament 5.
 
 ### Added
 
@@ -55,9 +31,8 @@ The first public release, 0.7.0. The API may change before 1.0. Earlier 0.x vers
 - **core:** Plugins, and an audit journal plugin (`AuditPlugin`).
 - **core:** Read consistency: database sources read state and grants in one read-only snapshot; a `DecisionSet`
   reads in one snapshot per storage connection (at most `decision_sets.max_subjects` distinct subjects, default
-  500; a larger set throws `DecisionSetTooLargeException`, never split silently); cached sets are keyed by subject revision and epoch (storage
-  schema 2: `azg_subject_revisions`, `azg_panel_state.epoch`), so writes to other subjects keep them. Pre-release
-  storages at schema 1 are upgraded by the bundled migration. See the Consistency page of the docs.
+  500; a larger set throws `DecisionSetTooLargeException`, never split silently); cached sets are keyed by subject revision and epoch
+  (`azg_subject_revisions`, `azg_panel_state.epoch`), so writes to other subjects keep them. See the Consistency page of the docs.
 - **core:** Failure taxonomy (`FailureKind`, `Decision::failure()`, `DecisionSet::failure()` and `failures()`) and the opt-in
   `DecisionResponder` HTTP mapping (403 deny, 503 transient, 500 contract); doctor check `storage.sqlite`.
 - **filament:** `AzGuardPlugin` for Filament 5: resources, relation managers, pages, widgets, bulk actions and
@@ -65,5 +40,4 @@ The first public release, 0.7.0. The API may change before 1.0. Earlier 0.x vers
 - **filament:** Read-only role, panel and doctor pages; editors for role grants, permission grants and runtime
   permissions; a permission generator `azguard:filament:generate`.
 
-[Unreleased]: https://github.com/axiomasoft/azguard-private/compare/v0.7.0...main
-[0.7.0]: https://github.com/axiomasoft/azguard-private/compare/v0.3.0...v0.7.0
+[Unreleased]: https://github.com/axiomasoft/azguard-private/commits/main

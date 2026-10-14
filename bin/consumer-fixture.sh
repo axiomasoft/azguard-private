@@ -3,7 +3,7 @@
 # application, the way a consumer receives them (no path repositories, no symlinks),
 # then install its schema and test real HTTP requests and RefreshDatabase grants/cache.
 #
-#   bash bin/consumer-fixture.sh [core-only] [--laravel=13] [--version=0.7.0] [--with-filament] [--keep]
+#   bash bin/consumer-fixture.sh [core-only] [--laravel=13] [--version=1.0.0] [--with-filament] [--keep]
 #
 # `core-only` builds the core archive WITHOUT its modules/ directory (providers and PSR-4 reduced to core), installs it
 # and proves that the application boots, migrates, passes the doctor, grants a role and answers a check with no module.
@@ -16,7 +16,7 @@ root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 dist="${root}/build/dist"
 
 laravel="13"
-version="0.7.0"
+version="1.0.0"
 with_filament=0
 keep=0
 mode="full"

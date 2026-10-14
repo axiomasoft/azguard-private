@@ -13,8 +13,8 @@ releases are in [RELEASING.md](RELEASING.md). Report vulnerabilities privately a
 4. After a change to a type marked `#[Api]` or `#[Spi]`, run `composer api:manifest` and commit both manifests.
 5. Open a pull request to `main`. All CI checks must be green; one approval is required.
 
-Mutation testing is optional and deferred by the owner while the API is unstable before 1.0.
-It is not an acceptance or release gate for 0.7.0. The separate `composer mutate`,
+Mutation testing is optional and deferred by the owner.
+It is not an acceptance or release gate for 1.0. The separate `composer mutate`,
 `composer mutate:core` and `composer mutate:filament` commands retain their thresholds and fail on errors;
 the mutation workflow runs only via `workflow_dispatch`. Further validation of the existing
 mutation-runner compatibility patch is a separate task.

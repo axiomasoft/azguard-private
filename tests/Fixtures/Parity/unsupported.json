@@ -1,5 +1,4 @@
 {
-    "baseline": "0.7.0",
     "decisions": {
         "resource_owner_adapter": {
             "flat u1 clients.update t1": [

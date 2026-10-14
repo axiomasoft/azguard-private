@@ -2,33 +2,38 @@
   "$schema": "urn:swissknifeman:task:plan:phase:v1",
   "id": "P4",
   "title": "Qualify the candidate and establish the 1.0 freeze",
-  "design": "skeleton",
+  "design": "detailed",
   "goal": "Demonstrate a stable API/SPI/schema on one candidate commit in real consumers and make the release gate and post-1.0 compatibility comparison blocking.",
-  "context": "Architecture phase D (revision 2, D4, D6, D9, D12). Approximate size: M. The candidate closes the one pre-1.0 transition; only fixes demonstrated necessary by qualification are allowed. Physical extraction remains conditional future work.",
+  "context": "Architecture phase D (revision 2, D4, D6, D9, D12), detailed 2026-10-14 with the owner answers M17 (D24–D27): 1.0 is the starting point, so the gate, baselines, bench reference, docs and CHANGELOG carry no 0.x scenario or history. Approximate size: M. The candidate closes the one pre-1.0 transition; only fixes demonstrated necessary by qualification are allowed (knowledge/p4-execution#conventions). Physical extraction remains conditional future work; tagging v1.0.0 is the owner's act after the plan (D27).",
   "contract": {
     "consumes": [
       "The relocated implementation and evidence from P1–P3",
-      "knowledge/architecture#release-gate",
+      "knowledge/architecture#release-gate (amended by D24 through knowledge/p4-execution#gate)",
       "knowledge/architecture#invariants",
       "knowledge/architecture#api-compatibility",
       "knowledge/architecture#transition-policy",
       "knowledge/contracts",
       "knowledge/identities",
       "knowledge/upgrade-map",
-      "knowledge/type-map"
+      "knowledge/type-map",
+      "knowledge/p4-execution"
     ],
     "produces": [
-      "Candidate supported-surface and non-PHP baselines",
-      "Stable-tag comparison in CI (I18) with the chosen structural comparison tool or generator diff",
-      "Recorded race and load evidence against prior profiles (I22)",
-      "Module relocation rehearsal (I19)",
-      "Complete upgrade guide and release notes"
+      "1.0 version metadata and a public history that starts at 1.0.0 (D24, D25)",
+      "One green qualification of conditions 1–9 on the supported matrix, locally and in GitHub Actions, with every demonstrated fix recorded",
+      "Compatibility comparator over the attribute manifests and format fixtures with an intentional-break drill (I18, D26)",
+      "Blocking compatibility CI with a guarded baseline pointer, and a release workflow that runs the whole qualification graph before split and release",
+      "Module relocation rehearsal for Audit (I19)",
+      "Race, consistency and load evidence recorded as the 1.0 reference (I21, I22 as amended by D24)",
+      "Documentation of every frozen contract, the compatibility promise and the CHANGELOG [1.0.0] section",
+      "Frozen candidate, baseline pointer and gate evidence (gate.md)"
     ],
     "boundaries": [
-      "1.0 requires every release condition on the candidate commit",
+      "1.0 requires every amended release condition on the candidate commit",
       "A tag cannot bypass the candidate qualification matrix",
       "A PR cannot replace the compatibility baseline silently",
-      "Future relocation keeps FQCNs, formats, migration basenames and data"
+      "Future relocation keeps FQCNs, formats, migration basenames and data",
+      "No item creates or pushes a tag; pushes only to origin feat/1.0-candidate under the owner gate CI-PUSH"
     ]
   },
   "scope": {
@@ -51,24 +56,80 @@
     "Regenerating a manifest on the same branch does not prove compatibility",
     "continue-on-error checks do not qualify a distribution",
     "Release validation on a tag must cover the qualified candidate",
-    "Interface additions, named parameters, defaults and closed-enum cases can break implementers"
+    "Interface additions, named parameters, defaults and closed-enum cases can break implementers",
+    "Tags v0.3.0 and v0.7.0 exist: stable-tag resolution must require major >= 1",
+    "A baseline pointer cannot name its own commit: the pointer commit follows the candidate and changes nothing else",
+    "Internal check FQCNs are JSON keys of doctor-checks.json but not identities: match by key",
+    "The owner's uncommitted test-refactor files (tests-nightly.yml, bin/test-db.php, phpstan.neon, parity tests) must not be swept into commits",
+    "CI was red on Laravel 11 at the last pushed commit; P3 never ran in CI"
   ],
   "validation": [
     {
       "id": "V1",
-      "procedure": "Verify the ten release conditions on the candidate commit with the evidence named in knowledge/architecture#release-gate, and prove that the stable-tag comparison and tag gating fail on intentional breaking fixtures (interface method, parameter rename, closed-enum case, payload key, migration basename).",
-      "expect": "Every condition green with reproducible evidence; every intentional break is rejected.",
+      "procedure": "Verify the ten release conditions as amended by D24 (knowledge/p4-execution#gate) on the candidate commit with the evidence in artifacts/evidence/P4/gate.md, and prove that the compatibility comparison and the tag-triggered release graph fail on intentional breaking fixtures (interface method, parameter rename, closed-enum case, payload key, migration basename) through the unit catalogue and bin/compat-drill.sh.",
+      "expect": "Every condition green with reproducible evidence on one candidate commit; every intentional break is rejected; the pointer commit changes only compatibility.json.",
       "kind": "acceptance"
     }
   ],
   "deliverables": [
-    "Frozen API/SPI, schema and machine-format baselines",
+    "Frozen API/SPI, schema and machine-format baselines (candidate pointer in compatibility.json)",
     "Blocking compatibility and release qualification",
-    "One complete 0.7.0 upgrade guide",
-    "Relocation rehearsal record"
+    "1.0.0 release notes, frozen-contract docs and the AI-agent instruction in UPGRADING.md (D25)",
+    "Relocation rehearsal record",
+    "1.0 reference load profile and race evidence"
   ],
-  "items": [],
-  "batches": [],
+  "items": [
+    "P4.1",
+    "P4.2",
+    "P4.3",
+    "P4.4",
+    "P4.5",
+    "P4.6",
+    "P4.7",
+    "P4.8",
+    "P4.9"
+  ],
+  "batches": [
+    {
+      "id": "B1",
+      "items": [
+        "P4.1",
+        "P4.2"
+      ],
+      "mode": "recommended"
+    },
+    {
+      "id": "B2",
+      "items": [
+        "P4.3",
+        "P4.4",
+        "P4.5"
+      ],
+      "mode": "recommended"
+    },
+    {
+      "id": "B3",
+      "items": [
+        "P4.6",
+        "P4.7"
+      ],
+      "mode": "recommended"
+    },
+    {
+      "id": "B4",
+      "items": [
+        "P4.8"
+      ],
+      "mode": "recommended"
+    },
+    {
+      "id": "B5",
+      "items": [
+        "P4.9"
+      ],
+      "mode": "recommended"
+    }
+  ],
   "sections": [
     {
       "id": "design-inputs",

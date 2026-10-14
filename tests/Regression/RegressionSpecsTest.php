@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 /**
- * @return list<string> ids of the 0.3 probes that have a regression on the 1.0 API
+ * @return list<string> ids of the original probes that have a regression on the 1.0 API
  */
 function regressionProbes(): array
 {
@@ -58,7 +58,7 @@ it('keeps every required field filled and consistent for probe', function (strin
         expect($fields[$field])->not->toBeEmpty("{$probe}: field {$field} is empty");
     }
 
-    foreach (['Defect in 0.3', 'Required behavior'] as $field) {
+    foreach (['Original defect', 'Required behavior'] as $field) {
         expect($fields)->toHaveKey($field);
         expect(strlen($fields[$field]))->toBeGreaterThan(20, "{$probe}: field {$field} is too short");
     }
@@ -79,8 +79,8 @@ it('references scenario ids that exist in the verification matrix for probe', fu
     }
 })->with(regressionProbes());
 
-it('points the defect description at an existing 0.3 probe test for probe', function (string $probe): void {
-    $defect = regressionSpecFields($probe)['Defect in 0.3'];
+it('points the defect description at an existing original probe test for probe', function (string $probe): void {
+    $defect = regressionSpecFields($probe)['Original defect'];
 
     expect(preg_match('#`(audits/[^`]+/evidence/probes/[A-Za-z]+\.php)`#', $defect, $file))->toBe(1);
     expect(regressionRoot().'/'.$file[1])->toBeFile();

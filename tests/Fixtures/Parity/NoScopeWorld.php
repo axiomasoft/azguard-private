@@ -72,7 +72,7 @@ final class NoScopeWorld
     }
 
     /**
-     * Each I7 case: whether it holds and what 0.7.0 does. The expectation is fixed by I7; a control case proves the
+     * Each I7 case: whether it holds and what the code does. The expectation is fixed by I7; a control case proves the
      * panel still decides and writes at all.
      *
      * @return array<string, Closure(): array{bool, string}>
