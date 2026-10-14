@@ -81,6 +81,7 @@
         ],
         "api:manifest": "php bin/api-manifest.php --write",
         "api:check": "php bin/api-manifest.php --check",
+        "api:compat": "php bin/api-compat.php --against=auto",
         "docs:language": "bash bin/docs-language-gate.sh",
         "docs:php": "bash bin/docs-php-version-gate.sh",
         "check": [
@@ -88,6 +89,7 @@
             "@analyse",
             "@refactor:check",
             "@api:check",
+            "@api:compat",
             "@test:types",
             "@test",
             "@check:coverage"
@@ -106,7 +108,7 @@
         ]
     },
     "scripts-descriptions": {
-        "check": "Run required local gates: style, static analysis, Rector, API manifest, type coverage, tests and line coverage. Mutation is optional. Fails on a skipped test or a missing coverage driver (opt out only with AZGUARD_ALLOW_NO_COVERAGE=1).",
+        "check": "Run required local gates: style, static analysis, Rector, API manifest and compatibility, type coverage, tests and line coverage. Mutation is optional. Fails on a skipped test or a missing coverage driver (opt out only with AZGUARD_ALLOW_NO_COVERAGE=1).",
         "fix": "Auto-fix code style (Pint) and apply Rector refactorings.",
         "mutate": "Run per-package native Pest mutation testing against fresh coverage (all packages, or pass core|filament).",
         "check:coverage": "Line coverage gate (--min=85) with an unlimited memory limit.",

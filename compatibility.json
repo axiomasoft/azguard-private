@@ -1,0 +1,116 @@
+{
+    "schema": "urn:azguard:compatibility:1",
+    "candidate": "2d7ff14d113053707e653e00bd8f21bbf1b27079",
+    "artifacts": [
+        {
+            "id": "api.core",
+            "path": "packages/core/api-manifest.json",
+            "kind": "api"
+        },
+        {
+            "id": "api.filament",
+            "path": "packages/filament/api-manifest.json",
+            "kind": "api"
+        },
+        {
+            "id": "exceptions",
+            "path": "tests/Fixtures/Formats/exceptions.json",
+            "kind": "format"
+        },
+        {
+            "id": "events",
+            "path": "tests/Fixtures/Formats/events.json",
+            "kind": "format"
+        },
+        {
+            "id": "audit-rows",
+            "path": "tests/Fixtures/Formats/audit-rows.json",
+            "kind": "format"
+        },
+        {
+            "id": "audit-journaled-types",
+            "path": "tests/Fixtures/Formats/audit-journaled-types.json",
+            "kind": "format"
+        },
+        {
+            "id": "resources",
+            "path": "tests/Fixtures/Formats/resources.json",
+            "kind": "format"
+        },
+        {
+            "id": "reserved-plugin-prefix",
+            "path": "tests/Fixtures/Formats/reserved-plugin-prefix.json",
+            "kind": "format"
+        },
+        {
+            "id": "config-defaults",
+            "path": "tests/Fixtures/Formats/config-defaults.json",
+            "kind": "format"
+        },
+        {
+            "id": "commands",
+            "path": "tests/Fixtures/Console/commands.json",
+            "kind": "format"
+        },
+        {
+            "id": "doctor-checks",
+            "path": "tests/Fixtures/Formats/doctor-checks.json",
+            "kind": "format"
+        },
+        {
+            "id": "doctor",
+            "path": "tests/Fixtures/Formats/doctor.json",
+            "kind": "format"
+        },
+        {
+            "id": "explain",
+            "path": "tests/Fixtures/Formats/explain.json",
+            "kind": "format"
+        },
+        {
+            "id": "serializable-types",
+            "path": "tests/Fixtures/Formats/serializable-types.json",
+            "kind": "format"
+        },
+        {
+            "id": "ddl.sqlite",
+            "path": "tests/Fixtures/Storage/ddl/sqlite.json",
+            "kind": "format"
+        },
+        {
+            "id": "ddl.sqlite.audit",
+            "path": "tests/Fixtures/Storage/ddl/sqlite.audit.json",
+            "kind": "format"
+        },
+        {
+            "id": "ddl.pgsql",
+            "path": "tests/Fixtures/Storage/ddl/pgsql.json",
+            "kind": "format"
+        },
+        {
+            "id": "ddl.pgsql.audit",
+            "path": "tests/Fixtures/Storage/ddl/pgsql.audit.json",
+            "kind": "format"
+        },
+        {
+            "id": "ddl.mysql",
+            "path": "tests/Fixtures/Storage/ddl/mysql.json",
+            "kind": "format"
+        },
+        {
+            "id": "ddl.mysql.audit",
+            "path": "tests/Fixtures/Storage/ddl/mysql.audit.json",
+            "kind": "format"
+        },
+        {
+            "id": "ddl.mariadb",
+            "path": "tests/Fixtures/Storage/ddl/mariadb.json",
+            "kind": "format"
+        },
+        {
+            "id": "ddl.mariadb.audit",
+            "path": "tests/Fixtures/Storage/ddl/mariadb.audit.json",
+            "kind": "format"
+        }
+    ]
+}

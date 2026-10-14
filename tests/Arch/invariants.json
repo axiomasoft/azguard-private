@@ -183,8 +183,12 @@
     },
     {
         "id": "I18",
-        "status": "build",
-        "checks": [],
+        "status": "exists",
+        "checks": [
+            "tests/Arch/CompatibilityTest.php",
+            "bin/api-compat.php",
+            "bin/compat-drill.sh"
+        ],
         "blocking": "after P4",
         "owner_phase": "P4"
     },
