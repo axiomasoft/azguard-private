@@ -1,0 +1,23 @@
+{
+  "$schema": "urn:swissknifeman:task:plan:check-evidence:v1",
+  "evidence_id": "PLAN1.P4.7.V5",
+  "check_id": "V5",
+  "subject": "PLAN1.P4.7",
+  "procedure": {
+    "cmd": "php -d memory_limit=1G vendor/bin/pest tests/Arch --fail-on-skipped",
+    "cwd": "."
+  },
+  "candidate": {
+    "head": "e25dde622b7ff05776f18de13c2dc459d601ccfb"
+  },
+  "started_at": "2026-10-14T13:25:33Z",
+  "finished_at": "2026-10-14T13:25:33Z",
+  "exit": 0,
+  "log": {
+    "path": "plans/2026.10.10-\u21161-AZGUARD-CORE-STABILIZATION/artifacts/evidence/P4/logs/P4.7-V5.log",
+    "sha256": "f1df3566e48039b64e70647d557c975b54365f2fb3585778e2ac1175782a5254"
+  },
+  "producer": {
+    "kind": "executor"
+  }
+}
