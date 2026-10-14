@@ -94,3 +94,22 @@ recommendations and do not block the phase.
 Targeted after F1–F6: `tests/Modules`, `tests/Feature/{Activation,Storage,Configuration,Console,Directories,Visibility}`
 1065 passed. Not re-run here (owner instruction): `composer test`, `test:db` lanes and engines, `test:types`,
 consumer archives — see the follow-up prompt in the run report.
+
+## Final long checks on `e4190d0a` (PHP 8.4, owner WIP present in the working tree)
+
+All long checks the previous section left open were run after P3.15; nothing failed, so no code was changed.
+
+| # | check | result |
+|:--|:--|:--|
+| 1 | `composer test` | passed: 4797 tests, 395838 assertions |
+| 2 | `composer test:types` | passed: type coverage 99.9 % (min 98) |
+| 3 | `composer test:db -- pgsql --parallel` | passed: 762 tests, 3894 assertions |
+| 3 | `composer test:db -- mysql --parallel` | passed: 762 tests, 3894 assertions |
+| 3 | `composer test:db -- mariadb --parallel` | passed: 762 tests, 3894 assertions |
+| 4 | `composer test:db -- pgsql --engines` | passed: 71 tests, 2670 assertions |
+| 5 | `bash bin/consumer-fixture.sh core-only` | passed: installs, migrates, doctor 0 errors / 1 warning (SQLite WAL advice), grant and check OK |
+| 6 | `composer analyse` | 1 error `trait.unused` (`InteractsWithAzGuard`), the owner-WIP deletion of `KitCase`; not a defect |
+| 6 | `pint --test packages tests bin`, `composer refactor:check`, `composer api:check` | passed |
+
+The mysql and mariadb lanes ran one at a time. A foreign `pest --parallel` of another project (chatom) was running on the
+machine during the mysql lane, which may account for its 23 min against 14 min for mariadb.
