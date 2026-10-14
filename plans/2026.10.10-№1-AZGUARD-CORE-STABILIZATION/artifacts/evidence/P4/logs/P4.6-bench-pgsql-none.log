@@ -1,0 +1,28 @@
+[14:50:01] seeding tier mini on pgsql
+[14:50:09] seeded in 8.1 s: {"users":200,"posts":10000,"teams":20,"team_user":200,"azg_role_grants":509,"azg_permission_grants":220}
+[14:50:21] checks-concurrent check:w1: 3 reps, check p50 17750 µs p95 23517 µs, 54.5 ops/s
+[14:50:32] checks-concurrent check:w2: 3 reps, check p50 14908 µs p95 21469 µs, 121.1 ops/s
+[14:50:44] checks-concurrent check:w4: 3 reps, check p50 15602 µs p95 19984 µs, 235.5 ops/s
+[14:50:49] large-sets heavy:w1: 3 reps, miss p50 42002 µs p95 43258 µs, 2.8 ops/s
+[14:50:59] large-sets heavy:w4: 5 reps, miss p50 41617 µs p95 49043 µs, 10.7 ops/s
+[14:51:04] visible-at-scale visible:w1: 3 reps, page p50 23899 µs p95 30877 µs, 22.0 ops/s
+[14:51:08] visible-at-scale visible:w2: 3 reps, page p50 20396 µs p95 30166 µs, 46.1 ops/s
+[14:51:13] visible-at-scale visible:w4: 3 reps, page p50 19277 µs p95 27979 µs, 92.0 ops/s
+[14:51:21] cache-cold-warm coldwarm:w1: 3 reps, warm_store p50 13912 µs p95 21029 µs, 32.9 ops/s
+[14:51:32] cache-cold-warm warm:w4: 3 reps, warm_store p50 15408 µs p95 20774 µs, 235.8 ops/s
+[14:51:50] grant-revoke-load writes:w2: 5 reps, check_under_writes p50 15831 µs p95 22014 µs, 58.1 ops/s
+[14:52:10] grant-revoke-load writes:w4: 3 reps, check_under_writes p50 15082 µs p95 19968 µs, 59.9 ops/s
+[14:52:28] consistency-load disjoint:w4: 4 reps, check p50 15435 µs p95 20049 µs, 180.1 ops/s
+[14:52:40] consistency-load hot:w4: 3 reps, check p50 16092 µs p95 21243 µs, 174.1 ops/s
+[14:52:54] consistency-load paced50:w4: 3 reps, check p50 14855 µs p95 22118 µs, 151.3 ops/s
+[14:53:09] consistency-load paced200:w4: 3 reps, check p50 18660 µs p95 21795 µs, 162.2 ops/s
+[14:53:17] multi-tenant tenant:w1: 3 reps, member p50 13656 µs p95 15185 µs, 26.7 ops/s
+[14:53:25] multi-tenant tenant:w2: 3 reps, member p50 11002 µs p95 14198 µs, 62.5 ops/s
+[14:53:33] multi-tenant tenant:w4: 3 reps, member p50 10869 µs p95 13824 µs, 122.7 ops/s
+[14:54:08] decision-set set100:w1: 3 reps, set p50 534518 µs p95 537693 µs, 1.9 ops/s
+[14:54:32] decision-set set250:w1: 3 reps, set p50 1300290 µs p95 1303593 µs, 0.8 ops/s
+[14:55:19] decision-set set500:w1: 3 reps, set p50 2568245 µs p95 2646918 µs, 0.4 ops/s
+[14:56:52] decision-set set1000:w1: 3 reps, set p50 5072242 µs p95 5140127 µs, 0.2 ops/s
+[14:59:56] decision-set set2000:w1: 3 reps, set p50 10198123 µs p95 10346990 µs, 0.1 ops/s
+[15:01:22] decision-set writer500:w2: 3 reps, set p50 2557196 µs p95 2659428 µs, 0.4 ops/s
+[15:01:22] written bench/results/2026-10-14-1.0-pgsql-none-mini.json and bench/results/2026-10-14-1.0-pgsql-none-mini.md

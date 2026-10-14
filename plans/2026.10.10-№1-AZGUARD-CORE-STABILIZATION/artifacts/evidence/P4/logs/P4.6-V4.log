@@ -1,0 +1,36 @@
+=== sqlite-none
+[14:34:08] decision-set set500:w1: 3 reps, set p50 2397698 µs p95 2424551 µs, 0.4 ops/s
+[14:36:37] decision-set set1000:w1: 5 reps, set p50 4940199 µs p95 5017848 µs, 0.2 ops/s
+[14:39:31] decision-set set2000:w1: 3 reps, set p50 9585778 µs p95 9827858 µs, 0.1 ops/s
+[14:40:52] decision-set writer500:w2: 3 reps, set p50 2406747 µs p95 2455347 µs, 0.4 ops/s
+[14:40:52] written bench/results/2026-10-14-1.0-sqlite-none-mini.json and bench/results/2026-10-14-1.0-sqlite-none-mini.md
+=== sqlite-array
+[14:44:32] decision-set set500:w1: 3 reps, set p50 2207718 µs p95 2217662 µs, 0.5 ops/s
+[14:45:52] decision-set set1000:w1: 3 reps, set p50 4356635 µs p95 4460554 µs, 0.2 ops/s
+[14:48:45] decision-set set2000:w1: 3 reps, set p50 9223734 µs p95 9845659 µs, 0.1 ops/s
+[14:50:00] decision-set writer500:w2: 3 reps, set p50 2213492 µs p95 2334227 µs, 0.4 ops/s
+[14:50:00] written bench/results/2026-10-14-1.0-sqlite-array-mini.json and bench/results/2026-10-14-1.0-sqlite-array-mini.md
+=== pgsql-none
+[14:55:19] decision-set set500:w1: 3 reps, set p50 2568245 µs p95 2646918 µs, 0.4 ops/s
+[14:56:52] decision-set set1000:w1: 3 reps, set p50 5072242 µs p95 5140127 µs, 0.2 ops/s
+[14:59:56] decision-set set2000:w1: 3 reps, set p50 10198123 µs p95 10346990 µs, 0.1 ops/s
+[15:01:22] decision-set writer500:w2: 3 reps, set p50 2557196 µs p95 2659428 µs, 0.4 ops/s
+[15:01:22] written bench/results/2026-10-14-1.0-pgsql-none-mini.json and bench/results/2026-10-14-1.0-pgsql-none-mini.md
+=== pgsql-redis-rerun
+[15:29:49] decision-set set500:w1: 3 reps, set p50 2384795 µs p95 2414701 µs, 0.4 ops/s
+[15:31:18] decision-set set1000:w1: 3 reps, set p50 4813713 µs p95 4894025 µs, 0.2 ops/s
+[15:34:15] decision-set set2000:w1: 3 reps, set p50 9715539 µs p95 9906099 µs, 0.1 ops/s
+[15:35:36] decision-set writer500:w2: 3 reps, set p50 2417255 µs p95 2507727 µs, 0.4 ops/s
+[15:35:36] written bench/results/2026-10-14-1.0-pgsql-redis-mini.json and bench/results/2026-10-14-1.0-pgsql-redis-mini.md
+=== mysql-none
+[15:07:42] decision-set set500:w1: 3 reps, set p50 2510681 µs p95 2671716 µs, 0.4 ops/s
+[15:09:11] decision-set set1000:w1: 3 reps, set p50 4893005 µs p95 4928737 µs, 0.2 ops/s
+[15:12:08] decision-set set2000:w1: 3 reps, set p50 9809059 µs p95 9939786 µs, 0.1 ops/s
+[15:13:31] decision-set writer500:w2: 3 reps, set p50 2472372 µs p95 2611299 µs, 0.4 ops/s
+[15:13:31] written bench/results/2026-10-14-1.0-mysql-none-mini.json and bench/results/2026-10-14-1.0-mysql-none-mini.md
+=== mariadb-none
+[15:18:33] decision-set set500:w1: 3 reps, set p50 2469272 µs p95 2477871 µs, 0.4 ops/s
+[15:20:03] decision-set set1000:w1: 3 reps, set p50 5035649 µs p95 5107723 µs, 0.2 ops/s
+[15:23:01] decision-set set2000:w1: 3 reps, set p50 9811939 µs p95 9944282 µs, 0.1 ops/s
+[15:24:25] decision-set writer500:w2: 3 reps, set p50 2491249 µs p95 2577823 µs, 0.4 ops/s
+[15:24:25] written bench/results/2026-10-14-1.0-mariadb-none-mini.json and bench/results/2026-10-14-1.0-mariadb-none-mini.md

@@ -94,8 +94,8 @@ it('names an owner phase for every invariant without a check, and invents no che
         }
     }
 
-    // I22 is built by P4.6: no check of it exists before.
-    expect($without)->toBe(['I22']);
+    // Every invariant has its checks: I22 got its own with the load bench reference (P4.6).
+    expect($without)->toBe([]);
 });
 
 it('states for every build entry with a check the phase from which it blocks', function (): void {

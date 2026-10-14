@@ -1,0 +1,9 @@
+engines-pgsql	0	211	2026-10-14T13:33:25Z	composer test:db -- pgsql --engines
+engines-mysql	0	552	2026-10-14T13:42:37Z	composer test:db -- mysql --engines
+engines-mariadb	0	168	2026-10-14T13:45:25Z	composer test:db -- mariadb --engines
+replica	0	2	2026-10-14T13:45:32Z	composer test:replica
+redis	0	3	2026-10-14T13:45:36Z	composer test:redis
+extended	0	95	2026-10-14T13:47:11Z	composer test:extended
+full-pgsql	0	171	2026-10-14T13:50:02Z	composer test:db -- pgsql --parallel --full
+full-mysql	0	1471	2026-10-14T14:14:33Z	composer test:db -- mysql --parallel --full
+full-mariadb	0	798	2026-10-14T14:27:51Z	composer test:db -- mariadb --parallel --full

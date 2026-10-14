@@ -1,0 +1,28 @@
+[15:13:31] seeding tier mini on mariadb
+[15:13:40] seeded in 8.9 s: {"users":200,"posts":10000,"teams":20,"team_user":200,"azg_role_grants":509,"azg_permission_grants":220}
+[15:13:49] checks-concurrent check:w1: 3 reps, check p50 13500 µs p95 16035 µs, 73.8 ops/s
+[15:13:58] checks-concurrent check:w2: 3 reps, check p50 12701 µs p95 15032 µs, 149.1 ops/s
+[15:14:07] checks-concurrent check:w4: 3 reps, check p50 12464 µs p95 16598 µs, 303.5 ops/s
+[15:14:13] large-sets heavy:w1: 3 reps, miss p50 37965 µs p95 39932 µs, 2.9 ops/s
+[15:14:22] large-sets heavy:w4: 5 reps, miss p50 38502 µs p95 63928 µs, 11.0 ops/s
+[15:14:28] visible-at-scale visible:w1: 5 reps, page p50 18682 µs p95 22113 µs, 29.8 ops/s
+[15:14:32] visible-at-scale visible:w2: 3 reps, page p50 18288 µs p95 19733 µs, 58.0 ops/s
+[15:14:36] visible-at-scale visible:w4: 3 reps, page p50 17674 µs p95 26670 µs, 110.3 ops/s
+[15:14:47] cache-cold-warm coldwarm:w1: 5 reps, warm_store p50 13372 µs p95 15478 µs, 35.4 ops/s
+[15:14:56] cache-cold-warm warm:w4: 3 reps, warm_store p50 12544 µs p95 17310 µs, 300.3 ops/s
+[15:15:05] grant-revoke-load writes:w2: 3 reps, check_under_writes p50 12741 µs p95 15097 µs, 68.0 ops/s
+[15:15:30] grant-revoke-load writes:w4: 5 reps, check_under_writes p50 13550 µs p95 18844 µs, 84.6 ops/s
+[15:15:43] consistency-load disjoint:w4: 3 reps, check p50 13688 µs p95 19669 µs, 205.4 ops/s
+[15:15:53] consistency-load hot:w4: 3 reps, check p50 13282 µs p95 18548 µs, 204.0 ops/s
+[15:16:06] consistency-load paced50:w4: 3 reps, check p50 13164 µs p95 19270 µs, 151.5 ops/s
+[15:16:24] consistency-load paced200:w4: 5 reps, check p50 13284 µs p95 17491 µs, 213.1 ops/s
+[15:16:33] multi-tenant tenant:w1: 3 reps, member p50 12755 µs p95 16385 µs, 27.6 ops/s
+[15:16:41] multi-tenant tenant:w2: 3 reps, member p50 12504 µs p95 16566 µs, 54.7 ops/s
+[15:16:50] multi-tenant tenant:w4: 3 reps, member p50 12097 µs p95 15820 µs, 114.5 ops/s
+[15:17:25] decision-set set100:w1: 3 reps, set p50 519187 µs p95 524079 µs, 1.9 ops/s
+[15:17:48] decision-set set250:w1: 3 reps, set p50 1268128 µs p95 1294596 µs, 0.8 ops/s
+[15:18:33] decision-set set500:w1: 3 reps, set p50 2469272 µs p95 2477871 µs, 0.4 ops/s
+[15:20:03] decision-set set1000:w1: 3 reps, set p50 5035649 µs p95 5107723 µs, 0.2 ops/s
+[15:23:01] decision-set set2000:w1: 3 reps, set p50 9811939 µs p95 9944282 µs, 0.1 ops/s
+[15:24:25] decision-set writer500:w2: 3 reps, set p50 2491249 µs p95 2577823 µs, 0.4 ops/s
+[15:24:25] written bench/results/2026-10-14-1.0-mariadb-none-mini.json and bench/results/2026-10-14-1.0-mariadb-none-mini.md

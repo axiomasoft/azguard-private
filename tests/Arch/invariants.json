@@ -231,7 +231,11 @@
     {
         "id": "I22",
         "status": "exists",
-        "checks": [],
+        "checks": [
+            "bench/bin/compare.php",
+            "bench/README.md",
+            "tests/Feature/Bench/LoadBenchSmokeTest.php"
+        ],
         "blocking": "after P4",
         "owner_phase": "P4"
     }

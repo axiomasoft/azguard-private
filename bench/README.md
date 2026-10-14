@@ -68,166 +68,42 @@ correctness checks next to the timings.
 Not taken: k6 and the HTTP layer, host profiles, paired-commit qualification and the PostgreSQL statistics collector.
 AzGuard is a library, so the workers call the public API in-process.
 
-## Published results (2026-10-09, mini tier)
+## Published results (1.0 reference, 2026-10-14, mini tier)
 
-One host (8 vCPU Xeon, PHP 8.4.26, OPcache on), PostgreSQL 16.15, MySQL 8.4.11 and Redis 7 from `docker-compose.yml`.
-p50 of one operation and queries per operation; the full tables are the files next to this one.
+These six files are the recorded profile of the 1.0 code (commit `b981f2fa`) and the reference for every later
+release: `results/2026-10-14-1.0-<driver>-<cache>-mini.{json,md}`. Host: one Intel Xeon E5-2683 v4 (32 logical CPUs,
+shared with other work), Linux 7.0, PHP 8.4.26 with OPcache on and JIT off, Laravel 13.35.0, PostgreSQL 16.15, MySQL 8.4.11,
+MariaDB 10.11.19, Redis 7.4.11 and SQLite 3.45.1 (the Docker services of `docker-compose.yml`). p50 of one operation and
+SQL statements per operation; the full tables are the files next to this one.
 
-| Operation | sqlite | sqlite + array | pgsql | pgsql + redis | mysql |
-|---|---|---|---|---|---|
-| check, new request, 1 worker | 3.70 ms, 5 SQL | 3.79 ms, 3.7 | 6.89 ms, 5 | 4.42 ms, 2 | 5.62 ms, 5 |
-| check, 4 workers, throughput | 943/s | 1 002/s | 497/s | 855/s | 675/s |
-| heavy subject, missing permission | 16.9 ms | 5.6 ms | 21.5 ms | 8.2 ms | 20.9 ms |
-| heavy subject, `permissionSet()` | 17.6 ms | 7.3 ms | 23.5 ms | 9.8 ms | 21.8 ms |
-| heavy subject, `abilities()` of 50 | 197 ms | 177 ms | 214 ms | 185 ms | 204 ms |
-| `visibleTo()` page of 10 000 posts | 5.03 ms | 4.88 ms | 10.4 ms | 9.7 ms | 8.5 ms |
-| check, warm request | 0.52 ms, 0 SQL | 0.49 ms | 0.61 ms | 0.55 ms | 0.58 ms |
-| tenant member check, 4 workers | 2.19 ms | 2.22 ms | 5.09 ms | 3.08 ms | 4.75 ms |
-| grant under read load | 2.42 ms | 2.27 ms | 8.95 ms | 9.34 ms | 7.96 ms |
-| reads denied by `consistency_error`, 1 / 2 writers | 20% / 43% | 21% / 42% | 20% / 44% | 19% / 45% | 18% / 45% |
-
-The server versions, CPU and commit are in each result file. Check the database version printed by your run before
-you compare against these numbers.
-
-What the bench found:
-
-- **`permissionSet()` of a heavy subject took 2.17 s.** Every pattern was matched and re-validated against every
-  catalog permission. Exact patterns are now a lookup: 18 ms (`d531525f` is the baseline, compare it with
-  `compare.php`).
-- **A connection closed by `DB::disconnect()` made every check fail closed with `source_error`.** That happens
-  before a fork, or between Octane requests. The storage now reconnects as a query would.
-- **Reads that overlap writes are denied.** The state version is per panel, so any grant or revoke in the panel
-  makes a concurrent read retry, and after 3 retries it denies with `consistency_error`. That is safe (fail closed)
-  but visible: with one writer about 20% of concurrent reads are denied, with two about 44%, on every driver.
-- **`abilities()` costs about 4 ms per permission for a heavy subject.** That is the cost of one decision over 220
-  contributions, the same as a check in a warm request.
-
-## Consistency under writes (2026-10-09, mini tier, before the snapshot read)
-
-`consistency-load`, one rep, 4 workers (one writer, three readers), files `results/2026-10-09-consistency-before-*`.
-The baseline of the plan in `audits/2026-10-09-consistency-design.md`: in `disjoint` no reader reads a subject the
-writer changes, yet 14-22% of checks end in `consistency_error`. The panel-wide version is the only cause. `paced50`
-writes slower than a check takes, so a check rarely spans a write.
-
-| driver+cache | stage | checks | consistency_error | hit ratio | check p50 / p95 / p99 ms | SQL/check (miss) |
+| Operation | sqlite | sqlite + array | pgsql | pgsql + redis | mysql | mariadb |
 |---|---|---|---|---|---|---|
-| sqlite-none | disjoint:w4 | 300 | 66 (22%) | 0% | 3.82 / 5.54 / 11.07 | 5.11 |
-| sqlite-none | hot:w4 | 300 | 58 (19%) | 0% | 4.75 / 7.83 / 14.30 | 5.25 |
-| sqlite-none | paced50:w4 | 300 | 0 (0%) | 0% | 4.24 / 8.74 / 14.65 | 6.02 |
-| sqlite-none | paced200:w4 | 300 | 64 (21%) | 0% | 3.87 / 5.79 / 11.29 | 5.21 |
-| sqlite-array | disjoint:w4 | 300 | 61 (20%) | 49% | 3.85 / 6.66 / 10.76 | 5.29 |
-| sqlite-array | hot:w4 | 300 | 61 (20%) | 97% | 7.52 / 10.87 / 10.87 | 10 |
-| sqlite-array | paced50:w4 | 300 | 0 (0%) | 2% | 4.27 / 8.18 / 10.36 | 5.9 |
-| sqlite-array | paced200:w4 | 300 | 54 (18%) | 24% | 4.24 / 6.38 / 10.78 | 5.11 |
-| pgsql-none | disjoint:w4 | 300 | 54 (18%) | 0% | 7.03 / 17.37 / 24.16 | 5.98 |
-| pgsql-none | hot:w4 | 300 | 58 (19%) | 0% | 8.12 / 20.53 / 28.60 | 5.87 |
-| pgsql-none | paced50:w4 | 300 | 8 (3%) | 0% | 8.34 / 25.03 / 40.66 | 6.82 |
-| pgsql-none | paced200:w4 | 300 | 56 (19%) | 0% | 6.75 / 19.17 / 23.48 | 5.98 |
-| pgsql-redis | disjoint:w4 | 300 | 47 (16%) | 42% | 8.65 / 28.21 / 42.28 | 7.01 |
-| pgsql-redis | hot:w4 | 300 | 42 (14%) | 63% | 12.25 / 35.22 / 38.42 | 7.64 |
-| pgsql-redis | paced50:w4 | 300 | 0 (0%) | 3% | 8.36 / 18.99 / 27.79 | 6.68 |
-| pgsql-redis | paced200:w4 | 300 | 60 (20%) | 36% | 8.35 / 24.74 / 36.55 | 6.27 |
-| mysql-none | disjoint:w4 | 300 | 42 (14%) | 0% | 7.27 / 22.15 / 29.10 | 6.67 |
-| mysql-none | hot:w4 | 300 | 41 (14%) | 0% | 7.39 / 19.91 / 29.03 | 6.53 |
-| mysql-none | paced50:w4 | 300 | 0 (0%) | 0% | 7.26 / 15.11 / 20.73 | 6.4 |
-| mysql-none | paced200:w4 | 300 | 49 (16%) | 0% | 6.91 / 20.73 / 23.82 | 6.02 |
+| check, new request, 1 worker | 7.31 ms, 5 SQL | 7.25 ms, 3.67 SQL | 17.7 ms, 5 SQL | 8.47 ms, 2 SQL | 12.8 ms, 5 SQL | 13.5 ms, 5 SQL |
+| check, 4 workers, throughput | 512/s | 558/s | 236/s | 441/s | 310/s | 304/s |
+| heavy subject, missing permission | 33.1 ms | 9.13 ms | 42.0 ms | 11.9 ms | 39.0 ms | 38.0 ms |
+| heavy subject, `permissionSet()` | 35.5 ms | 11.2 ms | 45.3 ms | 15.3 ms | 42.2 ms | 40.9 ms |
+| heavy subject, `abilities()` of 50 | 208 ms | 174 ms | 224 ms | 178 ms | 222 ms | 218 ms |
+| `visibleTo()` page of 10 000 posts | 8.81 ms | 8.86 ms | 23.9 ms | 25.6 ms | 15.8 ms | 18.7 ms |
+| check, warm request | 0.86 ms, 0 SQL | 0.86 ms, 0 SQL | 1.03 ms, 0 SQL | 1.07 ms, 0 SQL | 0.95 ms, 0 SQL | 1.03 ms, 0 SQL |
+| tenant member check, 4 workers | 4.53 ms | 4.72 ms | 10.9 ms | 7.02 ms | 10.9 ms | 12.1 ms |
+| grant under read load, 2 writers | 4.17 ms | 4.82 ms | 14.9 ms | 12.9 ms | 18.0 ms | 12.5 ms |
 
-## Consistency under writes (2026-10-09, mini tier, after steps 1-6)
+Every run exits 0. In all six, every correctness check passes and no operation reports an error; the engines never
+return a fast denial for an error. The host was not idle (other processes ran during the runs), so some operations
+vary by more than 10% between repetitions and are marked `stable: no` in the files; the table uses p50 only.
 
-Files `results/2026-10-09-consistency-after-*`, same profile and tier. `consistency_error` is 0 in every stage on
-every driver (it was 14-22% under closed-loop writers). With a cache, writes to other subjects no longer evict
-entries (`disjoint`: 100% hits). The hot subject is written all the time, so its misses are correct. The earlier
-97% / 63% (*) counted hits that ignored the write. SQL per check: 5 on a miss, 2 on a hit (the observed-state
-statement included). The box was under heavy shared load during the after run (load average 8-20), so the latency
-columns are only indicative. The final run below measures the snapshot span and the panel lock wait/hold
-directly and replaces these latencies.
+| Pair | Operations | Not stable | Errors | Correctness checks (all passed) |
+|---|---:|---:|---:|---:|
+| sqlite | 92 | 25 | 0 | 18 |
+| sqlite + array | 95 | 44 | 0 | 18 |
+| pgsql | 92 | 3 | 0 | 18 |
+| pgsql + redis | 95 | 18 | 0 | 18 |
+| mysql | 92 | 8 | 0 | 18 |
+| mariadb | 92 | 10 | 0 | 18 |
 
-| driver | stage | consistency_error before → after | hit ratio before → after | check p95 ms before → after |
-|---|---|---|---|---|
-| sqlite | disjoint | 66 (22%) → 0 | 0% → 0% | 5.54 → 6.85 |
-| sqlite | hot | 58 (19%) → 0 | 0% → 0% | 7.83 → 7.31 |
-| sqlite | paced200 | 64 (21%) → 0 | 0% → 0% | 5.79 → 7.62 |
-| sqlite+array | disjoint | 61 (20%) → 0 | 49% → 100% | 6.66 → 4.93 |
-| sqlite+array | hot | 61 (20%) → 0 | 97%* → 48% | 10.87 → 8.34 |
-| sqlite+array | paced50 | 0 → 0 | 2% → 77% | 8.18 → 7.75 |
-| sqlite+array | paced200 | 54 (18%) → 0 | 24% → 64% | 6.38 → 6.91 |
-| pgsql | disjoint | 54 (18%) → 0 | 0% → 0% | 17.37 → 21.89 |
-| pgsql | paced50 | 8 (3%) → 0 | 0% → 0% | 25.03 → 23.92 |
-| pgsql | paced200 | 56 (19%) → 0 | 0% → 0% | 19.17 → 31.32 |
-| pgsql+redis | disjoint | 47 (16%) → 0 | 42% → 100% | 28.21 → 8.47 |
-| pgsql+redis | hot | 42 (14%) → 0 | 63%* → 21% | 35.22 → 15.41 |
-| pgsql+redis | paced200 | 60 (20%) → 0 | 36% → 80% | 24.74 → 12.22 |
-| mysql | disjoint | 42 (14%) → 0 | 0% → 0% | 22.15 → 25.89 |
-| mysql | paced200 | 49 (16%) → 0 | 0% → 0% | 20.73 → 10.57 |
-| mariadb | all four stages | — → 0 | — | 9.9–18.7 |
-
-## Final results (2026-10-09, mini tier, low load)
-
-Files `results/2026-10-09-final-*`, commit `c04529e8`, one host (8 vCPU Xeon, PHP 8.4.26, OPcache on), nothing else
-running (load average 1.4-3.7). PostgreSQL 16, MySQL 8.4, MariaDB and Redis 7 from `docker-compose.yml`. Profiles
-`checks-concurrent`, `cache-cold-warm`, `decision-set`, `large-sets` and `consistency-load`. Unlike the runs above,
-these latencies are clean.
-
-| driver | check p50 / p95 ms (4 workers) | checks/s (4 workers) | warm request / warm store p50 ms | DecisionSet of 500 subjects, p50 ms (SQL) | its snapshot p50 ms |
-|---|---|---|---|---|---|
-| sqlite | 4.48 / 5.91 | 828 | 0.58 / 5.19 | 1708 (1506) | 167 |
-| sqlite+array | 4.44 / 6.10 | 879 | 0.53 / 3.29 | 1434 (506) | 1.81 |
-| pgsql | 8.04 / 9.99 | 482 | 0.64 / 8.30 | 2708 (1506) | 813 |
-| pgsql+redis | 5.27 / 6.89 | 697 | 0.61 / 5.05 | 1708 (506) | 3.95 |
-| mysql | 6.97 / 9.22 | 545 | 0.67 / 7.94 | 2209 (1506) | 477 |
-| mariadb | 8.09 / 13.34 | 444 | 0.71 / 8.17 | 2263 (1506) | 511 |
-
-Under concurrent writes (`consistency-load`, 4 workers, stages `disjoint`, `hot`, `paced50`, `paced200`; ranges are
-over the stages). `probe.lock_wait` is the wait for the panel lock of a write, `probe.lock_hold` the time a write
-holds it, `probe.snapshot` the span of the read snapshot of one check (a cache hit opens none).
-
-| driver | consistency_error | final-state check | cache hits disjoint / hot | check p95 ms disjoint / hot | lock wait p50 / p95 / p99 µs | lock hold p50 / p95 ms | snapshot p50 / p95 µs |
-|---|---|---|---|---|---|---|---|
-| sqlite | 0 | pass | 0% / 0% | 6.39 / 6.60 | 30–100 / 50–130 / 70–150 | 2.26–3.09 / 3.32–4.11 | 442–465 / 631–698 |
-| sqlite+array | 0 | pass | 100% / 43% | 4.63 / 6.83 | 30–100 / 50–130 / 70–140 | 2.32–3.16 / 3.28–4.26 | 459–481 / 665–698 |
-| pgsql | 0 | pass | 0% / 0% | 10.59 / 13.11 | 380–550 / 640–950 / 860–1860 | 6.86–7.72 / 9.36–10.24 | 2250–2326 / 2832–4055 |
-| pgsql+redis | 0 | pass | 100% / 20% | 6.81 / 13.25 | 400–630 / 640–1050 / 810–1590 | 6.94–8.12 / 8.99–11.83 | 2414–2596 / 3008–3721 |
-| mysql | 0 | pass | 0% / 0% | 9.09 / 9.31 | 310–550 / 480–840 / 730–980 | 5.70–6.86 / 7.41–9.01 | 1561–1594 / 2125–2234 |
-| mariadb | 0 | pass | 0% / 0% | 9.01 / 10.44 | 310–620 / 470–970 / 590–1090 | 5.34–6.48 / 6.80–8.43 | 1622–1695 / 2124–2482 |
-
-- `consistency_error` is 0 in every stage on every driver, and every written subject ends in the state of its last
-  write.
-- The panel lock is short: writers wait 30-100 µs on SQLite and 0.3-0.6 ms on the servers (p99 under 2 ms) and hold
-  it 2-8 ms, the length of one grant transaction. A check's snapshot stays open 0.4-0.5 ms on SQLite and 1.6-2.6 ms
-  on the servers.
-- With a cache, writes to other subjects keep 100% hits (`disjoint`); the subject written all the time (`hot`) misses
-  correctly.
-- A `DecisionSet` reads its subjects inside one snapshot, so that snapshot spans the whole set: 167 ms on SQLite and
-  0.5-0.8 s on the servers for 500 subjects without a cache, 2-4 ms with one, because subject revisions were read one
-  statement per subject (1 506 SQL for 500). Batched since `ae27bbea`, see "DecisionSet batching" below. The
-  5 001-subject set is refused by `decision_sets.max_subjects`.
-- `abilities()` of 50 for the heavy subject: 102-131 ms p50 on every driver (2-2.6 ms per permission, was about 4).
-
-Micro suite (`tests/Benchmarks/Suite.php`, SQLite, OPcache off, `results/2026-10-09-final-suite-sqlite.md`): a check
-in the same request 595 µs (1 role) / 2.03 ms (20 roles + 200 direct grants); in a new request without a cache store
-4.82 ms / 21.55 ms with 5 SQL, with an array store 3.58 ms / 6.03 ms with 2 SQL; `visibleTo()` first page of 10 000
-posts 6.93 ms; `grantRole()` 3.19 ms.
-
-## DecisionSet batching (2026-10-09, mini tier)
-
-Files `results/2026-10-09-decisionset-after-*`, commit `aad41106` (`18a83eaa` for mysql, a test-only change; batched
-reads from `ae27bbea`), profile `decision-set`, same host and tier as the final results above (before =
-`results/2026-10-09-final-*`). A set of 500 subjects now reads its revisions and grants in a fixed number of statements instead of three per subject:
-
-| driver | set p50 ms before → after | SQL before → after | snapshot p50 ms before → after |
-|---|---|---|---|
-| sqlite | 1708 → 1441 | 1506 → 9 | 167 → 22.6 |
-| sqlite+array | 1434 → 1349 | 506 → 7 | 1.81 → 1.75 |
-| pgsql | 2708 → 1339 | 1506 → 9 | 813 → 28.4 |
-| pgsql+redis | 1708 → 1337 | 506 → 7 | 3.95 → 4.4 |
-| mysql | 2209 → 1336 | 1506 → 9 | 477 → 27.3 |
-| mariadb | 2263 → 1518 | 1506 → 9 | 511 → 30.6 |
-
-- The snapshot of a 500-subject set without a cache shrinks 7 times on SQLite (167 → 23 ms) and 17-29 times on the
-  servers (0.5-0.8 s → 27-31 ms), so a long set no longer holds a read snapshot open while writers commit. The SQL count grows with the chunk count, not the subjects:
-  9 for 500, 17 for 1 000, 33 for 2 000.
-- What remains of the set time (about 2.7 ms per subject) is evaluation in PHP, the same on every driver.
-- With a writer on the same panel (`writer500:w2`) the set still ends with `consistency_error` 0.
+The numbers of one host are comparable only with each other. Absolute values depend on the host and its load at the
+time: do not compare them with another machine. Before a release, run the same pairs on the same host and compare:
+`php bench/bin/compare.php results/2026-10-14-1.0-<driver>-<cache>-mini.json <new>.json` (see `RELEASING.md`).
 
 ## CI
 

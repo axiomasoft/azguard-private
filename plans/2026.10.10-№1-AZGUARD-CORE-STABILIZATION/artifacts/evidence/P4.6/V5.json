@@ -1,0 +1,23 @@
+{
+  "$schema": "urn:swissknifeman:task:plan:check-evidence:v1",
+  "evidence_id": "PLAN1.P4.6.V5",
+  "check_id": "V5",
+  "subject": "PLAN1.P4.6",
+  "procedure": {
+    "cmd": "test -z \"$(git ls-files 'bench/results/2026-10-09-*')\" && ls bench/results/*-1.0-*-mini.json | wc -l | grep -qx 6",
+    "cwd": "."
+  },
+  "candidate": {
+    "head": "b981f2facc802bd1abba36b288ac09d47e2b1795"
+  },
+  "started_at": "2026-10-14T16:15:22Z",
+  "finished_at": "2026-10-14T16:15:22Z",
+  "exit": 0,
+  "log": {
+    "path": "plans/2026.10.10-\u21161-AZGUARD-CORE-STABILIZATION/artifacts/evidence/P4/logs/P4.6-V5.log",
+    "sha256": "19eaf43821a7660ec323a87c8457bf74823beb296c39f5e01aa8a683aa50f061"
+  },
+  "producer": {
+    "kind": "executor"
+  }
+}

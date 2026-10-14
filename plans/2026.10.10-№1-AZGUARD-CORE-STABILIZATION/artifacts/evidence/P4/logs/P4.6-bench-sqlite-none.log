@@ -1,0 +1,28 @@
+[14:30:42] seeding tier mini on sqlite
+[14:30:44] seeded in 2.6 s: {"users":200,"posts":10000,"teams":20,"team_user":200,"azg_role_grants":509,"azg_permission_grants":220}
+[14:30:50] checks-concurrent check:w1: 3 reps, check p50 7309 µs p95 8126 µs, 134.1 ops/s
+[14:30:56] checks-concurrent check:w2: 3 reps, check p50 7397 µs p95 9220 µs, 246.6 ops/s
+[14:31:02] checks-concurrent check:w4: 3 reps, check p50 7262 µs p95 8863 µs, 511.5 ops/s
+[14:31:06] large-sets heavy:w1: 3 reps, miss p50 33131 µs p95 33519 µs, 3.2 ops/s
+[14:31:12] large-sets heavy:w4: 3 reps, miss p50 33368 µs p95 57107 µs, 12.2 ops/s
+[14:31:16] visible-at-scale visible:w1: 5 reps, page p50 8809 µs p95 11665 µs, 54.8 ops/s
+[14:31:20] visible-at-scale visible:w2: 5 reps, page p50 8747 µs p95 16115 µs, 107.3 ops/s
+[14:31:25] visible-at-scale visible:w4: 5 reps, page p50 8687 µs p95 16382 µs, 190.3 ops/s
+[14:31:29] cache-cold-warm coldwarm:w1: 3 reps, warm_store p50 7386 µs p95 8923 µs, 62.0 ops/s
+[14:31:35] cache-cold-warm warm:w4: 3 reps, warm_store p50 7292 µs p95 9150 µs, 505.3 ops/s
+[14:31:44] grant-revoke-load writes:w2: 5 reps, check_under_writes p50 7650 µs p95 9692 µs, 125.4 ops/s
+[14:31:57] grant-revoke-load writes:w4: 5 reps, check_under_writes p50 7786 µs p95 9525 µs, 156.8 ops/s
+[14:32:04] consistency-load disjoint:w4: 3 reps, check p50 7371 µs p95 10118 µs, 348.5 ops/s
+[14:32:11] consistency-load hot:w4: 3 reps, check p50 7581 µs p95 9864 µs, 351.9 ops/s
+[14:32:21] consistency-load paced50:w4: 3 reps, check p50 7662 µs p95 9565 µs, 152.1 ops/s
+[14:32:32] consistency-load paced200:w4: 5 reps, check p50 7503 µs p95 10680 µs, 361.6 ops/s
+[14:32:36] multi-tenant tenant:w1: 3 reps, member p50 4636 µs p95 6114 µs, 71.5 ops/s
+[14:32:40] multi-tenant tenant:w2: 3 reps, member p50 4817 µs p95 6261 µs, 132.8 ops/s
+[14:32:44] multi-tenant tenant:w4: 3 reps, member p50 4535 µs p95 5735 µs, 268.6 ops/s
+[14:33:01] decision-set set100:w1: 3 reps, set p50 498147 µs p95 501387 µs, 2.0 ops/s
+[14:33:24] decision-set set250:w1: 3 reps, set p50 1243363 µs p95 1269372 µs, 0.8 ops/s
+[14:34:08] decision-set set500:w1: 3 reps, set p50 2397698 µs p95 2424551 µs, 0.4 ops/s
+[14:36:37] decision-set set1000:w1: 5 reps, set p50 4940199 µs p95 5017848 µs, 0.2 ops/s
+[14:39:31] decision-set set2000:w1: 3 reps, set p50 9585778 µs p95 9827858 µs, 0.1 ops/s
+[14:40:52] decision-set writer500:w2: 3 reps, set p50 2406747 µs p95 2455347 µs, 0.4 ops/s
+[14:40:52] written bench/results/2026-10-14-1.0-sqlite-none-mini.json and bench/results/2026-10-14-1.0-sqlite-none-mini.md
