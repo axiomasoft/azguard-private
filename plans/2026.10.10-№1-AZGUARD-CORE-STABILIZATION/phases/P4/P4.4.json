@@ -2,7 +2,7 @@
   "$schema": "urn:swissknifeman:task:plan:item:v1",
   "id": "P4.4",
   "title": "Module relocation rehearsal for Audit (I19)",
-  "status": "in_progress",
+  "status": "done_with_deviations",
   "summary": "Adds the `relocated-audit` mode to `bin/consumer-fixture.sh`: a clean application installed from the full core archive with audited data switches to a core archive without modules/audit plus a synthetic `axiomasoft/azguard-audit` archive with the same PSR-4 prefix and provider, and keeps FQCNs, commands, publish tag, migration basename, doctor result and journal rows unchanged with one autoload owner.",
   "why": "I19 rehearsal and D6/transition-policy: a future extraction must not migrate API, schema or data. Audit is the hardest slice (table, fixed basename, publish tag, two commands, plugin id, doctor check, rows). Hard risks: two autoload owners for AzGuard\\Audit\\ hidden by classmap order; the migration re-running because its basename or path changed; provider discovery missing in the new archive; the core archive still shipping modules/audit.",
   "scope": {
@@ -143,12 +143,49 @@
   },
   "result": {
     "started_at": "2026-10-14T11:12:50Z",
+    "finished_at": "2026-10-14T12:33:40Z",
     "executor": {
       "provider": "claude-code",
       "model": "claude-opus-5-5",
       "effort": "high",
       "session": "08eaf266-671e-4e64-bc8a-e9019ea4371d"
-    }
+    },
+    "notes": "relocated-audit exit 0 in 101 s at 70c5d153 (evidence/P4/relocation.md). Grok 4.7 review round1 finding F1 (PHP backticks in the report's Audit-commands cell) fixed in aa261647. V2 (impact) ran only core-only; default and --with-filament modes not run (only the mode != full condition changed; owner-requested minimal matrix). V4: packages/** unchanged.",
+    "deviations": [
+      "Relocated archives (core without modules/audit, synthetic axiomasoft/azguard-audit) carry the next patch version of --version (1.0.0 -> 1.0.1): Composer replaces an installed artifact package only for another version; a relocation is a release in reality too. Recorded by --report=FILE."
+    ],
+    "checks": [
+      {
+        "id": "V1",
+        "exit": 0,
+        "at": "2026-10-14T12:33:40Z",
+        "evidence": "plans/2026.10.10-№1-AZGUARD-CORE-STABILIZATION/artifacts/evidence/P4.4/V1.json"
+      },
+      {
+        "id": "V2",
+        "exit": 0,
+        "at": "2026-10-14T12:33:40Z",
+        "evidence": "plans/2026.10.10-№1-AZGUARD-CORE-STABILIZATION/artifacts/evidence/P4.4/V2.json"
+      },
+      {
+        "id": "V3",
+        "exit": 0,
+        "at": "2026-10-14T12:33:40Z",
+        "evidence": "plans/2026.10.10-№1-AZGUARD-CORE-STABILIZATION/artifacts/evidence/P4.4/V3.json"
+      },
+      {
+        "id": "V4",
+        "exit": 0,
+        "at": "2026-10-14T12:33:40Z",
+        "evidence": "plans/2026.10.10-№1-AZGUARD-CORE-STABILIZATION/artifacts/evidence/P4.4/V4.json"
+      }
+    ],
+    "evidence": [
+      "plans/2026.10.10-№1-AZGUARD-CORE-STABILIZATION/artifacts/evidence/P4.4/V1.json",
+      "plans/2026.10.10-№1-AZGUARD-CORE-STABILIZATION/artifacts/evidence/P4.4/V2.json",
+      "plans/2026.10.10-№1-AZGUARD-CORE-STABILIZATION/artifacts/evidence/P4.4/V3.json",
+      "plans/2026.10.10-№1-AZGUARD-CORE-STABILIZATION/artifacts/evidence/P4.4/V4.json"
+    ]
   },
-  "updated_at": "2026-10-14T11:12:50Z"
+  "updated_at": "2026-10-14T12:33:40Z"
 }

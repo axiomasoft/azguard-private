@@ -1,0 +1,9 @@
+# P4.4 V3
+# cmd: php -d memory_limit=1G vendor/bin/pest tests/Arch/InvariantRegisterTest.php --fail-on-skipped
+# cwd: /home/vostrikov/projects/packages/azguard
+# HEAD: 70c5d153d408670015fe646e29761472d0b4e91e
+# php: 8.4 (PATH shim; system php is 8.3)
+# started: 2026-10-14T12:30:14Z
+{"tool":"pest","result":"passed","tests":8,"passed":8,"assertions":292,"duration_ms":25}
+# exit: 0
+# finished: 2026-10-14T12:30:14Z

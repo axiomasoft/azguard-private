@@ -1,0 +1,32 @@
+{
+    "$schema": "urn:swissknifeman:task:plan:check-evidence:v1",
+    "evidence_id": "PLAN1.P4.4.V3.2026-10-14T12:30:14Z",
+    "check_id": "V3",
+    "subject": "PLAN1.P4.4",
+    "procedure": {
+        "cmd": "php -d memory_limit=1G vendor/bin/pest tests/Arch/InvariantRegisterTest.php --fail-on-skipped",
+        "cwd": "."
+    },
+    "candidate": {
+        "head": "70c5d153d408670015fe646e29761472d0b4e91e"
+    },
+    "exit": 0,
+    "environment": {
+        "platform": "Linux",
+        "php": "8.4 (PATH shim; system php is 8.3)"
+    },
+    "log": {
+        "path": "plans/2026.10.10-№1-AZGUARD-CORE-STABILIZATION/artifacts/evidence/P4.4/V3.log",
+        "sha256": "3b189f8e6b18f4223265a4a8e5c4e45a740b9d8640267c578c933b304981423b"
+    },
+    "started_at": "2026-10-14T12:30:14Z",
+    "finished_at": "2026-10-14T12:30:14Z",
+    "producer": {
+        "kind": "executor",
+        "actor": {
+            "provider": "claude-code",
+            "model": "claude-sonnet-5-5",
+            "effort": "high"
+        }
+    }
+}
