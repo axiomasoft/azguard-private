@@ -1,0 +1,36 @@
+== tests.yml run 38603960397
+PostgreSQL · authority replica	success
+Coverage	success
+Redis · cross-process cache	success
+P8.5 · L13.* · prefer-lowest	success
+Consumer fixture · built archives	success
+DB lane · pgsql · L12.*	success
+DB lane · mariadb · L12.*	success
+DB lane · mysql · L12.*	success
+DB lane · pgsql · L13.*	success
+P8.5 · L13.* · prefer-stable	success
+P8.4 · L12.* · prefer-stable	success
+P8.3 · L11.* · prefer-stable	success
+P8.3 · L12.* · prefer-lowest	success
+P8.3 · L13.* · prefer-stable	success
+P8.3 · L13.* · prefer-lowest	success
+DB lane · mariadb · L13.*	success
+P8.4 · L12.* · prefer-lowest	success
+P8.4 · L11.* · prefer-stable	success
+P8.4 · L13.* · prefer-lowest	success
+P8.4 · L13.* · prefer-stable	success
+P8.3 · L11.* · prefer-lowest	success
+P8.3 · L12.* · prefer-stable	success
+P8.4 · L11.* · prefer-lowest	success
+DB lane · mysql · L13.*	success
+== tests-nightly.yml run 38604026382
+Extended · scale tests	success
+DB lane, all parity seeds · mariadb	success
+DB lane, all parity seeds · pgsql	success
+DB lane, all parity seeds · mysql	success
+== static-analysis.yml run 38603960357
+Larastan (PHPStan level 9)	success
+== code-style.yml run 38603960149
+Laravel Pint	success
+== compatibility.yml run 38603960341
+API and format compatibility	success
