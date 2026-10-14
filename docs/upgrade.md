@@ -116,6 +116,13 @@ your code. Each line is `Find: <grep pattern> → Replace: <new form>`.
 - Find: `audit_log` expected from `StorageSchema::create()`, the core migration or `azguard:storage:migration` → Replace: the Audit module creates it:
   `php artisan vendor:publish --tag=azguard-audit-migrations && php artisan migrate` (default storage) or
   `php artisan azguard:audit:migration <storage> && php artisan migrate` (named storage); `StorageSchema` creates and drops six tables.
+- Find: `AzGuard\Plugins\Audit\RecordChange` (a pipe in `->changing([...])` or a subclass) → Replace: nothing; `AuditPlugin` registers its own
+  `ChangeParticipant`, and a pipe that wrote journal rows becomes a participant of your own (see `ChangeJournal` above).
+- Find: a doctor filter or alert on the finding `storage.migrated` that expected the audit table → Replace: `storage.migrated` checks the six core
+  tables only; the journal table is checked by `audit.table`, contributed by `AuditPlugin` (run `azguard:doctor`).
+- Find: an existing `audit_log` table of a 0.7.0 install → Replace: no action and no migration; the table keeps working with `AuditPlugin`, and
+  `azguard:doctor` (`audit.table`) compares it with the Audit schema. Do not publish the Audit migration for it: that migration creates the
+  table and fails when it already exists.
 - Find: `app(StorageRegistry::class)->get(` or `use AzGuard\Storage\StorageRegistry;` in `stubs/azguard/models-migration.stub` or a migration
   `azguard:make:models` generated → Replace: `$storage = app(AzGuard\AzGuard::class)->storage('<storage>')`, `Schema::connection($storage->connection)`
   and `$storage->prefix.'role_grants'`; the registry is internal (republish the stubs with `azguard:stubs --force`).

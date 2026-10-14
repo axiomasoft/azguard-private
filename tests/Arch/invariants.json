@@ -39,7 +39,7 @@
     },
     {
         "id": "I5",
-        "status": "build",
+        "status": "exists",
         "checks": [
             "tests/Arch/AutoloadOwnershipTest.php"
         ],
@@ -127,7 +127,7 @@
     },
     {
         "id": "I13",
-        "status": "build",
+        "status": "exists",
         "checks": [
             "tests/Feature/InactiveCost/CoreOnlyPanelTest.php"
         ],
@@ -160,7 +160,7 @@
     },
     {
         "id": "I16",
-        "status": "build",
+        "status": "exists",
         "checks": [
             "tests/Feature/Storage/FreshInstallTest.php"
         ],

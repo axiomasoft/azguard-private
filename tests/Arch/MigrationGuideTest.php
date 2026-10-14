@@ -3,8 +3,8 @@
 declare(strict_types=1);
 
 /*
- * The AI-agent migration instruction guard (PLAN1 P2.14): every supported symbol the type map renames, moves, retires
- * or splits in P2 — a type published at 0.7.0 (`api`, `spi`, also by directory) — is named by its old FQCN in the
+ * The AI-agent migration instruction guard (PLAN1 P2.14, widened in P3.14): every supported symbol the type map renames, moves, retires
+ * or splits in P2 or P3 — a type published at 0.7.0 (`api`, `spi`, also by directory) — is named by its old FQCN in the
  * `## From 0.7 to 1.0 (instructions for AI agents)` section of docs/upgrade.md, so a consumer can grep its code for it.
  * Internal and unmarked types carry no promise and need no line (knowledge/p2-execution#conventions, rule 8).
  */
@@ -61,7 +61,7 @@ it('reads the type map of the plan', function (): void {
     expect(typeMapRows())->not->toBe([], 'the plan holds no type map: its knowledge/type-map.json is the source of this guard');
 });
 
-it('names the old FQCN of every published type that P2 renames, moves, retires or splits', function (): void {
+it('names the old FQCN of every published type that P2 or P3 renames, moves, retires or splits', function (): void {
     $instruction = migrationInstruction();
     $required = [];
     $missing = [];
@@ -69,7 +69,7 @@ it('names the old FQCN of every published type that P2 renames, moves, retires o
     foreach (typeMapRows() as $row) {
         $published = str_starts_with($row['was'], 'api') || str_starts_with($row['was'], 'spi');
 
-        if (! $published || ! in_array($row['action'], ['rename', 'move', 'retire', 'split'], true) || ! str_contains($row['phase'], 'P2')) {
+        if (! $published || ! in_array($row['action'], ['rename', 'move', 'retire', 'split'], true) || ! (str_contains($row['phase'], 'P2') || str_contains($row['phase'], 'P3'))) {
             continue;
         }
 

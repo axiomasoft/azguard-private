@@ -114,7 +114,11 @@ it('agrees with the invariants table of the architecture knowledge', function ()
     expect(array_keys($table))->toBe(array_keys($register), 'the plan holds no invariants table: its knowledge/architecture.json is the source of the register');
 
     foreach ($table as $id => $expected) {
-        expect($register[$id]['status'])->toBe($expected['status'], $id.' status disagrees with the table')
+        // The table is the design-time statement and is not rewritten (a plan document); the register records what was built:
+        // a `build` row may be `exists` once its phase delivered the check, but an `exists` row never goes back to `build`.
+        $built = $expected['status'] === 'build' && $register[$id]['status'] === 'exists';
+
+        expect($built || $register[$id]['status'] === $expected['status'])->toBeTrue($id.' status disagrees with the table')
             ->and($register[$id]['owner_phase'])->toBe($expected['owner_phase'], $id.' owner phase disagrees with the table');
     }
 });

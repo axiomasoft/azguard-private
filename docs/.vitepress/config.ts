@@ -38,6 +38,15 @@ const sidebar = [
     ],
   },
   {
+    text: 'Modules',
+    items: [
+      { text: 'Overview and activation', link: '/modules/' },
+      { text: 'Scopes plugin', link: '/modules/scopes' },
+      { text: 'Audit', link: '/modules/audit' },
+      { text: 'DevTools', link: '/modules/devtools' },
+    ],
+  },
+  {
     text: 'Reference',
     items: [
       { text: 'Configuration', link: '/reference/configuration' },

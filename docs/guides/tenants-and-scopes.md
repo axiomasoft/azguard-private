@@ -27,8 +27,9 @@ use AzGuard\Scopes\ScopesPlugin;
 A definition class is created without arguments; pass a definition that needs services or settings as an object.
 A panel has one `ScopesPlugin`. Another plugin, `configurePanels()` or the provider itself can add to the same
 declaration through `->assignmentScopes(new AssignmentScopeDeclaration(AssignmentScopeMode::Inherit, [$definition]))`:
-the mode comes from the highest layer (provider, then plugins, then `configurePanels()`), definitions of all layers
-are merged by alias. `Panel::scopeDeclaration()` returns the merged declaration, or null for a panel without one.
+the mode comes from the highest layer (provider, then plugins, then `configurePanels()`) and definitions of all layers
+are collected by alias; a type declared twice must be declared identically, otherwise the panel fails to compile.
+See [Scopes plugin](/modules/scopes). `Panel::scopeDeclaration()` returns the merged declaration, or null for a panel without one.
 
 A role must list the scopes it can be granted in:
 
