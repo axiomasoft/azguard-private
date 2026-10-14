@@ -143,6 +143,11 @@
       "mode": "recommended"
     }
   ],
+  "closed": {
+    "at": "2026-10-14T05:27:58Z",
+    "result": "done_with_deviations",
+    "summary": "15 item(s): 15 done_with_deviations"
+  },
   "sections": [
     {
       "id": "design-inputs",
