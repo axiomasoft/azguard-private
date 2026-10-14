@@ -30,13 +30,14 @@ const COMPAT_LIST_KEYS = ['name', 'fqcn', 'type', 'case', 'key'];
 final class CompatError extends RuntimeException {}
 
 /**
- * The newest stable tag of a list of tag names, or null.
+ * The newest stable tag of a list of tag names, or null; a tag in $excluded never qualifies.
  *
  * @param  list<string>  $tags
+ * @param  list<string>  $excluded  tags that must not be the baseline (those of the compared commit itself)
  */
-function compatSelectTag(array $tags): ?string
+function compatSelectTag(array $tags, array $excluded = []): ?string
 {
-    $stable = array_values(array_filter($tags, static fn (string $tag): bool => preg_match(COMPAT_STABLE_TAG, $tag) === 1));
+    $stable = array_values(array_filter($tags, static fn (string $tag): bool => preg_match(COMPAT_STABLE_TAG, $tag) === 1 && ! in_array($tag, $excluded, true)));
     usort($stable, static fn (string $a, string $b): int => version_compare(substr($b, 1), substr($a, 1)));
 
     return $stable[0] ?? null;
@@ -76,7 +77,16 @@ function compatBaseline(string $root, string $against, array $spec): array
         if ($tags === null) {
             throw new CompatError('cannot list the tags merged into HEAD');
         }
-        $tag = compatSelectTag(preg_split('/\R/', trim($tags), -1, PREG_SPLIT_NO_EMPTY) ?: []);
+        // A tag on HEAD itself would compare the tree with itself (the release run on a tag): it is not a baseline.
+        $own = compatGit($root, ['tag', '--points-at', 'HEAD']);
+
+        if ($own === null) {
+            throw new CompatError('cannot list the tags of HEAD');
+        }
+        $tag = compatSelectTag(
+            preg_split('/\R/', trim($tags), -1, PREG_SPLIT_NO_EMPTY) ?: [],
+            preg_split('/\R/', trim($own), -1, PREG_SPLIT_NO_EMPTY) ?: [],
+        );
         $against = $tag ?? $spec['candidate'] ?? null;
 
         if (! is_string($against) || $against === '') {

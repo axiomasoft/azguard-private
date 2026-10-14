@@ -547,6 +547,50 @@ it('selects the newest stable tag of major 1 or later', function (array $tags, ?
     'next major' => [['v1.9.3', 'v2.0.0'], 'v2.0.0'],
 ]);
 
+it('never takes a tag of the compared commit as the baseline', function (): void {
+    expect(compatSelectTag(['v1.0.0', 'v1.1.0'], ['v1.1.0']))->toBe('v1.0.0')
+        ->and(compatSelectTag(['v1.0.0'], ['v1.0.0']))->toBeNull();
+});
+
+it('compares the commit that carries the first stable tag with the candidate, not with itself', function (): void {
+    $repo = sys_get_temp_dir().'/azguard-compat-baseline-'.bin2hex(random_bytes(4));
+    $git = static function (string ...$arguments) use ($repo): string {
+        $process = proc_open(['git', '-C', $repo, '-c', 'user.name=t', '-c', 'user.email=t@example.test', '-c', 'commit.gpgsign=false', '-c', 'tag.gpgsign=false', ...$arguments], [1 => ['pipe', 'w'], 2 => ['pipe', 'w']], $pipes);
+        $output = (string) stream_get_contents($pipes[1]);
+        stream_get_contents($pipes[2]);
+        proc_close($process);
+
+        return trim($output);
+    };
+
+    try {
+        mkdir($repo);
+        $git('init', '-q');
+        file_put_contents($repo.'/a', '1');
+        $git('add', 'a');
+        $git('commit', '-q', '-m', 'candidate');
+        $candidate = $git('rev-parse', 'HEAD');
+        file_put_contents($repo.'/a', '2');
+        $git('commit', '-q', '-am', 'pointer');
+        $git('tag', '-a', 'v1.0.0', '-m', 'one');
+        $spec = ['candidate' => $candidate];
+
+        // The tag run: HEAD is the tagged commit, so the pointer is still the baseline.
+        expect(compatBaseline($repo, 'auto', $spec)['sha'])->toBe($candidate);
+
+        // Any later commit compares with the stable tag.
+        $tagged = $git('rev-parse', 'HEAD');
+        file_put_contents($repo.'/a', '3');
+        $git('commit', '-q', '-am', 'later');
+
+        expect(compatBaseline($repo, 'auto', $spec))->toBe(['ref' => 'v1.0.0', 'sha' => $tagged]);
+    } finally {
+        if (is_dir($repo)) {
+            exec('rm -rf '.escapeshellarg($repo));
+        }
+    }
+});
+
 it('parses Symfony console synopses', function (): void {
     expect(compatParseSynopsis('[-p|--panel [PANEL]] [--only ONLY] [--force] [--ansi|--no-ansi] [--] <subject> [<permission>...]'))->toBe([
         'arguments' => [

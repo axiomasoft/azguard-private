@@ -2,8 +2,7 @@ name: Zizmor
 
 on:
   push:
-    branches: [main]
-    paths: ['.github/workflows/**']
+    branches: [main, 'feat/**']
   pull_request:
     branches: [main]
     paths: ['.github/workflows/**']
@@ -23,6 +22,8 @@ jobs:
       - name: Install zizmor
         run: pipx install zizmor
 
+      # Advisory: the audit reports its findings without failing the job (122 findings on 2026-10-14, mostly unpinned
+      # `uses:` references), so a green run is evidence that the audit ran, not that the workflows are clean.
       - name: Audit workflows
         run: zizmor --persona regular .github/workflows/ || true
         env:

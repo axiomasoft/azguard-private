@@ -97,10 +97,16 @@ protection, and restrict who may apply the `compat-baseline` label.
    The script reads `git show REF:CHANGELOG.md`; a working-tree-only edit fails.
    Run `bash bin/test-release-preflight.sh` for isolated matching, missing,
    malformed, prerelease, and working-tree-only fixtures.
-4. After explicit owner approval, create and push an annotated tag from that
-   commit:
+   For the first stable release the qualified candidate C is not the commit that is tagged: a commit cannot name
+   itself, so the next commit C+1 sets `candidate` in `compatibility.json` to C and changes nothing else
+   (`git diff --name-only C C+1 -- . ':!plans'` prints only `compatibility.json`). Run `composer api:compat`,
+   `bash bin/compat-drill.sh --baseline=C` and `bash bin/release-preflight.sh 1.0.0 HEAD` on C+1 and wait for its CI
+   before tagging. The release run on the tag compares C+1 with C: a tag on the compared commit is never its own
+   baseline.
+4. After explicit owner approval, create and push an annotated tag from the commit named above (for 1.0.0, C+1; for
+   later releases, the candidate commit itself):
    ```bash
-   git tag -a v1.0.0 -m "AzGuard 1.0.0"
+   git tag -a v1.0.0 <C+1> -m "AzGuard 1.0.0"
    git push origin v1.0.0
    ```
 5. CI takes over. **`release.yml`** runs the whole qualification graph on the tagged commit, in the same run:

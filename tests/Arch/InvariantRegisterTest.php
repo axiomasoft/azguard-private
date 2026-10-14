@@ -12,6 +12,10 @@ declare(strict_types=1);
  * and workflows that prove the invariant today; `blocking` — `now`, or `after Pn`: the point from which the complete
  * check set fails the build (a scan in report mode fails on a new violation already, with an allowlist that empties by
  * Pn); `owner_phase` — the last phase the status cell of the table names (null when it names none).
+ *
+ * I22 blocks in the sense that its smoke suite (tests/Feature/Bench/LoadBenchSmokeTest.php) fails the build on a
+ * correctness or engine error of the bench. The comparison with the recorded 1.0 reference (bench/bin/compare.php) needs
+ * the same host and never gates a merge (bench.yml): it is a step of the release checklist (RELEASING.md).
  */
 
 /** @return array<string, array{status: string, owner_phase: string|null}> the invariants table of the plan, by id */
