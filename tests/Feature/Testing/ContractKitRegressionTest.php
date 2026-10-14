@@ -10,7 +10,6 @@ use AzGuard\Tests\Fixtures\Contracts\Probes\HookProbe;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Foundation\Testing\DatabaseMigrations;
 use PHPUnit\Framework\AssertionFailedError;
-use ReflectionClass;
 
 uses(DatabaseMigrations::class);
 
