@@ -132,18 +132,28 @@ final class ContractWorld
                 $schema = $connection->getSchemaBuilder();
                 // Only the current database (MySQL, MariaDB), the search path (PostgreSQL) or `main` (SQLite): without
                 // it the list holds tables of other databases or attached files that this connection does not write.
-                $current = $schema->getCurrentSchemaListing();
-                $tables = $schema->getTables($current);
+                // Laravel 11 has neither the listing nor the schema argument: its table list is already the current
+                // database (MySQL, MariaDB), the search path (PostgreSQL) or `main` (SQLite).
+                $current = method_exists($schema, 'getCurrentSchemaListing') ? $schema->getCurrentSchemaListing() : null;
+                $tables = $current === null ? $schema->getTables() : $schema->getTables($current);
             } catch (Throwable) {
                 continue;
             }
             foreach ($tables as $table) {
                 $owner = is_string($table['schema'] ?? null) ? $table['schema'] : null;
-                $key = $owner === null || $owner === ($current[0] ?? null) ? $table['name'] : $owner.'.'.$table['name'];
+                $key = $owner === null || $current === null || $owner === ($current[0] ?? null) ? $table['name'] : $owner.'.'.$table['name'];
                 // The listing holds physical names: wrapping them with the connection prefix would prefix them twice.
-                $row = $connection->withoutTablePrefix(fn (): mixed => $connection->selectOne(
-                    'select count(*) as aggregate from '.$connection->getQueryGrammar()->wrap($owner === null ? $table['name'] : $owner.'.'.$table['name']),
-                ));
+                // (`withoutTablePrefix()` returns nothing on Laravel 11, so the prefix is swapped by hand.)
+                $prefix = $connection->getTablePrefix();
+                $connection->setTablePrefix('');
+
+                try {
+                    $row = $connection->selectOne(
+                        'select count(*) as aggregate from '.$connection->getQueryGrammar()->wrap($owner === null ? $table['name'] : $owner.'.'.$table['name']),
+                    );
+                } finally {
+                    $connection->setTablePrefix($prefix);
+                }
                 $count = is_object($row) ? ($row->aggregate ?? null) : null;
                 $counts[$name.'.'.$key] = is_numeric($count) ? (int) $count : throw new RuntimeException('Table '.$table['name'].' of '.$name.' could not be counted.');
             }

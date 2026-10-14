@@ -100,12 +100,14 @@ it('leaves out the tables of another schema or attached database that the connec
     try {
         $counts = ContractWorld::rowCounts();
         $own = array_values(array_filter(array_keys($counts), static fn (string $key): bool => str_starts_with($key, $connection->getName().'.')));
+        $builder = $connection->getSchemaBuilder();
+        // Laravel 11 lists the current database only and has no schema argument.
+        $listing = method_exists($builder, 'getCurrentSchemaName') ? $builder->getTableListing($builder->getCurrentSchemaName(), false) : $builder->getTableListing();
 
         expect($counts)->toHaveKey($connection->getName().'.contract_probe', 0)
             ->and($counts)->not->toHaveKey($connection->getName().'.contract_foreign')
             ->and($counts)->not->toHaveKey($connection->getName().'.contract_other.contract_foreign')
-            ->and($own)->toBe(array_map(static fn (string $table): string => $connection->getName().'.'.$table,
-                $connection->getSchemaBuilder()->getTableListing($connection->getSchemaBuilder()->getCurrentSchemaName(), false)));
+            ->and($own)->toBe(array_map(static fn (string $table): string => $connection->getName().'.'.$table, $listing));
     } finally {
         match ($driver) {
             'sqlite' => $connection->statement('DETACH DATABASE contract_other'),
