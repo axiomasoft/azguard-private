@@ -1,0 +1,24 @@
+Coverage	success
+Consumer fixture · built archives	success
+Redis · cross-process cache	success
+DB lane · mysql · L12.*	success
+DB lane · mariadb · L13.*	success
+PostgreSQL · authority replica	success
+DB lane · mysql · L13.*	success
+DB lane · mariadb · L12.*	success
+P8.4 · L11.* · prefer-stable	success
+DB lane · pgsql · L12.*	success
+P8.3 · L11.* · prefer-lowest	success
+DB lane · pgsql · L13.*	success
+P8.4 · L12.* · prefer-lowest	success
+P8.4 · L13.* · prefer-stable	success
+P8.4 · L11.* · prefer-lowest	success
+P8.3 · L13.* · prefer-stable	success
+P8.3 · L12.* · prefer-stable	success
+P8.3 · L13.* · prefer-lowest	success
+P8.3 · L12.* · prefer-lowest	success
+P8.5 · L13.* · prefer-stable	success
+P8.4 · L12.* · prefer-stable	success
+P8.5 · L13.* · prefer-lowest	success
+P8.4 · L13.* · prefer-lowest	success
+P8.3 · L11.* · prefer-stable	success

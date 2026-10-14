@@ -1,0 +1,32 @@
+{
+    "$schema": "urn:swissknifeman:task:plan:check-evidence:v1",
+    "evidence_id": "PLAN1.P4.2.V11.2026-10-14",
+    "check_id": "V11",
+    "subject": "PLAN1.P4.2",
+    "procedure": {
+        "cmd": "composer docs:language && composer docs:php",
+        "cwd": "clean git worktree at the pushed sha with CI dependency versions"
+    },
+    "candidate": {
+        "head": "4a429068883a2e47642cb12272445beb976081e5"
+    },
+    "exit": 0,
+    "environment": {
+        "platform": "Linux",
+        "php": "8.4"
+    },
+    "log": {
+        "path": "plans/2026.10.10-№1-AZGUARD-CORE-STABILIZATION/artifacts/evidence/P4/logs/V11.log",
+        "sha256": "cb3de1d27b99d2818fc714bf602c406dc89b89c16291f0e7b55a773748bc89b3"
+    },
+    "started_at": "2026-10-14T11:07:46Z",
+    "finished_at": "2026-10-14T11:07:46Z",
+    "producer": {
+        "kind": "executor",
+        "actor": {
+            "provider": "anthropic",
+            "model": "claude-sonnet-5-5",
+            "effort": "high"
+        }
+    }
+}

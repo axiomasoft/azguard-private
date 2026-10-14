@@ -1,0 +1,5 @@
+> Composer\Config::disableProcessTimeout
+> @php bin/test-db.php 'mariadb' '--parallel'
+[mariadb] php -d memory_limit=1G vendor/bin/pest --fail-on-skipped --exclude-group=server-skip --group=database --parallel --processes=4 --passthru-php='-d memory_limit=1G'
+PHP Warning:  The use statement with non-compound name 'ReflectionClass' has no effect in /tmp/claude-1000/-home-vostrikov-projects-packages-azguard/e47c7c23-7bcf-4f7b-8f57-86e3ea42c041/scratchpad/wt-l13/tests/Feature/Testing/ContractKitRegressionTest.php on line 13
+Script @php bin/test-db.php handling the test:db event returned with error code 143

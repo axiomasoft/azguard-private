@@ -1,0 +1,12 @@
+ Container azguard-authority-primary-1 Starting 
+ Container azguard-authority-primary-1 Started 
+ Container azguard-authority-primary-1 Waiting 
+ Container azguard-authority-primary-1 Healthy 
+ Container azguard-authority-replica-1 Starting 
+ Container azguard-authority-replica-1 Started 
+ Container azguard-authority-replica-1 Waiting 
+ Container azguard-authority-primary-1 Waiting 
+ Container azguard-authority-primary-1 Healthy 
+ Container azguard-authority-replica-1 Healthy 
+> bash tests/Engines/Support/replica-fixture.sh
+{"tool":"pest","result":"passed","tests":1,"passed":1,"assertions":15,"duration_ms":759}

@@ -1,0 +1,4 @@
+V7 local: pgsql --parallel on 4a429068883a2e47642cb12272445beb976081e5: exit 0 (V7a.log); mysql --parallel on d196325a: exit 0 in 1832s (V7b.log).
+mariadb --parallel: not run locally; owner accepted the green CI job (message: 'да, приму как доказательство'):
+DB lane · mariadb · L13.*	success
+DB lane · mariadb · L12.*	success
