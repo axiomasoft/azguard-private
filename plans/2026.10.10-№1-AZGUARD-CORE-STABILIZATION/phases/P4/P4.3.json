@@ -2,7 +2,7 @@
   "$schema": "urn:swissknifeman:task:plan:item:v1",
   "id": "P4.3",
   "title": "Compatibility comparator, artifact list and intentional-break drill (I18, D26)",
-  "status": "in_progress",
+  "status": "done_with_deviations",
   "summary": "Builds the I18 comparison: root `compatibility.json` (artifact list and a provisional candidate pointer), `bin/api-compat.php` with the rule set of p4-execution#compatibility, composer script `api:compat`, the unit catalogue of intentional breaks with allowed-addition controls in `tests/Arch/CompatibilityTest.php`, and `bin/compat-drill.sh`, which proves on real code patches in a throwaway clone that the stable-tag comparison rejects the five required breaks.",
   "why": "D26 and phase V1 (every intentional break is rejected); a regenerated manifest proves only freshness (phase pitfall). Hard risks: a missing rule lets a break through silently after 1.0; an over-strict rule teaches people to replace the baseline; internal check FQCNs used as JSON keys in doctor-checks.json mistaken for identities; implementer vs consumer rules (renames allowed only for spi-implement interface methods, I20) inverted; the drill creating tags in the real repository.",
   "scope": {
@@ -219,12 +219,57 @@
   },
   "result": {
     "started_at": "2026-10-14T11:12:50Z",
+    "finished_at": "2026-10-14T12:33:30Z",
     "executor": {
       "provider": "claude-code",
       "model": "claude-opus-5-5",
       "effort": "high",
       "session": "08eaf266-671e-4e64-bc8a-e9019ea4371d"
-    }
+    },
+    "notes": "Grok 4.7 review round1: RED, 1 finding (DDL index column order compared as a set), fixed in bb94cea6 with two new cases (92 tests). V5 run in a clean worktree at HEAD (owner WIP deleted KitCase.php gives trait.unused in the main checkout). Drill re-run at 70c5d153: D1-D5 rejected, D6 accepted, tags unchanged.",
+    "deviations": [
+      "tests/Arch/InvariantRegisterTest.php (outside task_files) pinned I18 as an invariant without checks; with I18 status exists its expectation becomes ['I22'] (committed with --path).",
+      "Comparator semantics fixed where p4-execution#compatibility is silent (property type -> member.return_changed; readonly/static/final added -> member.visibility_narrowed; method becoming abstract and new parent interface of an spi-implement interface -> implement.method_added; api-only interfaces and non-abstract constructors not overridable; API artifacts one surface; roots.changed only on prefix loss; members moved to a supported ancestor not removed). CompatibilityTest keeps tag names v0.3.0/v0.7.0 in the tag-selection dataset (required by p4-execution#breaks)."
+    ],
+    "checks": [
+      {
+        "id": "V1",
+        "exit": 0,
+        "at": "2026-10-14T12:33:30Z",
+        "evidence": "plans/2026.10.10-№1-AZGUARD-CORE-STABILIZATION/artifacts/evidence/P4.3/V1.json"
+      },
+      {
+        "id": "V2",
+        "exit": 0,
+        "at": "2026-10-14T12:33:30Z",
+        "evidence": "plans/2026.10.10-№1-AZGUARD-CORE-STABILIZATION/artifacts/evidence/P4.3/V2.json"
+      },
+      {
+        "id": "V3",
+        "exit": 0,
+        "at": "2026-10-14T12:33:30Z",
+        "evidence": "plans/2026.10.10-№1-AZGUARD-CORE-STABILIZATION/artifacts/evidence/P4.3/V3.json"
+      },
+      {
+        "id": "V4",
+        "exit": 0,
+        "at": "2026-10-14T12:33:30Z",
+        "evidence": "plans/2026.10.10-№1-AZGUARD-CORE-STABILIZATION/artifacts/evidence/P4.3/V4.json"
+      },
+      {
+        "id": "V5",
+        "exit": 0,
+        "at": "2026-10-14T12:33:30Z",
+        "evidence": "plans/2026.10.10-№1-AZGUARD-CORE-STABILIZATION/artifacts/evidence/P4.3/V5.json"
+      }
+    ],
+    "evidence": [
+      "plans/2026.10.10-№1-AZGUARD-CORE-STABILIZATION/artifacts/evidence/P4.3/V1.json",
+      "plans/2026.10.10-№1-AZGUARD-CORE-STABILIZATION/artifacts/evidence/P4.3/V2.json",
+      "plans/2026.10.10-№1-AZGUARD-CORE-STABILIZATION/artifacts/evidence/P4.3/V3.json",
+      "plans/2026.10.10-№1-AZGUARD-CORE-STABILIZATION/artifacts/evidence/P4.3/V4.json",
+      "plans/2026.10.10-№1-AZGUARD-CORE-STABILIZATION/artifacts/evidence/P4.3/V5.json"
+    ]
   },
-  "updated_at": "2026-10-14T11:12:50Z"
+  "updated_at": "2026-10-14T12:33:30Z"
 }

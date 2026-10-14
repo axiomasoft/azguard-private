@@ -1,0 +1,15 @@
+# P4.3 V5
+# cmd: composer analyse && composer lint:check && composer refactor:check && composer api:check
+# cwd: /tmp/claude-1000/-home-vostrikov-projects-packages-azguard/eecb83dd-b5bf-4db4-b2e1-bb61b90ae4c8/scratchpad/wt-v5
+# HEAD: 70c5d153d408670015fe646e29761472d0b4e91e
+# php: 8.4 (PATH shim; system php is 8.3)
+# note: run in a clean detached worktree at HEAD (owner WIP deleted KitCase.php makes analyse report trait.unused in the main checkout); vendor symlinked to the main checkout
+# started: 2026-10-14T12:25:56Z
+> vendor/bin/phpstan analyse --memory-limit=1G
+{"tool":"phpstan","result":"passed","errors":0}
+> vendor/bin/pint --test
+{"tool":"pint","result":"passed"}> vendor/bin/rector process --dry-run
+{"tool":"rector","result":"passed","totals":{"changed_files":0,"errors":0},"changed_files":["packages/core/src/Storage/Internal/Concerns/GuardsDirectWrites.php","packages/core/src/Storage/Internal/Storage.php","packages/core/src/Storage/Internal/WriteGuardedBuilder.php","packages/core/src/Testing/FakeSubject.php","packages/filament/src/AzGuardPlugin.php","packages/core/modules/scopes/src/Internal/Query/FilterQuery.php","packages/core/src/Laravel/Internal/Http/RouteChecks.php","packages/core/src/Panels/Internal/CanonicalMetadata.php","packages/core/src/Policies/Internal/RuntimeInvoker.php","packages/core/src/Sources/Relation/Internal/RelationScopeQuery.php","packages/core/src/Authorization/Internal/Query/PredicateBuilder.php","packages/core/src/Authorization/Internal/Query/PredicateCompiler.php","packages/core/src/Authorization/Visibility.php"]}
+> php bin/api-manifest.php --check
+# exit: 0
+# finished: 2026-10-14T12:29:45Z

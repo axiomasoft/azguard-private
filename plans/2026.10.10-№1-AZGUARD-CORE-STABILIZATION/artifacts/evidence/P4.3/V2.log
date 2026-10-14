@@ -1,0 +1,11 @@
+# P4.3 V2
+# cmd: composer api:check && composer api:compat
+# cwd: /home/vostrikov/projects/packages/azguard
+# HEAD: 70c5d153d408670015fe646e29761472d0b4e91e
+# php: 8.4 (PATH shim; system php is 8.3)
+# started: 2026-10-14T12:24:17Z
+> php bin/api-manifest.php --check
+> php bin/api-compat.php --against=auto
+compatible with baseline 2d7ff14d113053707e653e00bd8f21bbf1b27079 (2d7ff14d113053707e653e00bd8f21bbf1b27079): 0 addition(s)
+# exit: 0
+# finished: 2026-10-14T12:24:19Z
