@@ -10,6 +10,7 @@ use AzGuard\Tests\Fixtures\Contracts\Probes\HookProbe;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Foundation\Testing\DatabaseMigrations;
 use PHPUnit\Framework\AssertionFailedError;
+use ReflectionClass;
 
 uses(DatabaseMigrations::class);
 
@@ -102,7 +103,7 @@ it('leaves out the tables of another schema or attached database that the connec
         $own = array_values(array_filter(array_keys($counts), static fn (string $key): bool => str_starts_with($key, $connection->getName().'.')));
         $builder = $connection->getSchemaBuilder();
         // Laravel 11 lists the current database only and has no schema argument.
-        $listing = method_exists($builder, 'getCurrentSchemaName') ? $builder->getTableListing($builder->getCurrentSchemaName(), false) : $builder->getTableListing();
+        $listing = (new ReflectionClass($builder))->hasMethod('getCurrentSchemaName') ? $builder->getTableListing($builder->getCurrentSchemaName(), false) : $builder->getTableListing();
 
         expect($counts)->toHaveKey($connection->getName().'.contract_probe', 0)
             ->and($counts)->not->toHaveKey($connection->getName().'.contract_foreign')

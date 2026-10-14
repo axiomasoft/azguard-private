@@ -15,6 +15,7 @@ use AzGuard\Testing\FakeSubject;
 use Closure;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Events\QueryExecuted;
+use ReflectionClass;
 use RuntimeException;
 use Throwable;
 use UnitEnum;
@@ -134,7 +135,7 @@ final class ContractWorld
                 // it the list holds tables of other databases or attached files that this connection does not write.
                 // Laravel 11 has neither the listing nor the schema argument: its table list is already the current
                 // database (MySQL, MariaDB), the search path (PostgreSQL) or `main` (SQLite).
-                $current = method_exists($schema, 'getCurrentSchemaListing') ? $schema->getCurrentSchemaListing() : null;
+                $current = (new ReflectionClass($schema))->hasMethod('getCurrentSchemaListing') ? $schema->getCurrentSchemaListing() : null;
                 $tables = $current === null ? $schema->getTables() : $schema->getTables($current);
             } catch (Throwable) {
                 continue;
