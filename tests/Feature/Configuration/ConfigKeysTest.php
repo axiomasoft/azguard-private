@@ -223,7 +223,7 @@ it('registers Gate::before only while gate.enabled is true', function (): void {
 
 /*
  * I17, blocking now: the default of every key of the published core and Filament files and the environment names they
- * read, as 0.7.0 ships them. The `defaults.gate` section was present at 0.7.0 and is retired by P2.5: it is an unknown key now.
+ * read, as they ship; `defaults.gate` stays absent from them (an unknown key, see AzGuardConfigTest).
  */
 it('keeps the defaults of the published files and the environment names they read', function (): void {
     $root = dirname(__DIR__, 3).'/packages';

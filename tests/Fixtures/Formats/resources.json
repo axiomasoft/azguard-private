@@ -70,13 +70,13 @@
         "storage_id": "default",
         "version": 2
     },
-    "absent_at_070": {
-        "publish_tag azguard-audit-migrations (P3)": true,
-        "migration 2026_10_20_000000_create_azguard_audit_log (P3)": true,
-        "generated migration <date>_create_azguard_<storage>_audit_log.php (P3)": true,
-        "command azguard:audit:migration (P3)": true,
-        "plugin id azguard/scopes (P2)": true,
-        "provider AzGuard\\Audit\\AuditServiceProvider (P3)": true,
-        "provider AzGuard\\DevTools\\DevToolsServiceProvider (P3)": true
+    "module_resources": {
+        "publish_tag azguard-audit-migrations": true,
+        "migration 2026_10_20_000000_create_azguard_audit_log": true,
+        "generated migration <date>_create_azguard_<storage>_audit_log.php": true,
+        "command azguard:audit:migration": true,
+        "plugin id azguard/scopes": true,
+        "provider AzGuard\\Audit\\AuditServiceProvider": true,
+        "provider AzGuard\\DevTools\\DevToolsServiceProvider": true
     }
 }

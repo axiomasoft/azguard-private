@@ -12,7 +12,8 @@ use RuntimeException;
  * the row whose `current` or `target` name is that FQCN, so the answer is the same before and after a move.
  *
  * Owners: `core`, `scopes`, `audit`, `devtools`, `filament`; `split` (the parts of one type go to several owners) and
- * `retired` (no target) take part in no boundary rule until the type is split or removed.
+ * `retired` (no target) take part in no boundary rule until the type is split or removed. Each part of a split type is
+ * owned by its own row or, without one, by the root of its target path.
  */
 final class Ownership
 {
@@ -39,8 +40,9 @@ final class Ownership
     /** @param list<array<string, mixed>> $rows */
     private function __construct(private readonly array $rows)
     {
-        // A split row names the parts of one type, which have rows of their own (the module part, for one): the
-        // explicit row of a target wins over the `split` row that mentions it, wherever the rows stand.
+        // A split row names the parts of one type: the explicit row of a target wins over the `split` row that mentions
+        // it, wherever the rows stand. A part without a row of its own is owned by the root its target path lies in, so
+        // no file or type that exists after the split escapes the boundary rules as `split`.
         foreach ([false, true] as $splitRows) {
             foreach ($rows as $row) {
                 if ((($row['owner'] ?? null) === 'split') !== $splitRows) {
@@ -49,17 +51,41 @@ final class Ownership
                 foreach (self::parts($row['current_path'] ?? null) as $path) {
                     $this->byPath[$path] ??= $row;
                 }
-                foreach (self::parts($row['target_path'] ?? null) as $path) {
-                    $this->byPath[$path] ??= $row;
-                }
                 foreach (self::parts($row['current'] ?? null) as $type) {
                     $this->byType[strtolower($type)] ??= $row;
                 }
-                foreach (self::parts($row['target'] ?? null) as $type) {
-                    $this->byType[strtolower($type)] ??= $row;
+                $paths = self::parts($row['target_path'] ?? null);
+
+                foreach (self::parts($row['target'] ?? null) as $index => $type) {
+                    $part = $splitRows ? self::part($row, $type, $paths[$index] ?? null) : $row;
+                    $this->byType[strtolower($type)] ??= $part;
+
+                    if (isset($paths[$index])) {
+                        $this->byPath[$paths[$index]] ??= $part;
+                    }
                 }
             }
         }
+    }
+
+    /**
+     * The row of one part of a split type: the split row narrowed to that part, owned by the root of its target path
+     * (`split` when the path lies in no known root).
+     *
+     * @param  array<string, mixed>  $row
+     * @return array<string, mixed>
+     */
+    private static function part(array $row, string $type, ?string $path): array
+    {
+        $owner = match (true) {
+            $path === null => 'split',
+            str_starts_with($path, 'packages/core/src/') => 'core',
+            str_starts_with($path, 'packages/filament/src/') => 'filament',
+            default => in_array($module = explode('/', $path)[3] ?? '', self::MODULES, true) && str_starts_with($path, 'packages/core/modules/'.$module.'/')
+                ? $module : 'split',
+        };
+
+        return [...$row, 'owner' => $owner, 'target' => $type, 'target_path' => $path];
     }
 
     public static function fromOracle(): self

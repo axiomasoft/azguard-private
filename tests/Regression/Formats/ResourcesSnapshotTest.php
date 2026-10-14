@@ -106,14 +106,14 @@ it('keeps the publish tags, migrations, aliases, namespaces and reserved identit
         'system_actor_type' => ['constant' => ActorRef::SYSTEM_TYPE, 'system()' => ActorRef::system()->type],
         'storage_state_schema_keys' => array_keys($state),
         'storage_state_schema_default' => $state,
-        'absent_at_070' => [
-            'publish_tag azguard-audit-migrations (P3)' => ServiceProvider::pathsToPublish(null, 'azguard-audit-migrations') !== [],
-            'migration 2026_10_20_000000_create_azguard_audit_log (P3)' => in_array('2026_10_20_000000_create_azguard_audit_log', $auditMigrations, true),
-            'generated migration '.$namedAudit.' (P3)' => in_array($namedAudit, $namedAuditFiles, true),
-            'command azguard:audit:migration (P3)' => array_key_exists('azguard:audit:migration', Artisan::all()),
-            'plugin id azguard/scopes (P2)' => class_exists('AzGuard\\Scopes\\ScopesPlugin'),
-            'provider AzGuard\\Audit\\AuditServiceProvider (P3)' => class_exists('AzGuard\\Audit\\AuditServiceProvider'),
-            'provider AzGuard\\DevTools\\DevToolsServiceProvider (P3)' => class_exists('AzGuard\\DevTools\\DevToolsServiceProvider'),
+        'module_resources' => [
+            'publish_tag azguard-audit-migrations' => ServiceProvider::pathsToPublish(null, 'azguard-audit-migrations') !== [],
+            'migration 2026_10_20_000000_create_azguard_audit_log' => in_array('2026_10_20_000000_create_azguard_audit_log', $auditMigrations, true),
+            'generated migration '.$namedAudit => in_array($namedAudit, $namedAuditFiles, true),
+            'command azguard:audit:migration' => array_key_exists('azguard:audit:migration', Artisan::all()),
+            'plugin id azguard/scopes' => class_exists('AzGuard\\Scopes\\ScopesPlugin'),
+            'provider AzGuard\\Audit\\AuditServiceProvider' => class_exists('AzGuard\\Audit\\AuditServiceProvider'),
+            'provider AzGuard\\DevTools\\DevToolsServiceProvider' => class_exists('AzGuard\\DevTools\\DevToolsServiceProvider'),
         ],
     ];
     [$actual, $stored] = FormatSnapshot::compare('resources', $snapshot);

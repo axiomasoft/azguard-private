@@ -261,7 +261,8 @@ it('I4 (blocking): modules, Filament and stubs use only supported core types and
     $ownership = Ownership::fromOracle();
     $found = ApiUsage::i4Violations($ownership, ApiUsage::i4Files($ownership), ApiUsage::supported());
 
-    expect(ApiUsage::i4Files($ownership))->toContain(apiManifestRoot().'/packages/core/modules/devtools/stubs/policy.stub', apiManifestRoot().'/packages/core/modules/audit/stubs/audit-migration.stub')
+    expect(ApiUsage::i4Files($ownership))->toContain(apiManifestRoot().'/packages/core/modules/devtools/stubs/policy.stub', apiManifestRoot().'/packages/core/modules/audit/stubs/audit-migration.stub',
+        apiManifestRoot().'/packages/core/modules/scopes/src/Internal/ScopeConfiguration.php')
         ->and($found)->toBe([], 'I4 blocks: use a supported type or member; there is no allowlist')
         ->and(BoundaryScan::allowlist('i4'))->toBe([]);
 });

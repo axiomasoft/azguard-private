@@ -238,7 +238,7 @@ it('budgets the contexts of the owner only, not every row of the type', function
         VisibilityProject::query()->insert($chunk);
     }
 
-    // 1005 rows of the type, but tenant A owns three of them: the list stays exact, as on 0.7.0.
+    // 1005 rows of the type, but tenant A owns three of them: the list stays exact.
     expect($visibility->visibleTo($panel, VisibilityClient::query(), W::subject(), 'orders.view', W::scope())->pluck('id')->all())->toBe([101]);
 });
 

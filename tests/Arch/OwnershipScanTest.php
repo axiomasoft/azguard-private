@@ -258,8 +258,37 @@ it('lets the explicit row of a split part win over the split row, whichever come
         expect($ownership->fileOwner('packages/core/modules/scopes/src/Internal/Query/ScopeVisibility.php'))->toBe('scopes')
             ->and($ownership->referenceOwner('import', 'AzGuard\Scopes\Internal\Query\ScopeVisibility'))->toBe('scopes')
             ->and($ownership->fileOwner('packages/core/src/Authorization/Query/VisibilityScope.php'))->toBe('split')
-            ->and($ownership->referenceOwner('import', 'AzGuard\Authorization\Internal\Query\ResourceContextMapping'))->toBe('split');
+            ->and($ownership->referenceOwner('import', 'AzGuard\Authorization\Internal\Query\ResourceContextMapping'))->toBe('core')
+            ->and($ownership->fileOwner('packages/core/src/Authorization/Internal/Query/ResourceContextMapping.php'))->toBe('core');
     }
+});
+
+it('owns a split part without a row of its own by the root of its target path, so the boundary rules see it', function (): void {
+    $split = ownershipRow('split', 'AzGuard\Scopes\ScopeConfiguration', 'packages/core/src/Scopes/ScopeConfiguration.php');
+    $split['target'] = 'AzGuard\Panels\Internal\CanonicalMetadata + AzGuard\Scopes\Internal\ScopeConfiguration';
+    $split['target_path'] = 'packages/core/src/Panels/Internal/CanonicalMetadata.php + packages/core/modules/scopes/src/Internal/ScopeConfiguration.php';
+    $rows = [$split, ownershipRow('core', 'AzGuard\Panels\Internal\CanonicalMetadata', 'packages/core/src/Panels/Internal/CanonicalMetadata.php'),
+        ownershipRow('audit', 'AzGuard\Audit\AuditPlugin', 'packages/core/modules/audit/src/AuditPlugin.php')];
+
+    $violations = ownershipScanOf([
+        'packages/core/modules/scopes/src/Internal/ScopeConfiguration.php' => "<?php\nnamespace AzGuard\\Scopes\\Internal;\nuse AzGuard\\Audit\\AuditPlugin;\nfinal class ScopeConfiguration {}\n",
+        'packages/core/src/Panels/Internal/CanonicalMetadata.php' => "<?php\nnamespace AzGuard\\Panels\\Internal;\nuse AzGuard\\Scopes\\Internal\\ScopeConfiguration;\nfinal class CanonicalMetadata {}\n",
+    ], $rows);
+
+    expect(Ownership::of($rows)->fileOwner('packages/core/modules/scopes/src/Internal/ScopeConfiguration.php'))->toBe('scopes')
+        ->and(Ownership::of($rows)->referenceOwner('import', 'AzGuard\Scopes\Internal\ScopeConfiguration'))->toBe('scopes')
+        ->and(array_map(static fn (array $v): string => implode(' ', [$v['invariant'], $v['file'], $v['kind'], $v['reference']]), $violations))->toBe([
+            'I2 packages/core/src/Panels/Internal/CanonicalMetadata.php import AzGuard\Scopes\Internal\ScopeConfiguration',
+            'I3 packages/core/modules/scopes/src/Internal/ScopeConfiguration.php import AzGuard\Audit\AuditPlugin',
+        ]);
+});
+
+it('leaves no production file to a split or retired owner', function (): void {
+    $ownership = Ownership::fromOracle();
+    $root = dirname(__DIR__, 2).'/';
+    $ownerless = array_values(array_filter(SourceScan::files(), static fn (string $file): bool => in_array($ownership->fileOwner(str_replace($root, '', $file)), BoundaryScan::OWNERLESS, true)));
+
+    expect($ownerless)->toBe([], 'a production file owned by split or retired escapes I2, I3 and I4');
 });
 
 it('I2: a core file may not name a module by import, class name, constant, class-string, string, plugin id or table', function (): void {

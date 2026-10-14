@@ -11,7 +11,7 @@ use AzGuard\Panels\PanelProvider;
 use AzGuard\Tests\Fixtures\Parity\Dataset\Panels\Crm\CrmPanelProvider;
 
 /**
- * Panel `crm` of the populated 0.7.0 dataset rebuilt without a scope declaration: the provider of the dataset, then
+ * Panel `crm` of the populated parity dataset rebuilt without a scope declaration: the provider of the dataset, then
  * an explicit `AssignmentScopeMode::None` declaration (see `NoScopeWorld`). Its own folder, so discovery adds nothing.
  */
 final class NoScopeCrmPanelProvider extends PanelProvider

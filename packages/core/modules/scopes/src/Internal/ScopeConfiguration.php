@@ -8,7 +8,6 @@ use AzGuard\Context\AssignmentScopeRuntime;
 use AzGuard\Contracts\Scopes\AssignmentScopeDefinition;
 use AzGuard\Contracts\Scopes\QueryableAssignmentScopeDefinition;
 use AzGuard\Exceptions\DefinitionException;
-use AzGuard\Panels\Internal\CanonicalMetadata;
 use AzGuard\Panels\Panel;
 use AzGuard\Scopes\AssignmentScopeSettings;
 use AzGuard\Scopes\BaseAssignmentScope;
@@ -66,7 +65,8 @@ final class ScopeConfiguration
             }
             self::component($filter, AssignmentScopeFilter::class, $container, 'Assignment scope filter');
         }
-        self::filterMetadata($definition);
+        // A filter that captures a live model, query, request or container is refused by core when it fingerprints the
+        // description's components (panel definitions) and hashes them (role bindings).
     }
 
     /**
@@ -209,15 +209,5 @@ final class ScopeConfiguration
         }
 
         return $properties;
-    }
-
-    /** @return list<string> */
-    private static function filterMetadata(AssignmentScopeDefinition $definition): array
-    {
-        if (! $definition instanceof ConfigurableAssignmentScopeDefinition) {
-            return [];
-        }
-
-        return array_map(static fn (mixed $filter): string => hash('sha256', json_encode(CanonicalMetadata::componentMetadata($filter), JSON_THROW_ON_ERROR)), $definition->settings()->filters);
     }
 }

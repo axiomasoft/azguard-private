@@ -7,8 +7,8 @@ declare(strict_types=1);
  * invariant I1–I22 of knowledge/architecture#invariants, and every entry either names executable checks that exist or
  * names the phase that builds them. Nothing in the register is a check that does not run.
  *
- * Fields: `status` — `exists` when the table gives a check present at 0.7.0 that keeps running (also when a later
- * phase adds to it), `build` when the check is created by a phase; `checks` — repository paths of the suites, fixtures
+ * Fields: `status` — `exists` when the check runs (the table gave it as present, or its phase has delivered it),
+ * `build` while a phase still creates it; `checks` — repository paths of the suites, fixtures
  * and workflows that prove the invariant today; `blocking` — `now`, or `after Pn`: the point from which the complete
  * check set fails the build (a scan in report mode fails on a new violation already, with an allowlist that empties by
  * Pn); `owner_phase` — the last phase the status cell of the table names (null when it names none).

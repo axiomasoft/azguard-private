@@ -4,17 +4,23 @@ declare(strict_types=1);
 
 use AzGuard\Audit\AuditOptions;
 use AzGuard\Audit\AuditPlugin;
+use AzGuard\Authorization\Internal\Authorizer;
 use AzGuard\Configuration\ConfigSections;
 use AzGuard\Configuration\Internal\AzGuardConfig;
 use AzGuard\Context\AssignmentScopeMode;
 use AzGuard\Exceptions\InvalidConfigurationException;
+use AzGuard\Exceptions\VisibilityNotSupportedException;
 use AzGuard\Kernel\Decision\DecisionReason;
+use AzGuard\Kernel\Identity\AccessScope;
+use AzGuard\Kernel\Identity\SubjectRef;
+use AzGuard\Kernel\Identity\TenantRef;
 use AzGuard\Panels\Internal\PanelRegistry;
 use AzGuard\Scopes\ScopesPlugin;
 use AzGuard\Tests\Fixtures\Activation\ActivationWorld as World;
 use AzGuard\Tests\Fixtures\Changes\ChangeWorld as W;
 use AzGuard\Tests\Fixtures\Crm\CrmWorld;
 use AzGuard\Tests\Fixtures\Crm\Guards\Crm\Scopes\ProjectScope;
+use AzGuard\Tests\Fixtures\Crm\Models\Client;
 use AzGuard\Tests\Fixtures\Events\EventWorld;
 use AzGuard\Tests\Support\AuditTable;
 use Illuminate\Config\Repository;
@@ -44,21 +50,29 @@ afterEach(function (): void {
     Relation::morphMap([], false);
 });
 
-/** Boot-time work of a core-only panel: decide, grant, revoke and the doctor. */
+/** Boot-time work of a core-only panel: decide, grant, the visible list, revoke and the doctor. */
 function activationRoundTrip(PanelRegistry $registry): array
 {
     $alpha = $registry->get('alpha');
     $before = World::decide($alpha, 2)->allowed();
     World::grant($alpha, 'support', 2, null);
     $granted = World::decide($alpha, 2)->allowed();
+
+    // A tenant panel without a scope declaration has no exact list (`resource_owner_adapter`); the call still runs.
+    try {
+        $visible = app(Authorizer::class)->visibleTo($alpha, Client::query(), SubjectRef::of('crm.user', 2), 'clients.view_any',
+            AccessScope::in(TenantRef::of('crm.organization', 1)))->orderBy('id')->pluck('id')->all();
+    } catch (VisibilityNotSupportedException $error) {
+        $visible = $error->reason;
+    }
     World::revoke($alpha, 'support', 2, null);
     $revoked = World::decide($alpha, 2)->allowed();
     $doctor = Artisan::call('azguard:doctor', ['--json' => true]);
 
-    return ['decisions' => [$before, $granted, $revoked], 'doctor' => $doctor];
+    return ['decisions' => [$before, $granted, $revoked], 'visible' => $visible, 'doctor' => $doctor];
 }
 
-it('row 1: core only boots, checks, grants and revokes with no module service, no module query and no journal table', function (): void {
+it('row 1: core only boots, checks, grants, lists and revokes with no module service, no module query and no journal table', function (): void {
     $registry = World::compile();
     $result = [];
     $costs = World::costsOf(function () use ($registry, &$result): void {
@@ -66,6 +80,7 @@ it('row 1: core only boots, checks, grants and revokes with no module service, n
     });
 
     expect($result['decisions'])->toBe([false, true, false])
+        ->and($result['visible'])->toBe('resource_owner_adapter')
         ->and($costs)->toBe([])
         ->and(Schema::connection(CrmWorld::storage()->connectionName())->hasTable(CrmWorld::storage()->prefix().'audit_log'))->toBeFalse()
         ->and($registry->get('alpha')->scopeDeclaration())->toBeNull()

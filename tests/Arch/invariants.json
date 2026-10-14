@@ -11,7 +11,7 @@
     },
     {
         "id": "I2",
-        "status": "build",
+        "status": "exists",
         "checks": [
             "tests/Arch/OwnershipScanTest.php"
         ],
@@ -20,7 +20,7 @@
     },
     {
         "id": "I3",
-        "status": "build",
+        "status": "exists",
         "checks": [
             "tests/Arch/OwnershipScanTest.php"
         ],
@@ -29,7 +29,7 @@
     },
     {
         "id": "I4",
-        "status": "build",
+        "status": "exists",
         "checks": [
             "tests/Arch/ApiManifestTest.php",
             "tests/Arch/Allowlists/i4.json"

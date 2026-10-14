@@ -382,9 +382,9 @@ final class PanelCompiler
      * (`AssignmentScopeMode::None`).
      *
      * The mode comes from the highest layer, the last record inside it; plugins that disagree on the mode are a
-     * conflict unless the provider sets one. Definitions of every layer are merged by alias and must keep their
-     * structure; directories merge by alias (a directory the merged definition names wins over the declared one) and
-     * one evaluator at most is named.
+     * conflict unless the provider sets one. Definitions of every layer are collected by alias: contributions of one
+     * alias are identical or conflict, never merged; directories are collected by alias (a directory the definition's
+     * description names wins over the declared one) and one evaluator at most is named.
      *
      * @return array{?AssignmentScopeDeclaration, array<string, AssignmentScopeDefinition>}
      *
