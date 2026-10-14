@@ -131,12 +131,22 @@ final class ContractWorld
             try {
                 $connection = app('db')->connection((string) $name);
                 $schema = $connection->getSchemaBuilder();
+
                 // Only the current database (MySQL, MariaDB), the search path (PostgreSQL) or `main` (SQLite): without
                 // it the list holds tables of other databases or attached files that this connection does not write.
-                // Laravel 11 has neither the listing nor the schema argument: its table list is already the current
-                // database (MySQL, MariaDB), the search path (PostgreSQL) or `main` (SQLite).
-                $current = (new ReflectionClass($schema))->hasMethod('getCurrentSchemaListing') ? $schema->getCurrentSchemaListing() : null;
-                $tables = $current === null ? $schema->getTables() : $schema->getTables($current);
+                if ((new ReflectionClass($schema))->hasMethod('getCurrentSchemaListing')) {
+                    $current = $schema->getCurrentSchemaListing();
+                    $tables = $current === null ? $schema->getTables() : $schema->getTables($current);
+                } else {
+                    // Laravel 11 has neither the listing nor the schema argument. Its MySQL, MariaDB and SQLite lists
+                    // are already the current database or `main`, but on PostgreSQL it lists the tables of every
+                    // schema: the list is narrowed to the search path the server reports.
+                    $current = $connection->getDriverName() === 'pgsql' ? array_values(array_filter(array_map(
+                        static fn (mixed $row): mixed => is_object($row) ? ($row->name ?? null) : null,
+                        $connection->select('select unnest(current_schemas(false)) as name'),
+                    ), is_string(...))) : null;
+                    $tables = array_filter($schema->getTables(), static fn (array $table): bool => $current === null || in_array($table['schema'] ?? null, $current, true));
+                }
             } catch (Throwable) {
                 continue;
             }

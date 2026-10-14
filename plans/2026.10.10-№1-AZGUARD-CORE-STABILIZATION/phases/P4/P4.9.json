@@ -1,0 +1,130 @@
+{
+  "$schema": "urn:swissknifeman:task:plan:item:v1",
+  "id": "P4.9",
+  "title": "Review P4",
+  "status": "in_progress",
+  "summary": "An independent read-only review checks P4.1–P4.8 against the amended release gate and knowledge/p4-execution and records a GREEN or RED verdict with findings in artifacts/reviews/P4-review.md.",
+  "why": "Owner requested a review of P4 (M17, D27). The freeze is the last point where a weak rule is cheap: a fresh reader catches comparator rules that let a break through (try one unlisted break per category), a release graph a tag can bypass, fixes that silently changed a frozen format, evidence from a different sha than C, and 0.x leftovers.",
+  "scope": {
+    "include": [
+      "Gate: every gate.md row against its evidence (sha = C or C+1, CI URLs resolve, logs exist)",
+      "Comparator: rule table vs code; for each category one break not in the unit catalogue tried in a throwaway clone (as the drill does) — reported, not committed",
+      "Release graph: release.yml needs/uses, no continue-on-error, label via env, tags fetched; guard test cases",
+      "Fixes: every commit since the P3 exit touching packages/** is in fixes.md with a demonstrating check; no frozen identity changed without the owner",
+      "Tests: no weakened/skipped/deleted assertions (git diff of tests/ since the P3 exit commit ebf36ad2)",
+      "D24/D25 cleanliness (P4.1 V2 pattern), relocation.md and load.md plausibility",
+      "Verdict, findings table {id, item, file:line, rule, severity, fix}"
+    ],
+    "exclude": [
+      "Changing code, fixtures or plan items (read-only)",
+      "Re-designing the reference or the gate"
+    ]
+  },
+  "depends_on": [
+    "P4.8"
+  ],
+  "decisions": [
+    "D24",
+    "D25",
+    "D26",
+    "D27"
+  ],
+  "reads": [
+    {
+      "ref": "knowledge/p4-execution#conventions",
+      "why": "Rules every P4 item follows: demonstrated fixes only, stop rule for frozen contracts, 1.0 starting point, owner WIP, pushes, long runs, evidence",
+      "required": true
+    },
+    {
+      "ref": "knowledge/p4-execution#commands",
+      "why": "Exact commands, PHP 8.4 shim, driver ports, composer update rule, CI evidence procedure",
+      "required": true
+    },
+    {
+      "ref": "knowledge/p4-execution#gate",
+      "why": "The amended release conditions and which evidence this item contributes",
+      "required": true
+    },
+    {
+      "ref": "knowledge/p4-execution#compatibility",
+      "why": "Rules to audit",
+      "required": true
+    },
+    {
+      "ref": "knowledge/p4-execution#breaks",
+      "why": "Catalogue and drill to extend",
+      "required": true
+    },
+    {
+      "ref": "knowledge/p4-execution#release-workflow",
+      "why": "Gating model to audit",
+      "required": true
+    },
+    {
+      "ref": "knowledge/p4-execution#relocation",
+      "why": "Rehearsal assertions to audit",
+      "required": true
+    },
+    {
+      "ref": "knowledge/p4-execution#load",
+      "why": "Load evidence rules",
+      "required": true
+    },
+    {
+      "path": "tests/Arch/invariants.json",
+      "why": "Invariant register the item updates",
+      "required": true
+    }
+  ],
+  "task_files": [
+    {
+      "path": "plans/2026.10.10-№1-AZGUARD-CORE-STABILIZATION/artifacts/reviews/P4-review.md",
+      "change": "create"
+    }
+  ],
+  "rules": [
+    "Read-only: no change outside artifacts/reviews/.",
+    "A finding needs a file:line and the violated rule; style preferences are not findings."
+  ],
+  "validation": [
+    {
+      "id": "V1",
+      "cmd": "test -s plans/2026.10.10-№1-AZGUARD-CORE-STABILIZATION/artifacts/reviews/P4-review.md && grep -Eq 'Verdict: \\*\\*(GREEN|RED)\\*\\*' plans/2026.10.10-№1-AZGUARD-CORE-STABILIZATION/artifacts/reviews/P4-review.md",
+      "expect": "exit 0",
+      "kind": "acceptance"
+    },
+    {
+      "id": "V2",
+      "cmd": "git diff --quiet HEAD -- packages tests bin docs .github compatibility.json composer.json",
+      "expect": "exit 0 (the review changed nothing outside the plan)",
+      "kind": "acceptance"
+    }
+  ],
+  "deliverables": [
+    "artifacts/reviews/P4-review.md with verdict and findings"
+  ],
+  "route": {
+    "class": "frontier",
+    "effort": "high"
+  },
+  "review": {
+    "mode": "none"
+  },
+  "authority": {
+    "kind": "routine"
+  },
+  "rag": {
+    "need": "none",
+    "status": "not_needed"
+  },
+  "result": {
+    "started_at": "2026-10-14T19:11:41Z",
+    "executor": {
+      "provider": "claude-code",
+      "model": "claude-opus-5-5",
+      "effort": "high",
+      "session": "0e79e301-122c-4011-8b41-732402f96167"
+    }
+  },
+  "updated_at": "2026-10-14T19:11:41Z"
+}

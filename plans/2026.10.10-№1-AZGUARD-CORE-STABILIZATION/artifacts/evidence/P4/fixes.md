@@ -22,3 +22,9 @@ Not defects of the code: Zizmor and CodeQL run only on `main` and by `workflow_d
 | F9 | Grok review F5: RELEASING.md steps tag "that commit" without the pointer commit C+1 | documentation gap | `RELEASING.md` step 3/4 | b0fb0b8c |
 
 Not changed: Grok F2 — `zizmor.yml` stays advisory (`|| true`): zizmor 1.30.1 reports 122 findings (54 high, mostly unpinned `uses:`) on `.github/workflows`, so a failing job would be red permanently; the workflow says so and a green Zizmor run is evidence that the audit ran. Grok F3 — I22 `blocking: now` is the smoke suite (`LoadBenchSmokeTest`); the comparison with the recorded reference needs the same host and is a RELEASING.md checklist step; `InvariantRegisterTest` documents it.
+
+# P4.9 review fixes
+
+| id | failing check (command or CI job + log line) | root cause | file:line | fix commit |
+|:--|:--|:--|:--|:--|
+| F10 | Review P4 R1 (artifacts/reviews/P4-review.md), by reading: on Laravel 11 × PostgreSQL `ContractKitRegressionTest > it leaves out the tables of another schema…` expects no `testbench.contract_foreign`, but Laravel 10/11 `PostgresGrammar::compileTables()` lists every schema. Not run (owner: no runs); CI has no Laravel 11 × PostgreSQL lane | the F2 fallback for Laravel 11 took `getTables()` unfiltered and keyed tables of every schema by their bare name | `packages/core/src/Testing/Internal/Contracts/ContractWorld.php:134-150`, `tests/Feature/Testing/ContractKitRegressionTest.php:104-107` | see the P4.9 fix commit |
