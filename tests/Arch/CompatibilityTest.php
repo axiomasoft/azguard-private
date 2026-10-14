@@ -365,6 +365,16 @@ it('rejects an intentional break with its rule id', function (string $artifact, 
 
         return $f;
     }, ['format.changed']],
+    'DDL index column order' => ['ddl.pgsql', static function (array $f): array {
+        $f['string']['subject_revisions']['indexes'][0]['columns'] = array_reverse($f['string']['subject_revisions']['indexes'][0]['columns']);
+
+        return $f;
+    }, ['format.changed']],
+    'DDL unique index column order' => ['ddl.pgsql', static function (array $f): array {
+        $f['string']['permissions']['indexes'][1]['columns'] = array_reverse($f['string']['permissions']['indexes'][1]['columns']);
+
+        return $f;
+    }, ['format.changed']],
     'unmigrated DDL column' => ['ddl.sqlite', static function (array $f): array {
         $f['string']['permissions']['columns'][] = [...$f['string']['permissions']['columns'][1], 'name' => 'note'];
 

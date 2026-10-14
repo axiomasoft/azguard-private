@@ -784,7 +784,7 @@ function compatFormat(string $id, array $base, array $current, array $context = 
 function compatDiff(string $id, mixed $base, mixed $current, string $path, array $exactLists, array &$breaks, array &$additions): void
 {
     $join = static fn (string $key): string => $path === '' ? $key : $path.'/'.$key;
-    $exact = $path !== '' && in_array(explode('/', $path)[0], $exactLists, true);
+    $exact = $path !== '' && (in_array(explode('/', $path)[0], $exactLists, true) || compatIsOrderedList($id, $path));
 
     if (! is_array($base) || ! is_array($current) || $exact && (array_is_list($base) || array_is_list($current))) {
         if ($base !== $current) {
@@ -821,6 +821,15 @@ function compatDiff(string $id, mixed $base, mixed $current, string $path, array
     foreach (array_diff_key($current, $base) as $key => $value) {
         $additions[] = compatAddition('format.added', $id, $join((string) $key), $value);
     }
+}
+
+/**
+ * Lists whose element order is part of the frozen value: the columns of a DDL index (column order decides which lookups
+ * the index serves and what a composite key identifies), unlike every other scalar list, which compares as a set.
+ */
+function compatIsOrderedList(string $id, string $path): bool
+{
+    return str_starts_with($id, 'ddl.') && preg_match('#/indexes/[^/]+/columns$#', $path) === 1;
 }
 
 /**
