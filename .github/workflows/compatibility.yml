@@ -1,0 +1,60 @@
+name: Compatibility
+
+# The supported surface against its baseline (I18, D26): the attribute manifests and the format fixtures listed in
+# compatibility.json are compared with the newest stable tag merged into HEAD (major >= 1), before the first one with
+# the candidate pointer. `composer api:check` runs first: a stale manifest would hide a break. A pull request that
+# changes the pointer needs the label `compat-baseline`, the explicit release decision. release.yml calls this workflow
+# for every tag.
+
+on:
+  push:
+    branches: [main, 'feat/**', 'fix/**', 'hotfix/**']
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened, labeled, unlabeled]
+  workflow_call:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: compatibility-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
+jobs:
+  compare:
+    name: API and format compatibility
+    runs-on: ubuntu-latest
+
+    steps:
+      # The whole history and every tag: a shallow clone would see no stable tag and no candidate commit.
+      - name: Checkout with history and tags
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+          persist-credentials: false
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: mbstring, pdo, pdo_sqlite, sqlite3
+          tools: composer:v2
+          coverage: none
+
+      - name: Install dependencies
+        run: composer install --prefer-dist --no-interaction --no-progress
+
+      - name: Manifests are current
+        run: composer api:check
+
+      - name: Compatible with the baseline
+        run: composer api:compat
+
+      # The label list reaches the script only through the environment, never through the command text.
+      - name: A changed baseline pointer needs the compat-baseline label
+        if: github.event_name == 'pull_request'
+        env:
+          LABELS: ${{ toJSON(github.event.pull_request.labels.*.name) }}
+        run: bash bin/compat-baseline-guard.sh "origin/${GITHUB_BASE_REF}" HEAD "$LABELS"

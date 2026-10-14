@@ -1,5 +1,10 @@
 name: Release
 
+# A GitHub release and the package split happen only for a tag whose commit passed, in this run, every qualification
+# workflow and the compatibility comparison against its baseline (conditions 9 and 10 of the 1.0 release gate). The
+# called workflows run on the tagged commit; `split` and `release` need all of them. There is no other trigger: a tag
+# cannot bypass the graph, and a pre-release tag runs the same graph.
+
 on:
   push:
     tags:
@@ -7,18 +12,61 @@ on:
       - 'v[0-9]+.[0-9]+.[0-9]+-*'
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
+  tests:
+    name: Tests
+    uses: ./.github/workflows/tests.yml
+    permissions:
+      contents: read
+
+  static:
+    name: Static analysis
+    uses: ./.github/workflows/static-analysis.yml
+    permissions:
+      contents: read
+
+  style:
+    name: Code style
+    uses: ./.github/workflows/code-style.yml
+    permissions:
+      contents: read
+
+  # A call never deploys (docs.yml gates its deploy job to main), but a called workflow may not declare a job with more
+  # permissions than its caller grants, so the call grants the deploy job's permissions it does not use.
+  docs:
+    name: Documentation
+    uses: ./.github/workflows/docs.yml
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+
+  nightly:
+    name: Tests (nightly depth)
+    uses: ./.github/workflows/tests-nightly.yml
+    permissions:
+      contents: read
+
+  compat:
+    name: Compatibility
+    uses: ./.github/workflows/compatibility.yml
+    permissions:
+      contents: read
+
   validate:
     name: Validate before release
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
 
     steps:
       - name: Checkout
         uses: actions/checkout@v6
         with:
           fetch-depth: 0
+          persist-credentials: false
 
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
@@ -27,9 +75,6 @@ jobs:
           extensions: zip, pdo_sqlite, sqlite3
           tools: composer:v2
           coverage: none
-
-      - name: Install dependencies
-        run: composer install --prefer-dist --no-interaction --no-progress
 
       - name: Validate every package manifest
         run: |
@@ -47,24 +92,6 @@ jobs:
             exit 1
           fi
 
-      - name: Static analysis
-        run: composer analyse
-
-      - name: Code style
-        run: composer lint:check
-
-      - name: Tests
-        run: composer test -- --ci
-        env:
-          DB_CONNECTION: sqlite
-          DB_DATABASE: ':memory:'
-
-      - name: Extended tests (scale)
-        run: composer test:extended
-        env:
-          DB_CONNECTION: sqlite
-          DB_DATABASE: ':memory:'
-
       - name: Core archive in a clean Laravel 13 app
         run: bash bin/consumer-fixture.sh --laravel=13 --version="${GITHUB_REF_NAME#v}"
 
@@ -74,6 +101,9 @@ jobs:
       - name: Core archive without module roots in a clean Laravel 13 app
         run: bash bin/consumer-fixture.sh core-only --laravel=13 --version="${GITHUB_REF_NAME#v}"
 
+      - name: Audit module relocation rehearsal in a clean Laravel 13 app
+        run: bash bin/consumer-fixture.sh relocated-audit --laravel=13 --version="${GITHUB_REF_NAME#v}"
+
       - name: Require changelog section in tagged commit
         run: |
           version="${GITHUB_REF_NAME#v}"
@@ -82,16 +112,27 @@ jobs:
       - name: Verify release preflight fixtures
         run: bash bin/test-release-preflight.sh
 
+  split:
+    name: Split validated packages
+    needs: [validate, tests, static, style, docs, nightly, compat]
+    uses: ./.github/workflows/split.yml
+    secrets: inherit
+    permissions:
+      contents: read
+
   release:
     name: Create GitHub Release
-    needs: [validate, split]
+    needs: [validate, tests, static, style, docs, nightly, compat, split]
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
 
     steps:
       - name: Checkout
         uses: actions/checkout@v6
         with:
           fetch-depth: 0
+          persist-credentials: false
 
       - name: Release notes from the CHANGELOG section of this version
         run: bash bin/release-notes.sh "${GITHUB_REF_NAME#v}" "${GITHUB_SHA}" > CHANGES.md
@@ -106,9 +147,3 @@ jobs:
           generate_release_notes: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-  split:
-    name: Split validated packages
-    needs: validate
-    uses: ./.github/workflows/split.yml
-    secrets: inherit

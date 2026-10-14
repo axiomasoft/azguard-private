@@ -35,6 +35,32 @@ Consequences:
 The package `composer.json` files intentionally carry **no `version` field**:
 Composer derives the version from the git tag the split action pushes.
 
+## Compatibility baseline
+
+From 1.0 the supported surface is compared with a baseline on every push, pull request and release tag
+(`.github/workflows/compatibility.yml`): `composer api:check` first (the manifests are current), then
+`composer api:compat` (`php bin/api-compat.php --against=auto`). The comparison reads the artifacts listed in the root
+`compatibility.json` — the attribute manifests of both packages and the format fixtures (exceptions, events, journal
+rows, resources, configuration defaults, commands, doctor, explain, serializable types, DDL of every driver) — from the
+baseline commit with `git show` and never loads baseline code. A break exits 1 with one line per rule
+(`<rule-id> <artifact-id> <locator>: <baseline> -> <current>`); additions are listed and allowed.
+
+The baseline is:
+
+- **before the first stable tag** — the `candidate` sha in `compatibility.json`. The release that freezes a candidate
+  sets it in a commit that changes only `compatibility.json` (a commit cannot name itself);
+- **afterwards** — the newest tag `vX.Y.Z` with X ≥ 1 and no pre-release suffix that is merged into the compared commit.
+  The pointer is then no longer read, and a pull request cannot change a tag.
+
+A pull request that changes `compatibility.json` fails the `compat-baseline` guard
+(`bin/compat-baseline-guard.sh`, fixtures in `bin/test-compat-baseline-guard.sh`) unless it carries the label
+**`compat-baseline`**: replacing the baseline is an explicit release decision, never a side effect. Run
+`composer api:compat` locally before tagging; `bash bin/compat-drill.sh` proves on real patches in a throwaway clone
+that the comparison rejects the intentional breaks (D1–D5) and accepts the control (D6).
+
+Recommended repository settings (owner): require the `Compatibility` check and the other CI checks on `main` in branch
+protection, and restrict who may apply the `compat-baseline` label.
+
 ## Cutting a release
 
 1. Ensure the declared PHP/Laravel/Testbench matrix and the dedicated SQLite,
@@ -66,13 +92,19 @@ Composer derives the version from the git tag the split action pushes.
    git tag -a v1.0.0 -m "AzGuard 1.0.0"
    git push origin v1.0.0
    ```
-5. CI takes over:
-   - **`release.yml`** repeats `release-preflight` on the tagged commit, validates
-     every package manifest (`composer validate --strict`), re-runs analyse + style +
-     tests. The GitHub release is created only after both package splits succeed. Its notes are the version's CHANGELOG
-     section, printed by `bin/release-notes.sh x.y.z REF` (try it before tagging).
-   - **`split.yml`** is called only after release validation succeeds. Its split
-     jobs fail if the one-time setup is incomplete; the GitHub release depends on both succeeding.
+5. CI takes over. **`release.yml`** runs the whole qualification graph on the tagged commit, in the same run:
+   - the called workflows `tests.yml` (PHP × Laravel × stability matrix, database lanes and engines, replica, Redis,
+     coverage, consumer archives), `static-analysis.yml` (PHPStan, type coverage), `code-style.yml` (Pint, Rector),
+     `docs.yml` (lint and build; a call never deploys), `tests-nightly.yml` (scale tests, all parity seeds on every
+     server) and `compatibility.yml` (manifest freshness and the comparison with the baseline);
+   - `validate`: every package manifest (`composer validate --strict`), the `self.version` pin, the core, core +
+     Filament, core-only archives and the Audit relocation rehearsal in clean Laravel 13 apps stamped with the tag's
+     version, and `release-preflight` on the tagged commit.
+
+   **`split.yml`** is called only after all of them succeed; its jobs fail if the one-time setup is incomplete. The
+   GitHub release needs the whole graph and both splits. Its notes are the version's CHANGELOG section, printed by
+   `bin/release-notes.sh x.y.z REF` (try it before tagging). The workflow has no manual trigger, and a pre-release tag
+   (`vX.Y.Z-*`) runs the same graph.
 
 There is **no** post-tag workflow that commits `CHANGELOG.md` back to `main`; the
 tagged commit must already contain the version section.

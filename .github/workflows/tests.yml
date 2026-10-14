@@ -6,6 +6,8 @@ on:
   pull_request:
     branches: [main]
   workflow_dispatch:
+  # release.yml qualifies every tag with this workflow.
+  workflow_call:
 
 permissions:
   contents: read
@@ -274,3 +276,7 @@ jobs:
       # Blocking: the core archive without modules/ boots, migrates, passes the doctor, grants and checks (I13, I19).
       - name: Core archive without module roots in a clean Laravel 13 app
         run: bash bin/consumer-fixture.sh core-only --laravel=13
+
+      # Blocking: Audit moved to its own archive keeps FQCNs, commands, migration basename and journal rows (I19).
+      - name: Audit module relocation rehearsal in a clean Laravel 13 app
+        run: bash bin/consumer-fixture.sh relocated-audit --laravel=13

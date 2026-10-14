@@ -47,7 +47,9 @@ Mount or symlink the package directory into the app, then `composer update`.
 | `composer check:coverage` | Pest / pcov or Xdebug | Line-coverage gate (`--min=85`) |
 | `composer bench` | — | Benchmarks of the public API, see `docs/advanced/performance.md` |
 | `composer bench:load` | — | Load bench with concurrent workers, see `bench/README.md` |
-| `composer check` | — | Run the local gates: style, analysis, refactor, API manifest, types, tests, coverage |
+| `composer api:manifest` / `api:check` | — | Regenerate / check the supported-surface manifests (`api-manifest.json` of each package) |
+| `composer api:compat` | — | Compare the manifests and format fixtures with the compatibility baseline (see [RELEASING.md](RELEASING.md#compatibility-baseline)) |
+| `composer check` | — | Run the local gates: style, analysis, refactor, API manifest and compatibility, types, tests, coverage |
 | `composer fix` | — | Auto-fix style and apply refactorings |
 
 Feature tests use an in-memory SQLite database, so the `pdo_sqlite` /

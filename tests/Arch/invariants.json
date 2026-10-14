@@ -187,7 +187,9 @@
         "checks": [
             "tests/Arch/CompatibilityTest.php",
             "bin/api-compat.php",
-            "bin/compat-drill.sh"
+            "bin/compat-drill.sh",
+            ".github/workflows/compatibility.yml",
+            "tests/Arch/ReleaseWorkflowTest.php"
         ],
         "blocking": "after P4",
         "owner_phase": "P4"

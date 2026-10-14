@@ -6,6 +6,11 @@ on:
   pull_request:
     branches: [main]
   workflow_dispatch:
+  # release.yml qualifies every tag with this workflow.
+  workflow_call:
+
+permissions:
+  contents: read
 
 jobs:
   pint:
