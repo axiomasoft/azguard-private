@@ -1,0 +1,249 @@
+{
+  "$schema": "urn:swissknifeman:task:plan:item:v1",
+  "id": "P4.7",
+  "title": "Documentation of the frozen contracts and the 1.0.0 release notes",
+  "status": "in_progress",
+  "summary": "Documents every frozen contract for consumers and implementers — a compatibility promise page (Api vs Spi Implement/Call, closed/open enums, named arguments, what counts as a break, baseline and stable tags) and a machine-formats reference (exception codes, event types and payload keys, journal rows, doctor checks/finding ids/severities/JSON, explain JSON, commands/options/exit codes, publish tags, migration basenames, config keys/defaults/environment names, HTTP mapping) — guarded by `tests/Arch/FormatsDocumentedTest.php`, which reads the fixtures; writes the CHANGELOG `[1.0.0]` section.",
+  "why": "Condition 8 needs documentation for every frozen non-PHP contract and condition 10 a stated promise; D25 makes [1.0.0] the first record. Hard risks: docs drifting from the fixtures (the test reads the fixtures, not a copy); a promise wider than the comparator enforces; release notes that read as a continuation of 0.x.",
+  "scope": {
+    "include": [
+      "`docs/reference/compatibility.md`: the promise of knowledge/architecture#api-compatibility as enforced by p4-execution#compatibility (rule table in prose), SemVer for both packages, how to read `#[Api]`/`#[Spi]`/`@internal`/`@closed`/`@open`/`@no-named-arguments`, the baseline (stable tags) — no plan or decision ids",
+      "`docs/reference/formats.md` (new) for doctor JSON, explain JSON, resources (publish tags, migration basenames, generated-migration patterns, aliases, plugin ids, system actor type), environment names and the HTTP mapping (403 without details, `DecisionResponder`); extend `commands.md`, `configuration.md`, `events.md`, `exceptions.md` where an identity of the fixtures is missing",
+      "Sidebar entries in `docs/.vitepress/config.ts`",
+      "`tests/Arch/FormatsDocumentedTest.php`: every exception code, event type string and payload key, doctor check key and finding id, command name/option/exit-code label, publish tag, migration basename, config key path and environment name from the fixtures appears in `docs/reference/*.md`; negative control with a fabricated identity",
+      "`CHANGELOG.md`: `## [1.0.0] - <YYYY-MM-DD>` (the planned freeze date; P4.8 corrects it if the freeze lands later) from the P4.1 draft: first public release, requirements (PHP 8.3–8.5, Laravel 11–13, Filament 5 for the Filament package), Added summary per package/module, a 'Stability' paragraph pointing at docs/reference/compatibility.md; `[1.0.0]` link to the release tag URL; empty `[Unreleased]` above it",
+      "`docs/modules/*`, `docs/advanced/hooks-and-plugins.md`: link to the compatibility page where they describe SPI"
+    ],
+    "exclude": [
+      "Plan, decision or phase identifiers in public docs",
+      "Changing any identity to match the docs (docs follow the fixtures)"
+    ]
+  },
+  "depends_on": [
+    "P4.5",
+    "P4.6"
+  ],
+  "decisions": [
+    "D9",
+    "D15",
+    "D25",
+    "D26"
+  ],
+  "reads": [
+    {
+      "ref": "knowledge/p4-execution#conventions",
+      "why": "Rules every P4 item follows: demonstrated fixes only, stop rule for frozen contracts, 1.0 starting point, owner WIP, pushes, long runs, evidence",
+      "required": true
+    },
+    {
+      "ref": "knowledge/p4-execution#commands",
+      "why": "Exact commands, PHP 8.4 shim, driver ports, composer update rule, CI evidence procedure",
+      "required": true
+    },
+    {
+      "ref": "knowledge/p4-execution#gate",
+      "why": "The amended release conditions and which evidence this item contributes",
+      "required": true
+    },
+    {
+      "ref": "knowledge/architecture#api-compatibility",
+      "why": "What is stable: consumer vs implementer, named arguments, additions, enums, formats, generator and comparison",
+      "required": true
+    },
+    {
+      "ref": "knowledge/p4-execution#compatibility",
+      "why": "The rules the promise page describes",
+      "required": true
+    },
+    {
+      "ref": "knowledge/identities#commands",
+      "why": "Command identities to document",
+      "required": true
+    },
+    {
+      "ref": "knowledge/identities#config",
+      "why": "Config identities to document",
+      "required": true
+    },
+    {
+      "ref": "knowledge/identities#events",
+      "why": "Event identities to document",
+      "required": true
+    },
+    {
+      "ref": "knowledge/identities#exceptions",
+      "why": "Exception identities to document",
+      "required": true
+    },
+    {
+      "ref": "knowledge/identities#doctor",
+      "why": "Doctor identities to document",
+      "required": true
+    },
+    {
+      "ref": "knowledge/contracts#entry",
+      "why": "Entry point and facade promise",
+      "required": true
+    },
+    {
+      "ref": "knowledge/contracts#plugins",
+      "why": "Plugin SPI promise",
+      "required": true
+    },
+    {
+      "ref": "knowledge/contracts#hooks",
+      "why": "Hook/pipe slot contracts",
+      "required": true
+    },
+    {
+      "ref": "knowledge/contracts#participants",
+      "why": "Participant SPI",
+      "required": true
+    },
+    {
+      "ref": "knowledge/contracts#scopes",
+      "why": "Evaluator SPI",
+      "required": true
+    },
+    {
+      "ref": "knowledge/contracts#config",
+      "why": "Config sections and console support",
+      "required": true
+    },
+    {
+      "path": "tests/Fixtures/Formats/README.md",
+      "why": "What each fixture pins",
+      "required": true
+    },
+    {
+      "path": "docs/reference/commands.md",
+      "why": "Existing reference page",
+      "required": true
+    },
+    {
+      "path": "docs/reference/configuration.md",
+      "why": "Existing reference page",
+      "required": true
+    },
+    {
+      "path": "docs/reference/events.md",
+      "why": "Existing reference page",
+      "required": true
+    },
+    {
+      "path": "docs/reference/exceptions.md",
+      "why": "Existing reference page",
+      "required": true
+    },
+    {
+      "path": "CHANGELOG.md",
+      "why": "Draft from P4.1",
+      "required": true
+    },
+    {
+      "path": "bin/release-notes.sh",
+      "why": "How the section becomes release notes",
+      "required": true
+    }
+  ],
+  "task_files": [
+    {
+      "path": "docs/reference/compatibility.md",
+      "change": "create"
+    },
+    {
+      "path": "docs/reference/formats.md",
+      "change": "create"
+    },
+    {
+      "path": "docs/reference/*.md",
+      "change": "modify"
+    },
+    {
+      "path": "docs/.vitepress/config.ts",
+      "change": "modify"
+    },
+    {
+      "path": "docs/modules/*.md",
+      "change": "modify"
+    },
+    {
+      "path": "docs/advanced/hooks-and-plugins.md",
+      "change": "modify"
+    },
+    {
+      "path": "tests/Arch/FormatsDocumentedTest.php",
+      "change": "create"
+    },
+    {
+      "path": "CHANGELOG.md",
+      "change": "modify"
+    }
+  ],
+  "rules": [
+    "Do not stage, revert or overwrite the owner's uncommitted files (p4-execution#conventions item 6); commit only the item's paths.",
+    "Docs language and PHP-version gates apply (bin/docs-language-gate.sh, bin/docs-php-version-gate.sh)."
+  ],
+  "guidance": "Generate the identity lists for the test from the fixtures with small readers (reuse the fixture structure seen in p4-execution#compatibility); match identities as code spans (`` `azguard:doctor` ``) to avoid accidental prose matches.",
+  "validation": [
+    {
+      "id": "V1",
+      "cmd": "php -d memory_limit=1G vendor/bin/pest tests/Arch/FormatsDocumentedTest.php tests/Arch/MigrationGuideTest.php --fail-on-skipped",
+      "expect": "exit 0",
+      "kind": "acceptance"
+    },
+    {
+      "id": "V2",
+      "cmd": "composer docs:language && composer docs:php",
+      "expect": "exit 0",
+      "kind": "acceptance"
+    },
+    {
+      "id": "V3",
+      "cmd": "npm ci && npm run docs:build",
+      "expect": "exit 0 (if Node is not available to the agent, the CI Docs job in P4.8 is the evidence)",
+      "kind": "impact"
+    },
+    {
+      "id": "V4",
+      "cmd": "bash bin/release-preflight.sh 1.0.0 HEAD && bash bin/release-notes.sh 1.0.0 HEAD > /dev/null",
+      "expect": "exit 0 on the committed HEAD",
+      "kind": "acceptance"
+    },
+    {
+      "id": "V5",
+      "cmd": "php -d memory_limit=1G vendor/bin/pest tests/Arch --fail-on-skipped",
+      "expect": "exit 0",
+      "kind": "acceptance"
+    }
+  ],
+  "deliverables": [
+    "Compatibility promise page",
+    "Machine-formats reference and FormatsDocumentedTest",
+    "CHANGELOG [1.0.0]"
+  ],
+  "route": {
+    "class": "implementation",
+    "effort": "medium"
+  },
+  "review": {
+    "mode": "none"
+  },
+  "authority": {
+    "kind": "routine"
+  },
+  "rag": {
+    "need": "none",
+    "status": "not_needed"
+  },
+  "result": {
+    "started_at": "2026-10-14T13:14:55Z",
+    "executor": {
+      "provider": "anthropic",
+      "model": "sonnet-5.5",
+      "effort": "medium",
+      "session": "5e66d201-3d60-479d-9d45-d235989a00d0"
+    }
+  },
+  "updated_at": "2026-10-14T13:14:55Z"
+}

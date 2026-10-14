@@ -75,4 +75,5 @@ $panel->options(AzGuard\Audit\AuditOptions::class)?->retentionDays;   // null wi
 ## Your own journal
 
 `AuditPlugin` is built on the public extension point for this: a `ChangeParticipant` that appends to its own tables
-through `OwnedRowsWriter`. Write one when you need another format. See [Hooks and plugins](/advanced/hooks-and-plugins).
+through `OwnedRowsWriter`. Write one when you need another format. See [Hooks and plugins](/advanced/hooks-and-plugins). The contracts you implement and the row format you must keep are
+supported as described on [Compatibility](/reference/compatibility) and [Machine formats](/reference/formats#audit-journal-rows).

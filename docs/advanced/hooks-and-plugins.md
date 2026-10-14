@@ -1,6 +1,7 @@
 # Hooks, restrictions, change pipes and plugins
 
-Extension points of a panel, in decision order:
+Extension points of a panel, in decision order. The interfaces and base classes you implement here are the extension
+contracts (`#[Spi]`) of [Compatibility](/reference/compatibility): AzGuard does not add a method to them inside a major version.
 
 ```
 before hooks → sources → super admin → policy → authority → restrictions → grant conditions → after hooks

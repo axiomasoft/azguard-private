@@ -17,6 +17,7 @@ try {
 
 | Exception | Code | When |
 |---|---|---|
+| `AzGuardException` | — | Abstract root of every package exception below (a `RuntimeException`) |
 | `AuthorizationEngineException` | — | Abstract base of engine errors |
 | `ChangeException` | — | Abstract base of change errors |
 | `ConfigurationException` | — | Abstract base of configuration errors |
@@ -104,5 +105,26 @@ try {
 
 | Exception | When |
 |---|---|
+| `DecisionFailedException` | `AzGuard\Laravel\Http`: the HTTP exception (503 or 500, generic message) that `DecisionResponder::authorize()` throws when authority could not be read or host code broke its contract. It carries no machine code and no internals; see [HTTP mapping](/reference/formats#http-mapping). |
 | `RecursionDetectedException` | A check re-entered itself for the same panel, subject, permission and scope, for example a policy that calls `can()` on its own permission. Inside a decision it becomes a deny with a log entry. |
 | `VisibilityNotSupportedException` | Exact query visibility is unavailable for a source or scope. It names the component and the category only. |
+
+## Configuration check codes
+
+`InvalidConfigurationException` names the failed check after the dot. A failure without a narrower check keeps the
+base code `invalid_configuration`. The checks are part of the contract:
+
+| Code | The failure |
+|---|---|
+| `invalid_configuration.authority_read` | The authority read route cannot give a consistent snapshot: no connection, an unsupported driver, a reconnect inside a pinned read, or SQLite without `read_uncommitted=0` |
+| `invalid_configuration.authority_transaction` | Joint authority work needs a database source that stores grants and runs in one transaction |
+| `invalid_configuration.cache_ttl` | A panel caches permission sets in a store without a `ttl` |
+| `invalid_configuration.changing` | A change pipe or a change method is used outside its pipeline, or changes more than `until` and `fields` |
+| `invalid_configuration.enum` | A panel setting holds a value that is not one of its allowed values, for example a `cache.generation` that is not a positive integer |
+| `invalid_configuration.filament` | The Filament plugin is configured in a way the package cannot build |
+| `invalid_configuration.filament_enforce` | A Filament resource, page or widget is neither decided by AzGuard nor excluded while `enforce` is on |
+| `invalid_configuration.host_keys` | The declared host key type does not fit a storage or a model |
+| `invalid_configuration.panel_state` | A panel state operation, such as a reset, runs where it is not allowed |
+| `invalid_configuration.permission` | A permission key is required and missing |
+| `invalid_configuration.storage` | A storage declaration or its tables do not fit the configuration |
+| `invalid_configuration.tenant_scope` | A tenant panel or its assignment scope has no usable membership or owner |

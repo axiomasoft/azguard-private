@@ -53,6 +53,8 @@ const sidebar = [
       { text: 'Console commands', link: '/reference/commands' },
       { text: 'Events', link: '/reference/events' },
       { text: 'Exceptions', link: '/reference/exceptions' },
+      { text: 'Machine formats', link: '/reference/formats' },
+      { text: 'Compatibility', link: '/reference/compatibility' },
     ],
   },
   {

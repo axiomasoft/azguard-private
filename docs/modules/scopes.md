@@ -55,6 +55,8 @@ ScopesPlugin::inherit(Team::class)
 | `ConfigurableAssignmentScopeDefinition` | `AzGuard\Scopes\Contracts` | A definition with settings |
 | `AssignmentScopeEvaluator`, `AssignmentScopeDirectory`, `DescribesAssignmentScope` | `AzGuard\Contracts\Scopes` | Core contracts, if you replace the module's evaluator, directory or description |
 
+The contracts above are extension contracts: how they may change is on [Compatibility](/reference/compatibility).
+
 Base classes: `BaseAssignmentScope` and `ModelAssignmentScopeDefinition`. A model that maps itself to a scope uses the
 `ContextAware` trait and implements `MapsAssignmentScope`.
 

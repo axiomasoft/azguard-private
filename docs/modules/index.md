@@ -47,6 +47,7 @@ modules are always present. Only a panel that attaches the plugin pays for it.
 - Modules do not depend on each other, and neither does Filament. Two modules cooperate through core values, such as the
   `AccessScope` of a request or the `ChangeRecord` of a change.
 - A module can use only the public API and SPI of the core; an `@internal` symbol is off limits to it, as to you.
+  What the public API and SPI promise is on [Compatibility](/reference/compatibility).
   That keeps each module movable into its own package later without changing the API, the schema or stored data.
 
 ## Configuration

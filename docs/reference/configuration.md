@@ -46,7 +46,13 @@ A panel setting is resolved from these layers. The first layer that sets it wins
 | `storages.default.host_keys` | `null` | Key type of subjects and resources: `string`, `bigint`, `uuid` or `ulid`. `null` uses `ids.host_keys` |
 | `ids.host_keys` | `string` | Default key type for storages. `string` accepts every key type |
 | `sources.{name}` | — | Parameters of a named source (see [Sources](/advanced/sources)) |
-| `discovery.*` | `Permissions`, `Policies`, `Roles`, `Scopes`, `Abilities`, `Queries`, `Shared` | Folder names relative to a panel provider. `Shared` is a sibling of the panel directories that holds `#[AsSource]` sources |
+| `discovery.permissions` | `Permissions` | Folder name of the permissions, relative to a panel provider |
+| `discovery.policies` | `Policies` | Folder name of the policies, relative to a panel provider |
+| `discovery.roles` | `Roles` | Folder name of the roles, relative to a panel provider |
+| `discovery.scopes` | `Scopes` | Folder name of the scopes, relative to a panel provider |
+| `discovery.abilities` | `Abilities` | Folder name of the abilities, relative to a panel provider |
+| `discovery.queries` | `Queries` | Folder name of the queries, relative to a panel provider |
+| `discovery.shared` | `Shared` | Folder, a sibling of the panel directories, that holds `#[AsSource]` sources |
 | `scaffold.namespace` / `scaffold.path` | `App\Guards` / `app/Guards` | Where the generators create panels. Owned by the development tools module: the published file does not list them, add the section to change them |
 
 ### Environment variables
@@ -93,4 +99,6 @@ Published with `php artisan vendor:publish --tag=azguard-filament-config`. These
 | `definitions` | `enums` | `enums` (Permissions folder) or `resources` (read from Filament classes by `FilamentSource`) |
 | `authority` | `grants` | Authority of `resources` definitions: `grants` or `policy` |
 | `abilities` | `view_any` … `reorder` | Resource abilities, in snake_case |
-| `exclude.resources` / `.pages` / `.widgets` | `[]` | Classes that get no permission |
+| `exclude.resources` | `[]` | Classes of the resources that get no permission |
+| `exclude.pages` | `[]` | Classes of the pages that get no permission |
+| `exclude.widgets` | `[]` | Classes of the widgets that get no permission |

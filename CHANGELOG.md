@@ -6,7 +6,13 @@ version) are documented here. Format: [Keep a Changelog](https://keepachangelog.
 
 ## [Unreleased]
 
-The 1.0.0 draft. Requires PHP 8.3–8.5 and Laravel 11–13; the Filament package requires Filament 5.
+## [1.0.0] - 2026-10-14
+
+The first public release of `axiomasoft/azguard` and `axiomasoft/azguard-filament`. Requires PHP 8.3–8.5 and Laravel 11–13; the Filament package requires Filament 5.
+
+### Stability
+
+The API, the extension contracts and the machine formats (configuration, commands, events, exceptions, doctor and explain JSON, publish tags, migrations and tables) follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html). What is supported and what counts as a break is on [docs/reference/compatibility.md](docs/reference/compatibility.md); every identity is listed in [docs/reference/formats.md](docs/reference/formats.md).
 
 ### Added
 
@@ -40,4 +46,5 @@ The 1.0.0 draft. Requires PHP 8.3–8.5 and Laravel 11–13; the Filament packag
 - **filament:** Read-only role, panel and doctor pages; editors for role grants, permission grants and runtime
   permissions; a permission generator `azguard:filament:generate`.
 
-[Unreleased]: https://github.com/axiomasoft/azguard-private/commits/main
+[Unreleased]: https://github.com/axiomasoft/azguard-private/compare/v1.0.0...HEAD
+[1.0.0]: https://github.com/axiomasoft/azguard-private/releases/tag/v1.0.0
