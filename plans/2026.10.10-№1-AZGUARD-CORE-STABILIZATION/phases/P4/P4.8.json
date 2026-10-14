@@ -1,0 +1,251 @@
+{
+  "$schema": "urn:swissknifeman:task:plan:item:v1",
+  "id": "P4.8",
+  "title": "Candidate freeze: final qualification, baseline pointer and gate evidence",
+  "status": "in_progress",
+  "summary": "Freezes the 1.0 candidate: switches every remaining 'after P4' invariant to blocking now and fixes the CHANGELOG date in commit C; qualifies C completely (local V-list and GitHub Actions incl. Compatibility and nightly on feat/1.0-candidate); then a commit that only sets `compatibility.json` `candidate` = C, re-runs api:compat, the drill against C and release-preflight 1.0.0, and writes `gate.md` mapping each amended release condition to its evidence; hands the tag commands to the owner.",
+  "why": "Phase V1 and exit criterion: the documented gate satisfied on one candidate commit with linked evidence; condition 10 'the candidate becomes the compatibility baseline'; D27 leaves the tag to the owner. Hard risks: code landing between qualification and pointer (then C is not what was qualified) — the pointer commit may touch only compatibility.json and plan files; production code changed after the P4.6 bench without re-running it; CI evidence from a different sha than the local runs.",
+  "scope": {
+    "include": [
+      "`tests/Arch/invariants.json`: every entry `status: exists`, `blocking: now` (I9, I18, I19, I22 and all 'after Pn'); CHANGELOG `[1.0.0]` date = the freeze date; commit = C",
+      "Full qualification of C: V1–V10 locally, push C (owner gate CI-PUSH), dispatch nightly, V11 CI check including `Compatibility`; any failure → demonstrated fix (convention 1), new C, repeat",
+      "Freeze dependency of p4-execution#load: if production code changed after the last P4.6 commit, re-run the affected bench pairs on C",
+      "Commit C+1: `compatibility.json` `candidate` = C only; `composer api:compat`; `bash bin/compat-drill.sh --baseline=C`; `bash bin/release-preflight.sh 1.0.0 HEAD`; push C+1 and check its CI (V15)",
+      "`plans/2026.10.10-№1-AZGUARD-CORE-STABILIZATION/artifacts/evidence/P4/gate.md`: one row per amended condition (p4-execution#gate) with evidence paths, CI run URLs, sha and verdict; plus I19 and the drill",
+      "Item result: exact owner commands `git tag -a v1.0.0 <C+1> -m \"AzGuard 1.0.0\"` and `git push origin v1.0.0`, and the reminders: split one-time setup (RELEASING.md), label `compat-baseline`, branch protection requiring Tests/Compatibility"
+    ],
+    "exclude": [
+      "Creating or pushing a tag (D27)",
+      "New features or redesign",
+      "Owner WIP files"
+    ]
+  },
+  "depends_on": [
+    "P4.7"
+  ],
+  "decisions": [
+    "D24",
+    "D26",
+    "D27"
+  ],
+  "reads": [
+    {
+      "ref": "knowledge/p4-execution#conventions",
+      "why": "Rules every P4 item follows: demonstrated fixes only, stop rule for frozen contracts, 1.0 starting point, owner WIP, pushes, long runs, evidence",
+      "required": true
+    },
+    {
+      "ref": "knowledge/p4-execution#commands",
+      "why": "Exact commands, PHP 8.4 shim, driver ports, composer update rule, CI evidence procedure",
+      "required": true
+    },
+    {
+      "ref": "knowledge/p4-execution#gate",
+      "why": "The amended release conditions and which evidence this item contributes",
+      "required": true
+    },
+    {
+      "ref": "knowledge/architecture#release-gate",
+      "why": "Original ten conditions and CI rules; read together with p4-execution#gate (amended rows win)",
+      "required": true
+    },
+    {
+      "ref": "knowledge/architecture#invariants",
+      "why": "Invariant ids, their checks and statuses",
+      "required": true
+    },
+    {
+      "ref": "knowledge/p4-execution#compatibility",
+      "why": "Pointer rules (a commit cannot name itself; the pointer commit touches nothing else)",
+      "required": true
+    },
+    {
+      "ref": "knowledge/p4-execution#breaks",
+      "why": "Drill against the frozen candidate",
+      "required": true
+    },
+    {
+      "ref": "knowledge/p4-execution#load",
+      "why": "Freeze dependency on the P4.6 bench",
+      "required": true
+    },
+    {
+      "path": "tests/Arch/invariants.json",
+      "why": "Invariant register the item updates",
+      "required": true
+    },
+    {
+      "path": "RELEASING.md",
+      "why": "Release procedure the owner follows after the plan",
+      "required": true
+    }
+  ],
+  "task_files": [
+    {
+      "path": "tests/Arch/invariants.json",
+      "change": "modify"
+    },
+    {
+      "path": "CHANGELOG.md",
+      "change": "modify"
+    },
+    {
+      "path": "compatibility.json",
+      "change": "any"
+    },
+    {
+      "path": "plans/2026.10.10-№1-AZGUARD-CORE-STABILIZATION/artifacts/evidence/P4/gate.md",
+      "change": "create"
+    },
+    {
+      "path": "plans/2026.10.10-№1-AZGUARD-CORE-STABILIZATION/artifacts/evidence/P4/qualification.md",
+      "change": "any"
+    },
+    {
+      "path": "plans/2026.10.10-№1-AZGUARD-CORE-STABILIZATION/artifacts/evidence/P4/ci-runs-*.json",
+      "change": "create"
+    },
+    {
+      "path": "plans/2026.10.10-№1-AZGUARD-CORE-STABILIZATION/artifacts/evidence/P4/drill.md",
+      "change": "any"
+    },
+    {
+      "path": "plans/2026.10.10-№1-AZGUARD-CORE-STABILIZATION/artifacts/evidence/P4/logs/**",
+      "change": "create"
+    },
+    {
+      "path": "packages/**",
+      "change": "any",
+      "note": "only demonstrated fixes (then C moves)"
+    }
+  ],
+  "rules": [
+    "Do not stage, revert or overwrite the owner's uncommitted files (p4-execution#conventions item 6); commit only the item's paths.",
+    "C+1 changes only compatibility.json (plus plan bookkeeping); verify with `git diff --name-only C HEAD`.",
+    "Acceptance evidence names C (V1–V12) or C+1 (V13–V15) explicitly."
+  ],
+  "guidance": "Sequence strictly: commit C → local long runs on C (detached) and push C in parallel → wait for both → only if all green write C+1. Record `C=$(git rev-parse HEAD)` in qualification.md before starting. The CI check of C must include `Compatibility` (it compares C with the provisional pointer from P4.3).",
+  "validation": [
+    {
+      "id": "V1",
+      "cmd": "php -d memory_limit=1G vendor/bin/pest tests/Arch --fail-on-skipped",
+      "expect": "exit 0",
+      "kind": "acceptance"
+    },
+    {
+      "id": "V2",
+      "cmd": "php -d memory_limit=1G vendor/bin/pest tests/Feature/Parity tests/Feature/InactiveCost tests/Regression --fail-on-skipped",
+      "expect": "exit 0",
+      "kind": "acceptance"
+    },
+    {
+      "id": "V3",
+      "cmd": "composer analyse && composer lint:check && composer refactor:check && composer api:check",
+      "expect": "exit 0",
+      "kind": "acceptance"
+    },
+    {
+      "id": "V4",
+      "cmd": "composer test:types && composer check:coverage",
+      "expect": "exit 0",
+      "kind": "acceptance"
+    },
+    {
+      "id": "V5",
+      "cmd": "composer test",
+      "expect": "exit 0",
+      "kind": "acceptance"
+    },
+    {
+      "id": "V6",
+      "cmd": "export PGSQL_PORT=25432 MYSQL_PORT=23306 MARIADB_PORT=23307 && composer test:db -- pgsql --parallel && composer test:db -- mysql --parallel && composer test:db -- mariadb --parallel",
+      "expect": "exit 0 on all three drivers",
+      "kind": "acceptance"
+    },
+    {
+      "id": "V7",
+      "cmd": "export PGSQL_PORT=25432 MYSQL_PORT=23306 MARIADB_PORT=23307 && composer test:db -- pgsql --engines && composer test:db -- mysql --engines && composer test:db -- mariadb --engines",
+      "expect": "exit 0 on all three drivers",
+      "kind": "acceptance"
+    },
+    {
+      "id": "V8",
+      "cmd": "composer test:replica && composer test:redis && composer test:extended",
+      "expect": "exit 0",
+      "kind": "acceptance"
+    },
+    {
+      "id": "V9",
+      "cmd": "bash bin/consumer-fixture.sh && bash bin/consumer-fixture.sh --with-filament && bash bin/consumer-fixture.sh core-only && bash bin/consumer-fixture.sh relocated-audit",
+      "expect": "exit 0 for all four modes",
+      "kind": "acceptance"
+    },
+    {
+      "id": "V10",
+      "cmd": "composer docs:language && composer docs:php && bash bin/test-release-preflight.sh && bash bin/test-compat-baseline-guard.sh",
+      "expect": "exit 0",
+      "kind": "acceptance"
+    },
+    {
+      "id": "V11",
+      "cmd": "SHA=$(git rev-parse HEAD) && OUT=plans/2026.10.10-№1-AZGUARD-CORE-STABILIZATION/artifacts/evidence/P4/ci-runs-$SHA.json && gh run list --commit \"$SHA\" --limit 100 --json databaseId,workflowName,event,headSha,status,conclusion,url > \"$OUT\" && python3 -c 'import json,sys; r=json.load(open(sys.argv[1])); need=set(sys.argv[2].split(\",\")); ok={x[\"workflowName\"] for x in r if x[\"conclusion\"]==\"success\"}; bad=[x for x in r if x[\"workflowName\"] in need and x[\"conclusion\"]!=\"success\"]; sys.exit(0 if need<=ok and not bad else 1)' \"$OUT\" \"Tests,Static Analysis,Code Style,Zizmor,CodeQL,Compatibility,Tests (nightly)\"",
+      "expect": "exit 0 on C",
+      "kind": "acceptance"
+    },
+    {
+      "id": "V12",
+      "cmd": "python3 -c 'import json,sys; d=json.load(open(\"tests/Arch/invariants.json\")); bad=[e[\"id\"] for e in d if e[\"status\"]!=\"exists\" or e[\"blocking\"]!=\"now\"]; print(bad); sys.exit(1 if bad else 0)'",
+      "expect": "exit 0 (every invariant exists and blocks now)",
+      "kind": "acceptance"
+    },
+    {
+      "id": "V13",
+      "cmd": "C=$(python3 -c 'import json;print(json.load(open(\"compatibility.json\"))[\"candidate\"])') && test \"$(git diff --name-only $C HEAD -- . ':!plans')\" = compatibility.json && composer api:compat && bash bin/compat-drill.sh --baseline=$C",
+      "expect": "exit 0 on C+1: pointer-only commit, compatible, drill rejects every break",
+      "kind": "acceptance"
+    },
+    {
+      "id": "V14",
+      "cmd": "bash bin/release-preflight.sh 1.0.0 HEAD && test -s plans/2026.10.10-№1-AZGUARD-CORE-STABILIZATION/artifacts/evidence/P4/gate.md && test $(grep -cE '^\\| (10|[1-9]) \\|' plans/2026.10.10-№1-AZGUARD-CORE-STABILIZATION/artifacts/evidence/P4/gate.md) -eq 10",
+      "expect": "exit 0",
+      "kind": "acceptance"
+    },
+    {
+      "id": "V15",
+      "cmd": "SHA=$(git rev-parse HEAD) && OUT=plans/2026.10.10-№1-AZGUARD-CORE-STABILIZATION/artifacts/evidence/P4/ci-runs-$SHA.json && gh run list --commit \"$SHA\" --limit 100 --json databaseId,workflowName,event,headSha,status,conclusion,url > \"$OUT\" && python3 -c 'import json,sys; r=json.load(open(sys.argv[1])); need=set(sys.argv[2].split(\",\")); ok={x[\"workflowName\"] for x in r if x[\"conclusion\"]==\"success\"}; bad=[x for x in r if x[\"workflowName\"] in need and x[\"conclusion\"]!=\"success\"]; sys.exit(0 if need<=ok and not bad else 1)' \"$OUT\" \"Tests,Static Analysis,Code Style,Zizmor,CodeQL,Compatibility\"",
+      "expect": "exit 0 on C+1",
+      "kind": "acceptance"
+    }
+  ],
+  "deliverables": [
+    "Frozen candidate C and pointer commit C+1",
+    "gate.md with ten green conditions",
+    "Owner tag instructions"
+  ],
+  "route": {
+    "class": "implementation",
+    "effort": "high"
+  },
+  "review": {
+    "mode": "none"
+  },
+  "authority": {
+    "kind": "owner_gate",
+    "gate": "CI-PUSH",
+    "scope": "Push the local HEAD to origin refs/heads/feat/1.0-candidate (force-with-lease only on that branch) and dispatch tests-nightly.yml on it, to obtain GitHub Actions evidence; never main, never tags."
+  },
+  "rag": {
+    "need": "none",
+    "status": "not_needed"
+  },
+  "result": {
+    "started_at": "2026-10-14T16:24:14Z",
+    "executor": {
+      "provider": "anthropic",
+      "model": "claude-sonnet-5-5",
+      "effort": "high",
+      "session": "43d34f23-16d2-432d-b586-f69f00db1a02"
+    }
+  },
+  "updated_at": "2026-10-14T16:24:14Z"
+}
