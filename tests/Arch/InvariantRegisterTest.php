@@ -102,13 +102,16 @@ it('names an owner phase for every invariant without a check, and invents no che
     expect($without)->toBe([]);
 });
 
-it('states for every build entry with a check the phase from which it blocks', function (): void {
+it('has no build entry left and blocks every invariant now once the candidate is frozen (P4.8)', function (): void {
+    $open = [];
+
     foreach (invariantRegister() as $entry) {
-        if ($entry['status'] === 'build' && $entry['checks'] !== []) {
-            expect($entry['owner_phase'])->not->toBeNull($entry['id'].' is built by no phase')
-                ->and($entry['blocking'])->toMatch('/\A(?:now|after P[1-4])\z/');
+        if ($entry['status'] !== 'exists' || $entry['blocking'] !== 'now') {
+            $open[] = $entry['id'];
         }
     }
+
+    expect($open)->toBe([]);
 });
 
 it('agrees with the invariants table of the architecture knowledge', function (): void {
