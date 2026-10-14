@@ -3,10 +3,16 @@
 # application, the way a consumer receives them (no path repositories, no symlinks),
 # then install its schema and test real HTTP requests and RefreshDatabase grants/cache.
 #
-#   bash bin/consumer-fixture.sh [core-only] [--laravel=13] [--version=1.0.0] [--with-filament] [--keep]
+#   bash bin/consumer-fixture.sh [core-only|relocated-audit] [--laravel=13] [--version=1.0.0] [--with-filament] [--keep]
+#                                [--report=FILE]
 #
 # `core-only` builds the core archive WITHOUT its modules/ directory (providers and PSR-4 reduced to core), installs it
 # and proves that the application boots, migrates, passes the doctor, grants a role and answers a check with no module.
+#
+# `relocated-audit` rehearses a future extraction of the Audit module (I19): an application with an audited panel and
+# journal rows, installed from the full core archive, switches to a core archive without modules/audit plus a synthetic
+# `axiomasoft/azguard-audit` archive with the same PSR-4 prefix and provider, and keeps FQCNs, commands, publish tag,
+# migration basename, doctor result and journal rows with one autoload owner. `--report=FILE` writes the record.
 #
 # Exit codes: 0 success, 1 failure, 3 Packagist unreachable (result is `unavailable`, never green).
 # Writes only to build/ in the repository and to a temporary directory.
@@ -20,9 +26,10 @@ version="1.0.0"
 with_filament=0
 keep=0
 mode="full"
+report=""
 
 usage() {
-    echo "usage: consumer-fixture.sh [core-only] [--laravel=N] [--version=V] [--with-filament] [--keep]" >&2
+    echo "usage: consumer-fixture.sh [core-only|relocated-audit] [--laravel=N] [--version=V] [--with-filament] [--keep] [--report=FILE]" >&2
     exit 2
 }
 
@@ -32,14 +39,24 @@ for arg in "$@"; do
         --version=*) version="${arg#*=}" ;;
         --with-filament) with_filament=1 ;;
         --keep) keep=1 ;;
+        --report=?*) report="${arg#*=}" ;;
         core-only) mode="core-only" ;;
+        relocated-audit) mode="relocated-audit" ;;
         *) usage ;;
     esac
 done
 
-if [[ "${mode}" == "core-only" ]] && ((with_filament)); then
-    echo "error: core-only installs the core archive alone; --with-filament does not combine with it" >&2
+if [[ "${mode}" != "full" ]] && ((with_filament)); then
+    echo "error: ${mode} installs the core archive alone; --with-filament does not combine with it" >&2
     exit 2
+fi
+
+if [[ -n "${report}" && "${mode}" != "relocated-audit" ]]; then
+    echo "error: --report belongs to relocated-audit" >&2
+    exit 2
+fi
+if [[ -n "${report}" && "${report}" != /* ]]; then
+    report="${PWD}/${report}"
 fi
 
 if [[ ! "${laravel}" =~ ^[0-9]+$ ]]; then
@@ -74,7 +91,7 @@ build_archives() {
     find "${dist}" -maxdepth 1 -type f -name 'axiomasoft-*.zip' -delete
 
     local package copy packages=(core filament)
-    if [[ "${mode}" == "core-only" ]]; then
+    if [[ "${mode}" != "full" ]]; then
         packages=(core)
     fi
     for package in "${packages[@]}"; do
@@ -284,6 +301,197 @@ core_only_step() {
     log "core-only OK"
 }
 
+# The relocated archives: the core archive without modules/audit (its PSR-4 root and provider removed, as core-only does
+# for every module) and a synthetic axiomasoft/azguard-audit archive whose root is modules/audit with the same prefix and
+# provider. They carry the next patch version: a relocation is a release, and Composer replaces a package only for
+# another version.
+build_relocated_archives() {
+    local relocated="$1" target="$2"
+    mkdir -p "${target}"
+    find "${target}" -maxdepth 1 -type f -name 'axiomasoft-*.zip' -delete
+
+    local core="${work}/relocated-core" audit="${work}/relocated-audit"
+    cp -a "${root}/packages/core" "${core}"
+    rm -rf "${core}/modules/audit"
+    mkdir -p "${audit}"
+    cp -a "${root}/packages/core/modules/audit/." "${audit}/"
+    cp "${root}/packages/core/LICENSE" "${audit}/LICENSE"
+
+    php -r '
+        $core = $argv[1];
+        $json = json_decode(file_get_contents($core), true, 512, JSON_THROW_ON_ERROR);
+        $json["version"] = $argv[3];
+        unset($json["autoload"]["psr-4"]["AzGuard\\Audit\\"]);
+        $json["extra"]["laravel"]["providers"] = array_values(array_diff($json["extra"]["laravel"]["providers"], ["AzGuard\\Audit\\AuditServiceProvider"]));
+        file_put_contents($core, json_encode($json, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE)."\n");
+
+        $audit = [
+            "name" => "axiomasoft/azguard-audit",
+            "description" => "Relocation rehearsal of the AzGuard Audit module (never published)",
+            "type" => "library",
+            "license" => "MIT",
+            "version" => $argv[3],
+            "require" => ["axiomasoft/azguard" => $argv[3]],
+            "autoload" => ["psr-4" => ["AzGuard\\Audit\\" => "src/"]],
+            "extra" => ["laravel" => ["providers" => ["AzGuard\\Audit\\AuditServiceProvider"]]],
+        ];
+        file_put_contents($argv[2], json_encode($audit, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE)."\n");
+    ' "${core}/composer.json" "${audit}/composer.json" "${relocated}"
+
+    composer archive --format=zip --dir="${target}" --working-dir="${core}" --no-interaction >/dev/null
+    composer archive --format=zip --dir="${target}" --working-dir="${audit}" --no-interaction >/dev/null
+    log "relocated archives in ${target}:"
+    ls -1 "${target}" | sed 's/^/  /'
+}
+
+# Facts of the application that must not change when Audit moves: the ran migrations, the journal rows, the Audit
+# commands, the files the publish tag would write and the doctor result.
+relocation_snapshot() {
+    local into="$1"
+    mkdir -p "${into}"
+    php artisan migrate:status --no-interaction | grep -oE '[0-9]{4}_[0-9]{2}_[0-9]{2}_[0-9]{6}_[a-z0-9_]+.*(Ran|Pending)' \
+        | sed -E 's/ *\.+ */ /; s/\[[0-9]+\] //' >"${into}/migrate-status.txt"
+    php journal.php rows >"${into}/rows.json"
+    php journal.php commands >"${into}/commands.json"
+    php journal.php autoload >"${into}/autoload.json"
+    ls -1 database/migrations >"${into}/migrations.txt"
+    set +e
+    php artisan azguard:doctor --json --no-interaction >"${into}/doctor.json"
+    echo "$?" >"${into}/doctor.exit"
+    set -e
+}
+
+relocation_fail() {
+    echo "error: relocated-audit: $*" >&2
+    exit 1
+}
+
+# The audited application before and after the relocation; every assertion of p4-execution#relocation.
+relocated_audit_step() {
+    cd "${work}/app"
+
+    cp -R "${root}/fixtures/consumer/relocated-audit/." .
+    php -r '
+        $file = "bootstrap/providers.php";
+        $providers = require $file;
+        $providers[] = "App\\Guards\\Audited\\AuditedGuardPanelProvider";
+        file_put_contents($file, "<?php\n\nreturn ".var_export($providers, true).";\n");
+    '
+    composer dump-autoload --no-interaction >/dev/null
+
+    export APP_ENV=testing DB_CONNECTION=sqlite DB_URL= AZGUARD_DB_CONNECTION=sqlite
+    export DB_DATABASE="${work}/app/database/azguard_relocated.sqlite"
+    : >"${DB_DATABASE}"
+
+    local before="${work}/before" after="${work}/after" relocated
+    relocated="$(php -r 'preg_match("/^(\d+)\.(\d+)\.(\d+)(.*)$/", $argv[1], $m) === 1 || exit(1); echo $m[1].".".$m[2].".".($m[3] + 1).$m[4];' "${version}")" \
+        || relocation_fail "--version ${version} is not MAJOR.MINOR.PATCH"
+
+    log "relocated-audit: before — publish the Audit migration, migrate, two audited grants (core ${version})"
+    php artisan vendor:publish --tag=azguard-audit-migrations --no-interaction
+    php artisan migrate --force --no-interaction
+    php journal.php grant
+    php journal.php grant
+    relocation_snapshot "${before}"
+    [[ "$(cat "${before}/doctor.exit")" == 0 ]] || relocation_fail "azguard:doctor fails before the relocation: $(cat "${before}/doctor.json")"
+    php -r 'exit(json_decode(file_get_contents($argv[1]), true)["count"] === 2 ? 0 : 1);' "${before}/rows.json" \
+        || relocation_fail "two audited grants did not write two journal rows: $(cat "${before}/rows.json")"
+    [[ "$(php -r 'echo json_decode(file_get_contents($argv[1]), true)["AuditPlugin"];' "${before}/autoload.json")" == "$(cd vendor/axiomasoft/azguard/modules/audit/src && pwd -P)/AuditPlugin.php" ]] \
+        || relocation_fail "before the relocation AuditPlugin does not load from the core archive: $(cat "${before}/autoload.json")"
+
+    log "relocated-audit: relocate — core ${relocated} without modules/audit + axiomasoft/azguard-audit ${relocated}"
+    build_relocated_archives "${relocated}" "${root}/build/dist-relocated"
+    composer config --unset repositories.azguard
+    composer config repositories.azguard-relocated artifact "${root}/build/dist-relocated"
+    composer require "axiomasoft/azguard:${relocated}" "axiomasoft/azguard-audit:${relocated}" --no-interaction --no-progress
+    composer dump-autoload --optimize --no-interaction >/dev/null
+    for package in azguard azguard-audit; do
+        [[ ! -L "vendor/axiomasoft/${package}" ]] || relocation_fail "vendor/axiomasoft/${package} is a symlink"
+        log "installed: $(composer show "axiomasoft/${package}" | grep -E '^(versions|dist)' | tr -s ' ' | paste -sd' ')"
+    done
+    assert_discovered 'axiomasoft/azguard-audit' 'AzGuard\Audit\AuditServiceProvider'
+
+    log "relocated-audit: after — one autoload owner"
+    [[ ! -e vendor/axiomasoft/azguard/modules/audit ]] || relocation_fail "the relocated core archive still ships modules/audit"
+    php -r '
+        $core = json_decode(file_get_contents("vendor/axiomasoft/azguard/composer.json"), true, 512, JSON_THROW_ON_ERROR);
+        isset($core["autoload"]["psr-4"]["AzGuard\\Audit\\"]) && exit(1);
+        in_array("AzGuard\\Audit\\AuditServiceProvider", $core["extra"]["laravel"]["providers"] ?? [], true) && exit(1);
+        $psr4 = require "vendor/composer/autoload_psr4.php";
+        $owner = realpath("vendor/axiomasoft/azguard-audit/src");
+        if (array_map("realpath", $psr4["AzGuard\\Audit\\"] ?? []) !== [$owner]) { exit(1); }
+        $classmap = require "vendor/composer/autoload_classmap.php";
+        $audit = array_filter($classmap, static fn (string $file, string $class): bool => str_starts_with($class, "AzGuard\\Audit\\"), ARRAY_FILTER_USE_BOTH);
+        if ($audit === []) { exit(1); }
+        foreach ($audit as $file) {
+            if (! str_starts_with((string) realpath($file), $owner.DIRECTORY_SEPARATOR)) { exit(1); }
+        }
+    ' || relocation_fail "AzGuard\Audit\ has another autoload owner than vendor/axiomasoft/azguard-audit"
+
+    relocation_snapshot "${after}"
+    [[ "$(php -r 'echo json_decode(file_get_contents($argv[1]), true)["AuditPlugin"];' "${after}/autoload.json")" == "$(cd vendor/axiomasoft/azguard-audit/src && pwd -P)/AuditPlugin.php" ]] \
+        || relocation_fail "AuditPlugin does not load from vendor/axiomasoft/azguard-audit: $(cat "${after}/autoload.json")"
+
+    log "relocated-audit: after — migrations, publish tag, commands, doctor, journal"
+    grep -qE '^2026_10_20_000000_create_azguard_audit_log .*Ran$' "${after}/migrate-status.txt" \
+        || relocation_fail "the Audit migration is not ran after the relocation: $(cat "${after}/migrate-status.txt")"
+    cmp -s "${before}/migrate-status.txt" "${after}/migrate-status.txt" || relocation_fail "migrate:status changed"
+    php artisan migrate --pretend --no-interaction | grep -q 'Nothing to migrate' || relocation_fail "migrate --pretend has something to run"
+    php artisan vendor:publish --tag=azguard-audit-migrations --no-interaction >/dev/null
+    ls -1 database/migrations | cmp -s "${before}/migrations.txt" - || relocation_fail "vendor:publish --tag=azguard-audit-migrations published a new file"
+    cmp -s "${before}/commands.json" "${after}/commands.json" || relocation_fail "the Audit commands changed"
+    php -r '
+        $expected = json_decode(file_get_contents($argv[1]), true, 512, JSON_THROW_ON_ERROR);
+        $found = json_decode(file_get_contents($argv[2]), true, 512, JSON_THROW_ON_ERROR);
+        foreach (["azguard:audit:migration", "azguard:audit:prune"] as $name) {
+            ($found[$name] ?? null) === $expected[$name]["synopsis"] || exit(1);
+        }
+    ' "${root}/tests/Fixtures/Console/commands.json" "${after}/commands.json" \
+        || relocation_fail "the Audit command synopses differ from tests/Fixtures/Console/commands.json: $(cat "${after}/commands.json")"
+    [[ "$(cat "${after}/doctor.exit")" == 0 ]] || relocation_fail "azguard:doctor fails after the relocation: $(cat "${after}/doctor.json")"
+    php -r '
+        foreach (json_decode(file_get_contents($argv[1]), true, 512, JSON_THROW_ON_ERROR) as $finding) {
+            str_starts_with($finding["key"], "audit.table") && exit(1);
+        }
+    ' "${after}/doctor.json" || relocation_fail "doctor reports audit.table after the relocation: $(cat "${after}/doctor.json")"
+    cmp -s "${before}/rows.json" "${after}/rows.json" || relocation_fail "the journal rows changed"
+
+    php journal.php grant
+    php journal.php rows >"${work}/appended.json"
+    php -r '
+        $before = json_decode(file_get_contents($argv[1]), true, 512, JSON_THROW_ON_ERROR);
+        $after = json_decode(file_get_contents($argv[2]), true, 512, JSON_THROW_ON_ERROR);
+        exit($after["count"] === $before["count"] + 1 && array_slice($after["rows"], 0, $before["count"]) === $before["rows"] ? 0 : 1);
+    ' "${after}/rows.json" "${work}/appended.json" || relocation_fail "one more audited grant did not append exactly one row"
+    php artisan azguard:audit:prune --force --no-interaction || relocation_fail "azguard:audit:prune --force failed"
+    log "relocated-audit OK"
+
+    if [[ -n "${report}" ]]; then
+        relocation_report "${before}" "${after}" "${relocated}" >"${report}"
+        log "report: ${report}"
+    fi
+}
+
+relocation_report() {
+    local before="$1" after="$2" relocated="$3" archive
+    echo "| Archive | sha256 |"
+    echo "|:--|:--|"
+    for archive in "${dist}"/axiomasoft-*.zip "${root}"/build/dist-relocated/axiomasoft-*.zip; do
+        echo "| \`${archive#"${root}"/}\` | \`$(sha256sum "${archive}" | cut -d' ' -f1)\` |"
+    done
+    echo
+    echo "| Fact | Before (core ${version}) | After (core ${relocated} + azguard-audit ${relocated}) |"
+    echo "|:--|:--|:--|"
+    echo "| AuditPlugin file | \`$(php -r 'echo json_decode(file_get_contents($argv[1]), true)["AuditPlugin"];' "${before}/autoload.json" | sed "s#.*/vendor/#vendor/#")\` | \`$(php -r 'echo json_decode(file_get_contents($argv[1]), true)["AuditPlugin"];' "${after}/autoload.json" | sed "s#.*/vendor/#vendor/#")\` |"
+    echo "| migrate:status | $(paste -sd';' "${before}/migrate-status.txt") | $(paste -sd';' "${after}/migrate-status.txt") |"
+    echo "| journal rows (count, sha256 of event id + payload) | $(php -r '$r = json_decode(file_get_contents($argv[1]), true); echo $r["count"], ": ", implode(", ", array_map(static fn ($x) => substr($x["sha256"], 0, 12), $r["rows"]));' "${before}/rows.json") | $(php -r '$r = json_decode(file_get_contents($argv[1]), true); echo $r["count"], ": ", implode(", ", array_map(static fn ($x) => substr($x["sha256"], 0, 12), $r["rows"]));' "${after}/rows.json") |"
+    echo "| Audit commands | $(php -r 'foreach (json_decode(file_get_contents($argv[1]), true) as $n => $s) { echo "`$n $s` "; }' "${before}/commands.json") | $(php -r 'foreach (json_decode(file_get_contents($argv[1]), true) as $n => $s) { echo "`$n $s` "; }' "${after}/commands.json") |"
+    echo "| published migrations | $(paste -sd' ' "${before}/migrations.txt") | $(paste -sd' ' "${after}/migrations.txt") |"
+    echo "| azguard:doctor --json exit / findings | $(cat "${before}/doctor.exit") / $(php -r 'echo implode(", ", array_unique(array_column(json_decode(file_get_contents($argv[1]), true), "key"))) ?: "none";' "${before}/doctor.json") | $(cat "${after}/doctor.exit") / $(php -r 'echo implode(", ", array_unique(array_column(json_decode(file_get_contents($argv[1]), true), "key"))) ?: "none";' "${after}/doctor.json") |"
+    echo
+    echo "After: \`migrate --pretend\` has nothing to run, \`vendor:publish --tag=azguard-audit-migrations\` publishes no file, one more audited grant appends exactly one row, \`azguard:audit:prune --force\` exits 0, \`AzGuard\\Audit\\\` has one PSR-4 and classmap owner (vendor/axiomasoft/azguard-audit)."
+}
+
 # The Filament package: the configuration publishes by its tag and the plugin, the source and the tenant resolver load in
 # the booted application of the consumer, with the defaults of the published configuration.
 filament_step() {
@@ -329,6 +537,8 @@ install_archives
 smoke
 if [[ "${mode}" == "core-only" ]]; then
     core_only_step
+elif [[ "${mode}" == "relocated-audit" ]]; then
+    relocated_audit_step
 else
     http_step
     if ((with_filament)); then

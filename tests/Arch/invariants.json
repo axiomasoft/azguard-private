@@ -197,6 +197,7 @@
         "status": "exists",
         "checks": [
             "bin/consumer-fixture.sh",
+            "fixtures/consumer/relocated-audit/journal.php",
             ".github/workflows/tests.yml",
             ".github/workflows/release.yml"
         ],
