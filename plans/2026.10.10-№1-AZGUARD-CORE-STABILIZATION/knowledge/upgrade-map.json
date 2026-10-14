@@ -24,9 +24,7 @@
       "text": "| 0.7.0 | target | phase |\n|:--|:--|:--|\n| `defaults.gate.mode` | remove the key from a published config | P2 |\n| `StorageSchema::create/drop` (also via published migrations) | six tables; `audit_log` owned by Audit | P3 |\n| fresh install with `AuditPlugin` | `php artisan vendor:publish --tag=azguard-audit-migrations && php artisan migrate`; named storages: `azguard:audit:migration <storage>` | P3 |\n| existing `audit_log` | no action; adopted when the Audit migration is published | P3 |\n| `azguard:storage:migration <name>` | creates six tables (no audit table) | P3 |\n| `azguard:install --panel` | unchanged (owned by DevTools) | P3 |\n| doctor `gate.mode` finding | retired | P2 |\n| doctor `storage.migrated` | checks six core tables; `audit.table` covers the journal | P3 |"
     }
   ],
-  "applies_to": [
-    "P4"
-  ],
+  "applies_to": [],
   "provenance": {
     "path": "plans/2026.10.10-№1-AZGUARD-CORE-STABILIZATION/artifacts/inventory/target-map.json",
     "note": "Architecture revision 2 reference, generated from the code baseline 09612160c98ca6133c894a8f90f5653b9dac6b8f by the scripts in artifacts/inventory (Claude Opus 5.5, xhigh, 2026-10-10). Canonical design; deviations need a plan amendment.",
