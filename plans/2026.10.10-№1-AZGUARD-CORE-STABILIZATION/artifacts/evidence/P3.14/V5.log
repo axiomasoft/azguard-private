@@ -1,0 +1,2 @@
+> php -d memory_limit=1G vendor/bin/pest --type-coverage --min=98
+{"tool":"pest","raw":["packages/core/src/Changes/PermissionRecord.php .. 100%","(24.06s) Total: 99.9 %"]}

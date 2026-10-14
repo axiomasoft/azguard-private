@@ -1,0 +1,32 @@
+{
+    "$schema": "urn:swissknifeman:task:plan:check-evidence:v1",
+    "evidence_id": "PLAN1.P3.14.V4.2026-10-14",
+    "check_id": "V4",
+    "subject": "PLAN1.P3.14",
+    "procedure": {
+        "cmd": "composer analyse && lint:check && refactor:check && api:check (phpstan/pint verified on clean HEAD worktree; owner WIP and untracked var/perf/prepend.php break the dirty tree)",
+        "cwd": "."
+    },
+    "candidate": {
+        "head": "9788f87c18bfbff57b733d1709ed655e922ad6cf"
+    },
+    "exit": 0,
+    "environment": {
+        "platform": "Linux",
+        "php": "8.4 (PATH shim; system php is 8.3)"
+    },
+    "log": {
+        "path": "plans/2026.10.10-\u21161-AZGUARD-CORE-STABILIZATION/artifacts/evidence/P3.14/V4.log",
+        "sha256": "b4a4c712e0fa8bdf53be7005c5386a4c4c20a493dcac886ec029650dc35b9aeb"
+    },
+    "started_at": "2026-10-14T02:40:00Z",
+    "finished_at": "2026-10-14T05:00:00Z",
+    "producer": {
+        "kind": "executor",
+        "actor": {
+            "provider": "anthropic",
+            "model": "claude-sonnet-5-5",
+            "effort": "medium"
+        }
+    }
+}
