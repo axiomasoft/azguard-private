@@ -138,7 +138,7 @@ final class FilamentKeys
                     local: $this->page($page, $configuration),
                     surface: FilamentSurface::Page,
                     class: $page,
-                    label: $page::getNavigationLabel(),
+                    label: self::label($page::getNavigationLabel()),
                     group: $this->group($page::getNavigationGroup()),
                 ),
                 $page.($configuration === null ? '' : ' (configuration "'.$configuration.'")'),
@@ -335,9 +335,14 @@ final class FilamentKeys
         };
     }
 
-    private static function text(string|Htmlable|null $label): ?string
+    private static function label(string|Htmlable $label): string
     {
         return $label instanceof Htmlable ? $label->toHtml() : $label;
+    }
+
+    private static function text(string|Htmlable|null $label): ?string
+    {
+        return $label === null ? null : self::label($label);
     }
 
     private function failure(string $check, string $message): InvalidConfigurationException
