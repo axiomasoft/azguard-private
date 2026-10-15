@@ -1,0 +1,26 @@
+{
+  "command": [
+    "env",
+    "PAO_DISABLE=1",
+    "php",
+    "-d",
+    "memory_limit=1G",
+    "vendor/bin/phpstan",
+    "analyse",
+    "--memory-limit=1G",
+    "--debug",
+    "--no-progress"
+  ],
+  "cwd": "/home/vostrikov/projects/packages/azguard",
+  "head": "2ce692f74c210e81426e9367303701516b1cc3f0",
+  "started_at": "2026-10-15T10:32:39.999885+00:00",
+  "test_environment": {
+    "APP_ENV": "testing",
+    "DB_CONNECTION": "sqlite",
+    "DB_DATABASE": ":memory:",
+    "AUTHORITY_REPLICA_TEST": ""
+  },
+  "exit_code": 1,
+  "duration_seconds": 30.621,
+  "log": "static-analysis-debug.log"
+}

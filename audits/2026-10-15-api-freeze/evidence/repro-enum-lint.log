@@ -1,0 +1,3 @@
+
+Fatal error: Cannot use AzGuard\Tests\Fixtures\Filament\Widgets\Stats\SalesWidget as SalesWidget because the name is already in use in audits/2026-10-15-api-freeze/evidence/filament/generated-widget-permission.php on line 10
+Errors parsing audits/2026-10-15-api-freeze/evidence/filament/generated-widget-permission.php

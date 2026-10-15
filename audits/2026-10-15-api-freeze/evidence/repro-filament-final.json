@@ -1,0 +1,23 @@
+{
+  "command": [
+    "php",
+    "-d",
+    "memory_limit=1G",
+    "vendor/bin/phpunit",
+    "audits/2026-10-15-api-freeze/evidence/filament/FilamentProbeTest.php",
+    "--colors=never",
+    "--no-coverage"
+  ],
+  "cwd": "/home/vostrikov/projects/packages/azguard",
+  "head": "2ce692f74c210e81426e9367303701516b1cc3f0",
+  "started_at": "2026-10-15T10:43:54.243350+00:00",
+  "test_environment": {
+    "APP_ENV": "testing",
+    "DB_CONNECTION": "sqlite",
+    "DB_DATABASE": ":memory:",
+    "AUTHORITY_REPLICA_TEST": ""
+  },
+  "exit_code": 0,
+  "duration_seconds": 0.419,
+  "log": "repro-filament-final.log"
+}

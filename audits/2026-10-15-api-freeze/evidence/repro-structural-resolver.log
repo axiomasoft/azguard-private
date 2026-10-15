@@ -1,0 +1,22 @@
+{"isolation":{"environment":"testing","driver":"sqlite","database":":memory:","sqlite_file":""}}
+{
+    "scenario": "structural-resolver",
+    "scalar": [
+        102,
+        103,
+        104
+    ],
+    "scalar_reasons": {
+        "101": "context_not_accepted",
+        "102": "granted",
+        "103": "granted",
+        "104": "granted"
+    },
+    "visibleTo": [
+        101,
+        102,
+        103,
+        104
+    ],
+    "parity": false
+}

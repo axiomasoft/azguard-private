@@ -1,0 +1,1 @@
+{"tool":"phpstan","result":"failed","errors":1,"general_errors":["Child process was killed by signal 11 (SIGSEGV).\nThe OS kills a worker this way when it runs out of memory (the kernel OOM killer sends SIGKILL) or shared memory (SIGBUS), or when it crashes natively (SIGSEGV). while running parallel worker"]}

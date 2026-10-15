@@ -1,0 +1,18 @@
+{"isolation":{"environment":"testing","driver":"sqlite","database":":memory:","sqlite_file":""}}
+{
+    "scenario": "matching-grants",
+    "scalar": [],
+    "scalar_reasons": {
+        "101": "restricted",
+        "102": "restricted",
+        "103": "restricted",
+        "104": "restricted"
+    },
+    "visibleTo": [
+        101,
+        102,
+        103,
+        104
+    ],
+    "parity": false
+}

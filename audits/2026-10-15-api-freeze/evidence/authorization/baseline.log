@@ -1,0 +1,30 @@
+{"isolation":{"environment":"testing","driver":"sqlite","database":":memory:","sqlite_file":""}}
+{
+    "scenario": "baseline",
+    "scalar": [
+        101,
+        102,
+        103,
+        104
+    ],
+    "scalar_reasons": {
+        "101": "granted",
+        "102": "granted",
+        "103": "granted",
+        "104": "granted"
+    },
+    "batch_reasons": [
+        "granted",
+        "granted",
+        "granted",
+        "granted"
+    ],
+    "visibleTo": [
+        101,
+        102,
+        103,
+        104
+    ],
+    "scalar_visible_parity": true,
+    "scalar_batch_parity": true
+}

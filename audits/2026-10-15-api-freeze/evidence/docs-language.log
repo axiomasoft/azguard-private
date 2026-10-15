@@ -1,0 +1,2 @@
+> bash bin/docs-language-gate.sh
+[docs-language] OK — documentation is English-only.

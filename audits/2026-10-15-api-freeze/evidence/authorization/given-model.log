@@ -1,0 +1,24 @@
+{"isolation":{"environment":"testing","driver":"sqlite","database":":memory:","sqlite_file":""}}
+{
+    "scenario": "given-model",
+    "held_true_database_false": {
+        "given_is_root": true,
+        "stored_is_root": 0,
+        "decide": "super_admin",
+        "isSuperAdmin": false,
+        "hasRole": false,
+        "roleNames": [],
+        "permissionSet": 0
+    },
+    "held_false_database_true": {
+        "given_is_root": false,
+        "stored_is_root": 1,
+        "decide": "not_granted",
+        "isSuperAdmin": true,
+        "hasRole": true,
+        "roleNames": [
+            "root"
+        ],
+        "permissionSet": 2
+    }
+}

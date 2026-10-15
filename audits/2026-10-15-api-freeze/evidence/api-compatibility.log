@@ -1,0 +1,2 @@
+> php bin/api-compat.php --against=auto
+compatible with baseline 3d789538c65710ff77cc13bfc3109312b7f9e455 (3d789538c65710ff77cc13bfc3109312b7f9e455): 0 addition(s)

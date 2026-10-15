@@ -1,0 +1,131 @@
+[
+  {
+    "name": "axiomasoft/azguard",
+    "version": "1.0.0",
+    "autoload": {
+      "psr-4": {
+        "AzGuard\\": "src/",
+        "AzGuard\\Scopes\\": "modules/scopes/src/",
+        "AzGuard\\Audit\\": "modules/audit/src/",
+        "AzGuard\\DevTools\\": "modules/devtools/src/"
+      }
+    }
+  },
+  {
+    "name": "axiomasoft/azguard-filament",
+    "version": "1.0.0",
+    "autoload": {
+      "psr-4": {
+        "AzGuard\\Filament\\": "src/"
+      }
+    }
+  },
+  {
+    "name": "filament/filament",
+    "version": "v5.8.4",
+    "autoload": {
+      "files": [
+        "src/global_helpers.php",
+        "src/helpers.php"
+      ],
+      "psr-4": {
+        "Filament\\": "src"
+      }
+    }
+  },
+  {
+    "name": "laravel/framework",
+    "version": "v13.33.0",
+    "autoload": {
+      "files": [
+        "src/Illuminate/Collections/functions.php",
+        "src/Illuminate/Collections/helpers.php",
+        "src/Illuminate/Events/functions.php",
+        "src/Illuminate/Filesystem/functions.php",
+        "src/Illuminate/Foundation/helpers.php",
+        "src/Illuminate/Log/functions.php",
+        "src/Illuminate/Reflection/helpers.php",
+        "src/Illuminate/Support/functions.php",
+        "src/Illuminate/Support/helpers.php"
+      ],
+      "psr-4": {
+        "Illuminate\\": "src/Illuminate/",
+        "Illuminate\\Support\\": [
+          "src/Illuminate/Macroable/",
+          "src/Illuminate/Collections/",
+          "src/Illuminate/Conditionable/",
+          "src/Illuminate/Reflection/"
+        ]
+      }
+    }
+  },
+  {
+    "name": "livewire/livewire",
+    "version": "v4.4.6",
+    "autoload": {
+      "files": [
+        "src/helpers.php"
+      ],
+      "psr-4": {
+        "Livewire\\": "src/"
+      }
+    }
+  },
+  {
+    "name": "larastan/larastan",
+    "version": "v3.12.2",
+    "autoload": {
+      "psr-4": {
+        "Larastan\\Larastan\\": "src/"
+      }
+    }
+  },
+  {
+    "name": "laravel/pao",
+    "version": "v1.1.5",
+    "autoload": {
+      "files": [
+        "src/Autoload.php"
+      ],
+      "psr-4": {
+        "Laravel\\Pao\\": "src/"
+      }
+    }
+  },
+  {
+    "name": "orchestra/testbench",
+    "version": "v11.2.0",
+    "autoload": null
+  },
+  {
+    "name": "pestphp/pest",
+    "version": "v4.7.8",
+    "autoload": {
+      "files": [
+        "src/Functions.php",
+        "src/Pest.php"
+      ],
+      "psr-4": {
+        "Pest\\": "src/"
+      }
+    }
+  },
+  {
+    "name": "phpstan/phpstan",
+    "version": "2.2.15",
+    "autoload": {
+      "files": [
+        "bootstrap.php"
+      ]
+    }
+  },
+  {
+    "name": "rector/rector",
+    "version": "2.6.7",
+    "autoload": {
+      "files": [
+        "bootstrap.php"
+      ]
+    }
+  }
+]

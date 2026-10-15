@@ -1,0 +1,30 @@
+digraph write_transaction {
+  rankdir=TB;
+  graph [bgcolor="white", pad="0.25", nodesep="0.3", ranksep="0.45"];
+  node [shape=box, style="rounded,filled", fillcolor="#eef4fb", color="#5f7898", fontname="DejaVu Sans", fontsize=11, margin="0.15,0.10"];
+  edge [color="#64748b", fontname="DejaVu Sans", fontsize=9];
+  request [label="Public Change API: panel, tenant,\nsubject, actor"];
+  tx [label="Writer transaction: lock panel_state"];
+  read [label="Свежие reads и план изменений"];
+  pipes [label="Changing pipes с guarded continuation"];
+  validate [label="Final validation под lock"];
+  write [label="Core writer: authority rows и\nstate/revisions"];
+  participant [label="Participants: append-only собственные\nrows"];
+  commit [label="Root commit"];
+  events [label="After-commit события"];
+  rollback [label="При ошибке: rollback rows/state;\nсобытий нет"];
+  ownership [label="R03: канонический table id до выдачи\ncapability"];
+  target [label="R04: descriptor указывает тот же\nphysical storage"];
+  request -> tx [label=""];
+  tx -> read [label=""];
+  read -> pipes [label="каждый planned Change"];
+  pipes -> validate [label=""];
+  validate -> write [label=""];
+  write -> participant [label="effects всей операции"];
+  participant -> commit [label=""];
+  commit -> events [label="только committed effects"];
+  validate -> rollback [label="ошибка до commit"];
+  participant -> rollback [label="ошибка до commit"];
+  ownership -> participant [label="требуемое усиление"];
+  target -> tx [label="требуемое согласование consumers"];
+}

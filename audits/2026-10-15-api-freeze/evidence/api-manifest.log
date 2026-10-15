@@ -1,0 +1,17 @@
+> php bin/api-manifest.php --check
+packages/core/api-manifest.json is stale (run composer api:manifest):
+  - AzGuard\Audit\AuditOptions
+  - AzGuard\Audit\AuditPlugin
+  - AzGuard\Audit\AuditServiceProvider
+  - AzGuard\DevTools\DevToolsServiceProvider
+  - AzGuard\Scopes\AssignmentScopeSettings
+  - AzGuard\Scopes\BaseAssignmentScope
+  - AzGuard\Scopes\ContextAware
+  - AzGuard\Scopes\Contracts\AssignmentScopeAccessAdapter
+  - AzGuard\Scopes\Contracts\AssignmentScopeFilter
+  - AzGuard\Scopes\Contracts\AssignmentScopeMembership
+  - AzGuard\Scopes\Contracts\ConfigurableAssignmentScopeDefinition
+  - AzGuard\Scopes\ModelAssignmentScopeDefinition
+  - AzGuard\Scopes\ScopesPlugin
+  - AzGuard\Scopes\Testing\AssignmentScopeFilterContractTests
+Script php bin/api-manifest.php --check handling the api:check event returned with error code 1

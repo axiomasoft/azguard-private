@@ -1,0 +1,20 @@
+flowchart TB
+  findings["Контрпримеры R01–R18 и последние plan decisions"]
+  fixes["W1–W3: ограниченные fixes и behavioral regressions"]
+  surface["W4: выбрать финальные публичные контракты"]
+  guard["W5–W6: усилить comparator, checks, docs и fixtures"]
+  generate["Owning generators и freshness checks"]
+  candidate["Назвать конкретный candidate SHA"]
+  qualify["Qualification этого SHA + Laravel11/PostgreSQL R1"]
+  evidence["Актуальные evidence, independent review и handoff"]
+  freeze["Различить comparison baseline, qualified SHA и release SHA"]
+  owner["Владелец принимает решение о tag / split / publish"]
+  findings --> fixes
+  fixes --> surface
+  surface --> guard
+  guard --> generate
+  generate -->|"production и validation готовы"| candidate
+  candidate --> qualify
+  qualify -->|"обязательные checks пройдены"| evidence
+  evidence -->|"непроверенного diff нет"| freeze
+  freeze -->|"D27; отдельное решение"| owner

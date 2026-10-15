@@ -1,0 +1,16 @@
+{"isolation":{"environment":"testing","driver":"sqlite","database":":memory:","sqlite_file":""}}
+{
+    "scenario": "directory-resolver",
+    "offered": [
+        "project:1",
+        "project:2",
+        "project:3",
+        "project:4"
+    ],
+    "describe": [
+        null,
+        "project:2",
+        "project:3",
+        "project:4"
+    ]
+}

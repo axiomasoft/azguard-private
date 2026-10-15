@@ -1,0 +1,107 @@
+{
+  "packages": {
+    "core": {
+      "types": 265,
+      "publication": {
+        "api": 189,
+        "spi-call": 29,
+        "spi-implement": 47
+      },
+      "methods": 1091,
+      "roots": {
+        "AzGuard\\": "src/",
+        "AzGuard\\Audit\\": "modules/audit/src/",
+        "AzGuard\\DevTools\\": "modules/devtools/src/",
+        "AzGuard\\Scopes\\": "modules/scopes/src/"
+      }
+    },
+    "filament": {
+      "types": 22,
+      "publication": {
+        "api": 21,
+        "spi-implement": 1
+      },
+      "methods": 87,
+      "roots": {
+        "AzGuard\\Filament\\": "src/"
+      }
+    }
+  },
+  "native_internal_methods": [
+    {
+      "type": "AzGuard\\Authorization\\Visibility",
+      "method": "__construct",
+      "references": [
+        "AzGuard\\Panels\\Internal\\PanelRegistry",
+        "AzGuard\\Authorization\\Internal\\ModelSubjectResolver",
+        "AzGuard\\Context\\Internal\\CurrentContext"
+      ]
+    },
+    {
+      "type": "AzGuard\\Diagnostics\\DoctorContext",
+      "method": "__construct",
+      "references": [
+        "AzGuard\\Configuration\\Internal\\AzGuardConfig"
+      ]
+    },
+    {
+      "type": "AzGuard\\Diagnostics\\DoctorContext",
+      "method": "config",
+      "references": [
+        "AzGuard\\Configuration\\Internal\\AzGuardConfig"
+      ]
+    },
+    {
+      "type": "AzGuard\\Diagnostics\\PanelOverview",
+      "method": "__construct",
+      "references": [
+        "AzGuard\\Panels\\Internal\\PanelRegistry"
+      ]
+    },
+    {
+      "type": "AzGuard\\Laravel\\Gate\\GateBridge",
+      "method": "__construct",
+      "references": [
+        "AzGuard\\Authorization\\Internal\\Authorizer",
+        "AzGuard\\Panels\\Internal\\PanelResolver",
+        "AzGuard\\Panels\\Internal\\PanelRegistry"
+      ]
+    },
+    {
+      "type": "AzGuard\\Sources\\Folder\\FolderSource",
+      "method": "bind",
+      "references": [
+        "AzGuard\\Sources\\Folder\\Internal\\DiscoverySnapshot",
+        "AzGuard\\Panels\\Internal\\PanelRecipe"
+      ]
+    },
+    {
+      "type": "AzGuard\\Sources\\Folder\\FolderSource",
+      "method": "configured",
+      "references": [
+        "AzGuard\\Panels\\Internal\\PanelRecipe"
+      ]
+    },
+    {
+      "type": "AzGuard\\Storage\\Schema\\StorageSchema",
+      "method": "__construct",
+      "references": [
+        "AzGuard\\Storage\\Internal\\StorageRegistry"
+      ]
+    },
+    {
+      "type": "AzGuard\\Testing\\FakeSubject",
+      "method": "newEloquentBuilder",
+      "references": [
+        "AzGuard\\Testing\\Internal\\FakeSubjectBuilder"
+      ]
+    },
+    {
+      "type": "AzGuard\\Filament\\AzGuardPlugin",
+      "method": "keys",
+      "references": [
+        "AzGuard\\Filament\\Internal\\Authorization\\FilamentKeys"
+      ]
+    }
+  ]
+}

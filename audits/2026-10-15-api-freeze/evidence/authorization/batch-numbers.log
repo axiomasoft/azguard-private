@@ -1,0 +1,17 @@
+{"isolation":{"environment":"testing","driver":"sqlite","database":":memory:","sqlite_file":""}}
+{
+    "scenario": "batch-numbers",
+    "field_types": [
+        "int",
+        "float"
+    ],
+    "scalar": [
+        "granted",
+        "not_granted"
+    ],
+    "batch": [
+        "granted",
+        "granted"
+    ],
+    "same_json": true
+}

@@ -1,0 +1,80 @@
+{
+  "plan": "2026.10.10-№1-AZGUARD-CORE-STABILIZATION",
+  "plan_status": "done",
+  "head": "2ce692f74c210e81426e9367303701516b1cc3f0",
+  "frozen_candidate": "3d789538c65710ff77cc13bfc3109312b7f9e455",
+  "checks_with_evidence": 267,
+  "p4_logs_hashed": 59,
+  "missing": [],
+  "mismatches": [],
+  "p4": [
+    {
+      "item": "P4.1",
+      "status": "done",
+      "nonzero_checks": []
+    },
+    {
+      "item": "P4.2",
+      "status": "done_with_deviations",
+      "nonzero_checks": [
+        {
+          "id": "V6",
+          "exit": 255
+        }
+      ]
+    },
+    {
+      "item": "P4.3",
+      "status": "done_with_deviations",
+      "nonzero_checks": []
+    },
+    {
+      "item": "P4.4",
+      "status": "done_with_deviations",
+      "nonzero_checks": []
+    },
+    {
+      "item": "P4.5",
+      "status": "done_with_deviations",
+      "nonzero_checks": [
+        {
+          "id": "V5",
+          "exit": 127
+        }
+      ]
+    },
+    {
+      "item": "P4.6",
+      "status": "done_with_deviations",
+      "nonzero_checks": []
+    },
+    {
+      "item": "P4.7",
+      "status": "done",
+      "nonzero_checks": []
+    },
+    {
+      "item": "P4.8",
+      "status": "done_with_deviations",
+      "nonzero_checks": []
+    },
+    {
+      "item": "P4.9",
+      "status": "done_with_deviations",
+      "nonzero_checks": []
+    }
+  ],
+  "changes_since_pointer_commit": [
+    ".github/workflows/tests-nightly.yml",
+    "bin/test-db.php",
+    "packages/core/src/Testing/Internal/Contracts/ContractWorld.php",
+    "phpstan.neon",
+    "tests/Feature/Authorization/Batch/DecideManyParityTest.php",
+    "tests/Feature/Gate/GateParityTest.php",
+    "tests/Feature/Testing/ContractKitRegressionTest.php",
+    "tests/Feature/Visibility/ParityPropertyTest.php",
+    "tests/Fixtures/Authorization/ScenarioGenerator.php",
+    "tests/Fixtures/Testing/KitCase.php",
+    "tests/README.md"
+  ]
+}

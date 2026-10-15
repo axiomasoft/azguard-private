@@ -1,0 +1,36 @@
+{
+    "isolation": {
+        "driver": "sqlite",
+        "database": ":memory:"
+    },
+    "participant_core_table_case_bypass": {
+        "declared_table": "ROLE_GRANTS",
+        "compilation": "accepted",
+        "injected_core_rows": 1,
+        "reported_effects": 1,
+        "changed_subject_revision": null,
+        "access_before": false,
+        "access_after_new_read": true
+    },
+    "multiple_json_column": {
+        "compilation": "accepted",
+        "exception": "Illuminate\\Database\\QueryException",
+        "message": "Array to string conversion (Connection: testbench, Database: :memory:, SQL: insert into \"azg_role_grants\" (\"panel\", \"tenant_key\", \"tenant_type\", \"tenant_id\", \"role\", \"subject_type\", \"subject_id\", \"context_key\", \"context_type\", \"context_id\", \"origin\", \"expires_at\", \"actor_type\", \"actor_id\", \"actor_reason\", \"tags\", \"meta\", \"created_at\", \"updated_at\") values (crm, crm.organization:1, crm.organization, 1, analyst, crm.user, 2, crm.project:5, crm.project, 5, manual, ?, azguard:system, ?, console, ?, ?, 2026-10-06 12:00:00, 2026-10-06 12:00:00))"
+    },
+    "invalid_audit_options": {
+        "retention_days": -10,
+        "fresh_rows_before": 1,
+        "fresh_rows_after": 0,
+        "command_exit": 0,
+        "output": "Panel crm: 1 journal row(s) before 2026-10-16T12:00:00+00:00 deleted.\n\n   INFO  1 journal row(s) deleted."
+    },
+    "default_connection_descriptor_drift": {
+        "authority_storage_connection": "testbench",
+        "descriptor_connection": null,
+        "current_default_connection": "secondary",
+        "authority_journal_rows_after_prune": 1,
+        "other_database_rows_after_prune": 0,
+        "command_exit": 0,
+        "output": "Panel crm: 1 journal row(s) before 2026-07-08T12:00:00+00:00 deleted.\n\n   INFO  1 journal row(s) deleted."
+    }
+}

@@ -1,0 +1,18 @@
+{
+  "command": [
+    "composer",
+    "api:compat"
+  ],
+  "cwd": "/home/vostrikov/projects/packages/azguard",
+  "head": "2ce692f74c210e81426e9367303701516b1cc3f0",
+  "started_at": "2026-10-15T10:24:18.841418+00:00",
+  "test_environment": {
+    "APP_ENV": "testing",
+    "DB_CONNECTION": "sqlite",
+    "DB_DATABASE": ":memory:",
+    "AUTHORITY_REPLICA_TEST": ""
+  },
+  "exit_code": 0,
+  "duration_seconds": 0.468,
+  "log": "api-compatibility.log"
+}
