@@ -71,6 +71,28 @@ final class PostResource extends Resource
 | `AuthorizesPage` | `pages.{slug}` |
 | `AuthorizesWidget` | `widgets.{name}` |
 
+- **Widgets of a resource.** The widgets a resource returns from `getWidgets()` are widgets of the panel for AzGuard:
+  they need `AuthorizesWidget` (or an exclusion) and get their `widgets.{name}` permission like the ones in
+  `->widgets([...])`.
+- **Changing a relation.** Attaching, associating, detaching and dissociating (also in bulk) change the record that
+  owns the relation, so they need `update` of the **owner** resource on the owner record. Attaching and associating also
+  need `view_any` of the related resource, and offer only the related records the user may view. Reading alone never
+  changes a relation. A relation manager can name its own ability on the owner instead of `update`, to delegate one
+  relation apart from editing the owner:
+
+  ```php
+  final class ProductsRelationManager extends RelationManager
+  {
+      use AuthorizesRelationManager;
+
+      protected static ?string $azguardRelationAbility = 'manage_products'; // orders.manage_products
+  }
+  ```
+
+  The ability becomes a key of the owner resource (`orders.manage_products`), so the generator and the editors list it.
+- **Widgets that a page returns at run time.** The keys cannot see them, so in a panel that enforces, a widget without
+  `AuthorizesWidget` that is not excluded is refused with 403 when it is mounted.
+
 - **Checks.** Every `can*()`, `authorize*()` and `get*AuthorizationResponse()` goes through AzGuard.
 - **Queries.** The resource query is filtered to the records the user may view (`{slug}.view`). Lists,
   counts, global search and record routes see no other rows.

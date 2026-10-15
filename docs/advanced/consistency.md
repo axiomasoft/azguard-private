@@ -130,8 +130,9 @@ single record again with `check()` or `authorize()` (time of check vs. time of u
 
 ## Writing outside AzGuard
 
-The guarantees hold only for writes made through AzGuard (the change pipeline or `Storage::mutate()` with the
-right touch). Editing `azg_*` tables by hand or restoring a backup bypasses revisions and epochs. Afterwards,
+The guarantees hold only for writes made through AzGuard: the public change API (`grantRole()`, `grants()`,
+`permissions()` and the other managers) and a change participant ([hooks and plugins](/advanced/hooks-and-plugins)) that writes its own tables
+in the same transaction. Editing `azg_*` tables by hand or restoring a backup bypasses revisions and epochs. Afterwards,
 run `azguard:state:reset {panel}`, which starts a new incarnation and raises the epoch.
 
 ## Lock ordering

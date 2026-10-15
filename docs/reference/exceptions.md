@@ -123,6 +123,7 @@ base code `invalid_configuration`. The checks are part of the contract:
 | `invalid_configuration.enum` | A panel setting holds a value that is not one of its allowed values, for example a `cache.generation` that is not a positive integer |
 | `invalid_configuration.filament` | The Filament plugin is configured in a way the package cannot build |
 | `invalid_configuration.filament_enforce` | A Filament resource, page or widget is neither decided by AzGuard nor excluded while `enforce` is on |
+| `invalid_configuration.filament_relation_ability` | A relation manager declares an `$azguardRelationAbility` that is not snake_case |
 | `invalid_configuration.host_keys` | The declared host key type does not fit a storage or a model |
 | `invalid_configuration.panel_state` | A panel state operation, such as a reset, runs where it is not allowed |
 | `invalid_configuration.permission` | A permission key is required and missing |

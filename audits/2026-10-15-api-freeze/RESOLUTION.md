@@ -1,0 +1,54 @@
+# Итог разбора аудита: что принято, что изменено, что не сделано
+
+Дата: 2026-10-15. Основание: [REPORT.md](REPORT.md) к `2ce692f7`. Рабочее дерево после правок не закоммичено; коммиты, push, tag и замена compatibility baseline остаются за владельцем (D27).
+
+Каждая находка сначала перепроверена по коду, а воспроизведения из `evidence/` перезапущены на текущем дереве. Все runtime-находки R01–R03, R07–R09 подтвердились; R04, R05, R06, R10–R12, R14, R15, R18 — по коду и тестам. Исправления закреплены штатными regression-тестами, а не probe-скриптами аудита.
+
+## Что проверено после исправлений
+
+PHP 8.4.26, SQLite `:memory:`: полный набор `composer test` — **4 949 тестов / 396 168 assertion, зелёный** (было 4 919; +30 новых регрессий); Pint `--test`, PHPStan level max (0 ошибок), Rector `--dry-run`, `api:check`, docs language/PHP gates — зелёные; `api:compat` против baseline `3d789538` красный по причине ниже. Не запускались: серверные DB-lanes, engines/races, Redis, archive-consumer, CI-матрица.
+
+## Статус по находкам
+
+| ID | Решение | Что сделано | Чем закреплено |
+|---|---|---|---|
+| R01 | Принято, вариант «явный unsupported» | `EvaluationFrame::matchingGrants()` в SQL-кадре бросает `VisibilityNotSupportedException('row_dependent_matching_grants')` вместо пустого массива; policy и restriction получают `withRowAuthority()` | `repro.php matching-grants` теперь отказывает до изменения Builder |
+| R02 | Принято | Быстрый путь «нет tenant owner» только при `resolvesThroughQuery`; иначе custom `resolve()` проходит ту же structural-проверку | `visibleTo()` = scalar = batch (`[102,103,104]`) |
+| R03 | Принято | Грамматика имени таблицы участника `[a-z][a-z0-9_]*` в `PanelCompiler`; дубликаты в разном регистре отвергаются | `ChangeParticipantsTest`: 9 новых случаев |
+| R04 | Принято | `StorageDescriptor::$connection` — разрешённое имя connection (`string`, не `?string`); реестр больше не хранит исходный `null` | `AuditPruneCommandTest`: смена default после boot не меняет цель prune |
+| R05 | Принято | Инвариант `retentionDays >= 1` в конструкторе `AuditOptions` | `AuditPruneCommandTest` |
+| R06 | Принято, рекомендованный вариант (codec) | Список в своей колонке пишется как JSON-текст и читается как список; сравнение (`Unchanged`) идёт после декодирования, не по тексту драйвера; map/дыры в ключах отвергаются; список в колонке нельзя сделать decision-полем (SQL не сравнит JSON-текст) | `ListColumnFieldTest` (создание, повтор, порядок, `[]`, `null`, ошибки), `GrantFieldsTest` |
+| R07 | Принято | Удержанная `Model` передаётся в `permissionSet/roles/isSuperAdmin/hasRole` и в `PanelAdmission`; bare `SubjectRef` читается из источника | `repro.php given-model`: оба направления согласованы |
+| R08 | Принято | Ключ eligibility в batch — типосохраняющая кодировка + sha256 вместо `json_encode`: `1`≠`1.0`, `0.0`≠`-0.0`, любые байты | `repro.php batch-numbers`, `batch-fields` |
+| R09 | Принято | `QueryScopeDirectory::search()` применяет `resolve()` для определений без `resolvesThroughQuery` до расходования лимита | `repro.php directory-resolver`: search = describe |
+| R10 | Принято, гибрид | attach/associate/detach/dissociate (в т.ч. bulk) требуют `update` на owner-ресурсе и записи, attach/associate — ещё `view_any` related-ресурса; менеджер связи может объявить собственное право владельца (`$azguardRelationAbility`), оно становится ключом ресурса-владельца | `SurfacesTest`, `RelationAbilityTest` |
+| R11 | Принято | `FilamentKeys` включает `getWidgets()` всех ресурсов и конфигураций; для виджетов, которые страница возвращает динамически, добавлен runtime-guard: в enforced-панели виджет без `AuthorizesWidget` и вне exclude получает 403 при mount/hydrate | `ResourceWidgetsTest`: 6 тестов |
+| R12 | Принято | Проверка `view` перенесена в `ViewRole::row()` — выполняется при каждом рендере | `RoleResourceTest` |
+| R13 | Принято (не переносилось) | Подписи субъектов кэшируются на страницу в `GrantEditor`; 40 SELECT → 1 | `PermissionGrantResourceTest` |
+| R14 | Принято | `@internal` на конструкторах и wiring-методах; `DoctorContext::storages()` отдаёт `StorageDescriptor`, `config()`/`storageObjects()` внутренние | `ApiManifestTest`: замыкание native/PHPDoc типов, отрицательная проба |
+| R15 | Принято | Манифест хранит `returnsReference` и определения `@phpstan-type/@phpstan-import-type`; компаратор ловит снятие `readonly` у расширяемых типов и свойств; команды снимаются из `InputDefinition` (`array`, режим значения) | `CompatibilityTest`: 4 новых негативных кейса |
+| R16 | **Не сделано** | Нужен итоговый commit, CI и серверные lanes на нём | см. «Что осталось» |
+| R17 | Принято частично | `trait.unused`: добавлен `AnalysedConsumer`; Rector: пропуск правила только если оно есть в установленной версии | PHPStan и Rector зелёные; type coverage — см. ниже |
+| R18 | Принято | `EnumMarks`: уникальные alias для одноимённых классов, проверка парсинга до записи файла | `FilamentGenerateTest`: красный без правки, зелёный с ней |
+
+DX из §6.3 отчёта и необязательные пункты: `FieldSchema` получил `required`, `multiple`, `valueClass` (Filament читает их, а не разбирает строки правил); `PermissionManager::create()` принимает `description`; `RelationSource::make(..., name:)` задаёт имя источника (`relation:<type>:<name>`), так что `members` и `lead` одного типа композируются; внешний `DoctorCheck` покрыт тестом, который видит только `StorageDescriptor`.
+
+## С чем я не согласен или что уточнил
+
+Perplexity использовал как независимую проверку общих вопросов (без контекста репозитория): модель прав для relation actions, кодек JSON-колонки и глобальный hook Livewire. Ответы подтвердили выбор: owner-ability по умолчанию с опциональным переопределением на связь (в Filament и Shield своей схемы для attach/detach нет, это решение приложения); декодировать JSON перед сравнением, список — это `array_is_list`, числа в JSON переносятся между драйверами ненадёжно; `Livewire::listen('mount'|'hydrate')` — допустимый compliance-guard, но не «песочница» (он стоит перед рендером, не заменяет `canView`).
+
+1. **R10: отдельных abilities `attach/associate/detach/dissociate` на каждый ресурс не вводил.** Они добавили бы по четыре permission на каждый ресурс в каталог, генератор и UI выдачи; значение по умолчанию `update` владельца выражает «изменить связь = изменить владельца». Нужная гибкость есть там, где её просят: менеджер связи объявляет своё право.
+2. **R01: не реализована полная SQL-семантика `matchingGrants()`.** Множество совпавших grants зависит от строки, а restriction получает его как список и может сделать с ним что угодно (произвольный PHP); точный SQL для этого не существует, кроме перебора подмножеств. Явный отказ до изменения Builder — единственный честный вариант.
+3. **`PermissionDetails::$fields`, `PermissionRecord::$fields` и поле `fields` в событиях permission оставлены.** Dynamic permission сегодня не имеет полей, но поле входит в формат событий и журнал Audit, а колонка `meta` зарезервирована под него. Удаление затрагивает persisted-форматы ради косметики. Вход `create(..., fields:)` документирован как «пока не поддерживается» и по-прежнему отвергается.
+4. **R17 зависит от окружения аудита.** Аудит запускался на Herd static PHP 8.4.1 и Rector 2.6.7; в рабочем дереве Rector 2.7.0, где правило `TernaryToNullsafeCoalesceRector` есть, и `rector --dry-run` проходил без правок конфигурации. Конфиг всё равно сделан устойчивым к более старой версии. **Type coverage 100% при потерянных worker results не воспроизвёлся**: на PHP 8.3.35 и 8.4.26 команда `pest --type-coverage --min=98` даёт 99.9% по 445 файлам. Отдельного gate на полноту измерения не добавлял: без воспроизведения непонятно, что он должен ловить.
+5. **`FolderSource implements EvaluatesAutomaticRoles` оставлен.** Это пустой маркерный интерфейс без членов, который нельзя реализовать вне ядра; тест замыкания поверхности допускает его явным исключением с комментарием. Публикация маркера дала бы сторонним источникам возможность самим объявлять «автоматические роли» — это расширение доверия, а не уборка.
+6. **Тезис «в P4-review ошибочно сказано, что array-опций нет»** подтверждён: `azguard:make:permission --case=*` — реальная повторяемая опция. Заодно выяснилось, что в baseline-снимке команд `doctor --panel/--storage`, `filament:generate --only`, `roles/permissions:grant --field` тоже массивные — старый снимок этого не показывал.
+7. **Оценки severity** R12 и R13 (Minor) разумны; R10 я считаю самым значимым из Filament-находок.
+
+## Что осталось и что нужно решить владельцу
+
+- **R16, итоговая квалификация.** Кандидат ещё не выбран: после коммита нужны CI, серверные DB-lanes (PostgreSQL, MySQL, MariaDB), engines/races, archive-consumer, отдельный Laravel 11 × PostgreSQL для `ContractWorld::rowCounts()`. Здесь запущены только SQLite, PHPStan, Rector, Pint, type coverage, arch/compat и Filament-набор — по правилу минимальной матрицы; серверные lanes не запускались.
+- **Compatibility baseline.** `composer api:compat` против `3d789538` сейчас красный: 26 записей, из них 15 — осознанные pre-1.0 изменения API (ниже), а 11 — результат более полного снимка (5 определений `@phpstan-type` в `contracts` и 6 уже существовавших массивных опций команд, которые старый снимок не различал). Baseline заменяется отдельным PR с меткой `compat-baseline`, это решение о релизе, поэтому `compatibility.json` не менялся. Манифесты (`api-manifest.json`), снимок команд и `crm-panel-schema.json` перегенерированы штатно.
+- **Осознанные pre-1.0 изменения API:** `StorageDescriptor::$connection` стал `string`; `DoctorContext::storages()` возвращает `list<StorageDescriptor>`; `DoctorContext::config()/__construct`, конструкторы `Visibility`, `PanelOverview`, `GateBridge`, `StorageSchema`, методы `FolderSource::configured/bind`, `FakeSubject::newEloquentBuilder`, `AzGuardPlugin::keys()` стали внутренними; `FieldSchema` получил три поля; `PermissionManager::create()` — параметр `description`; новые определения `@phpstan-type` попали в `contracts`; снимок команд теперь содержит `definition`.
+- **Не делалось по выбору аудита:** несколько `RelationSource` одного типа с `id:` (необязательное решение); отдельный список новых `AGENTS.md`-инструкций swissknifeman (правится через владеющий генератор).
+- **Evidence аудита** (`evidence/*.log`, `repro.php`) описывает состояние до исправлений и намеренно не обновлялось; `repro.php` теперь показывает исправленное поведение (R01 — исключение вместо списка).

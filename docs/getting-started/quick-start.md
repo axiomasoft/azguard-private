@@ -6,6 +6,45 @@ route and a test. Every snippet below was run against Laravel 13 with the genera
 It assumes you finished [Installation](/getting-started/installation): a panel `Admin` exists, `User` uses
 `HasAzGuard`, and the morph alias `user` is registered.
 
+## 0. The domain the examples use
+
+The examples protect a `Post` of your own. Create it first; AzGuard does not ship it:
+
+```bash
+php artisan make:model Post --migration --controller
+```
+
+```php
+// database/migrations/xxxx_create_posts_table.php: the columns of the examples
+Schema::create('posts', function (Blueprint $table): void {
+    $table->id();
+    $table->foreignId('user_id');
+    $table->string('title')->default('');
+    $table->timestamps();
+});
+```
+
+```php
+// app/Models/Post.php
+protected $guarded = [];
+```
+
+```php
+// app/Http/Controllers/PostController.php: the actions the routes of step 6 name
+public function index(): Response
+{
+    return response('posts');
+}
+
+public function update(Request $request, Post $post): Response
+{
+    return response('updated');
+}
+```
+
+Run `php artisan migrate` before step 5. The tests of step 7 need a `UserFactory` (Laravel generates one) and the
+`posts` table.
+
 ## 1. The panel
 
 `azguard:install --panel=Admin` generated the panel provider:
