@@ -65,7 +65,7 @@ if ($workers > 0 && ! $engines) {
 }
 
 $command = 'php -d memory_limit=1G vendor/bin/pest '.implode(' ', $flags).($extra === [] ? '' : ' '.implode(' ', array_map('escapeshellarg', $extra)));
-$environment = ['DB_CONNECTION' => $driver, ...($full || $engines ? [] : ['PARITY_SEEDS' => '1,2'])];
+$environment = ['DB_CONNECTION' => $driver, ...($full ? ['AZGUARD_FULL_SEEDS' => '1'] : []), ...($full || $engines ? [] : ['PARITY_SEEDS' => '1,2'])];
 
 fwrite(STDOUT, '['.$driver.($full ? ', all parity seeds' : '').'] '.$command."\n");
 

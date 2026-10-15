@@ -61,7 +61,7 @@ variant); the scope-mode tables are in `Modules/Scopes/Properties`.
 | `composer test` | The SQLite lane: everything except `engines`, `redis`, `replica`, `extended`. |
 | `composer test:parallel` | The same on 4 workers. |
 | `composer test:changed` | The zones of the changed files and the zones that use them (`--quick` drops `acceptance`, `regression` and `arch`; `--base=main`; `--db` adds the database lane on `DB_CONNECTION`; `--dry-run` prints the command). A change to `Pest.php`, `TestCase`, the fixtures or the composer files selects nothing and says to run the full suite. |
-| `composer test:db -- <driver>` | The `database` group on `pgsql`, `mysql` or `mariadb`; `--parallel[=N]` one database per worker, `--zone=<zone>`, `--full` all parity seeds (the default is `PARITY_SEEDS=1,2`), `--engines` the engine suite. |
+| `composer test:db -- <driver>` | The `database` group on `pgsql`, `mysql` or `mariadb`; `--parallel[=N]` one database per worker, `--zone=<zone>`, `--full` all parity seeds and all property seeds (the default is `PARITY_SEEDS=1,2`), `--engines` the engine suite. |
 | `composer test:extended` | The `extended` group. |
 | `composer test:redis`, `composer test:replica` | The Redis and replica lanes. |
 

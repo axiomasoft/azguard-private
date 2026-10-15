@@ -9,6 +9,7 @@ use AzGuard\Panels\PanelBuilder;
 use AzGuard\Policies\Decides;
 use AzGuard\Policies\PolicyBinding;
 use AzGuard\Scopes\ScopesPlugin;
+use AzGuard\Tests\Fixtures\Authorization\ScenarioGenerator;
 use AzGuard\Tests\Fixtures\Visibility\VisibilityBefore;
 use AzGuard\Tests\Fixtures\Visibility\VisibilityCondition;
 use AzGuard\Tests\Fixtures\Visibility\VisibilityPolicy;
@@ -48,7 +49,7 @@ afterEach(fn () => W::reset());
 
 it('P14 matches every scalar allow id and count on 100 reproducible seeds under one snapshot and decision clock', function (): void {
     $projects = VisibilityProject::query()->orderBy('id')->get();
-    for ($seed = 1; $seed <= 100; $seed++) {
+    for ($seed = 1; $seed <= ScenarioGenerator::parityCount(100); $seed++) {
         $next = $seed;
         $draw = static function (int $max) use (&$next): int {
             $next = ($next * 1664525 + 1013904223) & 0xFFFFFFFF;

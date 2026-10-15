@@ -25,7 +25,7 @@ afterEach(function (): void {
 });
 
 it('P9 preserves decide batch explain and Gate parity over 200 mixed seeded scenarios', function (): void {
-    foreach (ScenarioGenerator::scenarios() as $seed => $s) {
+    foreach (ScenarioGenerator::scenarios(ScenarioGenerator::parityCount()) as $seed => $s) {
         Carbon::setTestNow($s->now);
         $policy = $seed % 3 === 0;
         $hookDenies = $seed % 7 === 0;

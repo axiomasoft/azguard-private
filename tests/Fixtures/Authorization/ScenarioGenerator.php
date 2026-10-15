@@ -44,6 +44,9 @@ final class ScenarioGenerator
 {
     public const int COUNT = 200;
 
+    /** Seeds a pull request runs in the parity tests; nightly CI sets AZGUARD_FULL_SEEDS=1 for all of {@see COUNT} (and 100 in P14). */
+    public const int SAMPLE = 20;
+
     public readonly string $panel;
 
     public readonly SubjectRef $subject;
@@ -74,8 +77,14 @@ final class ScenarioGenerator
         $this->now = (new DateTimeImmutable('2026-10-05 12:00:00 UTC'))->modify('+'.$this->random->getInt(0, 604800).' seconds');
     }
 
+    /** The seeds of the parity tests: SAMPLE on a pull request, every seed when AZGUARD_FULL_SEEDS is set. */
+    public static function parityCount(int $full = self::COUNT): int
+    {
+        return getenv('AZGUARD_FULL_SEEDS') === false ? min(self::SAMPLE, $full) : $full;
+    }
+
     /** @return Generator<int, self> */
-    public static function scenarios(): Generator
+    public static function scenarios(int $count = self::COUNT): Generator
     {
         $only = getenv('AZGUARD_PROPERTY_SEED');
 
@@ -85,7 +94,7 @@ final class ScenarioGenerator
             return;
         }
 
-        for ($seed = 1; $seed <= self::COUNT; $seed++) {
+        for ($seed = 1; $seed <= $count; $seed++) {
             yield $seed => new self($seed);
         }
     }

@@ -51,7 +51,7 @@ it('preserves each supplied subject instance alongside database fallbacks', func
 ]);
 
 it('matches scalar decisions for 200 seeded ordered batches at frozen time', function (): void {
-    foreach (ScenarioGenerator::scenarios() as $seed => $s) {
+    foreach (ScenarioGenerator::scenarios(ScenarioGenerator::parityCount()) as $seed => $s) {
         Carbon::setTestNow($s->now);
         $mode = [null, 'inherit', 'isolated', 'required'][$seed % 4];
         $scope = $mode === null ? $s->scope(global: true) : $s->scope(true);
