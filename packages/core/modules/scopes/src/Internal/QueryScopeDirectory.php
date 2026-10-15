@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace AzGuard\Scopes\Internal;
 
+use AzGuard\Context\AssignmentScopeDescription;
 use AzGuard\Context\AssignmentScopePhase;
 use AzGuard\Context\AssignmentScopeRuntime;
 use AzGuard\Contracts\Scopes\AssignmentScopeDefinition;
 use AzGuard\Contracts\Scopes\AssignmentScopeDirectory;
+use AzGuard\Contracts\Scopes\DescribesAssignmentScope;
 use AzGuard\Contracts\Scopes\QueryableAssignmentScopeDefinition;
 use AzGuard\Directories\AssignmentScopeOption;
 use AzGuard\Directories\LookupContext;
@@ -92,6 +94,8 @@ final readonly class QueryScopeDirectory implements AssignmentScopeDirectory
             }
         }
         $adapter = $assignment ? $this->adapter($type, $lookup) : null;
+        // `query()` lists what `resolve()` may refuse unless the definition says both are the same.
+        $custom = ! ($definition instanceof DescribesAssignmentScope ? $definition->description() : new AssignmentScopeDescription)->resolvesThroughQuery;
         $key = $query->getModel()->getQualifiedKeyName();
         $query->reorder()->orderBy($key);
         $options = [];
@@ -109,7 +113,7 @@ final readonly class QueryScopeDirectory implements AssignmentScopeDirectory
             $owned = [];
 
             foreach ($records as $record) {
-                if ($definition->tenantOf($record)->equals($lookup->scope->tenant)) {
+                if ($custom ? $this->resolves($definition, $record, $lookup) : $definition->tenantOf($record)->equals($lookup->scope->tenant)) {
                     $owned[] = $record;
                 }
             }
@@ -131,6 +135,15 @@ final readonly class QueryScopeDirectory implements AssignmentScopeDirectory
             }
             $after = $records->last()?->getKey();
         }
+    }
+
+    /** What `describe()` accepts: the structural check the final write makes. */
+    private function resolves(QueryableAssignmentScopeDefinition $definition, Model $record, LookupContext $lookup): bool
+    {
+        $ref = AssignmentScopeRef::of($definition->type(), ModelKey::of($record));
+        $resolved = $definition->resolve($ref);
+
+        return $resolved !== null && $resolved->ref->equals($ref) && $resolved->tenant->equals($lookup->scope->tenant);
     }
 
     /**

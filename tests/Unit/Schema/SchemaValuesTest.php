@@ -53,6 +53,7 @@ it('V72 describes a field with scalars and class names only, whatever rule objec
         'name' => 'reason', 'label' => 'Причина', 'type' => 'string',
         'rules' => ['required', 'array', 'max:200', '5', 'in:"a","b"', $enumRule, Closure::class, stdClass::class],
         'options' => null, 'in_meta' => true, 'contributed_by' => 'plugin:acme/reasons',
+        'required' => true, 'multiple' => true, 'value_class' => null,
     ])->and(SchemaAssertions::nonScalars($schema->toArray()))->toBe([])
         ->and(json_encode($schema))->not->toContain($secret);
 });
@@ -62,7 +63,8 @@ it('V72 lists enum options and the exists rule of a model field; an unmarked fie
     $model = FieldSchema::of(Field::model('department_id', Department::class)->required());
 
     expect($enum->options)->toBe([1 => 'Monday', 5 => 'Friday'])->and($enum->rules)->toBe(['nullable'])
-        ->and($enum->contributedBy)->toBe('panel')
+        ->and($enum->contributedBy)->toBe('panel')->and($enum->valueClass)->toBe(Weekday::class)->and($enum->multiple)->toBeFalse()->and($enum->required)->toBeFalse()
+        ->and($model->valueClass)->toBe(Department::class)->and($model->required)->toBeTrue()
         ->and($model->type)->toBe('model')->and($model->options)->toBeNull()
         ->and($model->rules)->toBe(['required', 'exists:'.Department::class.',id']);
 });

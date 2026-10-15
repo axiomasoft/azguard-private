@@ -217,7 +217,10 @@
                 ],
                 "options": null,
                 "in_meta": true,
-                "contributed_by": "model:AzGuard\\Tests\\Fixtures\\Crm\\CrmRoleGrant"
+                "contributed_by": "model:AzGuard\\Tests\\Fixtures\\Crm\\CrmRoleGrant",
+                "required": false,
+                "multiple": false,
+                "value_class": null
             },
             {
                 "name": "region",
@@ -228,7 +231,10 @@
                 ],
                 "options": null,
                 "in_meta": true,
-                "contributed_by": "model:AzGuard\\Tests\\Fixtures\\Crm\\CrmRoleGrant"
+                "contributed_by": "model:AzGuard\\Tests\\Fixtures\\Crm\\CrmRoleGrant",
+                "required": false,
+                "multiple": false,
+                "value_class": null
             }
         ],
         "permission_grant": [
@@ -241,7 +247,10 @@
                 ],
                 "options": null,
                 "in_meta": true,
-                "contributed_by": "model:AzGuard\\Tests\\Fixtures\\Crm\\CrmPermissionGrant"
+                "contributed_by": "model:AzGuard\\Tests\\Fixtures\\Crm\\CrmPermissionGrant",
+                "required": false,
+                "multiple": false,
+                "value_class": null
             },
             {
                 "name": "region",
@@ -252,7 +261,10 @@
                 ],
                 "options": null,
                 "in_meta": true,
-                "contributed_by": "model:AzGuard\\Tests\\Fixtures\\Crm\\CrmPermissionGrant"
+                "contributed_by": "model:AzGuard\\Tests\\Fixtures\\Crm\\CrmPermissionGrant",
+                "required": false,
+                "multiple": false,
+                "value_class": null
             }
         ]
     },

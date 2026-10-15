@@ -14,6 +14,7 @@ use AzGuard\Exceptions\UnknownPanelException;
 use AzGuard\Panels\PanelBuilder;
 use AzGuard\Sources\Database\DatabaseSource;
 use AzGuard\Storage\Internal\StorageRegistry;
+use AzGuard\Storage\StorageDescriptor;
 use AzGuard\Tests\Fixtures\Diagnostics\CheckingPlugin;
 use AzGuard\Tests\Fixtures\Diagnostics\DoctorWorld;
 use AzGuard\Tests\Fixtures\Diagnostics\ExplodingCheck;
@@ -79,6 +80,24 @@ it('runs the checks of sources, the panel and its plugins for the panel, each in
         'plugin:acme/checking acme.folders error',
     ])->and(ProbeCheck::$panels)->toBe(['test', 'test', 'test'])
         ->and(DoctorWorld::only($findings, 'acme.folders')[0]->details)->toBe(['panel' => 'test']);
+});
+
+it('gives a check of the application the storages as descriptors and nothing internal', function (): void {
+    DoctorWorld::migrate();
+    $seen = [];
+    $check = new ProbeCheck('acme.storages', static function (DoctorContext $context) use (&$seen): array {
+        foreach ($context->storages() as $storage) {
+            $seen[] = [$storage::class, $storage->id, $storage->connection, $storage->prefix, $storage->hostKeys];
+        }
+
+        return [];
+    });
+    doctorPanel(static fn (PanelBuilder $panel) => $panel->doctorChecks([$check]));
+
+    DoctorWorld::run();
+
+    expect($seen)->not->toBeEmpty()->and($seen[0][0])->toBe(StorageDescriptor::class)
+        ->and($seen[0][1])->toBe('default')->and($seen[0][2])->toBe(app(StorageRegistry::class)->get('default')->connectionName());
 });
 
 it('reports a failing check as <key>.failed with the exception class only and runs every other check', function (): void {
@@ -157,7 +176,7 @@ it('selects panels, storages and the panels or storages related to them', functi
     $doctor = app(Doctor::class);
     $ids = static fn (DoctorContext $context): array => [
         array_map(static fn ($panel): string => $panel->id(), $context->panels()),
-        array_map(static fn ($storage): string => $storage->id(), $context->storages()),
+        array_map(static fn ($storage): string => $storage->id, $context->storages()),
     ];
 
     expect($ids($doctor->context()))->toBe([['admin', 'cabinet'], ['default']])

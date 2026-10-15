@@ -47,7 +47,7 @@ final readonly class PanelAdmission
         $ref = SubjectRef::of($subject->getMorphClass(), $key);
         $scope = $this->authorizer->admissionScope($panel, $ref);
 
-        if ($scope === null || ($scope->tenant->isGlobal() && $panel->tenants()->mode() === TenantMode::Required) || ! $this->holdsRole($panel, $ref, $scope)) {
+        if ($scope === null || ($scope->tenant->isGlobal() && $panel->tenants()->mode() === TenantMode::Required) || ! $this->holdsRole($panel, $ref, $scope, $subject)) {
             return null;
         }
         $entry = $panel->entry();
@@ -60,9 +60,9 @@ final readonly class PanelAdmission
         return $this->authorizer->decide($panel, AccessRequest::for($ref, $permission)->withSubjectModel($subject)->inScope($scope))->allowed() ? $scope : null;
     }
 
-    private function holdsRole(Panel $panel, SubjectRef $subject, AccessScope $scope): bool
+    private function holdsRole(Panel $panel, SubjectRef $subject, AccessScope $scope, Model $model): bool
     {
-        if ($this->authorizer->roles($panel, $subject, $scope) !== []) {
+        if ($this->authorizer->roles($panel, $subject, $scope, $model) !== []) {
             return true;
         }
 
@@ -73,7 +73,7 @@ final readonly class PanelAdmission
             foreach ($this->authorizer->roleScopes($panel, $subject, $scope->tenant, $type) ?? [] as $context) {
                 $witness = $this->authorizer->admissionScope($panel, $subject, AccessScope::in($scope->tenant, $context));
 
-                if ($witness !== null && $this->authorizer->roles($panel, $subject, $witness) !== []) {
+                if ($witness !== null && $this->authorizer->roles($panel, $subject, $witness, $model) !== []) {
                     return true;
                 }
             }

@@ -32,7 +32,7 @@ final readonly class RelationBinding
         public ?string $pivotAccessor,
     ) {}
 
-    public static function make(AssignmentScopeDefinition $definition, string $via, bool $pivotRole): self
+    public static function make(AssignmentScopeDefinition $definition, string $via, bool $pivotRole, ?string $name = null): self
     {
         $model = $definition->model();
 
@@ -44,7 +44,7 @@ final readonly class RelationBinding
             throw new DefinitionException('RelationSource model '.$model.' must be a concrete Eloquent model.');
         }
 
-        $id = self::identity($definition->type());
+        $id = self::identity($definition->type(), $name);
 
         try {
             if ($definition->query()->getModel()::class !== $model) {
@@ -81,15 +81,18 @@ final readonly class RelationBinding
         return new self($definition, $model, $via, $id, $relation instanceof BelongsToMany ? $relation->getPivotAccessor() : null);
     }
 
-    public static function identity(string $type): string
+    public static function identity(string $type, ?string $name = null): string
     {
-        $id = 'relation:'.$type;
+        if ($name !== null && preg_match('/\A[a-z0-9][a-z0-9_-]*\z/', $name) !== 1) {
+            throw new DefinitionException('RelationSource name "'.$name.'" must be lowercase letters, digits, "_" and "-".');
+        }
+        $id = 'relation:'.$type.($name === null ? '' : ':'.$name);
 
         try {
             IdentityCodec::assertTypeAlias($type);
             IdentityCodec::assertSourceLabel($id);
         } catch (InvalidIdentityException $error) {
-            throw new DefinitionException('RelationSource type "'.$type.'" produces an invalid source id "'.$id.'"; use a valid assignment-scope alias of at most 119 bytes so relation:<type> fits the 128-byte source label.', previous: $error);
+            throw new DefinitionException('RelationSource type "'.$type.'" produces an invalid source id "'.$id.'"; use a valid assignment-scope alias of at most 119 bytes so relation:<type>[:<name>] fits the 128-byte source label.', previous: $error);
         }
 
         return $id;

@@ -19,9 +19,13 @@ final readonly class FieldSchema implements JsonSerializable
 {
     /**
      * @param  string  $type  `string`, `int`, `bool`, `date`, `enum` or `model`
-     * @param  list<string>  $rules  the presence rule, `array` for a list value, `exists` for a model and the declared rules
+     * @param  list<string>  $rules  the presence rule, `array` for a list value, `exists` for a model and the declared rules; a
+     *                               representation of the field, `required`, `multiple` and `valueClass` are its structure
      * @param  array<int|string, string>|null  $options  value => label of the cases of an enum field
      * @param  string  $contributedBy  `model:Class`, `provider`, `plugin:id` or `configure`
+     * @param  bool  $required  the value must be given
+     * @param  bool  $multiple  the value is a list
+     * @param  class-string|null  $valueClass  the enum of an `enum` field or the model of a `model` field
      */
     public function __construct(
         public string $name,
@@ -31,6 +35,9 @@ final readonly class FieldSchema implements JsonSerializable
         public ?array $options,
         public bool $inMeta,
         public string $contributedBy,
+        public bool $required = false,
+        public bool $multiple = false,
+        public ?string $valueClass = null,
     ) {}
 
     /**
@@ -70,6 +77,9 @@ final readonly class FieldSchema implements JsonSerializable
             options: $options,
             inMeta: $field->isInMeta(),
             contributedBy: $field->contributedBy() ?? 'panel',
+            required: $field->isRequired(),
+            multiple: $field->isMultiple(),
+            valueClass: $class,
         );
     }
 
@@ -87,7 +97,7 @@ final readonly class FieldSchema implements JsonSerializable
     }
 
     /**
-     * @return array{name: string, label: string, type: string, rules: list<string>, options: array<int|string, string>|null, in_meta: bool, contributed_by: string}
+     * @return array{name: string, label: string, type: string, rules: list<string>, options: array<int|string, string>|null, in_meta: bool, contributed_by: string, required: bool, multiple: bool, value_class: class-string|null}
      */
     public function toArray(): array
     {
@@ -99,6 +109,9 @@ final readonly class FieldSchema implements JsonSerializable
             'options' => $this->options,
             'in_meta' => $this->inMeta,
             'contributed_by' => $this->contributedBy,
+            'required' => $this->required,
+            'multiple' => $this->multiple,
+            'value_class' => $this->valueClass,
         ];
     }
 

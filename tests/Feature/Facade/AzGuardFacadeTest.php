@@ -105,7 +105,7 @@ it('describes each storage by id, connection, prefix and host key type, and refu
 });
 
 it('gives the canonical stored form of a host key per host key type', function (): void {
-    $of = static fn (string $hostKeys): StorageDescriptor => new StorageDescriptor('probe', null, 'azg_', $hostKeys);
+    $of = static fn (string $hostKeys): StorageDescriptor => new StorageDescriptor('probe', 'testing', 'azg_', $hostKeys);
 
     expect($of('string')->canonicalKey(7))->toBe('7')
         ->and($of('string')->canonicalKey('a-1'))->toBe('a-1')

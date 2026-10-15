@@ -42,6 +42,8 @@ final class FakeSubject extends Model implements AuthenticatableContract
     }
 
     /**
+     * @internal Eloquent hook
+     *
      * @param  Builder  $query
      */
     public function newEloquentBuilder($query): FakeSubjectBuilder

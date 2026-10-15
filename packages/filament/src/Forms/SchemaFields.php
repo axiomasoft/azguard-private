@@ -60,7 +60,7 @@ final class SchemaFields
 
     public static function field(FieldSchema $field): Field
     {
-        $multiple = in_array('array', $field->rules, true);
+        $multiple = $field->multiple;
         $name = self::PATH.'.'.$field->name;
 
         $component = match (true) {
@@ -72,7 +72,7 @@ final class SchemaFields
             default => TextInput::make($name),
         };
 
-        return $component->label($field->label)->required(in_array('required', $field->rules, true));
+        return $component->label($field->label)->required($field->required);
     }
 
     /**

@@ -44,6 +44,7 @@
                         }
                     ],
                     "return": null,
+                    "returnsReference": false,
                     "namedArguments": true,
                     "contracts": [
                         "@param class-string $class the resource, page or widget the enum defines the permissions of"
@@ -97,6 +98,7 @@
                         }
                     ],
                     "return": "?bool",
+                    "returnsReference": false,
                     "namedArguments": true,
                     "contracts": [
                         "@param array<mixed> $arguments"
@@ -126,6 +128,7 @@
                         }
                     ],
                     "return": "Illuminate\\Auth\\Access\\Response",
+                    "returnsReference": false,
                     "namedArguments": true,
                     "contracts": [
                         "@param class-string<Page> $page"
@@ -170,6 +173,7 @@
                         }
                     ],
                     "return": "Illuminate\\Auth\\Access\\Response",
+                    "returnsReference": false,
                     "namedArguments": true,
                     "contracts": [
                         "@param class-string<RelationManager> $relationManager"
@@ -206,6 +210,7 @@
                         }
                     ],
                     "return": "Illuminate\\Auth\\Access\\Response",
+                    "returnsReference": false,
                     "namedArguments": true,
                     "contracts": [
                         "@param class-string<FilamentResource> $resource"
@@ -234,6 +239,7 @@
                         }
                     ],
                     "return": "Illuminate\\Database\\Eloquent\\Builder",
+                    "returnsReference": false,
                     "namedArguments": true,
                     "contracts": [
                         "@template TModel of Model",
@@ -266,6 +272,7 @@
                         }
                     ],
                     "return": "Illuminate\\Auth\\Access\\Response",
+                    "returnsReference": false,
                     "namedArguments": true,
                     "contracts": [
                         "@param class-string<Widget> $widget"
@@ -296,6 +303,7 @@
                     "final": false,
                     "parameters": [],
                     "return": "void",
+                    "returnsReference": false,
                     "namedArguments": true,
                     "contracts": []
                 },
@@ -307,6 +315,7 @@
                     "final": false,
                     "parameters": [],
                     "return": "void",
+                    "returnsReference": false,
                     "namedArguments": true,
                     "contracts": []
                 }
@@ -352,6 +361,7 @@
                         }
                     ],
                     "return": null,
+                    "returnsReference": false,
                     "namedArguments": true,
                     "contracts": []
                 },
@@ -371,6 +381,7 @@
                         }
                     ],
                     "return": "static",
+                    "returnsReference": false,
                     "namedArguments": true,
                     "contracts": [
                         "@param list<string> $abilities"
@@ -392,6 +403,7 @@
                         }
                     ],
                     "return": "static",
+                    "returnsReference": false,
                     "namedArguments": true,
                     "contracts": []
                 },
@@ -411,6 +423,7 @@
                         }
                     ],
                     "return": "void",
+                    "returnsReference": false,
                     "namedArguments": true,
                     "contracts": []
                 },
@@ -430,6 +443,7 @@
                         }
                     ],
                     "return": "static",
+                    "returnsReference": false,
                     "namedArguments": true,
                     "contracts": []
                 },
@@ -450,6 +464,7 @@
                         }
                     ],
                     "return": "static",
+                    "returnsReference": false,
                     "namedArguments": true,
                     "contracts": []
                 },
@@ -486,6 +501,7 @@
                         }
                     ],
                     "return": "static",
+                    "returnsReference": false,
                     "namedArguments": true,
                     "contracts": [
                         "@param list<string> $resources",
@@ -509,6 +525,7 @@
                         }
                     ],
                     "return": "static",
+                    "returnsReference": false,
                     "namedArguments": true,
                     "contracts": [
                         "@param class-string<FilamentFormExtension>|FilamentFormExtension ...$extensions"
@@ -531,6 +548,7 @@
                         }
                     ],
                     "return": "self",
+                    "returnsReference": false,
                     "namedArguments": true,
                     "contracts": []
                 },
@@ -542,6 +560,7 @@
                     "final": false,
                     "parameters": [],
                     "return": "array",
+                    "returnsReference": false,
                     "namedArguments": true,
                     "contracts": [
                         "@return list<string>"
@@ -555,6 +574,7 @@
                     "final": false,
                     "parameters": [],
                     "return": "AzGuard\\Kernel\\Decision\\PermissionAuthority",
+                    "returnsReference": false,
                     "namedArguments": true,
                     "contracts": []
                 },
@@ -566,6 +586,7 @@
                     "final": false,
                     "parameters": [],
                     "return": "AzGuard\\Filament\\FilamentDefinitions",
+                    "returnsReference": false,
                     "namedArguments": true,
                     "contracts": []
                 },
@@ -577,6 +598,7 @@
                     "final": false,
                     "parameters": [],
                     "return": "array",
+                    "returnsReference": false,
                     "namedArguments": true,
                     "contracts": [
                         "@return array{resources: list<string>, pages: list<string>, widgets: list<string>}"
@@ -590,6 +612,7 @@
                     "final": false,
                     "parameters": [],
                     "return": "array",
+                    "returnsReference": false,
                     "namedArguments": true,
                     "contracts": [
                         "@return list<class-string<FilamentFormExtension>|FilamentFormExtension>"
@@ -603,6 +626,7 @@
                     "final": false,
                     "parameters": [],
                     "return": "string",
+                    "returnsReference": false,
                     "namedArguments": true,
                     "contracts": []
                 },
@@ -614,6 +638,7 @@
                     "final": false,
                     "parameters": [],
                     "return": "string",
+                    "returnsReference": false,
                     "namedArguments": true,
                     "contracts": []
                 },
@@ -625,6 +650,7 @@
                     "final": false,
                     "parameters": [],
                     "return": "?array",
+                    "returnsReference": false,
                     "namedArguments": true,
                     "contracts": [
                         "@return list<string>|null"
@@ -646,6 +672,7 @@
                         }
                     ],
                     "return": "static",
+                    "returnsReference": false,
                     "namedArguments": true,
                     "contracts": []
                 },
@@ -665,6 +692,7 @@
                         }
                     ],
                     "return": "bool",
+                    "returnsReference": false,
                     "namedArguments": true,
                     "contracts": []
                 },
@@ -676,25 +704,7 @@
                     "final": false,
                     "parameters": [],
                     "return": "bool",
-                    "namedArguments": true,
-                    "contracts": []
-                },
-                {
-                    "name": "keys",
-                    "visibility": "public",
-                    "static": false,
-                    "abstract": false,
-                    "final": false,
-                    "parameters": [
-                        {
-                            "name": "panel",
-                            "type": "Filament\\Panel",
-                            "byRef": false,
-                            "variadic": false,
-                            "hasDefault": false
-                        }
-                    ],
-                    "return": "AzGuard\\Filament\\Internal\\Authorization\\FilamentKeys",
+                    "returnsReference": false,
                     "namedArguments": true,
                     "contracts": []
                 },
@@ -706,6 +716,7 @@
                     "final": false,
                     "parameters": [],
                     "return": "static",
+                    "returnsReference": false,
                     "namedArguments": true,
                     "contracts": []
                 },
@@ -725,6 +736,7 @@
                         }
                     ],
                     "return": "static",
+                    "returnsReference": false,
                     "namedArguments": true,
                     "contracts": [
                         "@param list<string>|null $panels"
@@ -746,6 +758,7 @@
                         }
                     ],
                     "return": "void",
+                    "returnsReference": false,
                     "namedArguments": true,
                     "contracts": []
                 },
@@ -757,6 +770,7 @@
                     "final": false,
                     "parameters": [],
                     "return": "array",
+                    "returnsReference": false,
                     "namedArguments": true,
                     "contracts": [
                         "@return list<FilamentFormExtension>"
@@ -819,6 +833,7 @@
                         }
                     ],
                     "return": "static",
+                    "returnsReference": false,
                     "namedArguments": true,
                     "contracts": []
                 }
@@ -847,6 +862,7 @@
                     "final": false,
                     "parameters": [],
                     "return": "bool",
+                    "returnsReference": false,
                     "namedArguments": true,
                     "contracts": []
                 }
@@ -890,6 +906,7 @@
                         }
                     ],
                     "return": "bool",
+                    "returnsReference": false,
                     "namedArguments": true,
                     "contracts": []
                 },
@@ -917,6 +934,7 @@
                         }
                     ],
                     "return": "Illuminate\\Auth\\Access\\Response",
+                    "returnsReference": false,
                     "namedArguments": true,
                     "contracts": []
                 },
@@ -928,6 +946,7 @@
                     "final": false,
                     "parameters": [],
                     "return": "Filament\\Tables\\Table",
+                    "returnsReference": false,
                     "namedArguments": true,
                     "contracts": []
                 }
@@ -972,6 +991,7 @@
                         }
                     ],
                     "return": "Illuminate\\Auth\\Access\\Response",
+                    "returnsReference": false,
                     "namedArguments": true,
                     "contracts": []
                 },
@@ -983,6 +1003,7 @@
                     "final": false,
                     "parameters": [],
                     "return": "Illuminate\\Database\\Eloquent\\Builder",
+                    "returnsReference": false,
                     "namedArguments": true,
                     "contracts": [
                         "@return Builder<Model>"
@@ -1004,6 +1025,7 @@
                         }
                     ],
                     "return": "Illuminate\\Database\\Eloquent\\Builder",
+                    "returnsReference": false,
                     "namedArguments": true,
                     "contracts": [
                         "@param Builder<Model> $query",
@@ -1035,6 +1057,7 @@
                     "final": false,
                     "parameters": [],
                     "return": "bool",
+                    "returnsReference": false,
                     "namedArguments": true,
                     "contracts": []
                 }
@@ -1078,6 +1101,7 @@
                         }
                     ],
                     "return": "bool",
+                    "returnsReference": false,
                     "namedArguments": true,
                     "contracts": []
                 },
@@ -1104,6 +1128,7 @@
                         }
                     ],
                     "return": "array",
+                    "returnsReference": false,
                     "namedArguments": true,
                     "contracts": [
                         "@return array<string, Component>"
@@ -1136,6 +1161,7 @@
                     "final": false,
                     "parameters": [],
                     "return": "string",
+                    "returnsReference": false,
                     "namedArguments": true,
                     "contracts": []
                 },
@@ -1155,6 +1181,7 @@
                         }
                     ],
                     "return": "iterable",
+                    "returnsReference": false,
                     "namedArguments": true,
                     "contracts": []
                 }
@@ -1192,6 +1219,7 @@
                     "final": false,
                     "parameters": [],
                     "return": "void",
+                    "returnsReference": false,
                     "namedArguments": true,
                     "contracts": []
                 }
@@ -1222,6 +1250,7 @@
                     "final": false,
                     "parameters": [],
                     "return": "string",
+                    "returnsReference": false,
                     "namedArguments": true,
                     "contracts": []
                 }
@@ -1281,6 +1310,7 @@
                     "final": false,
                     "parameters": [],
                     "return": "array",
+                    "returnsReference": false,
                     "namedArguments": true,
                     "contracts": []
                 },
@@ -1300,6 +1330,7 @@
                         }
                     ],
                     "return": "static",
+                    "returnsReference": false,
                     "namedArguments": true,
                     "contracts": []
                 },
@@ -1319,6 +1350,7 @@
                         }
                     ],
                     "return": "?static",
+                    "returnsReference": false,
                     "namedArguments": true,
                     "contracts": []
                 }
@@ -1357,6 +1389,7 @@
                         }
                     ],
                     "return": "?AzGuard\\Kernel\\Identity\\TenantRef",
+                    "returnsReference": false,
                     "namedArguments": true,
                     "contracts": []
                 }
@@ -1414,6 +1447,7 @@
                         }
                     ],
                     "return": "array",
+                    "returnsReference": false,
                     "namedArguments": true,
                     "contracts": [
                         "@param array<mixed>|null $state",
@@ -1436,6 +1470,7 @@
                         }
                     ],
                     "return": "Filament\\Forms\\Components\\Field",
+                    "returnsReference": false,
                     "namedArguments": true,
                     "contracts": []
                 },
@@ -1470,6 +1505,7 @@
                         }
                     ],
                     "return": "array",
+                    "returnsReference": false,
                     "namedArguments": true,
                     "contracts": [
                         "@param list<FilamentFormExtension> $extensions in the order of registration; the first component of a name wins",
@@ -1506,6 +1542,7 @@
                         }
                     ],
                     "return": "array",
+                    "returnsReference": false,
                     "namedArguments": true,
                     "contracts": [
                         "@param array<string, mixed> $values",
@@ -1542,6 +1579,7 @@
                         }
                     ],
                     "return": "array",
+                    "returnsReference": false,
                     "namedArguments": true,
                     "contracts": [
                         "@param array<mixed>|null $state",
@@ -1588,6 +1626,7 @@
                     "final": false,
                     "parameters": [],
                     "return": "bool",
+                    "returnsReference": false,
                     "namedArguments": true,
                     "contracts": []
                 },
@@ -1599,6 +1638,7 @@
                     "final": false,
                     "parameters": [],
                     "return": "void",
+                    "returnsReference": false,
                     "namedArguments": true,
                     "contracts": []
                 },
@@ -1610,6 +1650,7 @@
                     "final": false,
                     "parameters": [],
                     "return": "void",
+                    "returnsReference": false,
                     "namedArguments": true,
                     "contracts": []
                 },
@@ -1621,6 +1662,7 @@
                     "final": false,
                     "parameters": [],
                     "return": "array",
+                    "returnsReference": false,
                     "namedArguments": true,
                     "contracts": [
                         "@return list<string> the severities that have findings, the heaviest first"
@@ -1642,6 +1684,7 @@
                         }
                     ],
                     "return": "array",
+                    "returnsReference": false,
                     "namedArguments": true,
                     "contracts": [
                         "@return list<array{key: string, severity: string, scope: string, message: string, details: array<string, mixed>}>"
@@ -1687,6 +1730,7 @@
                     "final": false,
                     "parameters": [],
                     "return": "bool",
+                    "returnsReference": false,
                     "namedArguments": true,
                     "contracts": []
                 },
@@ -1698,6 +1742,7 @@
                     "final": false,
                     "parameters": [],
                     "return": "void",
+                    "returnsReference": false,
                     "namedArguments": true,
                     "contracts": []
                 }
@@ -1742,6 +1787,7 @@
                         }
                     ],
                     "return": "Illuminate\\Auth\\Access\\Response",
+                    "returnsReference": false,
                     "namedArguments": true,
                     "contracts": []
                 },
@@ -1753,6 +1799,7 @@
                     "final": false,
                     "parameters": [],
                     "return": "Illuminate\\Database\\Eloquent\\Builder",
+                    "returnsReference": false,
                     "namedArguments": true,
                     "contracts": [
                         "@return Builder<Model>"
@@ -1766,6 +1813,7 @@
                     "final": false,
                     "parameters": [],
                     "return": "array",
+                    "returnsReference": false,
                     "namedArguments": true,
                     "contracts": []
                 }
@@ -1810,6 +1858,7 @@
                         }
                     ],
                     "return": "Illuminate\\Auth\\Access\\Response",
+                    "returnsReference": false,
                     "namedArguments": true,
                     "contracts": []
                 },
@@ -1821,6 +1870,7 @@
                     "final": false,
                     "parameters": [],
                     "return": "Illuminate\\Database\\Eloquent\\Builder",
+                    "returnsReference": false,
                     "namedArguments": true,
                     "contracts": [
                         "@return Builder<Model>"
@@ -1834,6 +1884,7 @@
                     "final": false,
                     "parameters": [],
                     "return": "array",
+                    "returnsReference": false,
                     "namedArguments": true,
                     "contracts": []
                 },
@@ -1853,6 +1904,7 @@
                         }
                     ],
                     "return": "bool",
+                    "returnsReference": false,
                     "namedArguments": true,
                     "contracts": []
                 },
@@ -1872,6 +1924,7 @@
                         }
                     ],
                     "return": "array",
+                    "returnsReference": false,
                     "namedArguments": true,
                     "contracts": [
                         "@return array{name: string, domain: string, label: string, group: ?string, description: ?string, authority: string, dynamic: bool, decided_by: ?string}"
@@ -1918,6 +1971,7 @@
                         }
                     ],
                     "return": "Illuminate\\Auth\\Access\\Response",
+                    "returnsReference": false,
                     "namedArguments": true,
                     "contracts": []
                 },
@@ -1929,6 +1983,7 @@
                     "final": false,
                     "parameters": [],
                     "return": "Illuminate\\Database\\Eloquent\\Builder",
+                    "returnsReference": false,
                     "namedArguments": true,
                     "contracts": [
                         "@return Builder<Model>"
@@ -1942,6 +1997,7 @@
                     "final": false,
                     "parameters": [],
                     "return": "array",
+                    "returnsReference": false,
                     "namedArguments": true,
                     "contracts": []
                 }
@@ -1958,7 +2014,9 @@
             "parent": "Filament\\Resources\\Resource",
             "interfaces": [],
             "namedArguments": true,
-            "contracts": [],
+            "contracts": [
+                "@phpstan-type Row array{key: string, label: string, class: string, grantable: bool, automatic: bool, super_admin: bool, scope_required: bool, contexts: list<string>, filters: list<string>, permissions: list<array{name: string, authority: ?string, grantable: bool}>}"
+            ],
             "constants": [],
             "properties": [],
             "methods": [
@@ -1986,6 +2044,7 @@
                         }
                     ],
                     "return": "Illuminate\\Auth\\Access\\Response",
+                    "returnsReference": false,
                     "namedArguments": true,
                     "contracts": []
                 },
@@ -1997,6 +2056,7 @@
                     "final": false,
                     "parameters": [],
                     "return": "Illuminate\\Database\\Eloquent\\Builder",
+                    "returnsReference": false,
                     "namedArguments": true,
                     "contracts": [
                         "@return Builder<Model>"
@@ -2010,6 +2070,7 @@
                     "final": false,
                     "parameters": [],
                     "return": "array",
+                    "returnsReference": false,
                     "namedArguments": true,
                     "contracts": []
                 },
@@ -2029,6 +2090,7 @@
                         }
                     ],
                     "return": "array",
+                    "returnsReference": false,
                     "namedArguments": true,
                     "contracts": [
                         "@return array<string, PermissionSchema>"
@@ -2058,6 +2120,7 @@
                         }
                     ],
                     "return": "array",
+                    "returnsReference": false,
                     "namedArguments": true,
                     "contracts": [
                         "@param array<string, PermissionSchema> $permissions by local name"
@@ -2108,6 +2171,7 @@
                         }
                     ],
                     "return": "AzGuard\\Contracts\\Sources\\SourceDescription",
+                    "returnsReference": false,
                     "namedArguments": true,
                     "contracts": []
                 },
@@ -2119,6 +2183,7 @@
                     "final": false,
                     "parameters": [],
                     "return": "string",
+                    "returnsReference": false,
                     "namedArguments": true,
                     "contracts": []
                 },
@@ -2130,6 +2195,7 @@
                     "final": false,
                     "parameters": [],
                     "return": "string",
+                    "returnsReference": false,
                     "namedArguments": true,
                     "contracts": []
                 },
@@ -2141,6 +2207,7 @@
                     "final": false,
                     "parameters": [],
                     "return": "bool",
+                    "returnsReference": false,
                     "namedArguments": true,
                     "contracts": []
                 },
@@ -2160,6 +2227,7 @@
                         }
                     ],
                     "return": "self",
+                    "returnsReference": false,
                     "namedArguments": true,
                     "contracts": []
                 },
@@ -2187,6 +2255,7 @@
                         }
                     ],
                     "return": "iterable",
+                    "returnsReference": false,
                     "namedArguments": true,
                     "contracts": [
                         "@return list<PermissionDefinition>"

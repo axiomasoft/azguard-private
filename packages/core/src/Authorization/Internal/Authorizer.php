@@ -77,7 +77,7 @@ final class Authorizer
         return $writer->withinAuthorityTransaction($panel, $callback);
     }
 
-    public function isSuperAdmin(Panel $panel, SubjectRef $subject, AccessScope $scope): bool
+    public function isSuperAdmin(Panel $panel, SubjectRef $subject, AccessScope $scope, ?Model $model = null): bool
     {
         $key = IdentityCodec::compose([$panel->id(), $subject->type(), $subject->id(), 'superadmin.qualify', $scope->tenant->key(), $scope->context->key(), (string) (Fiber::getCurrent() === null ? 0 : spl_object_id(Fiber::getCurrent()))]);
 
@@ -89,7 +89,7 @@ final class Authorizer
         try {
             $now = Carbon::now('UTC')->toDateTimeImmutable();
             $trace = new Trace(false);
-            [$request, $catalog, $frame, $denial] = $this->prepare->prepareSuperAdmin($panel, $subject, $scope, $trace, $now);
+            [$request, $catalog, $frame, $denial] = $this->prepare->prepareSuperAdmin($panel, $subject, $scope, $trace, $now, $model);
 
             if ($denial !== null) {
                 return false;
@@ -116,10 +116,10 @@ final class Authorizer
      *
      * @return list<RoleKey>
      */
-    public function roles(Panel $panel, SubjectRef $subject, AccessScope $scope): array
+    public function roles(Panel $panel, SubjectRef $subject, AccessScope $scope, ?Model $model = null): array
     {
         $roles = [];
-        foreach ($this->qualified($panel, $subject, $scope)[0] as [$item]) {
+        foreach ($this->qualified($panel, $subject, $scope, $model)[0] as [$item]) {
             if ($item instanceof RoleContribution) {
                 $roles[$item->role->full()] ??= $item->role;
             }
@@ -134,9 +134,9 @@ final class Authorizer
      * Grants permission. PolicyOnly permissions are never in the set. Names are in byte order; the set is valid until
      * the earliest expiry of a contribution that adds to it. Not a decision: restrictions, policies and membership are applied by `decide()`.
      */
-    public function permissionSet(Panel $panel, SubjectRef $subject, AccessScope $scope): PermissionSet
+    public function permissionSet(Panel $panel, SubjectRef $subject, AccessScope $scope, ?Model $model = null): PermissionSet
     {
-        [$qualified, $catalog] = $this->qualified($panel, $subject, $scope);
+        [$qualified, $catalog] = $this->qualified($panel, $subject, $scope, $model);
         $grants = [];
         foreach ($catalog->all() as $local => $definition) {
             if ($definition->authority === PermissionAuthority::Grants) {
@@ -188,7 +188,7 @@ final class Authorizer
      *
      * @return array{list<array{Grant|RoleContribution, CompiledRole|null}>, PanelCatalog}
      */
-    private function qualified(Panel $panel, SubjectRef $subject, AccessScope $scope): array
+    private function qualified(Panel $panel, SubjectRef $subject, AccessScope $scope, ?Model $model = null): array
     {
         $key = IdentityCodec::compose([$panel->id(), $subject->type(), $subject->id(), 'contributions.qualify', $scope->tenant->key(), $scope->context->key(), (string) (Fiber::getCurrent() === null ? 0 : spl_object_id(Fiber::getCurrent()))]);
 
@@ -200,7 +200,7 @@ final class Authorizer
         try {
             $now = Carbon::now('UTC')->toDateTimeImmutable();
             $trace = new Trace(false);
-            [$request, $catalog, $frame, $denial] = $this->prepare->prepareSuperAdmin($panel, $subject, $scope, $trace, $now);
+            [$request, $catalog, $frame, $denial] = $this->prepare->prepareSuperAdmin($panel, $subject, $scope, $trace, $now, $model);
 
             if ($denial !== null) {
                 return [[], $catalog];

@@ -9,7 +9,8 @@ use AzGuard\Exceptions\InvalidIdentityException;
 use AzGuard\Storage\Internal\Schema\HostKeyColumns;
 
 /**
- * What identifies one AzGuard storage: its id, the database connection (null for the default one), the table prefix
+ * What identifies one AzGuard storage: its id, the name of the database connection it resolved to when it was created (a later change of the default
+ * connection does not move it), the table prefix
  * and the type of the host keys its tables store (`string`, `bigint`, `uuid` or `ulid`).
  */
 #[Api(since: '1.0')]
@@ -18,7 +19,7 @@ final readonly class StorageDescriptor
     /** @internal built by core */
     public function __construct(
         public string $id,
-        public ?string $connection,
+        public string $connection,
         public string $prefix,
         public string $hostKeys,
     ) {}

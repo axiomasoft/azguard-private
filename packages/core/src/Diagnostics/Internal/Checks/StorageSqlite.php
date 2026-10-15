@@ -27,7 +27,7 @@ final readonly class StorageSqlite implements DoctorCheck
 
     public function run(DoctorContext $context): iterable
     {
-        foreach ($context->storages() as $storage) {
+        foreach ($context->storageObjects() as $storage) {
             $connection = $storage->connection();
 
             if ($connection->getDriverName() !== 'sqlite' || in_array($connection->getConfig('database'), [':memory:', null, ''], true)) {

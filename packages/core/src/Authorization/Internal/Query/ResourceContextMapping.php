@@ -202,7 +202,8 @@ final readonly class ResourceContextMapping
 
         $description = ContextIdentity::describe($this->definition);
 
-        if (! $description->tenantOwner && $frame->scope()->tenant->isGlobal()) {
+        // Without a tenant owner every record is global, but only `query()` equals `resolve()` when it says so.
+        if (! $description->tenantOwner && $description->resolvesThroughQuery && $frame->scope()->tenant->isGlobal()) {
             return P::pass();
         }
         // An arbitrary tenantOf callback cannot be inferred from a column name.

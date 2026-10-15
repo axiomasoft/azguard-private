@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use AzGuard\Audit\AuditOptions;
 use AzGuard\Audit\AuditPlugin;
 use AzGuard\Audit\Internal\JournalPruner;
 use AzGuard\Facades\AzGuard;
@@ -12,6 +13,7 @@ use AzGuard\Tests\Support\AuditTable;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Database\Events\QueryExecuted;
 use Illuminate\Database\QueryException;
+use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
@@ -161,4 +163,43 @@ it('does not retry any other database error', function (): void {
 
     expect(Artisan::call('azguard:audit:prune', ['--panel' => 'crm']))->toBe(1)
         ->and($attempts)->toBe(1);
+});
+
+it('prunes the journal of the storage it was created on after the default connection changes', function (): void {
+    auditPruneJournal();
+    $descriptor = AzGuard::storage();
+    config()->set('database.connections.secondary', ['driver' => 'sqlite', 'database' => ':memory:', 'prefix' => '']);
+    $other = DB::connection('secondary');
+    $other->getSchemaBuilder()->create('azg_audit_log', static function (Blueprint $table): void {
+        $table->id();
+        $table->string('panel');
+        $table->dateTime('occurred_at');
+    });
+    $other->table('azg_audit_log')->insert(['panel' => 'crm', 'occurred_at' => '2026-01-01 00:00:00']);
+    $default = DB::getDefaultConnection();
+    DB::setDefaultConnection('secondary');
+
+    try {
+        expect($descriptor->connection)->toBe(CrmWorld::storage()->connectionName())->not->toBe('secondary')
+            ->and(AzGuard::storage()->connection)->toBe($descriptor->connection)
+            ->and(Artisan::call('azguard:audit:prune', ['--panel' => 'crm']))->toBe(0)
+            ->and($other->table('azg_audit_log')->count())->toBe(1);
+    } finally {
+        DB::setDefaultConnection($default);
+    }
+    expect(auditPruneMoments())->toBe(['2026-10-04', '2026-10-06']);
+});
+
+it('refuses a retention shorter than one day in every way to build the options', function (int $days): void {
+    expect(fn () => new AuditOptions($days))->toThrow(InvalidArgumentException::class, 'at least 1')
+        ->and(fn () => AuditPlugin::make($days))->toThrow(InvalidArgumentException::class, 'at least 1');
+})->with([0, -1, -10]);
+
+it('keeps a fresh row when the options are built with the smallest retention', function (): void {
+    $panel = W::panel(configure: static fn (PanelBuilder $builder) => $builder->plugins([AuditPlugin::make()])->options(new AuditOptions(1)));
+    Carbon::setTestNow('2026-10-06T12:00:00Z');
+    W::grant($panel, 'auditor', 1, null);
+
+    expect(Artisan::call('azguard:audit:prune', ['--panel' => 'crm']))->toBe(0)
+        ->and(auditPruneMoments())->toBe(['2026-10-06']);
 });

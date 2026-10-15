@@ -26,7 +26,7 @@ final readonly class StorageSchema implements DoctorCheck
 
     public function run(DoctorContext $context): iterable
     {
-        foreach ($context->storages() as $storage) {
+        foreach ($context->storageObjects() as $storage) {
             $scope = 'storage:'.$storage->id();
 
             try {

@@ -34,7 +34,6 @@ final class ViewRole extends Page
 
     public function mount(string $panel, string $role): void
     {
-        abort_unless(RoleResource::can('view'), 403);
         $this->panel = $panel;
         $this->role = $role;
         $this->row();
@@ -74,12 +73,14 @@ final class ViewRole extends Page
     }
 
     /**
-     * The role, found again in the checked panel on every render.
+     * The role, found again in the checked panel on every render, after the view permission is checked again: the page
+     * outlives the request that opened it.
      *
      * @return Row
      */
     private function row(): array
     {
+        abort_unless(RoleResource::can('view'), 403);
         $access = TargetSelector::current()->definitions($this->panel);
         $role = $access->roles()->find($this->role);
 

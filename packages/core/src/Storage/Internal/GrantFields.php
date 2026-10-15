@@ -6,6 +6,7 @@ namespace AzGuard\Storage\Internal;
 
 use AzGuard\Exceptions\DefinitionException;
 use AzGuard\Exceptions\InvalidChangeFieldsException;
+use AzGuard\Exceptions\InvalidSourceContributionException;
 use AzGuard\Kernel\Internal\Narrow;
 use AzGuard\Schema\Field;
 use AzGuard\Schema\FieldTarget;
@@ -62,6 +63,13 @@ final readonly class GrantFields
             }
         }
 
+        foreach (array_unique($decisionFields) as $name) {
+            // A decision value is compared in SQL for a list: a column holds its JSON text, which no query can compare.
+            if ($fields[$name]->isMultiple() && ! $fields[$name]->isInMeta()) {
+                throw new DefinitionException('Decision field '.$name.' is a list in a column: store it in meta (inMeta()) to decide on it.');
+            }
+        }
+
         return new self($fields, array_values(array_unique($decisionFields)));
     }
 
@@ -102,9 +110,11 @@ final readonly class GrantFields
         $row = ['columns' => [], 'meta' => []];
         foreach ($this->validate($values) as $name => $value) {
             $field = $this->fields[$name];
-            $row[$field->isInMeta() ? 'meta' : 'columns'][$name] = $value === null ? null : ($field->isMultiple() && is_array($value)
-                ? array_map(fn (mixed $item): mixed => $this->rowValue($field, $item), $value)
+            $stored = $value === null ? null : ($field->isMultiple() && is_array($value)
+                ? array_map(fn (mixed $item): mixed => $this->rowValue($field, $item), self::list($field, $value))
                 : $this->rowValue($field, $value));
+            // A column holds a list as the JSON text of it; the JSON `meta` holds it as the list.
+            $row[$field->isInMeta() ? 'meta' : 'columns'][$name] = is_array($stored) && ! $field->isInMeta() ? self::encode($stored) : $stored;
         }
 
         return $row;
@@ -120,7 +130,7 @@ final readonly class GrantFields
     {
         $values = [];
         foreach ($this->fields as $name => $field) {
-            $value = $field->isInMeta() ? ($row['meta'][$name] ?? null) : ($row['columns'][$name] ?? null);
+            $value = $field->isInMeta() ? ($row['meta'][$name] ?? null) : self::decoded($field, $row['columns'][$name] ?? null);
             $values[$name] = $value === null ? null : ($field->isMultiple() && is_array($value)
                 ? array_map(fn (mixed $item): mixed => $this->storedValue($field, $item), $value)
                 : $this->storedValue($field, $value));
@@ -199,6 +209,37 @@ final readonly class GrantFields
             'bool' => 'boolean',
             default => $field->type(),
         };
+    }
+
+    /**
+     * The elements of a list value in order: a map is not a list, and a column cannot tell its keys.
+     *
+     * @param  array<mixed>  $value
+     * @return list<mixed>
+     */
+    private static function list(Field $field, array $value): array
+    {
+        return array_is_list($value) ? $value : throw new InvalidChangeFieldsException([$field->name() => ['The field must be a list.']]);
+    }
+
+    /** @param array<mixed> $list a list: `list()` has refused any other */
+    private static function encode(array $list): string
+    {
+        return json_encode($list, JSON_THROW_ON_ERROR | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+    }
+
+    /**
+     * The value of a column as the field declares it: the JSON text of a list column becomes the list, compared as PHP
+     * values and never as the text a driver may reformat.
+     */
+    private static function decoded(Field $field, mixed $value): mixed
+    {
+        if (! $field->isMultiple() || ! is_string($value)) {
+            return $value;
+        }
+        $list = json_decode($value, true, flags: JSON_THROW_ON_ERROR);
+
+        return is_array($list) && array_is_list($list) ? $list : throw new InvalidSourceContributionException('The column of the list field '.$field->name().' does not hold a JSON list.');
     }
 
     /** @param array<mixed> $values

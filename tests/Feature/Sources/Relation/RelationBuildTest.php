@@ -74,6 +74,25 @@ it('rejects duplicate source ids even when different relations supply the same s
     ]))->toThrow(DefinitionException::class);
 });
 
+it('composes two sources of one scope type when each has a name, with an id of its own', function (): void {
+    $members = RelationSource::make(new ProjectDefinition, 'members', 'pivot.role', name: 'members');
+    $lead = RelationSource::make(new ProjectDefinition, 'lead', 'owner', name: 'lead');
+    RelationWorld::compile([$members, $lead]);
+
+    expect($members->id())->toBe('relation:project:members')->and($lead->id())->toBe('relation:project:lead');
+});
+
+it('rejects two sources of one scope type with the same name', function (): void {
+    expect(fn () => RelationWorld::compile([
+        RelationSource::make(new ProjectDefinition, 'members', 'pivot.role', name: 'team'),
+        RelationSource::make(new ProjectDefinition, 'lead', 'owner', name: 'team'),
+    ]))->toThrow(DefinitionException::class);
+});
+
+it('rejects a source name that is not lowercase letters, digits, underscore and hyphen', function (string $name): void {
+    expect(fn () => RelationWorld::compile([RelationSource::make(new ProjectDefinition, 'members', 'pivot.role', name: $name)]))->toThrow(DefinitionException::class, 'RelationSource name');
+})->with(['Lead', 'a:b', 'a.b', '', ' lead', '-lead']);
+
 it('rejects a computed source id longer than the source label limit at build', function (): void {
     $alias = str_repeat('a', 120);
     expect(fn () => RelationWorld::compile([RelationSource::make(new ProjectDefinition($alias), 'members', 'editor')]))

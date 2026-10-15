@@ -92,6 +92,10 @@ final class Field
         return $copy;
     }
 
+    /**
+     * The value is a list. In `meta` it is a JSON array; in a column of its own the column holds the JSON text of the list
+     * (a `json` or text column), read back as the list. A list in a column cannot be a decision field: store it in meta for that.
+     */
     public function multiple(): self
     {
         $copy = clone $this;

@@ -14,6 +14,7 @@ use AzGuard\Tests\Fixtures\Filament\Fields\ExposedEditingColumn;
 use AzGuard\Tests\Fixtures\Filament\FilamentFixture;
 use AzGuard\Tests\Fixtures\Filament\GateWorld;
 use AzGuard\Tests\Fixtures\Filament\Models\Order;
+use AzGuard\Tests\Fixtures\Filament\Models\Product;
 use AzGuard\Tests\Fixtures\Filament\Models\User;
 use AzGuard\Tests\Fixtures\Filament\RelationManagers\ProductsRelationManager;
 use AzGuard\Tests\Fixtures\Filament\Resources\OrderResource;
@@ -75,8 +76,8 @@ it('V96 refuses the bulk delete without the permission for any record', function
     expect(Order::query()->count())->toBe(4);
 });
 
-it('V96 attaches only a record the user may view', function (): void {
-    GateWorld::serve(GateWorld::grant(['products.view_any', 'products.view']));
+it('V96 attaches only a record the user may view, to an owner the user may update', function (): void {
+    GateWorld::serve(GateWorld::grant(['orders.update', 'products.view_any', 'products.view']));
     $order = Order::query()->findOrFail(1);
     $order->products()->detach(2);
     $manager = static fn () => Livewire::test(ProductsRelationManager::class, ['ownerRecord' => $order, 'pageClass' => ListOrders::class]);
@@ -86,6 +87,34 @@ it('V96 attaches only a record the user may view', function (): void {
 
     $manager()->callAction(TestAction::make('attach')->table(), ['recordId' => 4])->assertHasNoActionErrors();
     expect($order->products()->pluck('products.id')->sort()->values()->all())->toBe([1, 4]);
+});
+
+it('refuses to change a relation with read grants alone, and changes it with the update of the owner', function (): void {
+    GateWorld::serve(GateWorld::grant(['orders.view_any', 'orders.view', 'products.view_any', 'products.view']));
+    $order = Order::query()->findOrFail(1);
+    $order->products()->detach(2);
+    $manager = static fn () => Livewire::test(ProductsRelationManager::class, ['ownerRecord' => $order, 'pageClass' => ListOrders::class]);
+    $forge = static function (string $action, array $data) use ($manager): void {
+        try {
+            $manager()->callAction(TestAction::make($action)->table(), $data);
+        } catch (Throwable) {
+            // A hidden action is refused before it runs; what matters is the pivot below.
+        }
+    };
+
+    $manager()->assertActionHidden(TestAction::make('attach')->table());
+    $forge('attach', ['recordId' => 4]);
+    expect($order->products()->pluck('products.id')->all())->toBe([1]);
+
+    $manager()->assertActionHidden(TestAction::make('detach')->table(Product::query()->findOrFail(1)));
+    expect($order->products()->pluck('products.id')->all())->toBe([1]);
+
+    GateWorld::serve(GateWorld::grant(['orders.update', 'products.view_any', 'products.view']));
+    $manager()->callAction(TestAction::make('attach')->table(), ['recordId' => 4])->assertHasNoActionErrors();
+    expect($order->products()->pluck('products.id')->sort()->values()->all())->toBe([1, 4]);
+
+    $manager()->callAction(TestAction::make('detach')->table(Product::query()->findOrFail(4)))->assertHasNoActionErrors();
+    expect($order->products()->pluck('products.id')->all())->toBe([1]);
 });
 
 it('offers every record to attach when the panel does not enforce: the limit above is the one of AzGuard', function (): void {

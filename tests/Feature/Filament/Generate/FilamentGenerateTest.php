@@ -17,6 +17,8 @@ use AzGuard\Tests\Fixtures\Filament\GateWorld;
 use AzGuard\Tests\Fixtures\Filament\Pages\ProbePage;
 use AzGuard\Tests\Fixtures\Filament\Resources\ArchivedOrderResource;
 use AzGuard\Tests\Fixtures\Filament\Resources\OrderResource;
+use AzGuard\Tests\Fixtures\Filament\Widgets\Keyed\SalesWidget as KeyedSalesWidget;
+use AzGuard\Tests\Fixtures\Filament\Widgets\Stats\SalesWidget as StatsSalesWidget;
 use Filament\Facades\Filament;
 use Illuminate\Support\Facades\Artisan;
 
@@ -271,4 +273,18 @@ it('reports nothing when every class has its definition and every definition its
     $this->bootFilament();
 
     expect(doctorDefinitionFindings())->toBe([]);
+});
+
+it('V75 writes valid PHP for two widgets of one basename, importing the second under another name', function (): void {
+    FilamentFixture::$widgets = [StatsSalesWidget::class, KeyedSalesWidget::class];
+    $this->bootFilament();
+    $this->generated = generatedApp();
+
+    expect(runGenerate(['--only' => ['widgets']]))->toBe(0);
+    $path = $this->generated->path('app/Guards/Admin/Permissions/Widgets/WidgetPermission.php');
+    $source = (string) file_get_contents($path);
+
+    expect(fn () => token_get_all($source, TOKEN_PARSE))->not->toThrow(ParseError::class)
+        ->and($source)->toContain('use '.KeyedSalesWidget::class.' as KeyedSalesWidget;')
+        ->and($source)->toContain('#[ForFilament(KeyedSalesWidget::class)]', '#[ForFilament(SalesWidget::class)]');
 });

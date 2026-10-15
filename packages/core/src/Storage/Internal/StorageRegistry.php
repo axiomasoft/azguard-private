@@ -16,14 +16,10 @@ final class StorageRegistry
     /** @var array<string, Storage> */
     private array $storages = [];
 
-    /** @var array<string, string|null> the connection each storage was declared with; null is the default connection */
-    private array $connections = [];
-
     public function __construct(AzGuardConfig $config, private readonly DatabaseManager $database)
     {
         foreach ($config->storages() as $id => $parameters) {
             $this->register(new Storage($id, $database->connection($parameters['connection']), $parameters['table_prefix'], $parameters['host_keys']));
-            $this->connections[$id] = $parameters['connection'];
         }
     }
 
@@ -49,7 +45,6 @@ final class StorageRegistry
             }
         }
         $this->register($storage);
-        $this->connections[$storage->id()] = $connection;
 
         return $storage;
     }
@@ -72,7 +67,7 @@ final class StorageRegistry
 
         return new StorageDescriptor(
             $storage->id(),
-            array_key_exists($id, $this->connections) ? $this->connections[$id] : $storage->connectionName(),
+            $storage->connectionName(),
             $storage->prefix(),
             $storage->hostKeys(),
         );

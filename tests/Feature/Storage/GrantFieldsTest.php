@@ -6,6 +6,7 @@ use AzGuard\Configuration\Internal\AzGuardConfig;
 use AzGuard\Exceptions\DefinitionException;
 use AzGuard\Exceptions\InvalidChangeFieldsException;
 use AzGuard\Exceptions\InvalidConfigurationException;
+use AzGuard\Exceptions\InvalidSourceContributionException;
 use AzGuard\Schema\Field;
 use AzGuard\Schema\FieldTarget;
 use AzGuard\Storage\Internal\GrantFields;
@@ -84,6 +85,17 @@ it('rejects duplicate model and panel fields and undeclared decision fields', fu
     expect(fn () => GrantFields::for($this->storage, FieldTarget::RoleGrant, AdminRoleGrant::class, [Field::string('weekdays')->withContribution('plugin:notes')]))
         ->toThrow(DefinitionException::class, 'and plugin:notes')
         ->and(fn () => GrantFields::for($this->storage, FieldTarget::RoleGrant, AdminRoleGrant::class, decisionFields: ['floor']))->toThrow(DefinitionException::class);
+});
+
+it('keeps a list in a column as JSON text and decides on a list only from meta', function (): void {
+    $tags = Field::string('tags')->multiple();
+    $fields = GrantFields::for($this->storage, FieldTarget::RoleGrant, AdminRoleGrant::class, [$tags]);
+
+    expect($fields->toRow(['department_id' => 7, 'tags' => ['a', 'b']])['columns'])->toBe(['department_id' => 7, 'tags' => '["a","b"]'])
+        ->and($fields->canonical(['columns' => ['tags' => '["a", "b"]'], 'meta' => []])['tags'])->toBe(['a', 'b'])
+        ->and(fn () => $fields->canonical(['columns' => ['tags' => '{"a":"b"}'], 'meta' => []]))->toThrow(InvalidSourceContributionException::class)
+        ->and(fn () => GrantFields::for($this->storage, FieldTarget::RoleGrant, AdminRoleGrant::class, [$tags], ['tags']))->toThrow(DefinitionException::class, 'list in a column')
+        ->and(GrantFields::for($this->storage, FieldTarget::RoleGrant, AdminRoleGrant::class, [Field::string('tags')->multiple()->inMeta()], ['tags'])->declared())->not->toBeEmpty();
 });
 
 it('parses default models without coupling configuration to storage inheritance', function (): void {

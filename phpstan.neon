@@ -19,6 +19,8 @@ parameters:
     - tests/Fixtures/Filament/RelationManagers/ProductsRelationManager.php
     - tests/Fixtures/Filament/Pages/ReportsPage.php
     - tests/Fixtures/Filament/Widgets/OrderCountWidget.php
+    # A consumer of the testing kit, so that the trait the package publishes is analysed.
+    - tests/Fixtures/Testing/AnalysedConsumer.php
 
   level: max
 

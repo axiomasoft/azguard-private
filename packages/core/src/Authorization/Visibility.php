@@ -61,6 +61,7 @@ use UnitEnum;
 #[Api(since: '1.0')]
 final readonly class Visibility
 {
+    /** @internal built by the container */
     public function __construct(private PanelRegistry $registry, private ModelSubjectResolver $subjects, private Container $container, private CurrentContext $current) {}
 
     /** @template TModel of Model
@@ -139,7 +140,8 @@ final readonly class Visibility
             $component = $binding->kind === 'gate'
                 ? $this->container->make(NativeGateBinding::class)->resolve($binding)['policy']
                 : $this->container->make($binding->policy ?? throw new VisibilityNotSupportedException('policy_binding'));
-            $policy = $this->predicate($component, $request, $frame, $query->getModel()::class);
+            // A grants-authority policy sees the qualified grants in a scalar check; they differ per row here.
+            $policy = $this->predicate($component, $request, $definition->authority === PermissionAuthority::Grants ? $frame->withRowAuthority(false) : $frame, $query->getModel()::class);
             $policy->assertPartition();
         }
         $authority = $query->getModel()->newModelQuery();
@@ -200,7 +202,7 @@ final readonly class Visibility
                 if (! $admin && ! $covers) {
                     continue;
                 }
-                $qualified = $branchFrame->withAuthority([], $admin);
+                $qualified = $branchFrame->withRowAuthority($admin);
                 $this->restrictions($branch, $request, $qualified, $compiler);
                 $branches[] = $branch;
             }

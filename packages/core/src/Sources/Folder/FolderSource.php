@@ -134,6 +134,8 @@ final class FolderSource implements ChecksHealth, DescribesSchema, EvaluatesAuto
     /**
      * The one folder source written into the recipe, with the layer that wrote it.
      *
+     * @internal compiler wiring
+     *
      * @return array{source: self, origin: string, plugin: ?string}|null
      *
      * @throws DefinitionException when the recipe names more than one folder source
@@ -167,6 +169,7 @@ final class FolderSource implements ChecksHealth, DescribesSchema, EvaluatesAuto
         return $found;
     }
 
+    /** @internal compiler wiring */
     public function bind(DiscoverySnapshot $discovery, PanelRecipe $recipe, Container $container): void
     {
         $this->discovery = $discovery;

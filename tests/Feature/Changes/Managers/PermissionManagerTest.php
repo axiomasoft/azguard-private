@@ -47,6 +47,16 @@ afterEach(function (): void {
     Carbon::setTestNow();
 });
 
+it('creates a dynamic permission with its description in one mutation', function (): void {
+    $panel = W::dynamicPanel();
+    $created = M::managers($panel)->permissions()->create('campaigns.launch', 'Запуск', 'Кампании', description: 'Запуск кампании');
+
+    expect($created->status)->toBe(ChangeStatus::Applied)
+        ->and($created->effects)->toHaveCount(1)
+        ->and($created->record?->description)->toBe('Запуск кампании')
+        ->and(permissionsByKey($panel)['campaigns.launch']->description)->toBe('Запуск кампании');
+});
+
 it('V82 creates a dynamic permission, grants it, decides it and deletes it with its grants in one mutation', function (): void {
     $panel = W::dynamicPanel();
     $permissions = M::managers($panel)->permissions();

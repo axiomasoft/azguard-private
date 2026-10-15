@@ -316,20 +316,28 @@ it('rejects an intentional break with its rule id', function (string $artifact, 
         return $f;
     }, ['format.removed']],
     'command option removed' => ['commands', static function (array $f): array {
-        $f['azguard:audit:prune']['synopsis'] = '[--panel [PANEL]] [--before [BEFORE]]';
+        unset($f['azguard:audit:prune']['definition']['options']['force']);
 
         return $f;
     }, ['format.removed']],
     'command option mode' => ['commands', static function (array $f): array {
-        $f['azguard:audit:prune']['synopsis'] = '[--panel PANEL] [--before [BEFORE]] [--force]';
+        $f['azguard:audit:prune']['definition']['options']['panel']['value'] = 'required';
+
+        return $f;
+    }, ['format.changed']],
+    'command repeatable option made single' => ['commands', static function (array $f): array {
+        $f['azguard:make:permission']['definition']['options']['case']['array'] = false;
 
         return $f;
     }, ['format.changed']],
     'command required argument added' => ['commands', static function (array $f): array {
-        $f['azguard:audit:migration']['synopsis'] = '<storage> <table>';
+        $f['azguard:audit:migration']['definition']['arguments']['table'] = ['position' => 1, 'required' => true, 'array' => false];
 
         return $f;
     }, ['format.changed']],
+    'return by reference added' => ['api.core', compatOnMethod(COMPAT_ENTRY, 'check', static fn (array $m): array => [...$m, 'returnsReference' => true]), ['member.return_changed']],
+    'readonly removed from an extensible type' => ['api.core', compatOnType(COMPAT_ACCESS_EVENT, static fn (array $t): array => [...$t, 'readonly' => false]), ['type.shape_changed']],
+    'type alias of a signature changed' => ['api.core', compatOnType('AzGuard\\Diagnostics\\PanelOverview', static fn (array $t): array => [...$t, 'contracts' => array_map(static fn (string $line): string => str_starts_with($line, '@phpstan-type Entry ') ? '@phpstan-type Entry array{key: string}' : $line, $t['contracts'])]), ['contracts.changed']],
     'command exit code' => ['commands', static function (array $f): array {
         $f['azguard:audit:prune']['exit_codes']['production without --force'] = 1;
 
@@ -454,12 +462,12 @@ it('accepts an allowed change', function (string $artifact, Closure $mutate, ?st
         return $f;
     }, 'format.added'],
     'new optional command option' => ['commands', static function (array $f): array {
-        $f['azguard:audit:prune']['synopsis'] .= ' [--chunk [CHUNK]]';
+        $f['azguard:audit:prune']['definition']['options']['chunk'] = ['shortcut' => null, 'value' => 'optional', 'negatable' => false, 'array' => false];
 
         return $f;
     }, 'format.added'],
     'new optional command argument' => ['commands', static function (array $f): array {
-        $f['azguard:audit:migration']['synopsis'] = '<storage> [<table>]';
+        $f['azguard:audit:migration']['definition']['arguments']['table'] = ['position' => 1, 'required' => false, 'array' => false];
 
         return $f;
     }, 'format.added'],
@@ -598,10 +606,10 @@ it('parses Symfony console synopses', function (): void {
             'permission' => ['position' => 1, 'required' => false, 'array' => true],
         ],
         'options' => [
-            'panel' => ['shortcut' => 'p', 'value' => 'optional', 'negatable' => false],
-            'only' => ['shortcut' => null, 'value' => 'required', 'negatable' => false],
-            'force' => ['shortcut' => null, 'value' => 'none', 'negatable' => false],
-            'ansi' => ['shortcut' => null, 'value' => 'none', 'negatable' => true],
+            'panel' => ['shortcut' => 'p', 'value' => 'optional', 'negatable' => false, 'array' => false],
+            'only' => ['shortcut' => null, 'value' => 'required', 'negatable' => false, 'array' => false],
+            'force' => ['shortcut' => null, 'value' => 'none', 'negatable' => false, 'array' => false],
+            'ansi' => ['shortcut' => null, 'value' => 'none', 'negatable' => true, 'array' => false],
         ],
     ])
         ->and(compatParseSynopsis('<storage> [<table> [<column>]]')['arguments'])->toBe([

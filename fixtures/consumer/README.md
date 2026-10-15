@@ -62,13 +62,13 @@ Nothing of this is a package in the repository: no `packages/audit`, no split co
 The `consumer-fixture` job in `.github/workflows/tests.yml` runs the core, core + Filament and core-only variants on PHP 8.4
 and Laravel 13; the core-only step blocks the job.
 
-## Planned fixtures
+## Fixtures
 
-The current script is the skeleton. These fixtures and the support matrix are planned:
-
-| | Fixture |
+| Fixture | What it runs |
 |:--|:--|
-| (a) | One panel |
-| (b) | Cabinet on code and policies, an admin panel on the database, a seller cabinet with relations, and a module |
-| (c) | `azguard` + `azguard-filament` |
-| (d) | The integration example (`fixtures/example-integration`) |
+| `http` | A Laravel application with the `Shop` and `Stored` panels: routes with `azguard.panel` and `azguard.can`, HTTP 200/403 tests under `RefreshDatabase`, and the baseline test |
+| `core-only` | The core archive without `modules/`: migrate, `azguard:doctor`, one grant, one check |
+| `relocated-audit` | The relocation rehearsal above |
+
+`--with-filament` adds the Filament package to the `http` application. The integration example
+(`fixtures/example-integration`) is not part of this script.

@@ -366,6 +366,7 @@
         "enum",
         "filament",
         "filament_enforce",
+        "filament_relation_ability",
         "host_keys",
         "panel_state",
         "permission",

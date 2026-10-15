@@ -30,12 +30,13 @@ interface PermissionManager
     /**
      * Creates a dynamic permission of the tenant.
      *
-     * @param  array<string, mixed>  $fields
+     * @param  array<string, mixed>  $fields  none yet: a dynamic permission has no fields, a non-empty list is refused
+     * @param  string|null  $description  what `PermissionDetails::$description` is on `update()`
      *
      * @throws PanelNotWritableException without `dynamicPermissions()`
      * @throws DuplicatePermissionException when the name is taken, also by a permission of an enum
      */
-    public function create(string $name, ?string $label = null, ?string $group = null, array $fields = []): ChangeResult;
+    public function create(string $name, ?string $label = null, ?string $group = null, array $fields = [], ?string $description = null): ChangeResult;
 
     /**
      * Replaces label, group, description and fields of a dynamic permission of the tenant.

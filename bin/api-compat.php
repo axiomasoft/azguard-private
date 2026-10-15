@@ -371,6 +371,11 @@ function compatTypeBreaks(string $artifact, array $type, array $now, array $curr
         }
     }
 
+    // A readonly class may only be extended by a readonly class: dropping readonly breaks every subclass.
+    if ($type['readonly'] && ! $now['readonly'] && ! $type['final']) {
+        $breaks[] = compatBreak('type.shape_changed', $artifact, $name.'#readonly', true, false);
+    }
+
     if ($type['parent'] !== null && $type['parent'] !== $now['parent']) {
         $breaks[] = compatBreak('type.shape_changed', $artifact, $name.'#parent', $type['parent'], $now['parent']);
     }
@@ -426,8 +431,11 @@ function compatTypeBreaks(string $artifact, array $type, array $now, array $curr
             continue;
         }
 
+        // A subclass redeclares a property readonly only when its parent's is: dropping readonly breaks it too.
+        $dropsReadonly = $described['readonly'] && ! $found['readonly'] && ! $type['final'];
+
         if ($described['visibility'] === 'public' && $found['visibility'] !== 'public'
-            || $described['static'] !== $found['static'] || ! $described['readonly'] && $found['readonly']) {
+            || $described['static'] !== $found['static'] || ! $described['readonly'] && $found['readonly'] || $dropsReadonly) {
             $breaks[] = compatBreak('member.visibility_narrowed', $artifact, $locator, compatModifiers($described), compatModifiers($found));
         }
 
@@ -571,8 +579,8 @@ function compatMethodBreaks(string $artifact, string $locator, array $method, ar
         $breaks[] = compatBreak('implement.method_added', $artifact, $locator, compatSignature($method), compatSignature($now));
     }
 
-    if ($method['return'] !== $now['return']) {
-        $breaks[] = compatBreak('member.return_changed', $artifact, $locator, $method['return'], $now['return']);
+    if ($method['return'] !== $now['return'] || ($method['returnsReference'] ?? false) !== ($now['returnsReference'] ?? false)) {
+        $breaks[] = compatBreak('member.return_changed', $artifact, $locator, ($method['returnsReference'] ?? false ? '&' : '').$method['return'], ($now['returnsReference'] ?? false ? '&' : '').$now['return']);
     }
 
     if ($method['namedArguments'] && ! $now['namedArguments']) {
@@ -918,7 +926,9 @@ function compatCommands(array $fixture): array
 {
     foreach ($fixture as $name => $command) {
         if (is_array($command) && is_string($command['synopsis'] ?? null)) {
-            $fixture[$name] = [...compatParseSynopsis($command['synopsis']), 'exit_codes' => $command['exit_codes'] ?? []];
+            // The recorded definition is the contract; a synopsis cannot tell a repeatable option from a single one.
+            $shape = is_array($command['definition'] ?? null) ? $command['definition'] : compatParseSynopsis($command['synopsis']);
+            $fixture[$name] = [...$shape, 'exit_codes' => $command['exit_codes'] ?? []];
         }
     }
 
@@ -929,7 +939,7 @@ function compatCommands(array $fixture): array
  * Parses a Symfony console synopsis (`InputDefinition::getSynopsis()`): `[-s|--opt]`, `[--opt OPT]`, `[--opt [OPT]]`,
  * `[--opt|--no-opt]`, `[--]`, `<arg>`, `[<arg>]`, `<arg>...`.
  *
- * @return array{arguments: array<string, array{position: int, required: bool, array: bool}>, options: array<string, array{shortcut: ?string, value: string, negatable: bool}>}
+ * @return array{arguments: array<string, array{position: int, required: bool, array: bool}>, options: array<string, array{shortcut: ?string, value: string, negatable: bool, array: bool}>}
  */
 function compatParseSynopsis(string $synopsis): array
 {
@@ -949,6 +959,7 @@ function compatParseSynopsis(string $synopsis): array
                     default => 'required',
                 },
                 'negatable' => $token[4] !== null,
+                'array' => false,
             ];
         } elseif ($token[6] !== null) {
             $arguments[$token[6]] = ['position' => count($arguments), 'required' => $token[5] === null, 'array' => $token[7] !== null];

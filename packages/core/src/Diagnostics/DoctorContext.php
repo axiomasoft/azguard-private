@@ -9,6 +9,7 @@ use AzGuard\Attributes\SpiKind;
 use AzGuard\Configuration\Internal\AzGuardConfig;
 use AzGuard\Panels\Panel;
 use AzGuard\Storage\Internal\Storage;
+use AzGuard\Storage\StorageDescriptor;
 
 /**
  * What one run of `azguard:doctor` inspects: the selected panels and storages, whether the run checks a production
@@ -18,6 +19,8 @@ use AzGuard\Storage\Internal\Storage;
 final readonly class DoctorContext
 {
     /**
+     * @internal built by the doctor
+     *
      * @param  list<Panel>  $panels
      * @param  list<Storage>  $storages
      */
@@ -35,8 +38,18 @@ final readonly class DoctorContext
         return $this->panels;
     }
 
-    /** @return list<Storage> the selected storages */
+    /** @return list<StorageDescriptor> the selected storages */
     public function storages(): array
+    {
+        return array_map(static fn (Storage $storage): StorageDescriptor => new StorageDescriptor($storage->id(), $storage->connectionName(), $storage->prefix(), $storage->hostKeys()), $this->storages);
+    }
+
+    /**
+     * @internal the storages the checks of the core open
+     *
+     * @return list<Storage>
+     */
+    public function storageObjects(): array
     {
         return $this->storages;
     }
@@ -47,6 +60,7 @@ final readonly class DoctorContext
         return $this->production;
     }
 
+    /** @internal the configuration the checks of the core read */
     public function config(): AzGuardConfig
     {
         return $this->config;

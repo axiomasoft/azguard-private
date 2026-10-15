@@ -153,7 +153,7 @@ it('V72 gives the grant fields of the writer models and of a plugin with their o
         ->and($fields['role_grant'][1])->toBe([
             'name' => 'reason', 'label' => 'Причина выдачи', 'type' => 'string',
             'rules' => ['required', 'max:200', 'in:"audit","onboarding"', Closure::class], 'options' => null, 'in_meta' => false,
-            'contributed_by' => 'plugin:acme/reasons',
+            'contributed_by' => 'plugin:acme/reasons', 'required' => true, 'multiple' => false, 'value_class' => null,
         ])
         ->and($fields['role_grant'][3])->toMatchArray(['type' => 'enum', 'rules' => ['nullable', 'array'], 'options' => [1 => 'Monday', 5 => 'Friday'], 'in_meta' => true])
         ->and(array_column($fields['permission_grant'], 'name'))->toBe(['eligible', 'region'])

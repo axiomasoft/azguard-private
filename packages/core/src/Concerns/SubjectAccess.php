@@ -169,7 +169,7 @@ final readonly class SubjectAccess
     {
         $this->select([], [], $guard);
 
-        return $this->authorizer()->permissionSet($this->panel, $this->ref, $this->readScope($on));
+        return $this->authorizer()->permissionSet($this->panel, $this->ref, $this->readScope($on), $this->heldModel());
     }
 
     /**
@@ -217,7 +217,7 @@ final readonly class SubjectAccess
     {
         $this->select([], [], $guard);
 
-        return collect(array_map(static fn (RoleKey $role): string => $role->key(), $this->authorizer()->roles($this->panel, $this->ref, $this->readScope($on))));
+        return collect(array_map(static fn (RoleKey $role): string => $role->key(), $this->authorizer()->roles($this->panel, $this->ref, $this->readScope($on), $this->heldModel())));
     }
 
     /** @throws TenantRequiredException */
@@ -225,7 +225,7 @@ final readonly class SubjectAccess
     {
         $this->select([], [], $guard);
 
-        return $this->authorizer()->isSuperAdmin($this->panel, $this->ref, $this->readScope($on));
+        return $this->authorizer()->isSuperAdmin($this->panel, $this->ref, $this->readScope($on), $this->heldModel());
     }
 
     // Changes
@@ -421,9 +421,15 @@ final readonly class SubjectAccess
         if ($wanted === []) {
             return [];
         }
-        $held = array_map(static fn (RoleKey $role): string => $role->key(), $this->authorizer()->roles($this->panel, $this->ref, $this->readScope($on)));
+        $held = array_map(static fn (RoleKey $role): string => $role->key(), $this->authorizer()->roles($this->panel, $this->ref, $this->readScope($on), $this->heldModel()));
 
         return array_map(static fn (string $key): bool => in_array($key, $held, true), $wanted);
+    }
+
+    /** The model the caller holds; a bare reference is read from the source. */
+    private function heldModel(): ?Model
+    {
+        return $this->subject instanceof Model ? $this->subject : null;
     }
 
     /** @throws TenantRequiredException */

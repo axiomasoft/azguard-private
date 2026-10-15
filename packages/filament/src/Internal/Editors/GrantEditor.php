@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace AzGuard\Filament\Internal\Editors;
 
+use ArrayObject;
 use AzGuard\Changes\ChangeResult;
 use AzGuard\Changes\GrantDetails;
 use AzGuard\Changes\GrantFilter;
@@ -58,15 +59,16 @@ final readonly class GrantEditor
 
     /**
      * @param  'role'|'permission'  $kind
+     * @param  ArrayObject<string, string>  $labels  the labels of the subjects of the page that is shown
      */
-    private function __construct(public PanelAccess $access, public string $kind, private PanelSchema $schema) {}
+    private function __construct(public PanelAccess $access, public string $kind, private PanelSchema $schema, private ArrayObject $labels) {}
 
     /**
      * @param  'role'|'permission'  $kind
      */
     public static function of(PanelAccess $access, string $kind): self
     {
-        return new self($access, $kind, $access->schema());
+        return new self($access, $kind, $access->schema(), new ArrayObject);
     }
 
     public function schema(): PanelSchema
@@ -343,6 +345,9 @@ final readonly class GrantEditor
 
     public function page(GrantFilter $filter): GrantPage
     {
+        // The labels of a page are read once for the lookup context of this editor: a new page reads them again.
+        $this->labels->exchangeArray([]);
+
         return $this->access->grants()->page($filter);
     }
 
@@ -360,7 +365,7 @@ final readonly class GrantEditor
         return [
             'id' => $record->id,
             'subject' => $record->subject->key(),
-            'subject_label' => $this->access->directories()->subjects()->describe($record->subject, $lookup)->label ?? $record->subject->key(),
+            'subject_label' => $this->subjectLabelOf($record->subject, $lookup),
             'key' => $key,
             'key_label' => ($this->kind === 'role' ? $this->role($key)?->label : $this->permission($key)?->label) ?? $key,
             'context_type' => $context->type(),
@@ -504,6 +509,16 @@ final readonly class GrantEditor
         }
     }
 
+    /** The label of a subject, described once per page: the editor has one panel, tenant and acting user. */
+    private function subjectLabelOf(SubjectRef $subject, LookupContext $lookup): string
+    {
+        $key = $subject->key();
+
+        $this->labels[$key] ??= $this->access->directories()->subjects()->describe($subject, $lookup)->label ?? $key;
+
+        return $this->labels[$key];
+    }
+
     private function actorLabel(?ActorRef $actor): ?string
     {
         if ($actor === null) {
@@ -520,7 +535,7 @@ final readonly class GrantEditor
             return $actor->type.':'.$actor->id;
         }
 
-        return $this->access->directories()->subjects()->describe($subject, $this->lookup())->label ?? $subject->key();
+        return $this->subjectLabelOf($subject, $this->lookup());
     }
 
     /**

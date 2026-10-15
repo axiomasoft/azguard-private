@@ -39,10 +39,12 @@ use Filament\Resources\RelationManagers\RelationGroup;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Resources\RelationManagers\RelationManagerConfiguration;
 use Filament\Resources\Resource;
+use Filament\Widgets\Widget;
 use Illuminate\Auth\Access\Response;
 use Illuminate\Contracts\Config\Repository;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use Livewire\Livewire;
 use ReflectionClass;
 use ReflectionMethod;
 
@@ -63,6 +65,9 @@ use ReflectionMethod;
 #[Api(since: '1.0')]
 final class AzGuardPlugin implements Plugin
 {
+    /** The container key that marks the widget guard as registered for this application. */
+    private const string WIDGET_GUARD = 'azguard.filament.widget-guard';
+
     public const string ID = 'azguard';
 
     /** Alias of the middleware that enters a panel. */
@@ -373,6 +378,8 @@ final class AzGuardPlugin implements Plugin
 
     /**
      * Permission keys of the resources, pages and widgets of a Filament panel under the settings of this plugin.
+     *
+     * @internal read by the package; the generator and the doctor are the supported views of the keys
      */
     public function keys(FilamentPanel $panel): FilamentKeys
     {
@@ -476,6 +483,7 @@ final class AzGuardPlugin implements Plugin
         }
 
         self::authorizeRecordsOfActions();
+        self::guardWidgets();
     }
 
     /**
@@ -500,6 +508,29 @@ final class AzGuardPlugin implements Plugin
                     .', or exclude the class.');
             }
         }
+    }
+
+    /**
+     * A widget that a page returns at run time is unknown when the panel boots, so the keys cannot name it. In a panel
+     * that enforces, a widget is shown only when AzGuard decides it or the panel excludes it: any other widget is refused
+     * when Livewire mounts or hydrates it, so that no widget is open by omission.
+     */
+    private static function guardWidgets(): void
+    {
+        if (app()->bound(self::WIDGET_GUARD)) {
+            return;
+        }
+        app()->instance(self::WIDGET_GUARD, true);
+        $guard = static function (mixed $component): void {
+            $context = $component instanceof Widget ? FilamentContext::serving() : null;
+
+            if ($context?->enforced() !== true || $context->excludes('widgets', $component::class)) {
+                return;
+            }
+            abort_unless(in_array(AuthorizesWidget::class, class_uses_recursive($component), true), 403);
+        };
+        Livewire::listen('mount', static fn (mixed $component) => $guard($component));
+        Livewire::listen('hydrate', static fn (mixed $component) => $guard($component));
     }
 
     /**

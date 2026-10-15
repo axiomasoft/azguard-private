@@ -21,6 +21,7 @@ use AzGuard\Panels\Panel;
 use AzGuard\Sources\Internal\PanelSources;
 use AzGuard\Support\ModelKey;
 use Illuminate\Database\Eloquent\Model;
+use LogicException;
 use RuntimeException;
 use Throwable;
 
@@ -291,7 +292,32 @@ final class BatchInputs
 
         return [$contribution::class, $contribution->role, $contribution->scope, $contribution->source, $contribution->origin,
             $contribution instanceof Grant ? $contribution->pattern : null, $contribution->expiresAt?->format('U.u'),
-            json_encode($contribution->fields(), JSON_THROW_ON_ERROR)];
+            hash('sha256', self::plain($contribution->fields()))];
+    }
+
+    /**
+     * A key of a plain field value that tells apart everything an evaluator can: `1` from `1.0`, `0.0` from `-0.0`, any
+     * byte string, the order of an array. JSON would merge the first, reject the last.
+     */
+    private static function plain(mixed $value): string
+    {
+        if (is_array($value)) {
+            $encoded = '';
+            foreach ($value as $key => $nested) {
+                $encoded .= self::plain($key).self::plain($nested);
+            }
+
+            return 'a'.count($value).'{'.$encoded.'}';
+        }
+
+        return match (true) {
+            $value === null => 'n;',
+            is_bool($value) => $value ? 'b1;' : 'b0;',
+            is_int($value) => 'i'.$value.';',
+            is_float($value) => 'f'.bin2hex(pack('E', $value)).';',
+            is_string($value) => 's'.strlen($value).':'.$value.';',
+            default => throw new LogicException('A decision field holds a scalar, null or an array.'),
+        };
     }
 
     private static function subjectKey(Panel $panel, SubjectRef $ref): string

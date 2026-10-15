@@ -54,15 +54,18 @@ final class RelationSource implements DescribesSchema, FiltersQueries, ProvidesR
         private readonly string $via,
         private readonly string|Closure $role,
         private readonly ?Closure $scope,
+        private readonly ?string $name = null,
     ) {}
 
     /** @param string|AssignmentScopeDefinition $model a model class registered by a panel scope, or its descriptor
      * @param  string|Closure(Model): ?string  $role  static role, pivot.role or callback receiving the pivot/related model
      * @param  (Closure(Builder<Model>): mixed)|null  $scope  grouped narrowing of the related-root query
+     * @param  string|null  $name  tells apart two sources of one scope type on a panel (`members` and `lead` of a project): the
+     *                             source id becomes `relation:<type>:<name>`, lowercase letters, digits, `_` and `-`
      */
-    public static function make(string|AssignmentScopeDefinition $model, string $via, string|Closure $role, ?Closure $scope = null): self
+    public static function make(string|AssignmentScopeDefinition $model, string $via, string|Closure $role, ?Closure $scope = null, ?string $name = null): self
     {
-        return new self($model, $via, $role, $scope);
+        return new self($model, $via, $role, $scope, $name);
     }
 
     /** @internal Binds the source to a queryable scope type the panel declares; the model-class shortcut picks it.
@@ -102,7 +105,7 @@ final class RelationSource implements DescribesSchema, FiltersQueries, ProvidesR
             throw new DefinitionException('RelationSource scope type '.$definition->type().' is not a declared queryable assignment scope of panel '.$panel.'.');
         }
 
-        $this->binding = RelationBinding::make($definition, $this->via, $this->role === 'pivot.role');
+        $this->binding = RelationBinding::make($definition, $this->via, $this->role === 'pivot.role', $this->name);
         $this->panelId = $panel;
     }
 
@@ -127,7 +130,7 @@ final class RelationSource implements DescribesSchema, FiltersQueries, ProvidesR
     public function id(): string
     {
         return $this->binding->id ?? ($this->model instanceof AssignmentScopeDefinition
-            ? RelationBinding::identity($this->model->type())
+            ? RelationBinding::identity($this->model->type(), $this->name)
             : throw new DefinitionException('Attach RelationSource model '.$this->model.' to its panel before reading the normalized source id.'));
     }
 

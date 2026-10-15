@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 use AzGuard\Attributes\Api;
 use AzGuard\Attributes\Spi;
+use AzGuard\Diagnostics\DoctorContext;
+use AzGuard\Sources\Internal\EvaluatesAutomaticRoles;
 use AzGuard\Testing\AzGuardFake;
 use AzGuard\Tests\Arch\ApiUsage;
 use AzGuard\Tests\Arch\BoundaryScan;
@@ -393,4 +395,89 @@ it('mirrors every public method of the entry class on the consumer fake with the
 
     expect(array_intersect_key($fake, $entry))->toBe(array_merge($entry, ['fake' => '(): self']))
         ->and($entry['fake'])->toBe('(): AzGuard\Testing\AzGuardFake');
+});
+
+/**
+ * The places where a supported member or type names an unsupported class: a native type, a parent or an interface, and a
+ * PHPDoc contract that spells an `Internal` class or the short name of one the file imports.
+ *
+ * @param  list<array<string, mixed>>  $types  the types of a manifest
+ * @param  list<string>  $allowed  the internal names a supported type may carry
+ * @return list<string>
+ */
+function apiInternalLeaks(array $types, array $allowed = []): array
+{
+    $leaks = [];
+    $internal = static fn (string $text): array => array_values(array_diff(
+        array_filter((array) preg_split('/[^\w\\\\]+/', $text) ?: [], static fn (string $name): bool => str_contains($name, '\\Internal\\')),
+        $allowed,
+    ));
+
+    foreach ($types as $type) {
+        $imports = [];
+        $file = class_exists($type['name']) || interface_exists($type['name']) || trait_exists($type['name']) || enum_exists($type['name'])
+            ? (new ReflectionClass($type['name']))->getFileName() : false;
+
+        if ($file !== false && preg_match_all('/^use ([\w\\\\]*\\\\Internal\\\\[\w\\\\]+)(?: as (\w+))?;$/m', (string) file_get_contents($file), $uses, PREG_SET_ORDER) > 0) {
+            foreach ($uses as $use) {
+                $imports[$use[2] ?? substr((string) strrchr($use[1], '\\'), 1)] = $use[1];
+            }
+        }
+        $doc = static function (string $where, array $contracts) use (&$leaks, $imports, $allowed): void {
+            foreach ($contracts as $contract) {
+                foreach ($imports as $alias => $class) {
+                    if (! in_array($class, $allowed, true) && preg_match('/(?<![\w\\\\])'.preg_quote($alias, '/').'(?![\w\\\\])/', $contract) === 1) {
+                        $leaks[] = $where.' contract names '.$class;
+                    }
+                }
+            }
+        };
+        $doc($type['name'], $type['contracts']);
+
+        foreach ([...$internal(implode(' ', $type['interfaces'])), ...$internal((string) $type['parent'])] as $name) {
+            $leaks[] = $type['name'].' extends or implements '.$name;
+        }
+
+        foreach ($type['properties'] as $property) {
+            array_push($leaks, ...array_map(static fn (string $name): string => $type['name'].'::$'.$property['name'].' is typed '.$name, $internal((string) $property['type'])));
+            $doc($type['name'].'::$'.$property['name'], $property['contracts']);
+        }
+
+        foreach ($type['methods'] as $method) {
+            $names = $internal(implode(' ', [(string) $method['return'], ...array_map(static fn (array $parameter): string => (string) $parameter['type'], $method['parameters'])]));
+            array_push($leaks, ...array_map(static fn (string $name): string => $type['name'].'::'.$method['name'].'() is typed '.$name, $names));
+            $doc($type['name'].'::'.$method['name'].'()', $method['contracts']);
+        }
+    }
+
+    return $leaks;
+}
+
+it('closes the supported surface: no supported member or type names an unsupported class', function (): void {
+    $leaks = [];
+
+    foreach (['packages/core/api-manifest.json', 'packages/filament/api-manifest.json'] as $path) {
+        $manifest = json_decode((string) file_get_contents(apiManifestRoot().'/'.$path), true, flags: JSON_THROW_ON_ERROR);
+        // The marker FolderSource carries is empty and unimplementable outside core: it names no member a consumer could use.
+        array_push($leaks, ...apiInternalLeaks($manifest['classes'], ['AzGuard\\Sources\\Internal\\EvaluatesAutomaticRoles']));
+    }
+
+    expect($leaks)->toBe([]);
+});
+
+it('reports a native type, a parent and a PHPDoc contract that leak an unsupported class', function (): void {
+    $type = ['name' => DoctorContext::class, 'contracts' => [], 'interfaces' => [EvaluatesAutomaticRoles::class], 'parent' => null,
+        'properties' => [['name' => 'storage', 'type' => '?AzGuard\\Storage\\Internal\\Storage', 'contracts' => []]],
+        'methods' => [
+            ['name' => 'storages', 'return' => 'array', 'parameters' => [], 'contracts' => ['@return list<Storage> the selected storages']],
+            ['name' => 'config', 'return' => 'AzGuard\\Configuration\\Internal\\AzGuardConfig', 'parameters' => [['type' => 'int']], 'contracts' => []],
+            ['name' => 'panels', 'return' => 'array', 'parameters' => [], 'contracts' => ['@return list<Panel>']],
+        ]];
+
+    expect(apiInternalLeaks([$type]))->toBe([
+        'AzGuard\\Diagnostics\\DoctorContext extends or implements AzGuard\\Sources\\Internal\\EvaluatesAutomaticRoles',
+        'AzGuard\\Diagnostics\\DoctorContext::$storage is typed AzGuard\\Storage\\Internal\\Storage',
+        'AzGuard\\Diagnostics\\DoctorContext::storages() contract names AzGuard\\Storage\\Internal\\Storage',
+        'AzGuard\\Diagnostics\\DoctorContext::config() is typed AzGuard\\Configuration\\Internal\\AzGuardConfig',
+    ])->and(apiInternalLeaks([$type], [EvaluatesAutomaticRoles::class]))->toHaveCount(3);
 });

@@ -27,6 +27,7 @@ use Throwable;
 #[Api(since: '1.0')]
 final readonly class GateBridge
 {
+    /** @internal built by the container */
     public function __construct(private Authorizer $authorizer, private PanelResolver $resolver, private PanelRegistry $registry) {}
 
     /** @param array<mixed> $arguments */

@@ -9,6 +9,7 @@ use AzGuard\Context\AssignmentScopePhase;
 use AzGuard\Context\AssignmentScopeRuntime;
 use AzGuard\Contracts\Authorization\EvaluationContext;
 use AzGuard\Contracts\Scopes\ResolvedAssignmentScope;
+use AzGuard\Exceptions\VisibilityNotSupportedException;
 use AzGuard\Kernel\Decision\CodeStateToken;
 use AzGuard\Kernel\Decision\Grant;
 use AzGuard\Kernel\Decision\RoleContribution;
@@ -27,7 +28,7 @@ use Illuminate\Database\Eloquent\Model;
 /** Immutable operation inputs; a contribution receives its own frame. */
 final readonly class EvaluationFrame implements EvaluationContext
 {
-    /** @param list<Grant> $matching
+    /** @param ?list<Grant> $matching `null` while a query is compiled: the set depends on the row, so it is not available
      * @param  array<string, StateToken>  $sourceStates
      */
     public function __construct(
@@ -41,7 +42,7 @@ final readonly class EvaluationFrame implements EvaluationContext
         private ?object $selectedResource = null,
         private ?BaseRole $selectedRole = null,
         private Grant|RoleContribution|null $contribution = null,
-        private array $matching = [],
+        private ?array $matching = [],
         public bool $qualifiedSuperAdmin = false,
         public ?ReadAttempt $readAttempt = null,
         public array $sourceStates = [],
@@ -175,7 +176,7 @@ final readonly class EvaluationFrame implements EvaluationContext
     /** @return list<Grant> */
     public function matchingGrants(): array
     {
-        return $this->matching;
+        return $this->matching ?? throw new VisibilityNotSupportedException('row_dependent_matching_grants');
     }
 
     public function forContribution(Grant|RoleContribution $grant, ?BaseRole $role = null): self
@@ -203,5 +204,11 @@ final readonly class EvaluationFrame implements EvaluationContext
     public function withAuthority(array $grants, bool $superAdmin): self
     {
         return new self($this->selectedPanel, $this->selectedScope, $this->token, $this->decisionNow, $this->selectedActor, $this->subject, $this->actorSubject, $this->selectedResource, null, null, $grants, $superAdmin, $this->readAttempt, $this->sourceStates, $this->assignmentScope, $this->authorityTransaction, $this->batchInputs, $this->dynamicRead);
+    }
+
+    /** The frame a query predicate sees: the matching grants differ per row, so reading them is unsupported rather than empty. */
+    public function withRowAuthority(bool $superAdmin): self
+    {
+        return new self($this->selectedPanel, $this->selectedScope, $this->token, $this->decisionNow, $this->selectedActor, $this->subject, $this->actorSubject, $this->selectedResource, null, null, null, $superAdmin, $this->readAttempt, $this->sourceStates, $this->assignmentScope, $this->authorityTransaction, $this->batchInputs, $this->dynamicRead);
     }
 }

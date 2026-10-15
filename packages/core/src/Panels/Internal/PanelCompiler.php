@@ -254,6 +254,11 @@ final class PanelCompiler
                         throw new DefinitionException($where.'tables() lists base names of tables, got '.self::describe($table).'.');
                     }
 
+                    // One spelling per table: a case-insensitive driver reads `ROLE_GRANTS` as the core table.
+                    if (preg_match('/\A[a-z][a-z0-9_]*\z/', $table) !== 1) {
+                        throw new DefinitionException($where.'tables() lists base names of tables in lower-case ASCII letters, digits and underscores, got '.self::describe($table).'.');
+                    }
+
                     if (in_array($table, self::CORE_TABLES, true)) {
                         throw new DefinitionException($where.'the table '.$table.' belongs to the core writer.');
                     }

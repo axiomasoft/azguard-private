@@ -41,12 +41,45 @@ function azguardCommands(): array
     return $commands;
 }
 
+/**
+ * The arguments and options of every command as the console parsed them: a synopsis does not show a repeatable option.
+ *
+ * @return array<string, array{arguments: array<string, array{position: int, required: bool, array: bool}>, options: array<string, array{shortcut: ?string, value: string, negatable: bool, array: bool}>}>
+ */
+function azguardCommandDefinitions(): array
+{
+    $definitions = [];
+    foreach (Artisan::all() as $name => $command) {
+        if (! str_starts_with($name, 'azguard:') || ! $command instanceof Command) {
+            continue;
+        }
+        $definition = $command->getDefinition();
+        $arguments = [];
+        foreach (array_values($definition->getArguments()) as $position => $argument) {
+            $arguments[$argument->getName()] = ['position' => $position, 'required' => $argument->isRequired(), 'array' => $argument->isArray()];
+        }
+        $options = [];
+        foreach ($definition->getOptions() as $option) {
+            $options[$option->getName()] = [
+                'shortcut' => $option->getShortcut(),
+                'value' => $option->isValueRequired() ? 'required' : ($option->isValueOptional() ? 'optional' : 'none'),
+                'negatable' => $option->isNegatable(),
+                'array' => $option->isArray(),
+            ];
+        }
+        $definitions[$name] = ['arguments' => $arguments, 'options' => $options];
+    }
+    ksort($definitions, SORT_STRING);
+
+    return $definitions;
+}
+
 function azguardCommandsPath(): string
 {
     return __DIR__.'/../../Fixtures/Console/commands.json';
 }
 
-/** @return array<string, array{synopsis: string, exit_codes: array<string, int>}> */
+/** @return array<string, array{synopsis: string, definition: array<string, mixed>, exit_codes: array<string, int>}> */
 function azguardCommandsSnapshot(): array
 {
     return json_decode((string) file_get_contents(azguardCommandsPath()), true, flags: JSON_THROW_ON_ERROR);
@@ -57,14 +90,15 @@ it('keeps the names and signatures of the azguard commands', function (): void {
         $snapshot = azguardCommandsSnapshot();
 
         foreach (azguardCommands() as $name => $synopsis) {
-            $snapshot[$name] = ['synopsis' => $synopsis, 'exit_codes' => $snapshot[$name]['exit_codes'] ?? []];
+            $snapshot[$name] = ['synopsis' => $synopsis, 'definition' => azguardCommandDefinitions()[$name], 'exit_codes' => $snapshot[$name]['exit_codes'] ?? []];
         }
         $snapshot = array_intersect_key($snapshot, azguardCommands());
         ksort($snapshot, SORT_STRING);
         file_put_contents(azguardCommandsPath(), FormatSnapshot::encode($snapshot));
     }
 
-    expect(azguardCommands())->toBe(array_map(static fn (array $command): string => $command['synopsis'], azguardCommandsSnapshot()));
+    expect(azguardCommands())->toBe(array_map(static fn (array $command): string => $command['synopsis'], azguardCommandsSnapshot()))
+        ->and(azguardCommandDefinitions())->toBe(array_map(static fn (array $command): array => $command['definition'], azguardCommandsSnapshot()));
 });
 
 it('gives every changing command the shared options of its kind', function (): void {

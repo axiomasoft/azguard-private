@@ -105,6 +105,14 @@ describe('compilation', function (): void {
         'shared table' => ['audit_log', [participantProbe(['audit_log'])]],
     ]);
 
+    it('refuses a table name that is not one canonical lower-case base name', function (string $table): void {
+        expect(fn () => participantPanel([participantProbe([$table])]))->toThrow(DefinitionException::class, 'lower-case ASCII');
+    })->with(['upper-case core table' => 'ROLE_GRANTS', 'mixed-case core table' => 'Role_Grants', 'qualified' => 'main.rows', 'quoted' => '"rows"', 'with a space' => 'my rows', 'alias' => 'rows as r', 'leading digit' => '1rows', 'leading underscore' => '_rows']);
+
+    it('refuses a table two participants declare in different case', function (): void {
+        expect(fn () => participantPanel([participantProbe(['audit_log']), participantProbe(['AUDIT_LOG'])]))->toThrow(DefinitionException::class);
+    });
+
     it('refuses a value that is not a participant', function (mixed $participant): void {
         expect(fn () => participantPanel([$participant]))->toThrow(DefinitionException::class, 'participants() expects');
     })->with(['closure' => [fn (): Closure => static fn (): null => null], 'object' => [fn (): stdClass => new stdClass], 'other class' => [stdClass::class], 'empty name' => ['']]);

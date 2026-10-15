@@ -26,6 +26,7 @@ use BackedEnum;
 #[Api(since: '1.0')]
 final readonly class PanelOverview
 {
+    /** @internal built by the container */
     public function __construct(private PanelRegistry $registry, private AzGuard $azguard) {}
 
     /**

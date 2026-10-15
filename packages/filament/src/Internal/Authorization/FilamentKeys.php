@@ -10,6 +10,8 @@ use BackedEnum;
 use Filament\Clusters\Cluster;
 use Filament\Pages\Page;
 use Filament\Panel as FilamentPanel;
+use Filament\Resources\RelationManagers\RelationGroup;
+use Filament\Resources\RelationManagers\RelationManagerConfiguration;
 use Filament\Resources\Resource;
 use Filament\Resources\ResourceConfiguration;
 use Filament\Support\Contracts\HasLabel;
@@ -117,7 +119,7 @@ final class FilamentKeys
             $model = $resource::getModel();
             $group = $this->group($resource::getNavigationGroup());
 
-            foreach ($this->abilities as $ability) {
+            foreach ([...$this->abilities, ...array_diff($this->relationAbilities($resource), $this->abilities)] as $ability) {
                 yield [
                     new FilamentKey(
                         local: $this->resource($resource, $ability, $configuration),
@@ -156,6 +158,50 @@ final class FilamentKeys
                 $widget,
             ];
         }
+    }
+
+    /**
+     * The abilities its relation managers declare for changing a relation, beyond the abilities of the panel.
+     *
+     * @param  class-string<resource>  $resource
+     * @return list<string>
+     */
+    private function relationAbilities(string $resource): array
+    {
+        $abilities = [];
+
+        foreach (self::managersOf($resource::getRelations()) as $manager) {
+            $ability = FilamentContext::declaredRelationAbility($manager);
+
+            if ($ability !== null) {
+                $abilities[$ability] = $ability;
+            }
+        }
+
+        return array_values($abilities);
+    }
+
+    /**
+     * The relation manager classes of a list of relations, groups opened.
+     *
+     * @param  array<mixed>  $relations
+     * @return list<class-string>
+     */
+    private static function managersOf(array $relations): array
+    {
+        $managers = [];
+
+        foreach ($relations as $relation) {
+            if ($relation instanceof RelationGroup) {
+                array_push($managers, ...self::managersOf($relation->getManagers()));
+            } elseif ($relation instanceof RelationManagerConfiguration) {
+                $managers[] = $relation->relationManager;
+            } elseif (is_string($relation) && class_exists($relation)) {
+                $managers[] = $relation;
+            }
+        }
+
+        return $managers;
     }
 
     /**
@@ -210,11 +256,19 @@ final class FilamentKeys
     private function widgetTargets(): array
     {
         $targets = [];
+        $declared = $this->panel->getWidgets();
 
-        foreach ($this->panel->getWidgets() as $widget) {
+        // Filament registers the widgets of a resource apart from those of the panel, and shows them on its pages.
+        foreach ($this->resourceTargets() as [$resource]) {
+            foreach ($resource::getWidgets() as $widget) {
+                $declared[] = $widget;
+            }
+        }
+
+        foreach ($declared as $widget) {
             $class = $widget instanceof WidgetConfiguration ? $widget->widget : $widget;
 
-            if (! $this->excluded('widgets', $class) && ! in_array($class, $targets, true)) {
+            if (is_subclass_of($class, Widget::class) && ! $this->excluded('widgets', $class) && ! in_array($class, $targets, true)) {
                 $targets[] = $class;
             }
         }

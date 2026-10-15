@@ -29,6 +29,7 @@ use AzGuard\Panels\Panel;
 use AzGuard\Sources\Internal\PanelSources;
 use DateTimeImmutable;
 use Illuminate\Contracts\Container\Container;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Carbon;
 use Throwable;
 
@@ -43,9 +44,10 @@ final readonly class PrepareStage
     }
 
     /** @return array{AccessRequest,PanelCatalog,EvaluationFrame,?Decision} */
-    public function prepareSuperAdmin(Panel $panel, SubjectRef $subject, AccessScope $scope, Trace $trace, DateTimeImmutable $now): array
+    public function prepareSuperAdmin(Panel $panel, SubjectRef $subject, AccessScope $scope, Trace $trace, DateTimeImmutable $now, ?Model $model = null): array
     {
         $request = AccessRequest::for($subject, PermissionKey::of($panel->id(), 'superadmin.qualify'))->inScope($scope);
+        $request = $model === null ? $request : $request->withSubjectModel($model);
         [$catalog, , $frame, $denial] = $this->prepareRequest($panel, $request, null, $trace, $now, qualificationOnly: true);
 
         if ($denial === null) {

@@ -183,6 +183,61 @@ final readonly class FilamentContext
     }
 
     /**
+     * The resource and the record whose relation a relation manager or a related-records page changes; null when
+     * the component is neither or the owner has no record to decide on.
+     *
+     * @return array{class-string<FilamentResource>, Model}|null
+     */
+    public static function ownerOf(mixed $component): ?array
+    {
+        [$page, $record] = match (true) {
+            $component instanceof RelationManager => [$component->getPageClass(), $component->getOwnerRecord()],
+            $component instanceof ManageRelatedRecords => [$component::class, $component->getRecord()],
+            default => [null, null],
+        };
+        $resource = $page !== null && is_a($page, ResourcePage::class, true) ? $page::getResource() : null;
+
+        return is_string($resource) && is_subclass_of($resource, FilamentResource::class) && $record instanceof Model ? [$resource, $record] : null;
+    }
+
+    /**
+     * The ability of the owner resource that changing the relation of a manager needs: the one the manager declares with
+     * `protected static ?string $azguardRelationAbility`, otherwise `update`.
+     *
+     * @param  class-string  $manager
+     *
+     * @throws InvalidConfigurationException when the declared ability is not snake_case
+     */
+    public static function relationAbility(string $manager): string
+    {
+        return self::declaredRelationAbility($manager) ?? 'update';
+    }
+
+    /**
+     * @param  class-string  $manager
+     *
+     * @throws InvalidConfigurationException
+     */
+    public static function declaredRelationAbility(string $manager): ?string
+    {
+        if (! property_exists($manager, 'azguardRelationAbility')) {
+            return null;
+        }
+        $ability = (new ReflectionProperty($manager, 'azguardRelationAbility'))->getValue();
+
+        if ($ability === null) {
+            return null;
+        }
+
+        if (! is_string($ability) || preg_match('/\A[a-z][a-z0-9_]*\z/', $ability) !== 1) {
+            throw InvalidConfigurationException::failing('filament_relation_ability', $manager.' declares the relation ability "'.(is_string($ability) ? $ability : get_debug_type($ability))
+                .'", which is not snake_case (lowercase letters, digits and "_").');
+        }
+
+        return $ability;
+    }
+
+    /**
      * Whether a resource class decides through AzGuard.
      *
      * @phpstan-assert-if-true class-string<FilamentResource> $resource

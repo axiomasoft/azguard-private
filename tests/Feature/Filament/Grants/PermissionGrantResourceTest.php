@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use AzGuard\Changes\GrantFilter;
 use AzGuard\Exceptions\PermissionNotGrantableException;
 use AzGuard\Facades\AzGuard;
 use AzGuard\Filament\Internal\Editors\GrantEditor;
@@ -16,6 +17,7 @@ use AzGuard\Tests\Fixtures\Filament\GrantWorld;
 use AzGuard\Tests\Fixtures\Filament\Models\User;
 use Filament\Actions\Testing\TestAction;
 use Filament\Infolists\Components\TextEntry;
+use Illuminate\Database\Events\QueryExecuted;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 use Livewire\Livewire;
@@ -126,4 +128,37 @@ it('refuses «Why?» for a subject or a permission that the target panel does no
     expect(fn () => $editor->explain('user:999', 'entry.enter', null, null))->toThrow(ValidationException::class)
         ->and(fn () => $editor->explain('user:2', 'orders.view', null, null))->toThrow(ValidationException::class)
         ->and(fn () => $editor->explain('user:2', 'entry.enter', 'team', '7'))->toThrow(ValidationException::class);
+});
+
+it('reads the label of a subject once for a page of grants, and again for the next page', function (): void {
+    $user = GrantWorld::editor();
+    $access = TargetSelector::current()->access('admin');
+    $keys = [];
+    foreach ($access->schema()->permissions() as $permission) {
+        if ($permission->grantable()) {
+            $keys[] = $permission->key->local();
+        }
+    }
+    expect(count($keys))->toBeGreaterThanOrEqual(25);
+    $access->for($user)->grantPermission(array_slice($keys, 0, 25));
+    $editor = GrantEditor::of($access, 'permission');
+    $filter = new GrantFilter(kind: 'permission', subject: SubjectRef::of('user', 1), limit: 25);
+    $page = $editor->page($filter);
+    $queries = [];
+    DB::listen(static function (QueryExecuted $query) use (&$queries): void {
+        if (preg_match('/from\s+["`]users["`]/i', $query->sql) === 1) {
+            $queries[] = $query->sql;
+        }
+    });
+
+    foreach ($page->items as $record) {
+        $editor->row($record);
+    }
+    expect($page->items)->toHaveCount(25)->and($queries)->toHaveCount(1);
+
+    $editor->row($page->items[0]);
+    expect($queries)->toHaveCount(1);
+
+    $editor->row($editor->page($filter)->items[0]);
+    expect($queries)->toHaveCount(2);
 });

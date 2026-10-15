@@ -235,6 +235,7 @@ function apiMembers(ReflectionClass $class, bool $facade = false): array
             'final' => $method->isFinal(),
             'parameters' => array_map(static fn (ReflectionParameter $parameter): array => apiParameter($parameter, $name), $method->getParameters()),
             'return' => apiType($method->getReturnType(), $name),
+            'returnsReference' => $method->returnsReference(),
             'namedArguments' => $classNamed && ! apiHasTag($method->getDocComment(), 'no-named-arguments'),
             'contracts' => apiDocContracts($method->getDocComment()),
         ];
@@ -256,7 +257,8 @@ function apiHasTag(string|false $doc, string $tag): bool
 
 /**
  * The PHPDoc type contracts of a docblock: the `@param`, `@return`, `@var` and `@template` lines whose type is a
- * generic, a shape or a class-string, with whitespace normalised. They are part of the supported contract.
+ * generic, a shape or a class-string, and every `@phpstan-type` / `@phpstan-import-type` alias line, with whitespace
+ * normalised. They are part of the supported contract.
  *
  * @return list<string>
  */
@@ -267,11 +269,12 @@ function apiDocContracts(string|false $doc): array
     foreach (preg_split('/\R/', (string) $doc) ?: [] as $line) {
         $line = trim((string) preg_replace('/^\s*(?:\/\*\*|\*\/|\*)?\s*|\s*\*\/\s*$/', '', $line));
 
-        if (preg_match('/^@(?:phpstan-|psalm-)?(param|return|var|template(?:-covariant|-contravariant)?)\b/', $line) !== 1) {
+        if (preg_match('/^@(?:phpstan-|psalm-)?(param|return|var|template(?:-covariant|-contravariant)?|type|import-type)\b/', $line) !== 1) {
             continue;
         }
 
-        if (str_starts_with($line, '@template') || preg_match('/[<{]|class-string/', $line) === 1) {
+        // A type alias is part of every signature that names it: record its definition and its import as they stand.
+        if (str_starts_with($line, '@template') || preg_match('/^@(?:phpstan-|psalm-)(?:import-)?type\b/', $line) === 1 || preg_match('/[<{]|class-string/', $line) === 1) {
             $contracts[] = (string) preg_replace('/\s+/', ' ', $line);
         }
     }

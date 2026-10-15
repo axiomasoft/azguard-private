@@ -90,6 +90,15 @@ it('V61 refuses the page of a role without azguard-roles.view, and an unknown ro
     Livewire::test(ViewRole::class, ['panel' => 'admin', 'role' => 'nobody'])->assertNotFound();
 });
 
+it('V61 checks the view permission again when the open page is refreshed', function (): void {
+    EditorWorld::editor(['azguard-roles.view_any', 'azguard-roles.view']);
+    $page = Livewire::test(ViewRole::class, ['panel' => 'admin', 'role' => 'member'])->assertSuccessful();
+
+    GateWorld::revoke('azguard-roles.view');
+    $page->call('$refresh')->assertForbidden()->assertDontSee('entry.enter')->assertDontSee(GrantedMemberRole::class);
+    Livewire::test(ViewRole::class, ['panel' => 'admin', 'role' => 'member'])->assertForbidden();
+});
+
 it('V23 finds no way to change a role: no page, action, property or method writes, and nothing is stored', function (string $field): void {
     EditorWorld::editor(['azguard-roles.view_any', 'azguard-roles.view']);
     $state = AzGuard::panel('admin')->state();

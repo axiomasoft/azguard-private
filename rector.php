@@ -17,6 +17,11 @@ use Rector\Php81\Rector\Property\ReadOnlyPropertyRector;
 use Rector\Php82\Rector\Class_\ReadOnlyClassRector;
 use Rector\Set\ValueObject\SetList;
 
+// `$a === null ? [] : $a->b` → `$a?->b ?? []` hides which side may be null; PHPStan then reports nullsafe.neverNull on
+// non-nullable properties. The rule exists from Rector 2.7: an older install has nothing to skip, and naming a missing
+// rule would stop every run.
+$skipped = class_exists(TernaryToNullsafeCoalesceRector::class) ? [TernaryToNullsafeCoalesceRector::class] : [];
+
 return RectorConfig::configure()
     ->withPaths([
         __DIR__.'/packages/core/src',
@@ -37,6 +42,7 @@ return RectorConfig::configure()
     // count as a dependency (Facades → Testing, SchemaBuilder → Catalog).
     ->withImportNames(importDocBlockNames: false)
     ->withSkip([
+        ...$skipped,
         // Provider skeletons keep empty register()/boot() as the registration points later items fill in.
         RemoveEmptyClassMethodRector::class => [
             __DIR__.'/packages/core/src/AzGuardServiceProvider.php',
@@ -57,9 +63,6 @@ return RectorConfig::configure()
         RemoveUnusedPublicMethodParameterRector::class,
         // `readonly class` is a public API change recorded in api-manifest.json; promote classes deliberately.
         ReadOnlyClassRector::class,
-        // `$a === null ? [] : $a->b` → `$a?->b ?? []` hides which side may be null; PHPStan then reports
-        // nullsafe.neverNull on non-nullable properties.
-        TernaryToNullsafeCoalesceRector::class,
         // Drops `@var class-string` narrowing that PHPStan needs on a string built from a regex match.
         RemoveNonExistingVarAnnotationRector::class,
         // Configuration names default storage models as strings on purpose: the zone rule forbids it to depend on Storage.

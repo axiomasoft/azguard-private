@@ -18,6 +18,7 @@ use Illuminate\Database\Schema\Blueprint;
 #[Api(since: '1.0')]
 final readonly class StorageSchema
 {
+    /** @internal built by the container */
     public function __construct(private StorageRegistry $storages) {}
 
     public function create(string $storage): void

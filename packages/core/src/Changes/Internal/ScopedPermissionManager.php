@@ -26,9 +26,9 @@ final readonly class ScopedPermissionManager implements PermissionManager
         return $this->schema->for($this->panel, $this->tenant)->permissions();
     }
 
-    public function create(string $name, ?string $label = null, ?string $group = null, array $fields = []): ChangeResult
+    public function create(string $name, ?string $label = null, ?string $group = null, array $fields = [], ?string $description = null): ChangeResult
     {
-        return $this->pipeline->createPermission($this->panel, $this->tenant, $name, new PermissionDetails($label, $group, null, $fields));
+        return $this->pipeline->createPermission($this->panel, $this->tenant, $name, new PermissionDetails($label, $group, $description, $fields));
     }
 
     public function update(string $name, PermissionDetails $details): ChangeResult
