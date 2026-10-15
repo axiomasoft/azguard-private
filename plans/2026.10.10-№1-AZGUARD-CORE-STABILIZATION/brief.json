@@ -112,6 +112,13 @@
       "text": "P3 design answers: Audit 0.7.0 scenarios — «Только чистая установка (Recommended)»; schema 1 — «Удалить путь апгрейда (Recommended)»; core↔Scopes — «Нейтральное описание (Recommended)»; «Да, Review P3 (Recommended)». Also: «используй perplexity если нужно»; «мы исходим из того, что публичная версия будет 1.0, поэтому все должно быть чисто».",
       "channel": "owner conversation (P3 design session)",
       "kind": "owner"
+    },
+    {
+      "id": "M17",
+      "date": "2026-10-14",
+      "text": "P4 design answers: release gate under D16 — «Забудь про 0.7 вообще, пакет никгде еще не используется, отправной точкой будет 1.0»; 0.x history in docs/CHANGELOG — «1.0 — первая запись (Recommended)»; comparator — «Свой по манифесту (Recommended)»; tag and review — «Тег — владелец; Review P4 да (Recommended)».",
+      "channel": "owner conversation (P4 design session)",
+      "kind": "owner"
     }
   ],
   "requirements": [
@@ -333,6 +340,14 @@
       "owners": [
         "P2",
         "P3",
+        "P4"
+      ]
+    },
+    {
+      "id": "B23",
+      "text": "1.0 is the starting point: the package is not used anywhere, so the release gate, baselines, bench reference, docs and CHANGELOG contain no 0.x scenario or history; this overrides the 0.7.0 premise of B18 for P4.",
+      "source": "M17",
+      "owners": [
         "P4"
       ]
     }

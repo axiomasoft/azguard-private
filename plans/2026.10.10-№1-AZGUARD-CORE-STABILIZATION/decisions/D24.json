@@ -1,0 +1,52 @@
+{
+  "$schema": "urn:swissknifeman:task:plan:decision:v1",
+  "id": "D24",
+  "title": "1.0 is the starting point: release gate without 0.x scenarios",
+  "date": "2026-10-14",
+  "status": "accepted",
+  "question": "D16 requires the P4 design to re-evaluate every 0.7.0 scenario left in the release gate (condition 5 populated fixtures, condition 8 readable 0.7.0 audit rows, condition 10 upgrade map), the 'prior profiles' of I22 and the P4 deliverable 'one complete 0.7.0 upgrade guide'. What does the 1.0 gate contain?",
+  "options": [
+    {
+      "id": "A",
+      "text": "Remove every 0.x premise: condition 5 = DDL fixtures and fresh-install scenarios on four drivers (D19); condition 8 without 0.7.0 audit rows; condition 10 = the candidate is the compatibility baseline and the AI-agent instruction covers the transition; I22 = the candidate's load/query profile is recorded as the 1.0 reference (no comparison with any earlier version, the 2026-10-09 results are removed); stable-tag resolution ignores v0.3.0/v0.7.0; P4 deliverables name 1.0.0 release notes instead of a 0.7.0 upgrade guide."
+    },
+    {
+      "id": "B",
+      "text": "Keep the gate wording with the 0.7.0 scenarios and compare load with v0.7.0."
+    }
+  ],
+  "context": "P4 design session 2026-10-14. Asked with the proposal 'condition 5 fresh installs, condition 8 without 0.7.0 rows, condition 10 AI instruction + candidate baseline, I22 paired bench v0.7.0 vs candidate'; owner answer M17: «Забудь про 0.7 вообще, пакет нигде еще не используется, отправной точкой будет 1.0» — so also the paired v0.7.0 bench is dropped.",
+  "decision": "A — Remove every 0.x premise: condition 5 = DDL fixtures and fresh-install scenarios on four drivers (D19); condition 8 without 0.7.0 audit rows; condition 10 = the candidate is the compatibility baseline and the AI-agent instruction covers the transition; I22 = the candidate's load/query profile is recorded as the 1.0 reference (no comparison with any earlier version, the 2026-10-09 results are removed); stable-tag resolution ignores v0.3.0/v0.7.0; P4 deliverables name 1.0.0 release notes instead of a 0.7.0 upgrade guide.",
+  "rationale": "Owner M17: 1.0 is the starting point; the package is not used anywhere, so no 0.x scenario, history or performance comparison belongs in the gate.",
+  "consequences": [
+    "knowledge/p4-execution#gate replaces conditions 5, 8, 10 and the I22 wording of knowledge/architecture#release-gate; the other conditions are unchanged.",
+    "B18 ('assume 0.7.0 is installed') no longer binds P4 (B23).",
+    "bench/results/2026-10-09-* are deleted; the 1.0 candidate results become the reference for later compare.php runs.",
+    "The comparator's auto baseline accepts only tags vX.Y.Z with X >= 1; the existing v0.3.0 and v0.7.0 tags stay untouched (owner territory).",
+    "P4 contract.produces and deliverables are reworded accordingly."
+  ],
+  "applies_to": [
+    "P4"
+  ],
+  "evidence": [
+    {
+      "kind": "owner",
+      "ref": "brief/M17",
+      "note": "«Забудь про 0.7 вообще, пакет нигде еще не используется, отправной точкой будет 1.0»"
+    },
+    {
+      "kind": "repo",
+      "ref": "bench/results"
+    },
+    {
+      "kind": "repo",
+      "ref": ".github/workflows/release.yml"
+    }
+  ],
+  "actor": {
+    "provider": "claude-code",
+    "model": "claude-opus-5-5",
+    "effort": "high"
+  },
+  "answered_by": "owner"
+}

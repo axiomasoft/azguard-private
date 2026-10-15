@@ -1,0 +1,49 @@
+{
+  "$schema": "urn:swissknifeman:task:plan:decision:v1",
+  "id": "D27",
+  "title": "The release act stays with the owner; Review P4 closes the phase",
+  "date": "2026-10-14",
+  "status": "accepted",
+  "question": "Who creates and pushes v1.0.0, and does P4 end with a review item?",
+  "options": [
+    {
+      "id": "A",
+      "text": "P4 ends with a qualified, frozen candidate (green release-preflight 1.0.0, gate.md) and a read-only Review P4; the owner tags v1.0.0, pushes it and enables split/Packagist after the plan."
+    },
+    {
+      "id": "B",
+      "text": "Tag by the owner, no Review P4."
+    },
+    {
+      "id": "C",
+      "text": "The last P4 item tags and pushes v1.0.0 under an explicit owner grant, after a review."
+    }
+  ],
+  "context": "P4 design session 2026-10-14. Owner answer M17: «Тег — владелец; Review P4 да (Recommended)».",
+  "decision": "A — P4 ends with a qualified, frozen candidate (green release-preflight 1.0.0, gate.md) and a read-only Review P4; the owner tags v1.0.0, pushes it and enables split/Packagist after the plan.",
+  "rationale": "Owner M17 chose the recommended option; tagging publishes a release and is outward-facing.",
+  "consequences": [
+    "No P4 item creates or pushes a tag in the repository; pushes are limited to origin feat/1.0-candidate under the owner gate CI-PUSH (P4.2, P4.8).",
+    "P4.9 Review P4 is a read-only review item; P4.8's result names the exact tag commands for the owner."
+  ],
+  "applies_to": [
+    "P4"
+  ],
+  "evidence": [
+    {
+      "kind": "owner",
+      "ref": "brief/M17",
+      "note": "«Тег — владелец; Review P4 да (Recommended)»"
+    },
+    {
+      "kind": "repo",
+      "ref": "RELEASING.md"
+    }
+  ],
+  "actor": {
+    "provider": "claude-code",
+    "model": "claude-opus-5-5",
+    "effort": "high"
+  },
+  "answered_by": "owner"
+}

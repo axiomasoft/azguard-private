@@ -1,0 +1,54 @@
+{
+  "$schema": "urn:swissknifeman:task:plan:decision:v1",
+  "id": "D26",
+  "title": "Own compatibility comparator over the attribute manifests and format fixtures (I18)",
+  "date": "2026-10-14",
+  "status": "accepted",
+  "question": "knowledge/architecture#api-compatibility leaves the I18 comparison tool to P4: a structural BC checker such as Roave BackwardCompatibilityCheck or a generator diff. Which tool, and how is the baseline chosen and protected?",
+  "options": [
+    {
+      "id": "A",
+      "text": "Own comparator bin/api-compat.php over the attribute manifests (publication kind, members, parameter names/defaults, namedArguments, enum closed/open, contracts, facade, roots) and the format fixtures listed in a root compatibility.json, with the D9 rule set; baseline = newest stable tag vX.Y.Z (X >= 1) reachable from HEAD, else the candidate sha pinned in compatibility.json; a PR touching compatibility.json needs the label compat-baseline; a drill in a throwaway clone proves rejection of real breaks. No new dependency."
+    },
+    {
+      "id": "B",
+      "text": "The own comparator plus roave/backward-compatibility-check as a dev tool with an ignore list for internal types."
+    }
+  ],
+  "context": "P4 design session 2026-10-14. Roave checks PHP signatures of every non-@internal symbol but does not know the #[Api]/#[Spi] publication kinds, the Implement/Call split, the closed/open enum class (D15) or the non-PHP formats, and would need an ignore list for ~190 internal types plus BetterReflection as dependency. Owner answer M17: «Свой по манифесту (Recommended)».",
+  "decision": "A — Own comparator bin/api-compat.php over the attribute manifests (publication kind, members, parameter names/defaults, namedArguments, enum closed/open, contracts, facade, roots) and the format fixtures listed in a root compatibility.json, with the D9 rule set; baseline = newest stable tag vX.Y.Z (X >= 1) reachable from HEAD, else the candidate sha pinned in compatibility.json; a PR touching compatibility.json needs the label compat-baseline; a drill in a throwaway clone proves rejection of real breaks. No new dependency.",
+  "rationale": "Owner M17 chose the recommended option; the manifest already records exactly the facts the D9 compatibility rules need, so the comparison adds no dependency and no second notion of the supported surface.",
+  "consequences": [
+    "New files: compatibility.json, bin/api-compat.php, bin/compat-drill.sh, bin/compat-baseline-guard.sh, bin/test-compat-baseline-guard.sh, tests/Arch/CompatibilityTest.php, .github/workflows/compatibility.yml; composer script api:compat.",
+    "The rule set is knowledge/p4-execution#compatibility; a rule change after 1.0 is a release decision.",
+    "Before the first stable tag the baseline is the pointer: provisional (P4.3), frozen candidate (P4.8)."
+  ],
+  "applies_to": [
+    "P4"
+  ],
+  "evidence": [
+    {
+      "kind": "owner",
+      "ref": "brief/M17",
+      "note": "«Свой по манифесту (Recommended)»"
+    },
+    {
+      "kind": "repo",
+      "ref": "bin/api-manifest.php"
+    },
+    {
+      "kind": "repo",
+      "ref": "packages/core/api-manifest.json"
+    },
+    {
+      "kind": "repo",
+      "ref": "tests/Fixtures/Formats/README.md"
+    }
+  ],
+  "actor": {
+    "provider": "claude-code",
+    "model": "claude-opus-5-5",
+    "effort": "high"
+  },
+  "answered_by": "owner"
+}
