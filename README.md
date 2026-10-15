@@ -7,7 +7,7 @@
 [![Latest Version](https://img.shields.io/packagist/v/axiomasoft/azguard.svg)](https://packagist.org/packages/axiomasoft/azguard)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-Code-first authorization for Laravel 11–13 with an optional Filament 5 plugin.
+Code-first authorization for Laravel 12–13 with an optional Filament 5 plugin.
 
 - Permissions are backed enums and roles are PHP classes. Grants live in your database.
 - Every check goes through one decision pipeline: `hasPermission()`, `@can`, middleware, controller attributes,
@@ -87,7 +87,7 @@ This repository is the development monorepo. The packages are split into read-on
 
 ## Requirements
 
-PHP 8.3–8.5 (8.5 with Laravel 13), Laravel 11, 12 or 13, and SQLite, MySQL 8, MariaDB 10.11+ or
+PHP 8.3–8.5 (8.5 with Laravel 13), Laravel 12 or 13, and SQLite, MySQL 8, MariaDB 10.11+ or
 PostgreSQL 16. The Filament plugin needs Filament 5.8.4 or later. CI runs every PHP × Laravel pair on SQLite, and
 the suite on each database server.
 

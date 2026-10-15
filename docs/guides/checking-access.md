@@ -162,7 +162,7 @@ final class PostController
 }
 ```
 
-`#[CheckPermission]` adds `azguard.can`. Laravel 13 applies it as controller middleware. On Laravel 11 and 12,
+`#[CheckPermission]` adds `azguard.can`. Laravel 13 applies it as controller middleware. On Laravel 12,
 `azguard.panel` applies it. With `->requireRouteChecks()` on the panel, an action with neither attribute throws
 `MissingPermissionCheckException` in `local` and `testing` and answers 403 elsewhere.
 

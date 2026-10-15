@@ -102,5 +102,5 @@ A reader of these formats must ignore keys it does not know.
 | Minor (`1.1.0`) | The additions listed above |
 | Major (`2.0.0`) | Any break listed above |
 
-The supported platforms are the ones in the `require` section of each package: PHP 8.3–8.5 and Laravel 11–13, and
+The supported platforms are the ones in the `require` section of each package: PHP 8.3–8.5 and Laravel 12–13, and
 Filament 5 for `axiomasoft/azguard-filament`.

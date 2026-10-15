@@ -8,6 +8,8 @@ version) are documented here. Format: [Keep a Changelog](https://keepachangelog.
 
 ### Changed
 
+- **core, filament:** Laravel 11 is no longer supported; the packages require Laravel 12 or 13 (`illuminate/*` `^12.0|^13.0`).
+  The Laravel 11 fallbacks of the contract kit and the optimize registration are removed.
 - **core:** `StorageDescriptor::$connection` is the name of the connection the storage resolved to (`string`, no longer
   `?string`); a later change of the default connection no longer moves Audit prune, migrations or doctor.
 - **core:** `DoctorContext::storages()` returns `list<StorageDescriptor>`; `DoctorContext::config()` and the

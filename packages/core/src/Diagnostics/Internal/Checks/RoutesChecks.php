@@ -18,7 +18,7 @@ use UnitEnum;
 /**
  * `routes.checks`: in strict mode every action of a panel declares a permission check or opts out; a
  * `#[CheckPermission]` names a permission of the panel the route enters; and outside a panel no `#[CheckPermission]`
- * is left without middleware to apply it (Laravel 11/12, or a parent controller on 13.0–13.4). Uses the same
+ * is left without middleware to apply it (Laravel 12, or a parent controller on 13.0–13.4). Uses the same
  * reading of routes as the middleware.
  *
  * @internal

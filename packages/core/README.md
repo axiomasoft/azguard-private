@@ -1,6 +1,6 @@
 # axiomasoft/azguard
 
-Code-first authorization for Laravel 11–13. Permissions are backed enums and roles are PHP classes. Every
+Code-first authorization for Laravel 12–13. Permissions are backed enums and roles are PHP classes. Every
 check goes through one decision pipeline that fails closed.
 
 ```bash

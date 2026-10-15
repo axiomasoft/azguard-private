@@ -100,8 +100,8 @@ final class RelationPredicateQuery extends Builder
     }
 
     /**
-     * Laravel 11 declares $uniqueBy and $update untyped and Laravel 12+ narrows them; `mixed` is the
-     * only parameter type compatible with every supported Builder, so the override loads on all three.
+     * The $uniqueBy and $update parameters are typed differently across the supported Laravel versions; `mixed` is the
+     * only parameter type compatible with every supported Builder, so the override loads on both.
      *
      * @param  array<mixed>  $values
      */

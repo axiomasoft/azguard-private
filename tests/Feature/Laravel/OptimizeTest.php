@@ -2,7 +2,6 @@
 
 declare(strict_types=1);
 
-use AzGuard\AzGuardServiceProvider;
 use AzGuard\Panels\PanelBuilder;
 use AzGuard\Tests\Fixtures\Panels\AdminPanel;
 use AzGuard\Tests\Fixtures\Panels\FixturePanel;
@@ -12,7 +11,7 @@ use Illuminate\Support\ServiceProvider;
 
 /*
  * V84 (optimize part): `optimize` builds the catalog cache and `optimize:clear` removes it, through `optimizes()` of
- * the framework. Laravel before 11.27.1 has no `optimizes()`; the provider then registers nothing and does not fail.
+ * the framework.
  */
 
 uses(BootsWithCatalogCache::class);
@@ -58,23 +57,4 @@ it('V84 builds the catalog cache with optimize and removes it with optimize:clea
 
     $this->artisan('optimize:clear', ['--except' => exceptOtherTasks(ServiceProvider::$optimizeClearCommands)])->assertSuccessful();
     expect(is_file(self::$catalogCachePath))->toBeFalse();
-});
-
-it('V84 registers nothing, and does not fail, on a framework without optimizes()', function (): void {
-    $this->bootCatalogPanels([AdminPanel::class]);
-    $provider = new AzGuardServiceProvider($this->app);
-    $register = new ReflectionMethod($provider, 'registerOptimizations');
-    [$optimize, $clear] = [ServiceProvider::$optimizeCommands, ServiceProvider::$optimizeClearCommands];
-    ServiceProvider::$optimizeCommands = ServiceProvider::$optimizeClearCommands = [];
-
-    try {
-        $register->invoke($provider, false);
-        expect(ServiceProvider::$optimizeCommands)->toBe([])
-            ->and(ServiceProvider::$optimizeClearCommands)->toBe([]);
-
-        $register->invoke($provider, true);
-        expect(ServiceProvider::$optimizeCommands)->toBe(['azguard' => 'azguard:catalog:cache']);
-    } finally {
-        [ServiceProvider::$optimizeCommands, ServiceProvider::$optimizeClearCommands] = [$optimize, $clear];
-    }
 });

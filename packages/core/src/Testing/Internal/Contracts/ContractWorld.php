@@ -15,7 +15,6 @@ use AzGuard\Testing\FakeSubject;
 use Closure;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Events\QueryExecuted;
-use ReflectionClass;
 use RuntimeException;
 use Throwable;
 use UnitEnum;
@@ -134,19 +133,8 @@ final class ContractWorld
 
                 // Only the current database (MySQL, MariaDB), the search path (PostgreSQL) or `main` (SQLite): without
                 // it the list holds tables of other databases or attached files that this connection does not write.
-                if ((new ReflectionClass($schema))->hasMethod('getCurrentSchemaListing')) {
-                    $current = $schema->getCurrentSchemaListing();
-                    $tables = $current === null ? $schema->getTables() : $schema->getTables($current);
-                } else {
-                    // Laravel 11 has neither the listing nor the schema argument. Its MySQL, MariaDB and SQLite lists
-                    // are already the current database or `main`, but on PostgreSQL it lists the tables of every
-                    // schema: the list is narrowed to the search path the server reports.
-                    $current = $connection->getDriverName() === 'pgsql' ? array_values(array_filter(array_map(
-                        static fn (mixed $row): mixed => is_object($row) ? ($row->name ?? null) : null,
-                        $connection->select('select unnest(current_schemas(false)) as name'),
-                    ), is_string(...))) : null;
-                    $tables = array_filter($schema->getTables(), static fn (array $table): bool => $current === null || in_array($table['schema'] ?? null, $current, true));
-                }
+                $current = $schema->getCurrentSchemaListing();
+                $tables = $current === null ? $schema->getTables() : $schema->getTables($current);
             } catch (Throwable) {
                 continue;
             }
@@ -154,7 +142,6 @@ final class ContractWorld
                 $owner = is_string($table['schema'] ?? null) ? $table['schema'] : null;
                 $key = $owner === null || $current === null || $owner === ($current[0] ?? null) ? $table['name'] : $owner.'.'.$table['name'];
                 // The listing holds physical names: wrapping them with the connection prefix would prefix them twice.
-                // (`withoutTablePrefix()` returns nothing on Laravel 11, so the prefix is swapped by hand.)
                 $prefix = $connection->getTablePrefix();
                 $connection->setTablePrefix('');
 

@@ -101,10 +101,7 @@ it('leaves out the tables of another schema or attached database that the connec
         $counts = ContractWorld::rowCounts();
         $own = array_values(array_filter(array_keys($counts), static fn (string $key): bool => str_starts_with($key, $connection->getName().'.')));
         $builder = $connection->getSchemaBuilder();
-        // Laravel 11 has no schema argument and lists every schema on PostgreSQL: the foreign schema is left out by name.
-        $listing = (new ReflectionClass($builder))->hasMethod('getCurrentSchemaName')
-            ? $builder->getTableListing($builder->getCurrentSchemaName(), false)
-            : array_column(array_values(array_filter($builder->getTables(), static fn (array $table): bool => ($table['schema'] ?? null) !== 'contract_other')), 'name');
+        $listing = $builder->getTableListing($builder->getCurrentSchemaName(), false);
 
         expect($counts)->toHaveKey($connection->getName().'.contract_probe', 0)
             ->and($counts)->not->toHaveKey($connection->getName().'.contract_foreign')

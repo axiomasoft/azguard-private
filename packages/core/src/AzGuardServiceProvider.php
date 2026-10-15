@@ -60,7 +60,6 @@ use Illuminate\Queue\Events\JobProcessed;
 use Illuminate\Queue\Events\JobProcessing;
 use Illuminate\Routing\Router;
 use Illuminate\Support\ServiceProvider;
-use ReflectionClass;
 
 #[Api(since: '1.0')]
 final class AzGuardServiceProvider extends ServiceProvider
@@ -159,7 +158,7 @@ final class AzGuardServiceProvider extends ServiceProvider
      */
     private function registerLaravelMechanisms(): void
     {
-        $this->registerOptimizations((new ReflectionClass(ServiceProvider::class))->hasMethod('optimizes'));
+        $this->registerOptimizations();
 
         if (class_exists(AboutCommand::class)) {
             AboutCommand::add(AboutSection::TITLE, AboutSection::class);
@@ -171,17 +170,9 @@ final class AzGuardServiceProvider extends ServiceProvider
         $events->listen([JobProcessed::class, JobExceptionOccurred::class, JobFailed::class], [PanelContext::class, 'leaving']);
     }
 
-    /**
-     * `optimizes()` exists from Laravel 11.27.1; on an older 11.x `optimize` does not build the catalog cache and the
-     * doctor warns about it for a production deployment.
-     *
-     * @param  bool  $supported  whether the framework offers `optimizes()`
-     */
-    private function registerOptimizations(bool $supported): void
+    private function registerOptimizations(): void
     {
-        if ($supported) {
-            $this->optimizes(optimize: 'azguard:catalog:cache', clear: 'azguard:catalog:clear', key: 'azguard');
-        }
+        $this->optimizes(optimize: 'azguard:catalog:cache', clear: 'azguard:catalog:clear', key: 'azguard');
     }
 
     /**

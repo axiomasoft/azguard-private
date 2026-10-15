@@ -25,16 +25,16 @@
     },
     "require": {
         "php": "^8.3",
-        "illuminate/auth": "^11.0|^12.0|^13.0",
-        "illuminate/console": "^11.0|^12.0|^13.0",
-        "illuminate/contracts": "^11.0|^12.0|^13.0",
-        "illuminate/database": "^11.0|^12.0|^13.0",
-        "illuminate/filesystem": "^11.0|^12.0|^13.0",
-        "illuminate/http": "^11.0|^12.0|^13.0",
-        "illuminate/log": "^11.0|^12.0|^13.0",
-        "illuminate/queue": "^11.0|^12.0|^13.0",
-        "illuminate/routing": "^11.0|^12.0|^13.0",
-        "illuminate/support": "^11.0|^12.0|^13.0"
+        "illuminate/auth": "^12.0|^13.0",
+        "illuminate/console": "^12.0|^13.0",
+        "illuminate/contracts": "^12.0|^13.0",
+        "illuminate/database": "^12.0|^13.0",
+        "illuminate/filesystem": "^12.0|^13.0",
+        "illuminate/http": "^12.0|^13.0",
+        "illuminate/log": "^12.0|^13.0",
+        "illuminate/queue": "^12.0|^13.0",
+        "illuminate/routing": "^12.0|^13.0",
+        "illuminate/support": "^12.0|^13.0"
     },
     "suggest": {
         "dragonmantank/cron-expression": "Required to validate cron expressions and run Laravel scheduled maintenance without laravel/framework."
