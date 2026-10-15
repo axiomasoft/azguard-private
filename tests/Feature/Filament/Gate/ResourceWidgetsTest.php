@@ -12,6 +12,7 @@ use AzGuard\Tests\Fixtures\Filament\FilamentFixture;
 use AzGuard\Tests\Fixtures\Filament\GateWorld;
 use AzGuard\Tests\Fixtures\Filament\Guards\OrderPermission;
 use AzGuard\Tests\Fixtures\Filament\Guards\ResourceWidgetPermission;
+use AzGuard\Tests\Fixtures\Filament\Resources\Pages\ListOrdersWithDynamicWidget;
 use AzGuard\Tests\Fixtures\Filament\Resources\Pages\ListWidgetOrders;
 use AzGuard\Tests\Fixtures\Filament\Resources\WidgetOrderResource;
 use AzGuard\Tests\Fixtures\Filament\Widgets\OfResource\DynamicWidget;
@@ -101,4 +102,21 @@ it('shows at run time a widget the panel excludes', function (): void {
     GateWorld::serve(GateWorld::grant(['orders.view_any']));
 
     Livewire::test(DynamicWidget::class)->assertSuccessful();
+});
+
+it('refuses the page that returns a dynamic widget nothing decides, and renders it when the panel excludes the widget', function (): void {
+    GateWorld::prepare();
+    $this->bootFilament();
+    GateWorld::seed();
+    GateWorld::serve(GateWorld::grant(['orders.view_any', 'orders.view']));
+
+    // The page is refused as a whole, loudly: a widget that nothing decides is a mistake of the application, not a hidden one.
+    Livewire::test(ListOrdersWithDynamicWidget::class)->assertSee('Forbidden')->assertDontSeeLivewire(DynamicWidget::class);
+
+    FilamentFixture::$exclude = ['widgets' => [DynamicWidget::class]];
+    $this->bootFilament();
+    GateWorld::seed();
+    GateWorld::serve(GateWorld::grant(['orders.view_any', 'orders.view']));
+
+    Livewire::test(ListOrdersWithDynamicWidget::class)->assertSuccessful()->assertSeeLivewire(DynamicWidget::class);
 });

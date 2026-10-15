@@ -6,6 +6,7 @@ namespace AzGuard\Contracts\Authorization;
 
 use AzGuard\Attributes\Spi;
 use AzGuard\Attributes\SpiKind;
+use AzGuard\Exceptions\VisibilityNotSupportedException;
 use AzGuard\Kernel\Decision\CodeStateToken;
 use AzGuard\Kernel\Decision\Grant;
 use AzGuard\Kernel\Decision\RoleContribution;
@@ -52,7 +53,12 @@ interface EvaluationContext
     /**
      * Grants that cover the permission being checked.
      *
+     * The set depends on the record, so a query (`visibleTo()`) cannot give it: a restriction or a policy that reads it
+     * while a query is built makes that query throw `VisibilityNotSupportedException` instead of seeing an empty list.
+     *
      * @return list<Grant>
+     *
+     * @throws VisibilityNotSupportedException while a query is built
      */
     public function matchingGrants(): array;
 }

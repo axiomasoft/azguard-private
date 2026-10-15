@@ -1,12 +1,12 @@
 # Итог разбора аудита: что принято, что изменено, что не сделано
 
-Дата: 2026-10-15. Основание: [REPORT.md](REPORT.md) к `2ce692f7`. Рабочее дерево после правок не закоммичено; коммиты, push, tag и замена compatibility baseline остаются за владельцем (D27).
+Дата: 2026-10-15. Основание: [REPORT.md](REPORT.md) к `2ce692f7`. Правки закоммичены и отправлены в `main`; tag, split, publish и замена compatibility baseline остаются за владельцем (D27).
 
 Каждая находка сначала перепроверена по коду, а воспроизведения из `evidence/` перезапущены на текущем дереве. Все runtime-находки R01–R03, R07–R09 подтвердились; R04, R05, R06, R10–R12, R14, R15, R18 — по коду и тестам. Исправления закреплены штатными regression-тестами, а не probe-скриптами аудита.
 
 ## Что проверено после исправлений
 
-PHP 8.4.26, SQLite `:memory:`: полный набор `composer test` — **4 949 тестов / 396 168 assertion, зелёный** (было 4 919; +30 новых регрессий); Pint `--test`, PHPStan level max (0 ошибок), Rector `--dry-run`, `api:check`, docs language/PHP gates — зелёные; `api:compat` против baseline `3d789538` красный по причине ниже. Не запускались: серверные DB-lanes, engines/races, Redis, archive-consumer, CI-матрица.
+PHP 8.4.26, SQLite `:memory:`: полный набор `composer test` — **4 970 тестов, зелёный** (было 4 919; +51 новая регрессия); Pint `--test`, PHPStan level max (0 ошибок), Rector `--dry-run`, `api:check`, docs language/PHP gates — зелёные; `api:compat` против baseline `3d789538` красный по причине ниже. Серверные lanes (обычная lane / engines+races): PostgreSQL 16.15 — 780 тестов (3 947 assertions) / 71 (2 670); MySQL 8.4.11 — 780 / 71; MariaDB — 780 (3 947) / engines/races на момент записи не завершены (остановлены по решению владельца); Laravel 11.57 × PostgreSQL (отдельная копия, `laravel/framework:11.*`) — 779 тестов зелёные (на один меньше, чем на Laravel 13: набор версионно-зависим); Redis lane — 2 теста (26 assertions). Кодек списков в JSON-колонке дополнительно проверен отдельно на PostgreSQL и MariaDB. Не запускались: archive-consumer (`bin/consumer-fixture.sh`, нужен Packagist), CI-матрица, полный набор на PHP 8.3 (на 8.3 прогнаны 289 новых и изменённых тестов, `php -l` по всем изменённым файлам чистый).
 
 ## Статус по находкам
 
@@ -47,7 +47,7 @@ Perplexity использовал как независимую проверку
 
 ## Что осталось и что нужно решить владельцу
 
-- **R16, итоговая квалификация.** Кандидат ещё не выбран: после коммита нужны CI, серверные DB-lanes (PostgreSQL, MySQL, MariaDB), engines/races, archive-consumer, отдельный Laravel 11 × PostgreSQL для `ContractWorld::rowCounts()`. Здесь запущены только SQLite, PHPStan, Rector, Pint, type coverage, arch/compat и Filament-набор — по правилу минимальной матрицы; серверные lanes не запускались.
+- **R16, итоговая квалификация.** Кандидат ещё не выбран. Локально пройдены SQLite, PostgreSQL, MySQL, MariaDB (lanes и engines/races), Laravel 11 × PostgreSQL и Redis; остаются CI на итоговом коммите, archive-consumer и полный набор на PHP 8.3 — их место в квалификации релиза, не в этой правке.
 - **Compatibility baseline.** `composer api:compat` против `3d789538` сейчас красный: 26 записей, из них 15 — осознанные pre-1.0 изменения API (ниже), а 11 — результат более полного снимка (5 определений `@phpstan-type` в `contracts` и 6 уже существовавших массивных опций команд, которые старый снимок не различал). Baseline заменяется отдельным PR с меткой `compat-baseline`, это решение о релизе, поэтому `compatibility.json` не менялся. Манифесты (`api-manifest.json`), снимок команд и `crm-panel-schema.json` перегенерированы штатно.
 - **Осознанные pre-1.0 изменения API:** `StorageDescriptor::$connection` стал `string`; `DoctorContext::storages()` возвращает `list<StorageDescriptor>`; `DoctorContext::config()/__construct`, конструкторы `Visibility`, `PanelOverview`, `GateBridge`, `StorageSchema`, методы `FolderSource::configured/bind`, `FakeSubject::newEloquentBuilder`, `AzGuardPlugin::keys()` стали внутренними; `FieldSchema` получил три поля; `PermissionManager::create()` — параметр `description`; новые определения `@phpstan-type` попали в `contracts`; снимок команд теперь содержит `definition`.
 - **Не делалось по выбору аудита:** несколько `RelationSource` одного типа с `id:` (необязательное решение); отдельный список новых `AGENTS.md`-инструкций swissknifeman (правится через владеющий генератор).

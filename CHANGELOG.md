@@ -6,6 +6,40 @@ version) are documented here. Format: [Keep a Changelog](https://keepachangelog.
 
 ## [Unreleased]
 
+### Changed
+
+- **core:** `StorageDescriptor::$connection` is the name of the connection the storage resolved to (`string`, no longer
+  `?string`); a later change of the default connection no longer moves Audit prune, migrations or doctor.
+- **core:** `DoctorContext::storages()` returns `list<StorageDescriptor>`; `DoctorContext::config()` and the
+  constructors of `Visibility`, `PanelOverview`, `GateBridge`, `StorageSchema`, `FolderSource::configured()/bind()`,
+  `FakeSubject::newEloquentBuilder()` and `AzGuardPlugin::keys()` are internal.
+- **core:** A participant's `tables()` are lowercase ASCII base names (`[a-z][a-z0-9_]*`); `ROLE_GRANTS` and aliases are refused at compile time.
+- **core:** `AuditOptions` refuses a retention shorter than one day.
+- **core:** `isSuperAdmin()`, `hasRole()`, `roleNames()`, `permissionSet()` and panel admission use the model the wrapper
+  was built from, as `decide()` does; a bare `SubjectRef` is still read from the source.
+- **filament:** Attaching, associating, detaching and dissociating (also in bulk) need `update` of the owner resource,
+  or the ability the relation manager declares with `$azguardRelationAbility`; reading alone no longer changes a relation.
+- **filament:** The widgets of a resource are keys of the panel, and in a panel that enforces a widget that no key
+  names and no trait decides is refused with 403 when it is mounted.
+- **api:** The manifest records return-by-reference and `@phpstan-type` definitions, and the commands snapshot records
+  each option's mode and repeatability; the compatibility baseline must be replaced for these.
+
+### Fixed
+
+- **core:** `visibleTo()` no longer lists records that `decide()` refuses: a restriction or policy that reads
+  `EvaluationContext::matchingGrants()` makes the query throw `VisibilityNotSupportedException` instead of seeing an
+  empty list, and a custom `resolve()` is checked even when the scope has no tenant owner.
+- **core:** `decideMany()` no longer shares a verdict between grant fields `1` and `1.0`, and accepts binary strings in fields.
+- **core:** The directory of a queryable scope offers only contexts its `resolve()` accepts.
+- **filament:** `ViewRole` checks `view` again on every refresh; the generator imports two classes of one basename under
+  different names and refuses a result PHP cannot parse; grant pages read each subject label once.
+
+### Added
+
+- **core:** A list field in its own JSON column (`Field::multiple()` without `inMeta()`), stored as JSON text and compared as a list.
+- **core:** `FieldSchema::$required`, `$multiple`, `$valueClass`; `PermissionManager::create(description:)`;
+  `RelationSource::make(name:)`, so two sources of one scope type can share a panel.
+
 ## [1.0.0] - 2026-10-14
 
 The first public release of `axiomasoft/azguard` and `axiomasoft/azguard-filament`. Requires PHP 8.3–8.5 and Laravel 11–13; the Filament package requires Filament 5.

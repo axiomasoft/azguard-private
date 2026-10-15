@@ -91,7 +91,7 @@ final class PostResource extends Resource
 
   The ability becomes a key of the owner resource (`orders.manage_products`), so the generator and the editors list it.
 - **Widgets that a page returns at run time.** The keys cannot see them, so in a panel that enforces, a widget without
-  `AuthorizesWidget` that is not excluded is refused with 403 when it is mounted.
+  `AuthorizesWidget` that is not excluded is refused when it is mounted, so the page that returns it answers 403.
 
 - **Checks.** Every `can*()`, `authorize*()` and `get*AuthorizationResponse()` goes through AzGuard.
 - **Queries.** The resource query is filtered to the records the user may view (`{slug}.view`). Lists,
