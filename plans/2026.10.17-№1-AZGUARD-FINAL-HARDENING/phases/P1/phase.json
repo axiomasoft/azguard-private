@@ -1,0 +1,89 @@
+{
+  "$schema": "urn:swissknifeman:task:plan:phase:v1",
+  "id": "P1",
+  "title": "CI supply chain and workflow gates",
+  "design": "detailed",
+  "goal": "Every workflow is SHA-pinned, least-privileged, strict-shell and blocking; Zizmor blocks; a Pest gate with negative fixtures prevents regressions; the root lock makes qualification reproducible.",
+  "context": "Audit P0-B (A02, A03), P1 A10, P2 A12 and the required-check naming needed by P0-A. Work on branch feat/1.0-final-hardening (D5). Inputs: knowledge/supply-chain, knowledge/execution.",
+  "contract": {
+    "consumes": [
+      "knowledge/supply-chain",
+      "knowledge/execution",
+      "D4",
+      "D5",
+      "D8"
+    ],
+    "produces": [
+      "Committed composer.lock and install-from-lock CI",
+      "SHA-pinned hardened workflows",
+      "docs-deploy.yml split",
+      "Aggregate required-check jobs and .github/rulesets/required-checks.json",
+      "bin/security-tools.sh + lock, blocking Zizmor",
+      "tests/Arch/WorkflowHardeningTest.php"
+    ],
+    "boundaries": [
+      "No packages/** change",
+      "No GitHub settings change"
+    ]
+  },
+  "pitfalls": [
+    "Annotated-tag SHAs instead of commit SHAs break actions",
+    "Aggregate jobs without if: always() are skipped and count as success",
+    "paths filters leave required checks pending"
+  ],
+  "deliverables": [
+    "Hardened, pinned, blocking workflows with an executable hardening gate"
+  ],
+  "items": [
+    "P1.1",
+    "P1.2",
+    "P1.3",
+    "P1.4",
+    "P1.5",
+    "P1.6"
+  ],
+  "batches": [
+    {
+      "id": "B1",
+      "items": [
+        "P1.1"
+      ],
+      "mode": "recommended"
+    },
+    {
+      "id": "B2",
+      "items": [
+        "P1.2"
+      ],
+      "mode": "recommended"
+    },
+    {
+      "id": "B3",
+      "items": [
+        "P1.3"
+      ],
+      "mode": "recommended"
+    },
+    {
+      "id": "B4",
+      "items": [
+        "P1.4"
+      ],
+      "mode": "recommended"
+    },
+    {
+      "id": "B5",
+      "items": [
+        "P1.5"
+      ],
+      "mode": "recommended"
+    },
+    {
+      "id": "B6",
+      "items": [
+        "P1.6"
+      ],
+      "mode": "recommended"
+    }
+  ]
+}

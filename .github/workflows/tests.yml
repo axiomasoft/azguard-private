@@ -123,7 +123,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ${{ steps.composer-cache.outputs.dir }}
-          key: ${{ runner.os }}-composer-db-matrix-${{ hashFiles('**/composer.json', '**/composer.lock') }}
+          key: ${{ runner.os }}-composer-db-matrix-${{ hashFiles('composer.lock', '**/composer.json') }}
           restore-keys: |
             ${{ runner.os }}-composer-db-matrix-
             ${{ runner.os }}-composer-
@@ -163,7 +163,7 @@ jobs:
           tools: composer:v2
 
       - name: Install dependencies
-        run: composer update --prefer-dist --no-interaction --no-progress
+        run: composer install --prefer-dist --no-interaction --no-progress
 
       - name: Start isolated primary and streaming replica
         run: docker compose --profile authority-replica up -d --wait authority-primary authority-replica
@@ -205,7 +205,7 @@ jobs:
           tools: composer:v2
 
       - name: Install dependencies
-        run: composer update --prefer-dist --no-interaction --no-progress
+        run: composer install --prefer-dist --no-interaction --no-progress
 
       - name: Run Redis qualification suite
         run: composer test:redis
@@ -231,7 +231,7 @@ jobs:
           tools: composer:v2
 
       - name: Install dependencies
-        run: composer update --prefer-dist --no-interaction --no-progress
+        run: composer install --prefer-dist --no-interaction --no-progress
 
       - name: Run tests with coverage
         run: vendor/bin/pest --ci --fail-on-skipped --exclude-group=engines --exclude-group=redis --exclude-group=replica --exclude-group=extended --coverage --min=85 --coverage-clover=coverage.xml

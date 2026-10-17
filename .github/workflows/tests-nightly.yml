@@ -35,7 +35,7 @@ jobs:
           tools: composer:v2
 
       - name: Install dependencies
-        run: composer update --prefer-dist --no-interaction --no-progress
+        run: composer install --prefer-dist --no-interaction --no-progress
 
       - name: Run the extended tests
         run: composer test:extended
@@ -90,7 +90,7 @@ jobs:
           tools: composer:v2
 
       - name: Install dependencies
-        run: composer update --prefer-dist --no-interaction --no-progress
+        run: composer install --prefer-dist --no-interaction --no-progress
 
       - name: Database lane with parity seeds 1-8 (${{ matrix.connection }})
         run: composer test:db -- ${{ matrix.connection }} --parallel=8 --full

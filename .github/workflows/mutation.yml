@@ -36,7 +36,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ${{ steps.composer-cache.outputs.dir }}
-          key: ${{ runner.os }}-composer-mutation-${{ hashFiles('**/composer.json') }}
+          key: ${{ runner.os }}-composer-mutation-${{ hashFiles('composer.lock', '**/composer.json') }}
           restore-keys: |
             ${{ runner.os }}-composer-mutation-
             ${{ runner.os }}-composer-

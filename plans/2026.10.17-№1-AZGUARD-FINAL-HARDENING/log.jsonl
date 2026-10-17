@@ -1,0 +1,7 @@
+{"v":1,"ts":"2026-10-17T10:38:57Z","type":"plan_created","actor":{"provider":"anthropic","model":"claude-opus-5-5"},"summary":"plan PLAN2 created","data":{"plan_id":"2026.10.17-№1-AZGUARD-FINAL-HARDENING"}}
+{"v":1,"ts":"2026-10-17T10:56:39Z","type":"design_done","phase":"P1","actor":{"provider":"anthropic","model":"claude-opus-5-5"},"summary":"P1 design done"}
+{"v":1,"ts":"2026-10-17T10:56:40Z","type":"design_done","phase":"P2","actor":{"provider":"anthropic","model":"claude-opus-5-5"},"summary":"P2 design done"}
+{"v":1,"ts":"2026-10-17T10:56:41Z","type":"design_done","phase":"P3","actor":{"provider":"anthropic","model":"claude-opus-5-5"},"summary":"P3 design done"}
+{"v":1,"ts":"2026-10-17T10:56:42Z","type":"design_done","phase":"P4","actor":{"provider":"anthropic","model":"claude-opus-5-5"},"summary":"P4 design done"}
+{"v":1,"ts":"2026-10-17T11:11:42Z","type":"start","item":"P1.1","phase":"P1","actor":{"provider":"anthropic","model":"claude-sonnet-5-5","effort":"medium","session":"b30b91df-60a8-4340-bba0-b588839ad61a"},"summary":"start P1.1 (batch B1)","data":{"requested":["P1.1"],"route":"ROUTE_MODEL_UNKNOWN","batch":"B1"}}
+{"v":1,"ts":"2026-10-17T11:20:14Z","type":"finish","item":"P1.1","phase":"P1","actor":{"provider":"anthropic","model":"claude-sonnet-5-5","effort":"medium","session":"b30b91df-60a8-4340-bba0-b588839ad61a"},"summary":"P1.1 done","data":{"status":"done","checks":{"V1":0,"V2":0,"V3":0,"V4":0,"V5":0}}}

@@ -71,7 +71,7 @@ jobs:
           tools: composer:v2
 
       - name: Install dependencies
-        run: composer update --prefer-dist --no-interaction --no-progress
+        run: composer install --prefer-dist --no-interaction --no-progress
 
       - name: Run
         env:

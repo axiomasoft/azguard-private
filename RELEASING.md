@@ -22,6 +22,9 @@ with a user-visible change edits `[Unreleased]`; the release moves it under the 
 1.0.0 is the first public release. From 1.0, versions follow SemVer: a breaking change of a supported contract bumps
 the major version of both packages. Mutation testing is deferred by the owner and does not block 1.0.0.
 
+The root `composer.lock` is the development and release lock: qualification jobs `composer install` from it,
+packages never ship it, and version-range jobs re-resolve with `composer update`.
+
 Both packages share **one version**. A release tags the monorepo and
 splits the same tag into every package repo, so `azguard` and
 `azguard-filament` always advance together.
