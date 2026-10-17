@@ -46,7 +46,7 @@ version) are documented here. Format: [Keep a Changelog](https://keepachangelog.
 
 ## [1.0.0] - 2026-10-14
 
-The first public release of `axiomasoft/azguard` and `axiomasoft/azguard-filament`. Requires PHP 8.3–8.5 and Laravel 11–13; the Filament package requires Filament 5.
+The first public release of `axiomasoft/azguard` and `axiomasoft/azguard-filament`. Requires PHP 8.3–8.5 and Laravel 12–13; the Filament package requires Filament 5.
 
 ### Stability
 
