@@ -10,7 +10,9 @@ php artisan azguard:doctor --production    # also checks the catalog cache and t
 
 - **Build id.** Set `AZGUARD_BUILD_ID` to the commit hash. Cached catalogs and cached permission sets of
   another build are then never used. Without it, the id is derived from the panel provider files and does not
-  follow changes elsewhere, for example in a role class.
+  follow changes elsewhere, for example in a role class. In production `azguard:doctor` reports a missing build id as
+  an error when the catalog cache file exists or a panel uses a persistent cache store, and as a warning otherwise:
+  use an immutable id such as the commit SHA or the image digest.
 - **Rollback.** After a code rollback, run `azguard:catalog:cache` again or `azguard:catalog:clear`.
 - **CI.** Run `php artisan azguard:doctor` in CI. It exits with `1` on errors and checks the configuration,
   panels, storages, sources, plugins and morph aliases.

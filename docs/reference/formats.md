@@ -80,7 +80,7 @@ contract.
 |---|---|---|
 | `audit.table` | error | The audit plugin has no storing source, or its `audit_log` table is missing or differs from the audit schema |
 | `cache.store` | error | A panel keeps permission sets in a cache store that does not exist or cannot hold them |
-| `catalog.build_id` | warning | `catalog.build_id` is not set |
+| `catalog.build_id` | warning, error | `catalog.build_id` is not set (production). An error when the catalog cache file exists or a panel keeps permission sets in a persistent cache store |
 | `catalog.cached` | warning | There is no catalog cache, or it does not hold the current catalog |
 | `catalog.collisions` | error | Permissions created at run time collide with the permissions of the catalog |
 | `config.valid` | error | The AzGuard configuration does not load, or names a storage connection that does not exist |

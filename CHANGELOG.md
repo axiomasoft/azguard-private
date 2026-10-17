@@ -8,6 +8,8 @@ version) are documented here. Format: [Keep a Changelog](https://keepachangelog.
 
 ### Changed
 
+- **core:** `azguard:doctor` reports a missing `catalog.build_id` in production as an error (not a warning) when the
+  catalog cache file exists or a panel uses a persistent cache store; the check key and finding id are unchanged.
 - **core, filament:** Laravel 11 is no longer supported; the packages require Laravel 12 or 13 (`illuminate/*` `^12.0|^13.0`).
   The Laravel 11 fallbacks of the contract kit and the optimize registration are removed.
 - **core:** `StorageDescriptor::$connection` is the name of the connection the storage resolved to (`string`, no longer
