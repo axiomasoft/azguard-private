@@ -1,0 +1,10 @@
+# Default gitleaks rules plus narrow allowlist entries. Each entry: reason; owner; expires.
+[extend]
+useDefault = true
+
+# The plan journals under plans/ carry commit and file digests that match generic-api-key; they are hashes, not
+# credentials. Only that rule is silenced there. Owner @academici; expires 2027-04-17.
+[[allowlists]]
+description = "plan journal digests"
+targetRules = ["generic-api-key"]
+paths = ['''^plans/''']

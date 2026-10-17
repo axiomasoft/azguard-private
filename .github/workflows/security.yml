@@ -129,10 +129,26 @@ jobs:
       - name: Scan the packages
         run: bash bin/security-tools.sh semgrep -- scan --config=.semgrep/rules/ --error --metrics=off packages/
 
+  secrets:
+    name: Secret history scan
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Scan the full history
+        run: bash bin/security-tools.sh gitleaks -- git --log-opts=--all --redact --config=.gitleaks.toml .
+
+      - name: Prove the gate detects a synthetic secret
+        run: bash bin/test-security-gates.sh
+
   all:
     name: Security · all gates
     if: always()
-    needs: [composer-audit, osv, npm-audit, licenses, composer-policy, semgrep]
+    needs: [composer-audit, osv, npm-audit, licenses, composer-policy, semgrep, secrets]
     runs-on: ubuntu-latest
     steps:
       - name: Fail unless every required job succeeded
