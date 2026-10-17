@@ -2,14 +2,7 @@ name: Documentation
 
 on:
   pull_request:
-    paths:
-      - 'docs/**'
-      - 'package.json'
-      - 'package-lock.json'
-      - 'composer.json'
-      - '.github/workflows/docs.yml'
-      - 'bin/docs-language-gate.sh'
-      - 'bin/docs-php-version-gate.sh'
+    branches: [main]
   # release.yml qualifies every tag and docs-deploy.yml builds main with this workflow; neither push nor dispatch runs it directly.
   workflow_call:
 
@@ -65,3 +58,18 @@ jobs:
         uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
         with:
           path: docs/.vitepress/dist
+
+  all:
+    name: Docs · lint and build
+    if: always()
+    needs: [lint, build]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Fail unless every required job succeeded
+        env:
+          RESULTS: ${{ join(needs.*.result, ' ') }}
+        run: |
+          set -Eeuo pipefail
+          for result in $RESULTS; do
+            [[ "$result" == success ]] || { echo "::error::a required job ended with $result"; exit 1; }
+          done

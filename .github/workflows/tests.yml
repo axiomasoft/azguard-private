@@ -294,3 +294,18 @@ jobs:
       # Blocking: Audit moved to its own archive keeps FQCNs, commands, migration basename and journal rows (I19).
       - name: Audit module relocation rehearsal in a clean Laravel 13 app
         run: bash bin/consumer-fixture.sh relocated-audit --laravel=13
+
+  all:
+    name: Tests · all lanes
+    if: always()
+    needs: [test, test-db-matrix, test-replica, test-redis, coverage, consumer-fixture]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Fail unless every required job succeeded
+        env:
+          RESULTS: ${{ join(needs.*.result, ' ') }}
+        run: |
+          set -Eeuo pipefail
+          for result in $RESULTS; do
+            [[ "$result" == success ]] || { echo "::error::a required job ended with $result"; exit 1; }
+          done

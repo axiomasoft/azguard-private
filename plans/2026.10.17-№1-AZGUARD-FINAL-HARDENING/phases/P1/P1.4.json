@@ -1,0 +1,175 @@
+{
+  "$schema": "urn:swissknifeman:task:plan:item:v1",
+  "id": "P1.4",
+  "title": "Aggregate jobs with stable required-check names",
+  "status": "done_with_deviations",
+  "summary": "Adds aggregate jobs `all` to `tests.yml` (`Tests · all lanes`) and `docs.yml` (`Docs · lint and build`) that need every job of the workflow, run `if: always()` and fail unless all needs succeeded; creates `.github/rulesets/required-checks.json` with the contexts of knowledge/supply-chain#checks (without `Security · all gates`, added by P2.1); removes `paths` filters from `pull_request` triggers of required workflows.",
+  "why": "P0-A needs required checks that exist on every PR under fixed names; matrix job names change with the matrix. Risks: an aggregate without `if: always()` is skipped when a need fails and GitHub treats skipped as success for required checks — the aggregate must run and fail; a `paths` filter leaves a required check pending forever.",
+  "scope": {
+    "include": [
+      "`tests.yml` job `all` (needs test, test-db-matrix, test-replica, test-redis, coverage, consumer-fixture)",
+      "`docs.yml` job `all` (needs lint, build)",
+      "`zizmor.yml`, `codeql.yml`, `pr-check.yml`, `static-analysis.yml`, `code-style.yml`, `compatibility.yml`: `pull_request: branches: [main]` without `paths`",
+      "`.github/rulesets/required-checks.json`: `{\"contexts\": [...]}` in the order of knowledge/supply-chain#checks"
+    ],
+    "exclude": [
+      "Ruleset JSON and settings audit (P2.5)",
+      "security.yml (P2.1)"
+    ]
+  },
+  "depends_on": [
+    "P1.3"
+  ],
+  "decisions": [],
+  "reads": [
+    {
+      "why": "Branch, commits, owner WIP, frozen-contract stop rule, owner gates, evidence",
+      "required": true,
+      "ref": "knowledge/execution#conventions"
+    },
+    {
+      "why": "Aggregate pattern, names, trigger rule",
+      "required": true,
+      "ref": "knowledge/supply-chain#checks"
+    },
+    {
+      "why": "Job ids",
+      "required": true,
+      "path": ".github/workflows/tests.yml"
+    },
+    {
+      "why": "Job ids after P1.3",
+      "required": true,
+      "path": ".github/workflows/docs.yml"
+    }
+  ],
+  "task_files": [
+    {
+      "path": ".github/workflows/tests.yml",
+      "change": "modify"
+    },
+    {
+      "path": ".github/workflows/docs.yml",
+      "change": "modify"
+    },
+    {
+      "path": ".github/workflows/zizmor.yml",
+      "change": "modify"
+    },
+    {
+      "path": ".github/workflows/codeql.yml",
+      "change": "modify"
+    },
+    {
+      "path": ".github/workflows/pr-check.yml",
+      "change": "modify"
+    },
+    {
+      "path": ".github/workflows/static-analysis.yml",
+      "change": "modify"
+    },
+    {
+      "path": ".github/workflows/code-style.yml",
+      "change": "modify"
+    },
+    {
+      "path": ".github/workflows/compatibility.yml",
+      "change": "modify"
+    },
+    {
+      "path": ".github/rulesets/required-checks.json",
+      "change": "create"
+    }
+  ],
+  "rules": [
+    "Aggregate step reads results through `env: RESULTS: ${{ join(needs.*.result, ' ') }}` and loops in bash (W10)."
+  ],
+  "guidance": "Aggregate step body:\n```bash\nset -Eeuo pipefail\nfor result in $RESULTS; do\n  [[ \"$result\" == success ]] || { echo \"::error::a required job ended with $result\"; exit 1; }\ndone\n```\nWhen `release.yml` calls `tests.yml`, the aggregate runs too; the release graph needs are unchanged.",
+  "validation": [
+    {
+      "id": "V1",
+      "cmd": "python3 -c 'import yaml,glob,json,sys; names={v.get(\"name\") for f in glob.glob(\".github/workflows/*.yml\") for v in (yaml.safe_load(open(f)).get(\"jobs\") or {}).values()}; need=json.load(open(\".github/rulesets/required-checks.json\"))[\"contexts\"]; miss=[c for c in need if c not in names]; print(miss); sys.exit(1 if miss else 0)'",
+      "expect": "exit 0",
+      "kind": "acceptance"
+    },
+    {
+      "id": "V2",
+      "cmd": "python3 -c 'import yaml,sys; t=yaml.safe_load(open(\".github/workflows/tests.yml\")); a=t[\"jobs\"][\"all\"]; sys.exit(0 if a.get(\"if\")==\"always()\" and set(a[\"needs\"])==set(t[\"jobs\"])-{\"all\"} else 1)'",
+      "expect": "exit 0",
+      "kind": "acceptance"
+    },
+    {
+      "id": "V3",
+      "cmd": "! grep -nA3 'pull_request:' .github/workflows/*.yml | grep -n 'paths:'",
+      "expect": "exit 0",
+      "kind": "acceptance"
+    },
+    {
+      "id": "V4",
+      "cmd": "php -d memory_limit=1G vendor/bin/pest tests/Arch --fail-on-skipped",
+      "expect": "exit 0",
+      "kind": "acceptance"
+    },
+    {
+      "id": "V5",
+      "procedure": "Push (gate CI-PUSH); `gh run list --commit $(git rev-parse HEAD) --workflow tests.yml --json conclusion --jq '.[0].conclusion'` and the job list contains `Tests · all lanes` with conclusion success",
+      "expect": "success",
+      "kind": "live"
+    }
+  ],
+  "deliverables": [
+    "Aggregate check jobs",
+    ".github/rulesets/required-checks.json"
+  ],
+  "route": {
+    "class": "implementation",
+    "effort": "medium"
+  },
+  "review": {
+    "mode": "none"
+  },
+  "authority": {
+    "kind": "routine"
+  },
+  "rag": {
+    "need": "none",
+    "status": "not_needed"
+  },
+  "result": {
+    "started_at": "2026-10-17T12:55:43Z",
+    "finished_at": "2026-10-17T12:56:36Z",
+    "executor": {
+      "provider": "anthropic",
+      "model": "claude-sonnet-5-5",
+      "effort": "medium",
+      "session": "9fefee9a-9dee-4d3b-9b6f-63f9b4ee8954"
+    },
+    "notes": "aggregate all в tests.yml/docs.yml, paths убраны из docs.yml/zizmor.yml, required-checks.json создан, codeql name литерал; V5 live ждёт CI-PUSH",
+    "deviations": [
+      "codeql.yml: literal job name for required context"
+    ],
+    "checks": [
+      {
+        "id": "V1",
+        "exit": 0,
+        "at": "2026-10-17T12:56:36Z"
+      },
+      {
+        "id": "V2",
+        "exit": 0,
+        "at": "2026-10-17T12:56:36Z"
+      },
+      {
+        "id": "V3",
+        "exit": 0,
+        "at": "2026-10-17T12:56:36Z"
+      },
+      {
+        "id": "V4",
+        "exit": 0,
+        "at": "2026-10-17T12:56:36Z"
+      }
+    ]
+  },
+  "updated_at": "2026-10-17T12:56:36Z"
+}
