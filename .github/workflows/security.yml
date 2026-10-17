@@ -114,10 +114,25 @@ jobs:
       - name: Check plugins and scripts
         run: php bin/composer-policy.php
 
+  semgrep:
+    name: Semgrep (AzGuard rules)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+        with:
+          persist-credentials: false
+
+      - name: Test the rules
+        run: bash bin/security-tools.sh semgrep -- --test --config=.semgrep/rules/ .semgrep/tests/
+
+      - name: Scan the packages
+        run: bash bin/security-tools.sh semgrep -- scan --config=.semgrep/rules/ --error --metrics=off packages/
+
   all:
     name: Security · all gates
     if: always()
-    needs: [composer-audit, osv, npm-audit, licenses, composer-policy]
+    needs: [composer-audit, osv, npm-audit, licenses, composer-policy, semgrep]
     runs-on: ubuntu-latest
     steps:
       - name: Fail unless every required job succeeded

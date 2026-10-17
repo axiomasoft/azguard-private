@@ -1,0 +1,14 @@
+rules:
+  - id: azguard.sensitive-log
+    languages: [php]
+    severity: ERROR
+    message: >-
+      A log call receives a grant, metadata, subject or identity value. Log a stable key or a count instead (the panel id,
+      the permission name, the exception class); grant metadata and identities may carry personal data.
+    patterns:
+      - pattern-either:
+          - pattern: Log::$LEVEL(..., <... $VALUE ...>, ...)
+          - pattern: logger(..., <... $VALUE ...>, ...)
+      - metavariable-regex:
+          metavariable: $VALUE
+          regex: '(?i)^\$\w*(grant|meta|subject|identity)'

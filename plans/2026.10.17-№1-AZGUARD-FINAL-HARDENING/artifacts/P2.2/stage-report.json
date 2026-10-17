@@ -1,0 +1,54 @@
+{
+  "changed_paths": [
+    ".github/workflows/security.yml",
+    ".semgrep/rules/catch-allow.yml",
+    ".semgrep/rules/dynamic-class.yml",
+    ".semgrep/rules/dynamic-code.yml",
+    ".semgrep/rules/grant-table-outside-storage.yml",
+    ".semgrep/rules/raw-sql-interpolation.yml",
+    ".semgrep/rules/sensitive-log.yml",
+    ".semgrep/rules/testing-fake-in-runtime.yml",
+    ".semgrep/rules/unserialize.yml",
+    ".semgrep/tests/catch-allow.php",
+    ".semgrep/tests/dynamic-class.php",
+    ".semgrep/tests/dynamic-code.php",
+    ".semgrep/tests/grant-table-outside-storage.php",
+    ".semgrep/tests/raw-sql-interpolation.php",
+    ".semgrep/tests/sensitive-log.php",
+    ".semgrep/tests/testing-fake-in-runtime.php",
+    ".semgrep/tests/unserialize.php",
+    "bin/security-tools.sh",
+    "packages/core/src/AzGuard.php",
+    "packages/core/src/Laravel/Internal/Console/Commands/StorageMigrationCommand.php",
+    "packages/core/src/Sources/Database/Internal/GrantInspection.php",
+    "pint.json"
+  ],
+  "checks_run": [],
+  "evidence": [],
+  "open_issues": [
+    {
+      "class": "write_set",
+      "evidence": [
+        "bin/security-tools.sh"
+      ],
+      "impact": "The commit takes bin/security-tools.sh; V1/V2 depend on it for the image pull",
+      "kind": "deviation",
+      "outcome": "accepted",
+      "text": "bin/security-tools.sh (outside write_set) gained a fallback for a missing docker credential helper. It could not be exercised here (no Docker access); only bash -n was run."
+    },
+    {
+      "impact": "V1/V2 can still fail on pull, rule parse errors or findings",
+      "kind": "blocker",
+      "next": "Rerun V1/V2 where Docker works and pass any output to the next round.",
+      "severity": "high",
+      "text": "The semgrep image may not be cached on the host, so the first V1 run needs network access to pull semgrep/semgrep@sha256:81474464…. Rule syntax, test annotations and the baseline scan remain unverified until V1/V2 run."
+    },
+    {
+      "kind": "escalation",
+      "next": "the owner decides how to go on",
+      "text": "CHECKS_RED: acceptance checks V1, V2 stay red after 1 correction(s): past the target of 1 for check_fixes the last correction made no progress"
+    }
+  ],
+  "status": "blocked",
+  "summary": "V1/V2 failed on the host because the docker config names a credential helper (docker-credential-desktop) that is not installed, which breaks even an anonymous pull. bin/security-tools.sh now uses an empty temporary DOCKER_CONFIG for the docker kind only when the configured credsStore helper is missing from PATH. Nothing else changed since the previous round. The change is untested: the sandbox has no Docker socket access, so no semgrep run happened."
+}

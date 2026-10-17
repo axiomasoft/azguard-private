@@ -1,0 +1,11 @@
+rules:
+  - id: azguard.unserialize
+    languages: [php]
+    severity: ERROR
+    message: >-
+      `unserialize()` without a class restriction instantiates arbitrary classes. Pass `['allowed_classes' => false]` or an
+      explicit class list, or store JSON instead.
+    patterns:
+      - pattern: unserialize(...)
+      - pattern-not: unserialize($X, [..., 'allowed_classes' => false, ...])
+      - pattern-not: unserialize($X, [..., 'allowed_classes' => [...], ...])
