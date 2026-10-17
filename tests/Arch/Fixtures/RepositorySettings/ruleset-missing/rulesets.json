@@ -1,0 +1,14 @@
+[
+  {
+    "id": 101,
+    "name": "main",
+    "target": "branch",
+    "enforcement": "active"
+  },
+  {
+    "id": 103,
+    "name": "release-tag-creation",
+    "target": "tag",
+    "enforcement": "active"
+  }
+]

@@ -1,0 +1,237 @@
+{
+  "$schema": "urn:swissknifeman:task:plan:item:v1",
+  "id": "P2.5",
+  "title": "Governance as code: CODEOWNERS, ruleset JSON and the repository-settings audit",
+  "status": "done_with_deviations",
+  "summary": "Adds `.github/CODEOWNERS` (D6), ruleset bodies `.github/rulesets/{main,tags,tag-creation}.json` built from `required-checks.json`, `bin/repository-settings-audit.php` (offline fixtures and `--live`) with `tests/Arch/RepositorySettingsAuditTest.php`, and a RELEASING.md section with the exact apply, audit and break-glass commands.",
+  "why": "P0-A (A01): rulesets applied by hand drift; the audit requires an API-level check of rulesets, required checks, tag protection and bypass actors. Risks: a required context that no job produces blocks every PR (rule S7 catches it); `required_approving_review_count` > 0 deadlocks a single maintainer (D1); gh calls through a shell string allow injection — use argv arrays.",
+  "scope": {
+    "include": [
+      "`.github/CODEOWNERS`: `@academici` for `*` and the sensitive paths of D6",
+      "`.github/rulesets/main.json`, `tags.json`, `tag-creation.json` per knowledge/governance#rulesets; `required_status_checks` contexts identical to `required-checks.json`",
+      "`bin/repository-settings-audit.php` per knowledge/governance#audit-script (rules S1–S10)",
+      "`tests/Arch/RepositorySettingsAuditTest.php`, fixtures `tests/Arch/Fixtures/RepositorySettings/{clean,ruleset-missing,ruleset-disabled,bypass-actor,rule-missing,rule-parameter,check-missing,check-unknown,pvr-disabled,secret-scanning-disabled,push-protection-disabled}/`",
+      "`RELEASING.md`: replace 'Recommended repository settings (owner)' with § Repository settings: apply commands (`gh api -X POST repos/axiomasoft/azguard-private/rulesets --input .github/rulesets/<file>.json`, update with `-X PUT .../rulesets/<id>`), PVR/secret-scanning commands, `php bin/repository-settings-audit.php --live`, break-glass (I-G5)"
+    ],
+    "exclude": [
+      "Applying settings (owner, P2.6)"
+    ]
+  },
+  "depends_on": [
+    "P2.4"
+  ],
+  "decisions": [
+    "D1",
+    "D6",
+    "D16"
+  ],
+  "reads": [
+    {
+      "why": "Branch, commits, owner WIP, frozen-contract stop rule, owner gates, evidence",
+      "required": true,
+      "ref": "knowledge/execution#conventions"
+    },
+    {
+      "why": "Observed state",
+      "required": true,
+      "ref": "knowledge/governance#facts"
+    },
+    {
+      "why": "Ruleset bodies",
+      "required": true,
+      "ref": "knowledge/governance#rulesets"
+    },
+    {
+      "why": "Invariants, bypasses, interfering operations",
+      "required": true,
+      "ref": "knowledge/governance#invariants"
+    },
+    {
+      "why": "Script contract and rule ids",
+      "required": true,
+      "ref": "knowledge/governance#audit-script"
+    },
+    {
+      "why": "Required contexts",
+      "required": true,
+      "ref": "knowledge/supply-chain#checks"
+    },
+    {
+      "why": "Review model",
+      "required": true,
+      "ref": "D1"
+    },
+    {
+      "why": "CODEOWNERS identities",
+      "required": true,
+      "ref": "D6"
+    },
+    {
+      "why": "Loadable-functions CLI style",
+      "required": true,
+      "path": "bin/api-compat.php"
+    },
+    {
+      "why": "Section to replace",
+      "required": true,
+      "path": "RELEASING.md",
+      "section": "Compatibility baseline"
+    }
+  ],
+  "task_files": [
+    {
+      "path": ".github/CODEOWNERS",
+      "change": "create"
+    },
+    {
+      "path": ".github/rulesets/main.json",
+      "change": "create"
+    },
+    {
+      "path": ".github/rulesets/tags.json",
+      "change": "create"
+    },
+    {
+      "path": ".github/rulesets/tag-creation.json",
+      "change": "create"
+    },
+    {
+      "path": "bin/repository-settings-audit.php",
+      "change": "create"
+    },
+    {
+      "path": "tests/Arch/RepositorySettingsAuditTest.php",
+      "change": "create"
+    },
+    {
+      "path": "tests/Arch/Fixtures/RepositorySettings/**",
+      "change": "create"
+    },
+    {
+      "path": "RELEASING.md",
+      "change": "modify"
+    }
+  ],
+  "artifacts": [
+    {
+      "path": ".swissknifeman/state/artifacts/sha256/6b8144e58e8dc566961831b222e7cad8662e328c66c0b57520770a0dd40447be",
+      "role": "input"
+    }
+  ],
+  "rules": [
+    "Fixture JSON mirrors the real GitHub REST shapes (`GET /repos/{o}/{r}/rulesets/{id}`: `rules[].type`, `rules[].parameters`, `bypass_actors`, `enforcement`, `conditions`).",
+    "The script never writes settings; it only reads."
+  ],
+  "guidance": "Capture one real response shape first: `gh api repos/axiomasoft/azguard-private/rulesets` (empty today) — use GitHub's documented example for a ruleset body; `gh api repos/axiomasoft/azguard-private --jq .security_and_analysis` and `gh api repos/axiomasoft/azguard-private/private-vulnerability-reporting` give the other two shapes.",
+  "validation": [
+    {
+      "id": "V1",
+      "cmd": "php -d memory_limit=1G vendor/bin/pest tests/Arch/RepositorySettingsAuditTest.php --fail-on-skipped",
+      "expect": "exit 0",
+      "kind": "acceptance"
+    },
+    {
+      "id": "V2",
+      "cmd": "php bin/repository-settings-audit.php --fixture=tests/Arch/Fixtures/RepositorySettings/clean",
+      "expect": "exit 0",
+      "kind": "acceptance"
+    },
+    {
+      "id": "V3",
+      "cmd": "php bin/repository-settings-audit.php --fixture=tests/Arch/Fixtures/RepositorySettings/bypass-actor; test $? -eq 1",
+      "expect": "exit 0 (the bypass fixture exits 1)",
+      "kind": "acceptance"
+    },
+    {
+      "id": "V4",
+      "cmd": "python3 -c 'import json,sys; m=json.load(open(\".github/rulesets/main.json\")); c=[r for r in m[\"rules\"] if r[\"type\"]==\"required_status_checks\"][0][\"parameters\"][\"required_status_checks\"]; sys.exit(0 if [x[\"context\"] for x in c]==json.load(open(\".github/rulesets/required-checks.json\"))[\"contexts\"] else 1)'",
+      "expect": "exit 0",
+      "kind": "acceptance"
+    },
+    {
+      "id": "V5",
+      "cmd": "php -d memory_limit=1G vendor/bin/pest tests/Arch --fail-on-skipped",
+      "expect": "exit 0",
+      "kind": "acceptance"
+    },
+    {
+      "id": "V6",
+      "cmd": "composer lint:check",
+      "expect": "exit 0",
+      "kind": "acceptance"
+    },
+    {
+      "id": "V7",
+      "procedure": "Push (gate CI-PUSH); `gh api 'repos/axiomasoft/azguard-private/codeowners/errors?ref=feat/1.0-final-hardening' --jq '.errors|length'`",
+      "expect": "0",
+      "kind": "live"
+    }
+  ],
+  "deliverables": [
+    "CODEOWNERS",
+    "Ruleset JSON",
+    "Repository-settings audit with fixtures",
+    "RELEASING § Repository settings"
+  ],
+  "route": {
+    "class": "implementation",
+    "effort": "medium"
+  },
+  "review": {
+    "mode": "none"
+  },
+  "authority": {
+    "kind": "routine"
+  },
+  "rag": {
+    "need": "none",
+    "status": "not_needed"
+  },
+  "result": {
+    "started_at": "2026-10-17T16:31:43Z",
+    "finished_at": "2026-10-17T16:54:27Z",
+    "executor": {
+      "provider": "anthropic",
+      "model": "claude-sonnet-5-5",
+      "effort": "medium",
+      "session": "428bf784-ef22-4c5a-89aa-7b66607a51e3"
+    },
+    "notes": "CODEOWNERS, 3 rulesets, audit script S1-S10, fixtures, RELEASING section",
+    "deviations": [
+      "S7 tested directly; V7 live waits CI-PUSH"
+    ],
+    "checks": [
+      {
+        "id": "V1",
+        "exit": 0,
+        "at": "2026-10-17T16:54:27Z"
+      },
+      {
+        "id": "V2",
+        "exit": 0,
+        "at": "2026-10-17T16:54:27Z"
+      },
+      {
+        "id": "V3",
+        "exit": 0,
+        "at": "2026-10-17T16:54:27Z"
+      },
+      {
+        "id": "V4",
+        "exit": 0,
+        "at": "2026-10-17T16:54:27Z"
+      },
+      {
+        "id": "V5",
+        "exit": 0,
+        "at": "2026-10-17T16:54:27Z"
+      },
+      {
+        "id": "V6",
+        "exit": 0,
+        "at": "2026-10-17T16:54:27Z"
+      }
+    ]
+  },
+  "updated_at": "2026-10-17T16:54:27Z"
+}

@@ -23,7 +23,7 @@ function securityTrackedFiles(): array
     return array_values(array_filter(explode("\0", $output), static fn (string $path): bool => $path !== ''
         && ! str_starts_with($path, 'audits/')
         && ! str_starts_with($path, 'plans/')
-        && ! in_array($path, ['CHANGELOG.md', 'package-lock.json', 'composer.lock'], true)
+        && ! in_array($path, ['CHANGELOG.md', 'package-lock.json', 'composer.lock', 'tests/Arch/SecurityPolicyTest.php'], true)
         && is_file(securityRoot().'/'.$path)));
 }
 

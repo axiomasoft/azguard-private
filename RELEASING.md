@@ -61,8 +61,34 @@ A pull request that changes `compatibility.json` fails the `compat-baseline` gua
 `composer api:compat` locally before tagging; `bash bin/compat-drill.sh` proves on real patches in a throwaway clone
 that the comparison rejects the intentional breaks (D1–D5) and accepts the control (D6).
 
-Recommended repository settings (owner): require the `Compatibility` check and the other CI checks on `main` in branch
-protection, and restrict who may apply the `compat-baseline` label.
+## Repository settings
+
+The expected settings live in `.github/rulesets/` and `.github/CODEOWNERS`; `bin/repository-settings-audit.php` compares them
+with the live repository and only reads. Applying them is an owner act.
+
+```bash
+# create (first time)
+gh api -X POST repos/axiomasoft/azguard-private/rulesets --input .github/rulesets/main.json
+gh api -X POST repos/axiomasoft/azguard-private/rulesets --input .github/rulesets/tags.json
+gh api -X POST repos/axiomasoft/azguard-private/rulesets --input .github/rulesets/tag-creation.json
+# update an existing ruleset
+gh api -X PUT repos/axiomasoft/azguard-private/rulesets/<id> --input .github/rulesets/<file>.json
+# private vulnerability reporting, secret scanning and push protection
+gh api -X PUT repos/axiomasoft/azguard-private/private-vulnerability-reporting
+gh api -X PATCH repos/axiomasoft/azguard-private --input - <<'JSON'
+{"security_and_analysis": {"secret_scanning": {"status": "enabled"}, "secret_scanning_push_protection": {"status": "enabled"}}}
+JSON
+# audit
+php bin/repository-settings-audit.php --live
+```
+
+`main` allows no bypass actor; only the repository admin role may create `v*` tags, and no one may update or delete them.
+The `compat-baseline` label stays a triage-role decision (single maintainer).
+
+**Break-glass.** The owner temporarily sets `enforcement` to `disabled` on the `main` ruleset, performs the action,
+restores `active`, and records the date, the reason, the ruleset JSON before and after, and the commit in the plan's
+`artifacts/evidence/governance/break-glass.md`. `php bin/repository-settings-audit.php --live` must be green again before
+any tag.
 
 ## Dependency updates
 
