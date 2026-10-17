@@ -77,7 +77,20 @@ case "$kind" in
         ;;
     docker)
         [[ "$image" == *@sha256:* ]] || fail "docker image must be pinned by digest: $image"
-        docker run --rm -v "$PWD:/work" -w /work "$image" "$@"
+        # A docker config naming a credential helper that is not installed (credsStore "desktop" without Docker Desktop)
+        # fails even an anonymous pull of a public image: use an empty config for that case only.
+        store="$(python3 -c '
+import json, os, sys
+try:
+    print(json.load(open(os.path.join(os.environ.get("DOCKER_CONFIG") or os.path.expanduser("~/.docker"), "config.json"))).get("credsStore", ""))
+except (OSError, ValueError):
+    print("")
+')"
+        if [ -n "$store" ] && ! command -v "docker-credential-$store" >/dev/null 2>&1; then
+            mkdir -p "$tmp/docker-config"
+            export DOCKER_CONFIG="$tmp/docker-config"
+        fi
+        docker run --rm -v "$PWD:/src:ro" -w /src "$image" "$bin" "$@"
         ;;
     *) fail "unknown kind: $kind" ;;
 esac
