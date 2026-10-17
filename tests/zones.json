@@ -3,7 +3,7 @@
     "zones": {
         "kernel": {
             "src": ["packages/core/src/Kernel", "packages/core/src/Attributes", "packages/core/src/Exceptions", "packages/core/src/Support", "packages/core/src/Contracts", "packages/core/src/Context", "packages/core/src/Tenancy"],
-            "tests": ["Unit/Kernel", "Unit/Exceptions", "Unit/Contracts", "Feature/Support"],
+            "tests": ["Unit/Kernel", "Unit/Exceptions", "Unit/Contracts", "Unit/Fuzz", "Feature/Support"],
             "uses": []
         },
         "catalog": {
