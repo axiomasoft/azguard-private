@@ -57,6 +57,18 @@ freshness**: a decision may reflect a state from before a committed revoke. `azg
 (`consistency.reads`). A freshness receipt that would make replica reads wait for a known commit is on the
 roadmap (`ROADMAP.md` in the repository).
 
+### Choosing primary or replica reads
+
+1. Does a user act on a grant or revoke they just made, or must a revoke take effect at once? Use
+   `Reads::Primary` (the default).
+2. Is the decision made in a job or a long-running worker that must see revokes made by other processes? Keep
+   `Reads::Primary` and add `StateRefresh::Check`.
+3. Is stale authorization for the lag of the replica acceptable, and do you need the read load off the primary?
+   `Reads::Default` may read from the replica. Measure the lag first and watch the `consistency.reads` finding of
+   `azguard:doctor`.
+4. Do you need replica reads and read-your-writes together? AzGuard has no freshness receipt in 1.0 (see
+   `ROADMAP.md`); read from the primary for that operation.
+
 ## DecisionSet
 
 `decideMany()` starts every request first (admission, before hooks). Then it reads the database authority of

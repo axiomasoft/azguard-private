@@ -77,3 +77,18 @@ replica can be used with `consistency(reads: Reads::Default)` if replica lag is 
 Denials caused by errors (`source_error`, `policy_error`, `hook_error`, …) are logged with the component and
 a stable `code`. Alert on them: they mean a broken source or policy, not a user without access.
 `azguard:explain user:42 posts.update` reproduces a single decision with secrets redacted.
+
+## Observability
+
+AzGuard has no metrics API in 1.0. Each signal is available from a surface that already exists; a first-class metrics hook is
+a 1.1 candidate (see `ROADMAP.md`).
+
+| Signal | Where to read it |
+|---|---|
+| Deny and error rates | A listener on the `access.decided` event; its payload keys are in [Machine formats](/reference/formats). The payload carries no grant or meta data, so it can be logged as is |
+| Grants per operation and change duration | A change participant (the Changes SPI, [Hooks and plugins](/advanced/hooks-and-plugins)) that measures around the transaction |
+| Panel-state lock wait and deadlocks | Database metrics: `pg_stat_activity` and `pg_locks` on PostgreSQL, `performance_schema.data_lock_waits` and the InnoDB deadlock counter on MySQL and MariaDB. The retry policy surfaces the exceptions it gives up on |
+| Cache invalidation latency | The state token comparison and the metrics of the cache store |
+| Consistency and read mode | The `consistency` keys of the configuration and the `consistency.reads` finding of `azguard:doctor` |
+
+Panel-level locking is unchanged before 1.0: measure the lock wait first, then decide whether finer locking is needed.
