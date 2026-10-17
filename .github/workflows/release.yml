@@ -100,18 +100,6 @@ jobs:
             exit 1
           fi
 
-      - name: Core archive in a clean Laravel 13 app
-        run: bash bin/consumer-fixture.sh --laravel=13 --version="${GITHUB_REF_NAME#v}"
-
-      - name: Core and Filament archives in a clean Laravel 13 app
-        run: bash bin/consumer-fixture.sh --laravel=13 --version="${GITHUB_REF_NAME#v}" --with-filament
-
-      - name: Core archive without module roots in a clean Laravel 13 app
-        run: bash bin/consumer-fixture.sh core-only --laravel=13 --version="${GITHUB_REF_NAME#v}"
-
-      - name: Audit module relocation rehearsal in a clean Laravel 13 app
-        run: bash bin/consumer-fixture.sh relocated-audit --laravel=13 --version="${GITHUB_REF_NAME#v}"
-
       - name: Require changelog section in tagged commit
         run: |
           set -Eeuo pipefail
@@ -121,9 +109,48 @@ jobs:
       - name: Verify release preflight fixtures
         run: bash bin/test-release-preflight.sh
 
+  validate-consumers:
+    name: Consumer archives · L${{ matrix.laravel }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        laravel: [12, 13]
+    env:
+      LARAVEL: ${{ matrix.laravel }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # 2.40.0
+        with:
+          php-version: '8.4'
+          extensions: mbstring, pdo, pdo_sqlite, sqlite3, zip
+          tools: composer:v2
+          coverage: none
+
+      - name: Core archive in a clean Laravel app
+        run: bash bin/consumer-fixture.sh --laravel="$LARAVEL" --version="${GITHUB_REF_NAME#v}"
+
+      - name: Core and Filament archives in a clean Laravel app
+        run: bash bin/consumer-fixture.sh --laravel="$LARAVEL" --version="${GITHUB_REF_NAME#v}" --with-filament
+
+      - name: Core archive without module roots in a clean Laravel app
+        run: bash bin/consumer-fixture.sh core-only --laravel="$LARAVEL" --version="${GITHUB_REF_NAME#v}"
+
+      - name: Audit module relocation rehearsal in a clean Laravel app
+        run: bash bin/consumer-fixture.sh relocated-audit --laravel="$LARAVEL" --version="${GITHUB_REF_NAME#v}"
+
   split:
     name: Split validated packages
-    needs: [validate, tests, static, style, docs, nightly, compat, security]
+    needs: [validate, validate-consumers, tests, static, style, docs, nightly, compat, security]
     uses: ./.github/workflows/split.yml
     secrets:
       MONOREPO_SPLIT_TOKEN: ${{ secrets.MONOREPO_SPLIT_TOKEN }}
@@ -132,7 +159,7 @@ jobs:
 
   release:
     name: Create GitHub Release
-    needs: [validate, tests, static, style, docs, nightly, compat, security, split]
+    needs: [validate, validate-consumers, tests, static, style, docs, nightly, compat, security, split]
     runs-on: ubuntu-latest
     permissions:
       contents: write

@@ -79,7 +79,7 @@ function releaseViolations(array $workflows): array
     $violations = [];
     $release = $workflows['release.yml'] ?? [];
     $jobs = $release['jobs'] ?? [];
-    $gates = ['validate', ...array_keys(RELEASE_CALLED)];
+    $gates = ['validate', 'validate-consumers', ...array_keys(RELEASE_CALLED)];
 
     // Bypass closed: only tags trigger a release, the split only by a call.
     $triggers = releaseTriggers($release);
@@ -133,11 +133,21 @@ function releaseViolations(array $workflows): array
     if (preg_match('/composer (analyse|lint|test)\b|vendor\/bin\/(pest|phpstan|pint)/', $validate) === 1) {
         $violations[] = 'release.yml: validate repeats a called workflow';
     }
-    foreach (['validate' => $validate, 'tests.yml consumer-fixture' => releaseRuns($workflows['tests.yml']['jobs']['consumer-fixture'] ?? [])] as $where => $runs) {
+    foreach (['release.yml validate-consumers' => $jobs['validate-consumers'] ?? [], 'tests.yml consumer-fixture' => $workflows['tests.yml']['jobs']['consumer-fixture'] ?? []] as $where => $job) {
+        $runs = releaseRuns($job);
+
+        if (($job['strategy']['matrix']['laravel'] ?? null) !== [12, 13]) {
+            $violations[] = "{$where}: the consumer archives must run on Laravel 12 and 13";
+        }
+
         foreach (RELEASE_CONSUMER_MODES as $mode => $pattern) {
             if (preg_match($pattern, $runs) !== 1) {
                 $violations[] = "{$where}: no {$mode} consumer archive step";
             }
+        }
+
+        if (str_contains($runs, '--laravel=13') || str_contains($runs, '--laravel=12')) {
+            $violations[] = "{$where}: the Laravel major must come from the matrix";
         }
     }
 
@@ -243,17 +253,17 @@ it('reports a broken release graph', function (Closure $break, string $violation
         $w['release.yml']['jobs']['split']['needs'] = array_values(array_diff($w['release.yml']['jobs']['split']['needs'], ['compat']));
 
         return $w;
-    }, 'release.yml: split must call split.yml and need compat, docs, nightly, security, static, style, tests, validate'],
+    }, 'release.yml: split must call split.yml and need compat, docs, nightly, security, static, style, tests, validate, validate-consumers'],
     'release without the nightly gate' => [static function (array $w): array {
         $w['release.yml']['jobs']['release']['needs'] = array_values(array_diff($w['release.yml']['jobs']['release']['needs'], ['nightly']));
 
         return $w;
-    }, 'release.yml: release must need compat, docs, nightly, security, split, static, style, tests, validate'],
+    }, 'release.yml: release must need compat, docs, nightly, security, split, static, style, tests, validate, validate-consumers'],
     'release without the split' => [static function (array $w): array {
-        $w['release.yml']['jobs']['release']['needs'] = ['validate', 'tests', 'static', 'style', 'docs', 'nightly', 'compat'];
+        $w['release.yml']['jobs']['release']['needs'] = ['validate', 'validate-consumers', 'tests', 'static', 'style', 'docs', 'nightly', 'compat', 'security'];
 
         return $w;
-    }, 'release.yml: release must need compat, docs, nightly, security, split, static, style, tests, validate'],
+    }, 'release.yml: release must need compat, docs, nightly, security, split, static, style, tests, validate, validate-consumers'],
     'a called workflow without workflow_call' => [static function (array $w): array {
         unset($w['tests-nightly.yml']['on']['workflow_call']);
 
@@ -284,21 +294,31 @@ it('reports a broken release graph', function (Closure $break, string $violation
 
         return $w;
     }, 'release.yml: validate repeats a called workflow'],
-    'validate without the relocation rehearsal' => [static function (array $w): array {
-        $w['release.yml']['jobs']['validate']['steps'] = array_values(array_filter($w['release.yml']['jobs']['validate']['steps'], static fn (array $s): bool => ! str_contains((string) ($s['run'] ?? ''), 'relocated-audit')));
+    'validate-consumers without the relocation rehearsal' => [static function (array $w): array {
+        $w['release.yml']['jobs']['validate-consumers']['steps'] = array_values(array_filter($w['release.yml']['jobs']['validate-consumers']['steps'], static fn (array $s): bool => ! str_contains((string) ($s['run'] ?? ''), 'relocated-audit')));
 
         return $w;
-    }, 'validate: no relocated-audit consumer archive step'],
+    }, 'release.yml validate-consumers: no relocated-audit consumer archive step'],
+    'validate-consumers on Laravel 13 only' => [static function (array $w): array {
+        $w['release.yml']['jobs']['validate-consumers']['strategy']['matrix']['laravel'] = [13];
+
+        return $w;
+    }, 'release.yml validate-consumers: the consumer archives must run on Laravel 12 and 13'],
+    'tests.yml consumer job on Laravel 13 only' => [static function (array $w): array {
+        $w['tests.yml']['jobs']['consumer-fixture']['strategy']['matrix']['laravel'] = [13];
+
+        return $w;
+    }, 'tests.yml consumer-fixture: the consumer archives must run on Laravel 12 and 13'],
     'tests.yml consumer job without the relocation rehearsal' => [static function (array $w): array {
         $w['tests.yml']['jobs']['consumer-fixture']['steps'] = array_values(array_filter($w['tests.yml']['jobs']['consumer-fixture']['steps'], static fn (array $s): bool => ! str_contains((string) ($s['run'] ?? ''), 'relocated-audit')));
 
         return $w;
     }, 'tests.yml consumer-fixture: no relocated-audit consumer archive step'],
-    'validate without the core-only archive' => [static function (array $w): array {
-        $w['release.yml']['jobs']['validate']['steps'] = array_values(array_filter($w['release.yml']['jobs']['validate']['steps'], static fn (array $s): bool => ! str_contains((string) ($s['run'] ?? ''), 'core-only')));
+    'validate-consumers without the core-only archive' => [static function (array $w): array {
+        $w['release.yml']['jobs']['validate-consumers']['steps'] = array_values(array_filter($w['release.yml']['jobs']['validate-consumers']['steps'], static fn (array $s): bool => ! str_contains((string) ($s['run'] ?? ''), 'core-only')));
 
         return $w;
-    }, 'validate: no core-only consumer archive step'],
+    }, 'release.yml validate-consumers: no core-only consumer archive step'],
     'write access for the whole workflow' => [static function (array $w): array {
         $w['release.yml']['permissions'] = ['contents' => 'write'];
 
