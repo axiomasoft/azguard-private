@@ -173,6 +173,11 @@ equivalent mutant. It also runs weekly. It needs a coverage driver (pcov or Xdeb
    bash bin/release-preflight.sh 1.0.0 HEAD
    ```
    The script reads `git show REF:CHANGELOG.md`; a working-tree-only edit fails.
+   A pre-release `1.0.0-rc.1` is served by its own `## [1.0.0-rc.1]` section, else by the `## [1.0.0]` section: one
+   section serves the release candidates and the stable tag of the same commit (`bash bin/release-preflight.sh
+   1.0.0-rc.1 HEAD`, `bash bin/release-notes.sh 1.0.0-rc.1 HEAD`).
+   The `validate` job of `release.yml` also requires that the tag is annotated, that the tagged commit is reachable from
+   `main`, and, for the first stable tag, that the commit changes only `compatibility.json` over the candidate.
    Run `bash bin/test-release-preflight.sh` for isolated matching, missing,
    malformed, prerelease, and working-tree-only fixtures.
    For the first stable release the qualified candidate C is not the commit that is tagged: a commit cannot name

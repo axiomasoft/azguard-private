@@ -108,6 +108,35 @@ jobs:
             exit 1
           fi
 
+      - name: Require an annotated tag
+        env:
+          TAG: ${{ github.ref_name }}
+        run: |
+          set -Eeuo pipefail
+          test "$(git cat-file -t "refs/tags/${TAG}")" = tag || { echo "::error::${TAG} is a lightweight tag: release tags are annotated."; exit 1; }
+
+      - name: Require the tagged commit to be reachable from main
+        env:
+          TAGGED_SHA: ${{ github.sha }}
+        run: |
+          set -Eeuo pipefail
+          git fetch --no-tags origin main
+          git merge-base --is-ancestor "${TAGGED_SHA}" FETCH_HEAD || { echo "::error::${TAGGED_SHA} is not reachable from main."; exit 1; }
+
+      - name: Require the first stable tag to change only the baseline over the candidate
+        env:
+          TAG: ${{ github.ref_name }}
+          TAGGED_SHA: ${{ github.sha }}
+        run: |
+          set -Eeuo pipefail
+          # Only the first stable release has the C+1 rule; a later one is compared with the previous stable tag.
+          earlier="$(git tag --merged "${TAGGED_SHA}" --list 'v[1-9]*.[0-9]*.[0-9]*' | grep -E '^v[1-9][0-9]*\.[0-9]+\.[0-9]+$' | grep -vxF "${TAG}" || true)"
+          if [[ "${TAG}" =~ ^v[1-9][0-9]*\.[0-9]+\.[0-9]+$ && -z "${earlier}" ]]; then
+            candidate="$(jq -r .candidate compatibility.json)"
+            changed="$(git diff --name-only "${candidate}" "${TAGGED_SHA}" -- . ':!plans' ':!release-evidence')"
+            test "${changed}" = "compatibility.json" || { echo "::error::a stable tag may change only compatibility.json over the candidate ${candidate}; changed:"; echo "${changed}"; exit 1; }
+          fi
+
       - name: Require changelog section in tagged commit
         run: |
           set -Eeuo pipefail

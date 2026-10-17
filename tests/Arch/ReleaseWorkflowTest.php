@@ -156,6 +156,30 @@ function releaseViolations(array $workflows): array
         $violations[] = 'release.yml: validate does not run the release preflight';
     }
 
+    // Tag guards: annotated, reachable from main, the C+1 rule; all before the changelog preflight.
+    $validateSteps = releaseSteps($jobs['validate'] ?? []);
+    $stepNames = array_map(static fn (array $step): string => (string) ($step['name'] ?? ''), $validateSteps);
+    $position = static function (string $needle) use ($stepNames): ?int {
+        foreach ($stepNames as $index => $name) {
+            if (str_contains($name, $needle)) {
+                return $index;
+            }
+        }
+
+        return null;
+    };
+    $changelog = $position('changelog section');
+
+    foreach (['annotated tag', 'reachable from main', 'first stable tag'] as $guard) {
+        $at = $position($guard);
+
+        if ($at === null) {
+            $violations[] = "release.yml: validate has no guard for {$guard}";
+        } elseif ($changelog !== null && $at > $changelog) {
+            $violations[] = "release.yml: validate runs the {$guard} guard after the changelog preflight";
+        }
+    }
+
     // artifacts: built by the script the developers run, attested, uploaded; the release attaches them.
     $artifacts = $jobs['artifacts'] ?? [];
     $artifactUses = implode("\n", array_map(static fn (array $step): string => (string) ($step['uses'] ?? ''), releaseSteps($artifacts)));
@@ -350,6 +374,16 @@ it('reports a broken release graph', function (Closure $break, string $violation
 
         return $w;
     }, 'release.yml validate-consumers: no core-only consumer archive step'],
+    'validate without the annotated tag guard' => [static function (array $w): array {
+        $w['release.yml']['jobs']['validate']['steps'] = array_values(array_filter($w['release.yml']['jobs']['validate']['steps'], static fn (array $s): bool => ! str_contains((string) ($s['name'] ?? ''), 'annotated tag')));
+
+        return $w;
+    }, 'release.yml: validate has no guard for annotated tag'],
+    'validate without the main ancestry guard' => [static function (array $w): array {
+        $w['release.yml']['jobs']['validate']['steps'] = array_values(array_filter($w['release.yml']['jobs']['validate']['steps'], static fn (array $s): bool => ! str_contains((string) ($s['name'] ?? ''), 'reachable from main')));
+
+        return $w;
+    }, 'release.yml: validate has no guard for reachable from main'],
     'artifacts without the attestation step' => [static function (array $w): array {
         $w['release.yml']['jobs']['artifacts']['steps'] = array_values(array_filter($w['release.yml']['jobs']['artifacts']['steps'], static fn (array $s): bool => ! str_contains((string) ($s['uses'] ?? ''), 'attest-build-provenance')));
 
