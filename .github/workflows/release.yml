@@ -14,6 +14,10 @@ on:
 permissions:
   contents: read
 
+defaults:
+  run:
+    shell: bash
+
 jobs:
   tests:
     name: Tests
@@ -63,13 +67,13 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
         with:
           fetch-depth: 0
           persist-credentials: false
 
       - name: Setup PHP
-        uses: shivammathur/setup-php@v2
+        uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # v2.40.0
         with:
           php-version: '8.3'
           extensions: zip, pdo_sqlite, sqlite3
@@ -78,6 +82,7 @@ jobs:
 
       - name: Validate every package manifest
         run: |
+          set -Eeuo pipefail
           composer validate --strict --no-check-version
           for pkg in packages/core packages/filament; do
             echo "::group::composer validate $pkg"
@@ -87,6 +92,7 @@ jobs:
 
       - name: Fail if the Filament package does not pin core to self.version
         run: |
+          set -Eeuo pipefail
           if ! grep -Eq '"axiomasoft/azguard"[[:space:]]*:[[:space:]]*"self\.version"' packages/filament/composer.json; then
             echo "::error::axiomasoft/azguard-filament must require axiomasoft/azguard as self.version."
             exit 1
@@ -106,6 +112,7 @@ jobs:
 
       - name: Require changelog section in tagged commit
         run: |
+          set -Eeuo pipefail
           version="${GITHUB_REF_NAME#v}"
           bash bin/release-preflight.sh "${version}" "${GITHUB_SHA}"
 
@@ -116,7 +123,8 @@ jobs:
     name: Split validated packages
     needs: [validate, tests, static, style, docs, nightly, compat]
     uses: ./.github/workflows/split.yml
-    secrets: inherit
+    secrets:
+      MONOREPO_SPLIT_TOKEN: ${{ secrets.MONOREPO_SPLIT_TOKEN }}
     permissions:
       contents: read
 
@@ -129,7 +137,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
         with:
           fetch-depth: 0
           persist-credentials: false
@@ -138,7 +146,7 @@ jobs:
         run: bash bin/release-notes.sh "${GITHUB_REF_NAME#v}" "${GITHUB_SHA}" > CHANGES.md
 
       - name: Create GitHub Release
-        uses: softprops/action-gh-release@v3
+        uses: softprops/action-gh-release@efb35369e0ad2afab669f228072c1b0d510eae64 # v3.0.3
         with:
           name: ${{ github.ref_name }}
           body_path: CHANGES.md
