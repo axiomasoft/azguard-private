@@ -1,0 +1,187 @@
+{
+  "$schema": "urn:swissknifeman:task:plan:item:v1",
+  "id": "P1.5",
+  "title": "Pinned tool installer and blocking Zizmor with an expiring allowlist",
+  "status": "done_with_deviations",
+  "summary": "Creates `bin/security-tools.sh` and `.github/security-tools.lock` (first tool: zizmor), makes `zizmor.yml` blocking (`--persona=pedantic --min-severity=medium --config=.github/zizmor.yml`, no `|| true`), fixes every medium/high finding in the workflows, and records unavoidable ones only in `.github/zizmor.yml` with owner, reason and expiry comments.",
+  "why": "P0-B (A03): the current job reports 122 findings and always passes. Risks: tool download without hash verification re-opens the supply-chain hole; ignoring a rule wholesale hides new findings; online audits need `GH_TOKEN` (keep it in `env`).",
+  "scope": {
+    "include": [
+      "`bin/security-tools.sh <name> -- <args>`: kinds `binary` (url + sha256, tar.gz/zip extraction), `wheel` (url + sha256, `python3 -m venv` + `pip install --no-deps <wheel>`), `docker` (`image@sha256:digest`); env overrides `AZGUARD_TOOLS_LOCK` (lock path) and `AZGUARD_TOOLS_DIR` (default `var/tools`); exit 2 on hash mismatch or unknown tool; reads JSON with `python3 -c` (no jq dependency)",
+      "`.github/security-tools.lock` with zizmor (latest release; prefer an official linux x86_64 binary asset with published checksum, else the manylinux x86_64 wheel)",
+      "`.gitignore`: `var/tools/`",
+      "`zizmor.yml`: run through the script; triggers per P1.4; checkout pinned and `persist-credentials: false`",
+      "`.github/zizmor.yml` allowlist per knowledge/supply-chain#zizmor",
+      "Workflow fixes for findings (e.g. `cache-poisoning` on `actions/cache` in jobs reachable from release tags: disable cache in release-called jobs or key it on the lock; `excessive-permissions`; `template-injection`; `artipacked`)",
+      "`.github/dependabot.yml`: no change for actions; tools are bumped by editing the lock"
+    ],
+    "exclude": [
+      "The hardening Pest gate (P1.6)",
+      "Semgrep/gitleaks/osv tools (P2.x)"
+    ]
+  },
+  "depends_on": [
+    "P1.4"
+  ],
+  "decisions": [
+    "D8"
+  ],
+  "reads": [
+    {
+      "why": "Branch, commits, owner WIP, frozen-contract stop rule, owner gates, evidence",
+      "required": true,
+      "ref": "knowledge/execution#conventions"
+    },
+    {
+      "why": "Lock format and script contract",
+      "required": true,
+      "ref": "knowledge/supply-chain#pinning"
+    },
+    {
+      "why": "Command and allowlist format",
+      "required": true,
+      "ref": "knowledge/supply-chain#zizmor"
+    },
+    {
+      "why": "Current advisory job",
+      "required": true,
+      "path": ".github/workflows/zizmor.yml"
+    },
+    {
+      "why": "Tool pinning decision",
+      "required": true,
+      "ref": "D8"
+    }
+  ],
+  "task_files": [
+    {
+      "path": "bin/security-tools.sh",
+      "change": "create"
+    },
+    {
+      "path": ".github/security-tools.lock",
+      "change": "create"
+    },
+    {
+      "path": ".github/zizmor.yml",
+      "change": "create"
+    },
+    {
+      "path": ".github/workflows/zizmor.yml",
+      "change": "modify"
+    },
+    {
+      "path": ".gitignore",
+      "change": "modify"
+    },
+    {
+      "path": ".github/workflows/*.yml",
+      "change": "modify",
+      "note": "only to fix zizmor findings"
+    }
+  ],
+  "rules": [
+    "A finding is fixed in the workflow unless the fix is impossible; each ignore is `file:line` scoped with the comment of knowledge/supply-chain#zizmor and expires ≤ 180 days.",
+    "Record the zizmor version, sha256 and the before/after finding counts in `plans/2026.10.17-№1-AZGUARD-FINAL-HARDENING/artifacts/evidence/P1.5/zizmor.md`."
+  ],
+  "guidance": "Run locally: `bash bin/security-tools.sh zizmor -- --persona=pedantic --min-severity=medium --config=.github/zizmor.yml .github/workflows/` (add `--offline` when no `GH_TOKEN`). `gh release view --repo zizmorcore/zizmor --json tagName,assets` lists assets; compute sha256 with `sha256sum` after downloading once and cross-check with the published checksum asset if present.",
+  "validation": [
+    {
+      "id": "V1",
+      "cmd": "bash bin/security-tools.sh zizmor -- --persona=pedantic --min-severity=medium --config=.github/zizmor.yml .github/workflows/",
+      "expect": "exit 0",
+      "kind": "acceptance"
+    },
+    {
+      "id": "V2",
+      "cmd": "d=$(mktemp -d) && printf 'on: push\\npermissions: {}\\njobs:\\n  a:\\n    runs-on: ubuntu-latest\\n    steps:\\n      - uses: actions/checkout@v6\\n' > \"$d/neg.yml\" && ! bash bin/security-tools.sh zizmor -- --persona=pedantic --offline \"$d/neg.yml\"",
+      "expect": "exit 0 (the unpinned fixture fails zizmor)",
+      "kind": "acceptance"
+    },
+    {
+      "id": "V3",
+      "cmd": "t=$(mktemp) && python3 -c 'import json,sys; d=json.load(open(\".github/security-tools.lock\")); d[\"tools\"][\"zizmor\"][\"sha256\"]=\"0\"*64; json.dump(d,open(sys.argv[1],\"w\"))' \"$t\" && AZGUARD_TOOLS_LOCK=\"$t\" AZGUARD_TOOLS_DIR=\"$(mktemp -d)\" bash bin/security-tools.sh zizmor -- --version; test $? -eq 2",
+      "expect": "exit 0 (hash mismatch exits 2)",
+      "kind": "acceptance"
+    },
+    {
+      "id": "V4",
+      "cmd": "! grep -nE '\\|\\| *(true|:)|continue-on-error' .github/workflows/zizmor.yml",
+      "expect": "exit 0",
+      "kind": "acceptance"
+    },
+    {
+      "id": "V5",
+      "cmd": "php -d memory_limit=1G vendor/bin/pest tests/Arch --fail-on-skipped",
+      "expect": "exit 0",
+      "kind": "acceptance"
+    },
+    {
+      "id": "V6",
+      "procedure": "Push (gate CI-PUSH); ci-runs check for Zizmor",
+      "expect": "success on HEAD",
+      "kind": "live"
+    }
+  ],
+  "deliverables": [
+    "bin/security-tools.sh + lock",
+    "Blocking Zizmor with scoped allowlist",
+    "plans/2026.10.17-№1-AZGUARD-FINAL-HARDENING/artifacts/evidence/P1.5/zizmor.md"
+  ],
+  "route": {
+    "class": "implementation",
+    "effort": "medium"
+  },
+  "review": {
+    "mode": "none"
+  },
+  "authority": {
+    "kind": "routine"
+  },
+  "rag": {
+    "need": "none",
+    "status": "not_needed"
+  },
+  "result": {
+    "started_at": "2026-10-17T12:58:35Z",
+    "finished_at": "2026-10-17T13:03:20Z",
+    "executor": {
+      "provider": "anthropic",
+      "model": "sonnet-5.5",
+      "effort": "medium",
+      "session": "74768e8d-4dee-421c-9b4e-ccf1537dd5f0"
+    },
+    "notes": "zizmor 1.31.1 binary pinned by sha256, blocking, allowlist empty; V6 live ждёт CI-PUSH",
+    "deviations": [
+      "setup-php version comment without v prefix"
+    ],
+    "checks": [
+      {
+        "id": "V1",
+        "exit": 0,
+        "at": "2026-10-17T13:03:20Z"
+      },
+      {
+        "id": "V2",
+        "exit": 0,
+        "at": "2026-10-17T13:03:20Z"
+      },
+      {
+        "id": "V3",
+        "exit": 0,
+        "at": "2026-10-17T13:03:20Z"
+      },
+      {
+        "id": "V4",
+        "exit": 0,
+        "at": "2026-10-17T13:03:20Z"
+      },
+      {
+        "id": "V5",
+        "exit": 0,
+        "at": "2026-10-17T13:03:20Z"
+      }
+    ]
+  },
+  "updated_at": "2026-10-17T13:03:20Z"
+}
