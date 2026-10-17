@@ -5,7 +5,7 @@
   "title": "Plan №1 — AzGuard 1.0 final hardening: governance, supply chain, qualification depth and release integrity",
   "status": "active",
   "created": "2026-10-17",
-  "updated_at": "2026-10-17T10:56:03Z",
+  "updated_at": "2026-10-17T15:43:38Z",
   "repository": "axiomasoft/azguard-private",
   "owner": "repository owner (academici)",
   "authoring": {
@@ -24,7 +24,8 @@
     "Follow knowledge/execution#conventions in every item: branch feat/1.0-final-hardening, no push/tag/settings change without the named owner gate, owner WIP untouched, negative proof for every new gate.",
     "Runtime code under packages/** changes only where an item scope names it or for a demonstrated defect with a failing test (knowledge/execution#conventions items 4 and 5); composer api:check and composer api:compat stay exit 0.",
     "No unpinned action, image or tool anywhere (knowledge/supply-chain#pinning); no || true, continue-on-error or advisory mode on a gate.",
-    "Evidence lives under plans/2026.10.17-№1-AZGUARD-FINAL-HARDENING/artifacts/evidence/<item>/ with full SHA, command, exit code, counts and log path."
+    "Evidence lives under plans/2026.10.17-№1-AZGUARD-FINAL-HARDENING/artifacts/evidence/<item>/ with full SHA, command, exit code, counts and log path.",
+    "Owner 2026-10-17: only fast runs and tests. Slow runs (composer test, test:db, engines, extended fuzz, mutation, consumer-fixture) are impact-only, left to CI; fast checks (Arch, lint, analyse, targeted pest, docs) stay acceptance. Review (grok/grok-4.7) only at phase end, via the orchestrator bridge."
   ],
   "phases": [
     "P1",

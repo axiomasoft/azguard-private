@@ -6,6 +6,13 @@
       "url": "https://github.com/zizmorcore/zizmor/releases/download/v1.31.1/zizmor-x86_64-unknown-linux-gnu.tar.gz",
       "sha256": "d185f726bdaf92df78273217dfdd24ebcd6b0ef48cf3ce776ff5762b6e138c99",
       "bin": "zizmor"
+    },
+    "osv-scanner": {
+      "version": "2.7.0",
+      "kind": "binary",
+      "url": "https://github.com/google/osv-scanner/releases/download/v2.7.0/osv-scanner_linux_amd64",
+      "sha256": "160c6253e2922e9e0a6a9771c5c4c40a4b3c6090b34a3cdd5e80c96cc2e4218b",
+      "bin": "osv-scanner"
     }
   }
 }

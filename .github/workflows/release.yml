@@ -55,6 +55,12 @@ jobs:
     permissions:
       contents: read
 
+  security:
+    name: Security
+    uses: ./.github/workflows/security.yml
+    permissions:
+      contents: read
+
   validate:
     name: Validate before release
     runs-on: ubuntu-latest
@@ -117,7 +123,7 @@ jobs:
 
   split:
     name: Split validated packages
-    needs: [validate, tests, static, style, docs, nightly, compat]
+    needs: [validate, tests, static, style, docs, nightly, compat, security]
     uses: ./.github/workflows/split.yml
     secrets:
       MONOREPO_SPLIT_TOKEN: ${{ secrets.MONOREPO_SPLIT_TOKEN }}
@@ -126,7 +132,7 @@ jobs:
 
   release:
     name: Create GitHub Release
-    needs: [validate, tests, static, style, docs, nightly, compat, split]
+    needs: [validate, tests, static, style, docs, nightly, compat, security, split]
     runs-on: ubuntu-latest
     permissions:
       contents: write

@@ -19,6 +19,7 @@ const RELEASE_CALLED = [
     'docs' => 'docs.yml',
     'nightly' => 'tests-nightly.yml',
     'compat' => 'compatibility.yml',
+    'security' => 'security.yml',
 ];
 
 /** The consumer-archive steps of `validate` and of the tests.yml consumer job: default, Filament, core-only, relocation. */
@@ -242,17 +243,17 @@ it('reports a broken release graph', function (Closure $break, string $violation
         $w['release.yml']['jobs']['split']['needs'] = array_values(array_diff($w['release.yml']['jobs']['split']['needs'], ['compat']));
 
         return $w;
-    }, 'release.yml: split must call split.yml and need compat, docs, nightly, static, style, tests, validate'],
+    }, 'release.yml: split must call split.yml and need compat, docs, nightly, security, static, style, tests, validate'],
     'release without the nightly gate' => [static function (array $w): array {
         $w['release.yml']['jobs']['release']['needs'] = array_values(array_diff($w['release.yml']['jobs']['release']['needs'], ['nightly']));
 
         return $w;
-    }, 'release.yml: release must need compat, docs, nightly, split, static, style, tests, validate'],
+    }, 'release.yml: release must need compat, docs, nightly, security, split, static, style, tests, validate'],
     'release without the split' => [static function (array $w): array {
         $w['release.yml']['jobs']['release']['needs'] = ['validate', 'tests', 'static', 'style', 'docs', 'nightly', 'compat'];
 
         return $w;
-    }, 'release.yml: release must need compat, docs, nightly, split, static, style, tests, validate'],
+    }, 'release.yml: release must need compat, docs, nightly, security, split, static, style, tests, validate'],
     'a called workflow without workflow_call' => [static function (array $w): array {
         unset($w['tests-nightly.yml']['on']['workflow_call']);
 

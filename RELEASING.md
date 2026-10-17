@@ -64,6 +64,14 @@ that the comparison rejects the intentional breaks (D1–D5) and accepts the con
 Recommended repository settings (owner): require the `Compatibility` check and the other CI checks on `main` in branch
 protection, and restrict who may apply the `compat-baseline` label.
 
+## Dependency updates
+
+- A high or critical security update (Composer, npm, OSV) is triaged within 1 business day; an update forced by an
+  advisory is its own commit touching only `composer.lock` / `package-lock.json`.
+- An ordinary Dependabot update is reviewed within a week; superseded Dependabot PRs are closed.
+- Major updates are never auto-merged.
+- An OSV ignore needs `ignoreUntil` and a reason in `.github/osv-scanner.toml`.
+
 ## Cutting a release
 
 1. Ensure the declared PHP/Laravel/Testbench matrix and the dedicated SQLite,
