@@ -109,6 +109,20 @@ for driver in sqlite pgsql mysql mariadb; do bash bin/upgrade-fixture.sh --from=
 decision or the doctor changed. It also reports whether `migrate:rollback` succeeds on the new schema; a migration that
 cannot be rolled back is declared in `UPGRADING.md`.
 
+## Release artifacts
+
+The `artifacts` job of `release.yml` runs `bin/release-artifacts.sh <version> <outdir>`: the two package archives
+(`azguard-core-<v>.zip`, `azguard-filament-<v>.zip`), a CycloneDX SBOM of each package's production dependencies
+(`sbom-core.cdx.json`, `sbom-filament.cdx.json`, made with the pinned `syft`) and `SHA256SUMS`. The job attests the build
+provenance of the four files and the release attaches all five to the GitHub Release. Verify a download:
+
+```bash
+sha256sum -c SHA256SUMS
+gh attestation verify azguard-core-<v>.zip --repo axiomasoft/azguard-private
+```
+
+The same script builds the files locally (`bash bin/release-artifacts.sh 1.0.0 /tmp/out`).
+
 ## Critical mutation
 
 `composer mutate:critical` (`bin/mutation-gate.sh critical`) mutates the decision kernel, the authorization pipeline,

@@ -80,7 +80,7 @@ function releaseViolations(array $workflows): array
     $violations = [];
     $release = $workflows['release.yml'] ?? [];
     $jobs = $release['jobs'] ?? [];
-    $gates = ['validate', 'validate-consumers', ...array_keys(RELEASE_CALLED)];
+    $gates = ['validate', 'validate-consumers', 'artifacts', ...array_keys(RELEASE_CALLED)];
 
     // Bypass closed: only tags trigger a release, the split only by a call.
     $triggers = releaseTriggers($release);
@@ -156,6 +156,35 @@ function releaseViolations(array $workflows): array
         $violations[] = 'release.yml: validate does not run the release preflight';
     }
 
+    // artifacts: built by the script the developers run, attested, uploaded; the release attaches them.
+    $artifacts = $jobs['artifacts'] ?? [];
+    $artifactUses = implode("\n", array_map(static fn (array $step): string => (string) ($step['uses'] ?? ''), releaseSteps($artifacts)));
+    $permissions = $artifacts['permissions'] ?? [];
+    ksort($permissions);
+
+    if ($permissions !== ['attestations' => 'write', 'contents' => 'read', 'id-token' => 'write']) {
+        $violations[] = 'release.yml: artifacts must have contents: read, id-token: write and attestations: write';
+    }
+
+    if (! str_contains(releaseRuns($artifacts), 'bin/release-artifacts.sh')) {
+        $violations[] = 'release.yml: artifacts does not run bin/release-artifacts.sh';
+    }
+
+    if (! str_contains($artifactUses, 'actions/attest-build-provenance@')) {
+        $violations[] = 'release.yml: artifacts has no attestation step';
+    }
+
+    if (! str_contains($artifactUses, 'actions/upload-artifact@')) {
+        $violations[] = 'release.yml: artifacts does not upload the files';
+    }
+    $releaseSteps = releaseSteps($jobs['release'] ?? []);
+    $attached = implode("\n", array_map(static fn (array $step): string => (string) ($step['with']['files'] ?? ''), $releaseSteps));
+
+    if (! str_contains(implode("\n", array_map(static fn (array $step): string => (string) ($step['uses'] ?? ''), $releaseSteps)), 'actions/download-artifact@')
+        || ! str_contains($attached, 'dist/*.zip') || ! str_contains($attached, 'dist/*.cdx.json') || ! str_contains($attached, 'dist/SHA256SUMS')) {
+        $violations[] = 'release.yml: release does not attach the archives, the SBOMs and SHA256SUMS';
+    }
+
     // Least privilege: write access for the release job alone.
     if (($release['permissions'] ?? null) !== ['contents' => 'read']) {
         $violations[] = 'release.yml: the workflow permissions must be contents: read';
@@ -164,6 +193,7 @@ function releaseViolations(array $workflows): array
         $writes = array_keys(array_filter((array) ($job['permissions'] ?? []), static fn (mixed $level): bool => $level === 'write'));
         $allowed = match ($id) {
             'release' => ['contents'],
+            'artifacts' => ['id-token', 'attestations'],
             default => [],
         };
 
@@ -254,17 +284,17 @@ it('reports a broken release graph', function (Closure $break, string $violation
         $w['release.yml']['jobs']['split']['needs'] = array_values(array_diff($w['release.yml']['jobs']['split']['needs'], ['compat']));
 
         return $w;
-    }, 'release.yml: split must call split.yml and need compat, docs, mutation, nightly, security, static, style, tests, validate, validate-consumers'],
+    }, 'release.yml: split must call split.yml and need artifacts, compat, docs, mutation, nightly, security, static, style, tests, validate, validate-consumers'],
     'release without the nightly gate' => [static function (array $w): array {
         $w['release.yml']['jobs']['release']['needs'] = array_values(array_diff($w['release.yml']['jobs']['release']['needs'], ['nightly']));
 
         return $w;
-    }, 'release.yml: release must need compat, docs, mutation, nightly, security, split, static, style, tests, validate, validate-consumers'],
+    }, 'release.yml: release must need artifacts, compat, docs, mutation, nightly, security, split, static, style, tests, validate, validate-consumers'],
     'release without the split' => [static function (array $w): array {
         $w['release.yml']['jobs']['release']['needs'] = ['validate', 'validate-consumers', 'tests', 'static', 'style', 'docs', 'nightly', 'compat', 'security'];
 
         return $w;
-    }, 'release.yml: release must need compat, docs, mutation, nightly, security, split, static, style, tests, validate, validate-consumers'],
+    }, 'release.yml: release must need artifacts, compat, docs, mutation, nightly, security, split, static, style, tests, validate, validate-consumers'],
     'a called workflow without workflow_call' => [static function (array $w): array {
         unset($w['tests-nightly.yml']['on']['workflow_call']);
 
@@ -320,6 +350,23 @@ it('reports a broken release graph', function (Closure $break, string $violation
 
         return $w;
     }, 'release.yml validate-consumers: no core-only consumer archive step'],
+    'artifacts without the attestation step' => [static function (array $w): array {
+        $w['release.yml']['jobs']['artifacts']['steps'] = array_values(array_filter($w['release.yml']['jobs']['artifacts']['steps'], static fn (array $s): bool => ! str_contains((string) ($s['uses'] ?? ''), 'attest-build-provenance')));
+
+        return $w;
+    }, 'release.yml: artifacts has no attestation step'],
+    'artifacts without attestation permissions' => [static function (array $w): array {
+        unset($w['release.yml']['jobs']['artifacts']['permissions']['attestations']);
+
+        return $w;
+    }, 'release.yml: artifacts must have contents: read, id-token: write and attestations: write'],
+    'release not attaching the SBOMs' => [static function (array $w): array {
+        foreach ($w['release.yml']['jobs']['release']['steps'] as &$step) {
+            unset($step['with']['files']);
+        }
+
+        return $w;
+    }, 'release.yml: release does not attach the archives, the SBOMs and SHA256SUMS'],
     'write access for the whole workflow' => [static function (array $w): array {
         $w['release.yml']['permissions'] = ['contents' => 'write'];
 
