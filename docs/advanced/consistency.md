@@ -122,6 +122,24 @@ failure. The final HTTP policy belongs to the host:
 })
 ```
 
+## Failure semantics
+
+What a failure at each point of a change or a decision leaves behind. A change is one storage transaction.
+
+| Point | Outcome | Retry | Surfaced as |
+|---|---|---|---|
+| Database error before or after the panel-state update | the whole change rolls back: no rows, no version bump, no event, no journal row | safe; a deadlock or lock timeout is retried by the root itself | the database exception |
+| A pipe cancels or breaks the continuation | the whole operation, composite siblings included, rolls back | safe | `ChangeCancelledException` or the contract exception |
+| A participant (for example the audit journal) fails | the whole change rolls back, rows the participant already wrote included | safe | the participant's exception |
+| A listener of `StorageTouched` fails after the commit | the state stays committed; nothing rolls back | do not repeat the change: it is applied | the listener's exception |
+| A source, policy, hook, restriction or condition throws during a decision | the decision is denied with a failure reason, never allowed | by kind: `Transient` may be retried, `Contract` is a defect | `Decision::failure()` (see [Failures](#failures)) |
+| A malformed runtime permission or key | refused before any write | fix the input | `InvalidPermissionKeyException` |
+| A grant expires (`expires_at <= now`) | denies from that instant, also from a warm cache | n/a | `not_granted` |
+| Replica lag | a strict read goes to the primary; a lagging read is bounded by the state token check | n/a | see [Primary freshness and replicas](#primary-freshness-and-replicas) |
+
+Not asserted by a test, and therefore not a guarantee: the behaviour of a persistent cache store that is unreachable
+during a decision. The store belongs to the host; monitor it and set `cache.ttl` so that a stale entry is bounded.
+
 ## visibleTo and time of check
 
 `visibleTo()` builds a query from the grants it read. The rows are loaded later, when the query runs. A grant

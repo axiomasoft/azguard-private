@@ -80,6 +80,20 @@ afterEach(function (): void {
     Relation::morphMap([], false);
 });
 
+it('P3.6 role grant ∥ permission grant on one panel: both apply, in either order, two bumps', function (bool $roleFirst): void {
+    $version = W::version();
+    $role = ['op' => 'grant', 'role' => 'analyst', 'user' => 2, 'project' => 2];
+    $permission = ['op' => 'grant-permission', 'name' => 'campaigns.view', 'user' => 2, 'project' => 2];
+    [$first, $second] = dynamicRacePair($this->processes, $roleFirst ? $role : $permission, $roleFirst ? $permission : $role);
+
+    expect([$first['error'], $second['error']])->toBe([null, null])
+        ->and([$first['status'], $second['status']])->toBe(['applied', 'applied'])
+        ->and([$first['version'], $second['version']])->toBe([$version + 1, $version + 2])
+        ->and(W::version())->toBe($version + 2)
+        ->and(dynamicRaceGrants())->toHaveCount(1)
+        ->and(array_count_values(W::keys())['crm.organization:1|analyst|2|crm.project:2|manual'] ?? 0)->toBe(1);
+})->with(['role first' => [true], 'permission first' => [false]])->group('engines');
+
 it('C9 leaves no grant of the deleted name when a grant that passed its check commits before the delete', function (): void {
     $version = W::version();
     [$grant, $delete] = dynamicRacePair($this->processes,
