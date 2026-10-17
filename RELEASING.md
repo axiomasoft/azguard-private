@@ -90,6 +90,25 @@ restores `active`, and records the date, the reason, the ruleset JSON before and
 `artifacts/evidence/governance/break-glass.md`. `php bin/repository-settings-audit.php --live` must be green again before
 any tag.
 
+## Schema changes
+
+A migration that was published is never edited or removed: `tests/Arch/MigrationsImmutableTest.php` compares every
+migration file with the compatibility baseline (the newest stable tag, before it the `candidate` of
+`compatibility.json`). A schema change is a new migration file, together with an updated DDL artifact of
+`compatibility.json`.
+
+Before a schema-changing release, run the upgrade fixture on all four drivers:
+
+```bash
+base=$(python3 -c 'import json; print(json.load(open("compatibility.json"))["candidate"])')   # or the last stable tag
+for driver in sqlite pgsql mysql mariadb; do bash bin/upgrade-fixture.sh --from="$base" --to=HEAD --driver="$driver"; done
+```
+
+`bin/upgrade-fixture.sh` installs the older archive in a clean Laravel application, seeds grants, captures the decisions
+(`azguard:explain --json`) and the doctor, swaps to the newer archive, runs `php artisan migrate`, and fails when a
+decision or the doctor changed. It also reports whether `migrate:rollback` succeeds on the new schema; a migration that
+cannot be rolled back is declared in `UPGRADING.md`.
+
 ## Critical mutation
 
 `composer mutate:critical` (`bin/mutation-gate.sh critical`) mutates the decision kernel, the authorization pipeline,

@@ -133,3 +133,12 @@ your code. Each line is `Find: <grep pattern> → Replace: <new form>`.
 - Find: `AzGuard\Storage\Storage` → Replace: `AzGuard\Storage\StorageDescriptor`; the class is now internal.
 - Find: `->bindToStorage(` or `$model->storage()` on a `Permission`, `PermissionGrant` or `RoleGrant` subclass → Replace: nothing; the models carry no storage member, ask `AzGuard::storage($id)` for the `StorageDescriptor`.
 - Find: `DatabaseSource::make()->storage($storageObject)` → Replace: `->storage('<storage id>')`; the method takes the id of a configured storage only.
+
+## Schema upgrades within 1.x
+
+A 1.x release changes the schema only by adding migrations; a published migration is immutable
+(`tests/Arch/MigrationsImmutableTest.php`). Run `php artisan migrate` after updating the packages.
+
+Irreversible steps: none so far. A migration that cannot be rolled back is listed here with the release that adds it,
+as reported by `bin/upgrade-fixture.sh` (see `RELEASING.md` § Schema changes). Roll back by restoring the database backup
+taken before the update, not by `migrate:rollback`, whenever a step is listed.
