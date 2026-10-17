@@ -1,0 +1,156 @@
+{
+  "$schema": "urn:swissknifeman:task:plan:item:v1",
+  "id": "P1.6",
+  "title": "Workflow hardening gate with negative fixtures",
+  "status": "done",
+  "summary": "Adds `tests/Arch/WorkflowHardening.php` (pure checker of rules W1–W10) and `tests/Arch/WorkflowHardeningTest.php` asserting zero violations over `.github/workflows/*.yml`, one failing fixture per rule under `tests/Arch/Fixtures/Workflows/`, and the zizmor allowlist comment/expiry rule.",
+  "why": "P0-B: the hardening must not regress silently; the audit requires a parser gate whose negative fixtures (`actions/checkout@v6`, `zizmor ... || true`) fail it. Risk: a checker that only scans parsed YAML misses version comments (W1) and multi-line shell shape (W9) — scan raw text for those.",
+  "scope": {
+    "include": [
+      "`tests/Arch/WorkflowHardening.php`: `workflowHardeningViolations(string $file, string $raw, array $parsed): list<string>` + `zizmorAllowlistViolations(string $raw, DateTimeImmutable $today): list<string>`",
+      "`tests/Arch/WorkflowHardeningTest.php`: real-tree test, ten fixture tests (dataset), allowlist test with an expired and an unannotated synthetic entry",
+      "`tests/Arch/Fixtures/Workflows/{unpinned-action,continue-on-error,masked-failure,persisted-credentials,top-level-permissions,write-permission,dangerous-trigger,secrets-inherit,strict-shell,untrusted-interpolation}.yml`",
+      "Allowlists W2/W6 as PHP constants mirroring knowledge/supply-chain#gate and #permissions"
+    ],
+    "exclude": [
+      "Workflow behavior changes (only if the gate finds a missed violation: fix the workflow in this item)"
+    ]
+  },
+  "depends_on": [
+    "P1.5"
+  ],
+  "decisions": [],
+  "reads": [
+    {
+      "why": "Branch, commits, owner WIP, frozen-contract stop rule, owner gates, evidence",
+      "required": true,
+      "ref": "knowledge/execution#conventions"
+    },
+    {
+      "why": "Rules, signature, fixture contract",
+      "required": true,
+      "ref": "knowledge/supply-chain#gate"
+    },
+    {
+      "why": "W6 allowlist",
+      "required": true,
+      "ref": "knowledge/supply-chain#permissions"
+    },
+    {
+      "why": "Allowlist comment/expiry rule",
+      "required": true,
+      "ref": "knowledge/supply-chain#zizmor"
+    },
+    {
+      "why": "Style: YAML parsing, `releaseTriggers()` for the `on` key",
+      "required": true,
+      "path": "tests/Arch/ReleaseWorkflowTest.php"
+    },
+    {
+      "why": "How helper files are loaded from Arch tests",
+      "required": true,
+      "path": "tests/Arch/BoundaryScan.php"
+    },
+    {
+      "why": "Zone rules for test files",
+      "required": false,
+      "path": "tests/README.md"
+    }
+  ],
+  "task_files": [
+    {
+      "path": "tests/Arch/WorkflowHardening.php",
+      "change": "create"
+    },
+    {
+      "path": "tests/Arch/WorkflowHardeningTest.php",
+      "change": "create"
+    },
+    {
+      "path": "tests/Arch/Fixtures/Workflows/*.yml",
+      "change": "create"
+    }
+  ],
+  "rules": [
+    "Each fixture is a complete workflow that violates exactly one rule; the test asserts the rule id set equals `[<rule>]`."
+  ],
+  "guidance": "Use `Symfony\\Component\\Yaml\\Yaml::parse($raw)`. W9 multi-line detection: a `run` string containing a newline after trimming. W1 raw scan: regex per line `^\\s*(-\\s*)?uses:\\s*(\\S+)(.*)$`, skip values starting with `./`. Pint and Rector must accept the new PHP files (`composer lint:check`, `composer refactor:check`).",
+  "validation": [
+    {
+      "id": "V1",
+      "cmd": "php -d memory_limit=1G vendor/bin/pest tests/Arch/WorkflowHardeningTest.php --fail-on-skipped",
+      "expect": "exit 0",
+      "kind": "acceptance"
+    },
+    {
+      "id": "V2",
+      "cmd": "test \"$(ls tests/Arch/Fixtures/Workflows/*.yml | wc -l)\" -eq 10",
+      "expect": "exit 0",
+      "kind": "acceptance"
+    },
+    {
+      "id": "V3",
+      "cmd": "php -d memory_limit=1G vendor/bin/pest tests/Arch --fail-on-skipped",
+      "expect": "exit 0",
+      "kind": "acceptance"
+    },
+    {
+      "id": "V4",
+      "cmd": "composer lint:check && composer refactor:check",
+      "expect": "exit 0",
+      "kind": "acceptance"
+    }
+  ],
+  "deliverables": [
+    "Workflow hardening gate",
+    "Ten negative fixtures"
+  ],
+  "route": {
+    "class": "implementation",
+    "effort": "medium"
+  },
+  "review": {
+    "mode": "none"
+  },
+  "authority": {
+    "kind": "routine"
+  },
+  "rag": {
+    "need": "none",
+    "status": "not_needed"
+  },
+  "result": {
+    "started_at": "2026-10-17T15:32:29Z",
+    "finished_at": "2026-10-17T15:36:11Z",
+    "executor": {
+      "provider": "anthropic",
+      "model": "claude-sonnet-5-5",
+      "effort": "medium",
+      "session": "eb77b476-1cb3-4b5f-a6e1-b054c0154ca7"
+    },
+    "notes": "W1-W10 checker, 15 tests (real tree clean, 10 fixtures, allowlist/expiry rules); W1 допускает комментарий версии без v",
+    "checks": [
+      {
+        "id": "V1",
+        "exit": 0,
+        "at": "2026-10-17T15:36:11Z"
+      },
+      {
+        "id": "V2",
+        "exit": 0,
+        "at": "2026-10-17T15:36:11Z"
+      },
+      {
+        "id": "V3",
+        "exit": 0,
+        "at": "2026-10-17T15:36:11Z"
+      },
+      {
+        "id": "V4",
+        "exit": 0,
+        "at": "2026-10-17T15:36:11Z"
+      }
+    ]
+  },
+  "updated_at": "2026-10-17T15:36:11Z"
+}
