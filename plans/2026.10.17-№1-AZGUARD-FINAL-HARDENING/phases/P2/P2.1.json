@@ -2,7 +2,7 @@
   "$schema": "urn:swissknifeman:task:plan:item:v1",
   "id": "P2.1",
   "title": "Blocking dependency, license and Composer-policy gates (security.yml)",
-  "status": "blocked",
+  "status": "done",
   "summary": "Creates `.github/workflows/security.yml` with blocking jobs composer-audit, osv, npm-audit, licenses, composer-policy and the aggregate `Security · all gates`; adds `bin/license-policy.php`, `bin/composer-policy.php` with their policy JSON and fixtures, osv-scanner to the tool lock, the `security` call to `release.yml`, the npm ecosystem to Dependabot and a dependency-update SLA to `RELEASING.md`.",
   "why": "P1 A07: no job audits dependencies, licenses or Composer plugins; CodeQL scans only Actions. Risks: a live advisory in the lock fails the gate immediately — triage (update in its own lock commit with owner approval, or a narrow OSV ignore with expiry) before enabling; `npm audit` on dev-only docs tooling may report advisories with no fix — policy `--audit-level=high`, ignores only with expiry in `.github/osv-scanner.toml`.",
   "scope": {
@@ -209,53 +209,52 @@
     "status": "not_needed"
   },
   "result": {
-    "started_at": "2026-10-17T15:43:43Z",
-    "finished_at": "2026-10-17T16:01:26Z",
+    "started_at": "2026-10-17T16:06:07Z",
+    "finished_at": "2026-10-17T16:06:08Z",
     "executor": {
       "provider": "anthropic",
       "model": "claude-sonnet-5-5",
       "effort": "medium",
       "session": "428bf784-ef22-4c5a-89aa-7b66607a51e3"
     },
-    "notes": "security.yml, policies, fixtures, release wiring done; lock fixed in 3761b0cd; V8 live waits CI-PUSH",
-    "escalation": "3 residual npm advisories (2 moderate, 1 high) after npm audit fix; need owner triage: major vite bump or OSV ignore with expiry",
+    "notes": "V8 live waits CI-PUSH; lock commits 3761b0cd, 1d99916c",
     "checks": [
       {
         "id": "V1",
         "exit": 0,
-        "at": "2026-10-17T16:01:26Z"
+        "at": "2026-10-17T16:06:08Z"
       },
       {
         "id": "V2",
-        "exit": 1,
-        "at": "2026-10-17T16:01:26Z"
+        "exit": 0,
+        "at": "2026-10-17T16:06:08Z"
       },
       {
         "id": "V3",
-        "exit": 1,
-        "at": "2026-10-17T16:01:26Z"
+        "exit": 0,
+        "at": "2026-10-17T16:06:08Z"
       },
       {
         "id": "V4",
         "exit": 0,
-        "at": "2026-10-17T16:01:26Z"
+        "at": "2026-10-17T16:06:08Z"
       },
       {
         "id": "V5",
         "exit": 0,
-        "at": "2026-10-17T16:01:26Z"
+        "at": "2026-10-17T16:06:08Z"
       },
       {
         "id": "V6",
         "exit": 0,
-        "at": "2026-10-17T16:01:26Z"
+        "at": "2026-10-17T16:06:08Z"
       },
       {
         "id": "V7",
         "exit": 0,
-        "at": "2026-10-17T16:01:26Z"
+        "at": "2026-10-17T16:06:08Z"
       }
     ]
   },
-  "updated_at": "2026-10-17T16:01:26Z"
+  "updated_at": "2026-10-17T16:06:08Z"
 }
