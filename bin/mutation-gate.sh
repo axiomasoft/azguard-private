@@ -57,6 +57,17 @@ run_package() {
             ignored='Commands,Resources,Pages'
             min_score=99
             ;;
+        critical)
+            # The decision kernel and its guards: release-blocking, every covered mutant must be killed
+            # (knowledge/qualification#mutation). No ignored directories: a survivor is fixed by a test or
+            # annotated `// @pest-mutate-ignore -- <reason>` as a proven equivalent.
+            path='packages/core/src/Kernel/Decision,packages/core/src/Kernel/Grammar,packages/core/src/Kernel/Permissions'
+            path+=',packages/core/src/Authorization/Internal/Pipeline,packages/core/src/Authorization/Internal/Query,packages/core/src/Authorization/Internal/Cache'
+            path+=',packages/core/src/Authorization/Internal/EvaluationFrame.php,packages/core/src/Authorization/Internal/BatchEvaluation.php,packages/core/src/Authorization/Internal/BatchInputs.php'
+            path+=',packages/core/src/Changes/Internal,packages/filament/src/Authorization'
+            ignored=''
+            min_score=100
+            ;;
         *)
             echo "[mutation-gate] unknown package: $package" >&2
             exit 2
@@ -71,6 +82,10 @@ run_package() {
         passthru_php="${AZGUARD_COVERAGE_PHP_ARGS[*]} ${passthru_php}"
     fi
     # The parent merges the coverage of all workers: 1G ran out in CI (Allowed memory size exhausted), so it is unlimited.
+    local ignore_args=()
+    if [[ -n "$ignored" ]]; then
+        ignore_args=("--ignore=$ignored")
+    fi
     PAO_DISABLE=1 XDEBUG_MODE=coverage "$AZGUARD_COVERAGE_PHP" "${AZGUARD_COVERAGE_PHP_ARGS[@]}" -d memory_limit=-1 vendor/bin/pest \
         --configuration="$config" \
         --fail-on-skipped \
@@ -80,7 +95,7 @@ run_package() {
         --processes=4 \
         --passthru-php="$passthru_php" \
         --path="$path" \
-        --ignore="$ignored" \
+        "${ignore_args[@]}" \
         --covered-only \
         --min="$min_score" \
         --no-cache

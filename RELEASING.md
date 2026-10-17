@@ -90,6 +90,14 @@ restores `active`, and records the date, the reason, the ruleset JSON before and
 `artifacts/evidence/governance/break-glass.md`. `php bin/repository-settings-audit.php --live` must be green again before
 any tag.
 
+## Critical mutation
+
+`composer mutate:critical` (`bin/mutation-gate.sh critical`) mutates the decision kernel, the authorization pipeline,
+the query witnesses, the cache and state tokens, the change transaction and the Filament guards, and requires every
+covered mutant to be killed. It is release-blocking: `release.yml` calls `mutation.yml` with `package: critical`, and
+`split` and `release` need it. A survivor is fixed by a test or marked `// @pest-mutate-ignore -- <reason>` as a proven
+equivalent mutant. It also runs weekly. It needs a coverage driver (pcov or Xdebug).
+
 ## Dependency updates
 
 - A high or critical security update (Composer, npm, OSV) is triaged within 1 business day; an update forced by an

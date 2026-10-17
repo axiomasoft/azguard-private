@@ -1,9 +1,23 @@
 name: Mutation Testing
 
-# Optional manual mutation testing; deferred by the owner while the API is unstable.
-# A requested run still fails on runner errors or unmet per-package thresholds.
+# Release-blocking critical mutation (release.yml calls it with package: critical), weekly and on demand. The
+# core and filament scopes stay manual. A run fails on runner errors or an unmet threshold.
 on:
+  workflow_call:
+    inputs:
+      package:
+        description: Mutation scope (critical, core or filament)
+        type: string
+        default: critical
   workflow_dispatch:
+    inputs:
+      package:
+        description: Mutation scope (critical, core or filament)
+        type: choice
+        options: [critical, core, filament]
+        default: critical
+  schedule:
+    - cron: '23 4 * * 1'
 
 permissions:
   contents: read
@@ -14,12 +28,10 @@ defaults:
 
 jobs:
   mutation:
-    name: Pest mutation (${{ matrix.package }})
+    name: Pest mutation (${{ inputs.package || 'critical' }})
     runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        package: [core, filament]
+    env:
+      PACKAGE: ${{ inputs.package || 'critical' }}
 
     steps:
       - name: Checkout
@@ -54,7 +66,7 @@ jobs:
         run: composer install --prefer-dist --no-interaction --no-progress
 
       - name: Pest mutation gate
-        run: composer mutate:${{ matrix.package }}
+        run: composer "mutate:${PACKAGE}"
         env:
           DB_CONNECTION: sqlite
           DB_DATABASE: ':memory:'
