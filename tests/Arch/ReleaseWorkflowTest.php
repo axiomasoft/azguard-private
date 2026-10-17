@@ -32,7 +32,7 @@ function releaseWorkflows(): array
 {
     $workflows = [];
 
-    foreach (['release.yml', 'split.yml', ...array_values(RELEASE_CALLED)] as $file) {
+    foreach (['release.yml', 'split.yml', 'docs-deploy.yml', ...array_values(RELEASE_CALLED)] as $file) {
         $workflows[$file] = Yaml::parseFile(dirname(__DIR__, 2).'/.github/workflows/'.$file);
     }
 
@@ -152,7 +152,6 @@ function releaseViolations(array $workflows): array
         $writes = array_keys(array_filter((array) ($job['permissions'] ?? []), static fn (mixed $level): bool => $level === 'write'));
         $allowed = match ($id) {
             'release' => ['contents'],
-            'docs' => ['pages', 'id-token'],
             default => [],
         };
 
@@ -161,11 +160,21 @@ function releaseViolations(array $workflows): array
         }
     }
 
-    // A call never deploys the documentation.
-    $deploy = (string) ($workflows['docs.yml']['jobs']['deploy']['if'] ?? '');
+    // The call grants only contents: read; the deploy lives in docs-deploy.yml.
+    if (($jobs['docs']['permissions'] ?? null) !== ['contents' => 'read']) {
+        $violations[] = 'release.yml: the docs call must grant only contents: read';
+    }
 
-    if (! str_contains($deploy, "github.ref == 'refs/heads/main'") || str_contains($deploy, '!=')) {
-        $violations[] = 'docs.yml: deploy must run only on main';
+    if (array_key_exists('deploy', $workflows['docs.yml']['jobs'] ?? [])) {
+        $violations[] = 'docs.yml: must not deploy';
+    }
+    $deployPermissions = $workflows['docs-deploy.yml']['jobs']['deploy']['permissions'] ?? [];
+    ksort($deployPermissions);
+
+    if ($deployPermissions !== ['id-token' => 'write', 'pages' => 'write']
+        || ($workflows['docs-deploy.yml']['permissions'] ?? null) !== ['contents' => 'read']
+        || ($workflows['docs-deploy.yml']['jobs']['build']['uses'] ?? null) !== './.github/workflows/docs.yml') {
+        $violations[] = 'docs-deploy.yml: the deploy must be the only Pages writer, built through docs.yml';
     }
 
     // The comparison: full history and tags, freshness before compatibility, the label only through env.
@@ -304,11 +313,16 @@ it('reports a broken release graph', function (Closure $break, string $violation
 
         return $w;
     }, 'release.yml: job compat has no least-privilege permissions'],
-    'docs deploying outside main' => [static function (array $w): array {
-        $w['docs.yml']['jobs']['deploy']['if'] = "github.event_name != 'pull_request'";
+    'docs call with Pages write' => [static function (array $w): array {
+        $w['release.yml']['jobs']['docs']['permissions']['pages'] = 'write';
 
         return $w;
-    }, 'docs.yml: deploy must run only on main'],
+    }, 'release.yml: the docs call must grant only contents: read'],
+    'docs deploying again' => [static function (array $w): array {
+        $w['docs.yml']['jobs']['deploy'] = ['runs-on' => 'ubuntu-latest'];
+
+        return $w;
+    }, 'docs.yml: must not deploy'],
     'a shallow comparison checkout' => [static function (array $w): array {
         unset($w['compatibility.yml']['jobs']['compare']['steps'][0]['with']['fetch-tags']);
 

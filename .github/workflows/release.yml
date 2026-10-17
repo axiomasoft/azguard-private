@@ -37,15 +37,11 @@ jobs:
     permissions:
       contents: read
 
-  # A call never deploys (docs.yml gates its deploy job to main), but a called workflow may not declare a job with more
-  # permissions than its caller grants, so the call grants the deploy job's permissions it does not use.
   docs:
     name: Documentation
     uses: ./.github/workflows/docs.yml
     permissions:
       contents: read
-      pages: write
-      id-token: write
 
   nightly:
     name: Tests (nightly depth)

@@ -1,16 +1,6 @@
-name: Deploy Documentation
+name: Documentation
 
 on:
-  push:
-    branches: [main]
-    paths:
-      - 'docs/**'
-      - 'package.json'
-      - 'package-lock.json'
-      - 'composer.json'
-      - '.github/workflows/docs.yml'
-      - 'bin/docs-language-gate.sh'
-      - 'bin/docs-php-version-gate.sh'
   pull_request:
     paths:
       - 'docs/**'
@@ -20,8 +10,7 @@ on:
       - '.github/workflows/docs.yml'
       - 'bin/docs-language-gate.sh'
       - 'bin/docs-php-version-gate.sh'
-  workflow_dispatch:
-  # release.yml qualifies every tag with this workflow: a call runs lint and build, never the deploy.
+  # release.yml qualifies every tag and docs-deploy.yml builds main with this workflow; neither push nor dispatch runs it directly.
   workflow_call:
 
 permissions:
@@ -76,22 +65,3 @@ jobs:
         uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
         with:
           path: docs/.vitepress/dist
-
-  # Only a push or a manual run on main deploys; in a call from release.yml the event is the tag push, whose ref is the tag.
-  deploy:
-    if: (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main'
-    permissions:
-      pages: write
-      id-token: write
-    concurrency:
-      group: pages
-      cancel-in-progress: false
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    needs: build
-    runs-on: ubuntu-latest
-    steps:
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1
