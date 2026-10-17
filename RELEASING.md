@@ -109,6 +109,23 @@ for driver in sqlite pgsql mysql mariadb; do bash bin/upgrade-fixture.sh --from=
 decision or the doctor changed. It also reports whether `migrate:rollback` succeeds on the new schema; a migration that
 cannot be rolled back is declared in `UPGRADING.md`.
 
+## After the tag: verify the split and Packagist
+
+The split repositories are checked against the monorepo tag, then the published packages are installed in clean
+applications:
+
+```bash
+bash bin/split-verify.sh v1.0.0-rc.1            # tree identity per package, Packagist reference and core requirement
+bash bin/consumer-fixture.sh --source=packagist --version=1.0.0-rc.1 --laravel=12 --with-filament
+bash bin/consumer-fixture.sh --source=packagist --version=1.0.0-rc.1 --laravel=13 --with-filament
+```
+
+`bin/split-verify.sh` compares `packages/<dir>` of the monorepo tag with the tree of the split tag (extra paths of the
+split side must be listed in `.github/split-allowlist.txt`, empty by default), prints the mapping
+`monorepo <sha> -> split <sha>`, and checks that Packagist lists the version from the split commit and that the Filament
+package requires the same core version. Packagist indexes a tag some minutes after the push: an unreachable or stale
+document is exit `3` or `1`, never green; retry later. `bash bin/test-split-verify.sh` proves the script offline.
+
 ## Release artifacts
 
 The `artifacts` job of `release.yml` runs `bin/release-artifacts.sh <version> <outdir>`: the two package archives
