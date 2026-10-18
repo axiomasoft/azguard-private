@@ -1,7 +1,0 @@
-# worktree HEAD a52e3db5, PHP 8.4.26
-> pest --list-tests --exclude-group=engines --exclude-group=redis --exclude-group=replica --exclude-group=extended
-tests listed: 4734
-tests in Tests\Engines: 0
-ScopeQueryTest: 10
-ChangeParticipantsTest: 29
-ParityPropertyTest: 8

@@ -1,5 +1,0 @@
-> vendor/bin/phpstan analyse --memory-limit=1G
-{"tool":"phpstan","result":"passed","errors":0}
-{"tool":"pint","result":"passed"}> vendor/bin/rector process --dry-run
-{"tool":"rector","result":"passed","totals":{"changed_files":0,"errors":0}}
-> php bin/api-manifest.php --check

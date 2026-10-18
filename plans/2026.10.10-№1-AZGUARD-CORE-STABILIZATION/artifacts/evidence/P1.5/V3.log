@@ -1,3 +1,0 @@
-$ actionlint .github/workflows/tests.yml .github/workflows/release.yml
-
---- exit 0 ---

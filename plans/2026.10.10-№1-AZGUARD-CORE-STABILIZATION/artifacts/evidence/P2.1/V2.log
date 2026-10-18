@@ -1,3 +1,0 @@
-$ grep -q "^## From 0.7 to 1.0 (instructions for AI agents)" docs/upgrade.md
-3:## From 0.7 to 1.0 (instructions for AI agents)
-exit 0

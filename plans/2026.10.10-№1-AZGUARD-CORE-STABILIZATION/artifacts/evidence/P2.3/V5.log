@@ -1,6 +1,0 @@
-> php -d memory_limit=1G vendor/bin/pest --fail-on-skipped --exclude-group=engines --exclude-group=redis --exclude-group=replica
-
-V04: 100000 distinct tuples in 5.11 s
-[mutation-gate] Oversized or invalid regex: selecting entire covering test classes.
-{"tool":"pest","result":"passed","tests":4914,"passed":4914,"assertions":418329,"duration_ms":479633}
-EXIT 0

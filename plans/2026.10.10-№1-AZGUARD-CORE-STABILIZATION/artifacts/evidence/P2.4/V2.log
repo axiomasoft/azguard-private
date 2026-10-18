@@ -1,2 +1,0 @@
-$ test -z "$(git grep -nE 'BasePlugin|DependsOnPlugins|PluginDependencyMissingException|function boot\(Panel' -- '*.php' ':!plans' ':!audits' ':!tests/Arch/LegacyNamesTest.php')"
-exit 0

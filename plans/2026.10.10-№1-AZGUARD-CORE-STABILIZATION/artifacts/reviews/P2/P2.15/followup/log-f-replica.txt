@@ -1,4 +1,0 @@
-# clean detached worktree at HEAD ce9e5d74, PHP 8.4.26; stand: docker compose --profile authority-replica (primary 25433, replica 25434)
-> bash tests/Engines/Support/replica-fixture.sh
-{"tool":"pest","result":"passed","tests":1,"passed":1,"assertions":15,"duration_ms":769}
-exit=0

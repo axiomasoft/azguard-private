@@ -1,2 +1,0 @@
-$ test -z "$(git grep -nE '<V1 pattern>' -- '*.php' ':!plans')"
-exit 0
