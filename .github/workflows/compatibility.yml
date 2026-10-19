@@ -29,7 +29,7 @@ jobs:
     steps:
       # The whole history and every tag: a shallow clone would see no stable tag and no candidate commit.
       - name: Checkout with history and tags
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0
           fetch-tags: true
