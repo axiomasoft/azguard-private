@@ -7,10 +7,12 @@ namespace AzGuard\Filament;
 use AzGuard\Filament\Commands\GenerateFilamentPermissionsCommand;
 use AzGuard\Filament\Permissions\FilamentDiscovery;
 use AzGuard\Filament\Permissions\FilamentPermissionCatalogBuilder;
+use AzGuard\Filament\Permissions\FilamentRuntimePermissionBindings;
 use AzGuard\Filament\Permissions\PageWidgetAccessEvaluator;
 use AzGuard\Filament\Permissions\PermissionDiscovery;
 use AzGuard\Filament\Permissions\PermissionSchema;
 use AzGuard\Filament\Permissions\ResourceGate;
+use AzGuard\Registry\Support\RuntimePermissionBindings;
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
@@ -23,7 +25,7 @@ final class AzGuardFilamentServiceProvider extends ServiceProvider
     {
         $this->mergeConfigFrom(__DIR__.'/../config/az-guard-filament.php', 'az-guard-filament');
 
-        $this->app->singleton(PermissionDiscovery::class, function (): FilamentDiscovery {
+        $this->app->singleton(FilamentDiscovery::class, function (): FilamentDiscovery {
             /** @var array{abilities?: list<string>, pages?: array{ability?: string}, widgets?: array{ability?: string}, exclude?: array<string, list<string>>} $config */
             $config = config('az-guard-filament');
 
@@ -34,6 +36,8 @@ final class AzGuardFilamentServiceProvider extends ServiceProvider
                 exclude: $config['exclude'] ?? [],
             );
         });
+
+        $this->app->singleton(PermissionDiscovery::class, fn (Application $app): FilamentDiscovery => $app->make(FilamentDiscovery::class));
 
         $this->app->singleton(
             PermissionSchema::class,
@@ -49,6 +53,14 @@ final class AzGuardFilamentServiceProvider extends ServiceProvider
         // Discovered keys are always registered in the catalog so they appear
         // in the Role UI and can be granted — regardless of source.
         $this->app->tag([FilamentPermissionCatalogBuilder::class], 'azguard.catalog_builders');
+
+        $this->app->singleton(FilamentRuntimePermissionBindings::class, fn (Application $app): FilamentRuntimePermissionBindings => new FilamentRuntimePermissionBindings(
+            panelId: (string) config('az-guard-filament.panel', 'admin'),
+            schema: $app->make(PermissionSchema::class),
+            discovery: $app->make(PermissionDiscovery::class),
+            liveDiscovery: $app->make(FilamentDiscovery::class),
+        ));
+        $this->app->tag([FilamentRuntimePermissionBindings::class], RuntimePermissionBindings::TAG);
 
         $this->app->singleton(ResourceGate::class, fn (Application $app): ResourceGate => new ResourceGate(
             panelId: (string) config('az-guard-filament.panel', 'admin'),

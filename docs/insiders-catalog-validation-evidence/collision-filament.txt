@@ -1,0 +1,70 @@
+
+   FAIL  Tests\Feature\Filament\CatalogValidationTest
+  ✓ it keeps orphan forged and unsupported resource ability warnings     0.54s  
+  ✓ it keeps warnings for disabled or policy-source enforcement with da… 0.03s  
+  ✓ it keeps warnings for disabled or policy-source enforcement with da… 0.15s  
+  ✓ it does not accept excluded subjects retained in a stale catalog     0.02s  
+  ✓ it uses the configured key schema and page widget abilities for enu… 0.12s  
+  ✓ it does not treat trait names or unguarded discovery as active hook… 0.03s  
+  ✓ it keeps the diagnostic for an overridden resource authorization ho… 0.12s  
+  ✓ it does not accept previously catalogued keys after the linked pane… 0.04s  
+  ⨯ it strictly validates actual resource page and widget runtime bindings
+  ⨯ it does not accept a resource that skips native authorization
+  ⨯ it does not claim resource keys when the runtime discovery has no model binding
+  ────────────────────────────────────────────────────────────────────────────  
+   FAILED  Tests\Feature\Filament\CatalogValidationTest > it…  QueryException   
+  SQLSTATE[42P01]: Undefined table: 7 ERROR:  relation "migrations" does not exist
+LINE 1: insert into "migrations" ("migration", "batch") values ($1, ...
+                    ^ (Connection: testbench, Host: insiders_qnn_azguard_pgsql, Port: 5432, Database: insiders_test, SQL: insert into "migrations" ("migration", "batch") values (2026_01_01_000002_create_az_guard_role_permissions_and_direct_grants, 1))
+
+  at vendor/laravel/framework/src/Illuminate/Database/Connection.php:608
+    604▕             $this->bindValues($statement, $this->prepareBindings($bindings));
+    605▕ 
+    606▕             $this->recordsHaveBeenModified();
+    607▕ 
+  ➜ 608▕             return $statement->execute();
+    609▕         });
+    610▕     }
+    611▕ 
+    612▕     /**
+
+
+  ────────────────────────────────────────────────────────────────────────────  
+   FAILED  Tests\Feature\Filament\CatalogValidationTest > it…  QueryException   
+  SQLSTATE[42P07]: Duplicate table: 7 ERROR:  relation "az_guard_role_permissions" already exists (Connection: testbench, Host: insiders_qnn_azguard_pgsql, Port: 5432, Database: insiders_test, SQL: create table "az_guard_role_permissions" ("id" bigserial not null primary key, "role_id" bigint not null, "permission_key" varchar(255) not null, "panel_id" varchar(128) not null, "created_at" timestamp(0) without time zone null, "updated_at" timestamp(0) without time zone null))
+
+  at vendor/laravel/framework/src/Illuminate/Database/Connection.php:608
+    604▕             $this->bindValues($statement, $this->prepareBindings($bindings));
+    605▕ 
+    606▕             $this->recordsHaveBeenModified();
+    607▕ 
+  ➜ 608▕             return $statement->execute();
+    609▕         });
+    610▕     }
+    611▕ 
+    612▕     /**
+
+      [2m+8 vendor frames [22m
+  9   packages/core/database/migrations/2026_01_01_000002_create_az_guard_role_permissions_and_direct_grants.php:22
+
+  ────────────────────────────────────────────────────────────────────────────  
+   FAILED  Tests\Feature\Filament\CatalogValidationTest > it…  QueryException   
+  SQLSTATE[42P01]: Undefined table: 7 ERROR:  table "az_direct_grants" does not exist (Connection: testbench, Host: insiders_qnn_azguard_pgsql, Port: 5432, Database: insiders_test, SQL: drop table "public"."az_direct_grants", "public"."az_guard_role_permissions", "public"."migrations", "public"."model_has_roles", "public"."model_has_scopes", "public"."roles", "public"."users" cascade)
+
+  at vendor/laravel/framework/src/Illuminate/Database/Connection.php:608
+    604▕             $this->bindValues($statement, $this->prepareBindings($bindings));
+    605▕ 
+    606▕             $this->recordsHaveBeenModified();
+    607▕ 
+  ➜ 608▕             return $statement->execute();
+    609▕         });
+    610▕     }
+    611▕ 
+    612▕     /**
+
+
+
+  Tests:    3 failed, 8 passed (31 assertions)
+  Duration: 1.40s
+  Random Order Seed: 1792596479
+

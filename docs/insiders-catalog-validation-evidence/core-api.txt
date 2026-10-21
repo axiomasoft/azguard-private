@@ -1,0 +1,16 @@
+
+   PASS  Tests\Unit\ApiBoundaryTest
+  ✓ the @api surface matches the committed snapshot fixture              0.25s  
+  ✓ no @api type references an @internal type in a public signature      0.03s  
+  ✓ every published contract carries @api                                0.10s  
+
+   PASS  Tests\Unit\Registry\CatalogValidateCommandTest
+  ✓ it does not trust simple dynamic or forged Filament metadata in cor… 0.02s  
+  ✓ it still fails when a real policy ability is missing from the catal… 0.09s  
+  ✓ it preserves enum and GateAbility validation with core alone         0.03s  
+  ✓ it retains genuine enum orphan warnings in strict mode               0.09s  
+
+  Tests:    7 passed (237 assertions)
+  Duration: 0.68s
+  Random Order Seed: 1792596562
+

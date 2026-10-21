@@ -1,0 +1,4 @@
+Note: Using configuration file /var/www/html/local-packages/azguard/phpstan.neon.
+
+ [OK] No errors                                                                 
+

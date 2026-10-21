@@ -18,6 +18,7 @@ final class LoadAzGuardRoles
         $user = $request->user();
 
         if ($user !== null && method_exists(object_or_class: $user, method: 'roles')) {
+            // @phpstan-ignore larastan.relationExistence (The optional roles relation is checked above on the concrete user model.)
             $user->loadMissing(relations: 'roles');
         }
 

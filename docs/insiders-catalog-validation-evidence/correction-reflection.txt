@@ -1,0 +1,7 @@
+DB insiders_qnn_azguard_pgsql/insiders_test
+AzGuard\Http\Middleware\LoadAzGuardRoles /var/www/html/local-packages/azguard/packages/core/src/Http/Middleware/LoadAzGuardRoles.php
+AzGuard\Commands\CatalogValidateCommand /var/www/html/local-packages/azguard/packages/core/src/Commands/CatalogValidateCommand.php
+AzGuard\Filament\Permissions\FilamentRuntimePermissionBindings /var/www/html/local-packages/azguard/packages/filament/src/Permissions/FilamentRuntimePermissionBindings.php
+Filament\Resources\Resource /var/www/html/local-packages/azguard/vendor/filament/filament/src/Resources/Resource.php
+Filament\Pages\Page /var/www/html/local-packages/azguard/vendor/filament/filament/src/Pages/Page.php
+Filament\Widgets\Widget /var/www/html/local-packages/azguard/vendor/filament/widgets/src/Widget.php

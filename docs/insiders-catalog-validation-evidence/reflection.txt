@@ -1,0 +1,40 @@
+DB insiders_qnn_azguard_pgsql/insiders_test
+AzGuard\Commands\CatalogValidateCommand /var/www/html/local-packages/azguard/packages/core/src/Commands/CatalogValidateCommand.php
+AzGuard\Filament\Permissions\FilamentDiscovery /var/www/html/local-packages/azguard/packages/filament/src/Permissions/FilamentDiscovery.php
+AzGuard\Filament\Permissions\FilamentRuntimePermissionBindings /var/www/html/local-packages/azguard/packages/filament/src/Permissions/FilamentRuntimePermissionBindings.php
+Filament\Resources\Resource /var/www/html/local-packages/azguard/vendor/filament/filament/src/Resources/Resource.php
+Filament\Pages\Page /var/www/html/local-packages/azguard/vendor/filament/filament/src/Pages/Page.php
+Filament\Widgets\Widget /var/www/html/local-packages/azguard/vendor/filament/widgets/src/Widget.php
+Filament\Resources\Resource::getAuthorizationResponse /var/www/html/local-packages/azguard/vendor/filament/filament/src/Resources/Resource/Concerns/HasAuthorization.php:33
+    public static function getAuthorizationResponse(string | UnitEnum $action, ?Model $record = null): Response
+    {
+        if (static::shouldSkipAuthorization()) {
+            return Response::allow();
+        }
+
+        return get_authorization_response($action, $record ?? static::getModel(), static::shouldCheckPolicyExistence());
+    }
+Filament\Resources\Resource::canViewAny /var/www/html/local-packages/azguard/vendor/filament/filament/src/Resources/Resource/Concerns/HasAuthorization.php:139
+    public static function canViewAny(): bool
+    {
+        return static::getViewAnyAuthorizationResponse()->allowed();
+    }
+Filament\Pages\Page::canAccess /var/www/html/local-packages/azguard/vendor/filament/filament/src/Pages/Concerns/CanAuthorizeAccess.php:17
+    public static function canAccess(): bool
+    {
+        // Security: Custom pages default to allowing access for all
+        // authenticated panel users. Override this method to restrict
+        // access based on roles, permissions, or other logic.
+
+        return true;
+    }
+Filament\Pages\Page::mountCanAuthorizeAccess /var/www/html/local-packages/azguard/vendor/filament/filament/src/Pages/Concerns/CanAuthorizeAccess.php:7
+    public function mountCanAuthorizeAccess(): void
+    {
+        abort_unless(static::canAccess(), 403);
+    }
+Filament\Widgets\Widget::canView /var/www/html/local-packages/azguard/vendor/filament/widgets/src/Widget.php:34
+    public static function canView(): bool
+    {
+        return true;
+    }

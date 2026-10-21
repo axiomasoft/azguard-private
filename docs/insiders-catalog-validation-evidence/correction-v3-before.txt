@@ -1,0 +1,12 @@
+Note: Using configuration file /var/www/html/local-packages/azguard/phpstan.neon.
+ ------ ------------------------------------------------------------------ 
+  Line   core/src/Http/Middleware/LoadAzGuardRoles.php                     
+ ------ ------------------------------------------------------------------ 
+  21     Relation 'roles' is not found in Illuminate\Foundation\Auth\User  
+         model.                                                            
+         🪪  larastan.relationExistence                                    
+ ------ ------------------------------------------------------------------ 
+
+
+ [ERROR] Found 1 error                                                          
+

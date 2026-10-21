@@ -103,6 +103,15 @@ php artisan guard:catalog:validate
 php artisan guard:catalog:validate --panel=app --strict
 ```
 
+When the optional Filament package is loaded, an exact permission key bound to
+active resource authorization or an AzGuard page/widget hook also satisfies
+the policy-binding check. Plain pages/widgets, replaced authorization hooks,
+unsupported resource abilities, excluded or absent subjects and disabled
+enforcement still require a real policy binding. The `policy` source continues
+to require policy methods. Simple or dynamic definition metadata alone never
+suppresses a warning. Warnings still fail `--strict`; a policy referencing a
+missing catalog key remains an error in either mode.
+
 ## `guard:role` and `guard:role-permissions`
 
 `guard:role` assigns or detaches a class-based or `DynamicRole` role for a

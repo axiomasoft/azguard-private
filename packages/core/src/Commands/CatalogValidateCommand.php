@@ -10,6 +10,7 @@ use AzGuard\Facades\AzGuard;
 use AzGuard\Guard\PolicyDiscovery;
 use AzGuard\Registry\Contracts\PermissionCatalog;
 use AzGuard\Registry\Contracts\PermissionDefinition;
+use AzGuard\Registry\Support\RuntimePermissionBindings;
 use Illuminate\Console\Command;
 use ReflectionClass;
 use ReflectionMethod;
@@ -18,7 +19,8 @@ use ReflectionMethod;
  * Validates consistency between the catalog and policies.
  *
  * Checks:
- * 1. Every key in the catalog has a policy method with #[GateAbility] (warning in normal mode, error in strict).
+ * 1. Every catalog key has a #[GateAbility] policy or an active runtime binding
+ *    reported by an optional internal contributor (warning in normal mode, error in strict).
  * 2. Every key in the catalog is unique (no duplicates).
  * 3. Every #[GateAbility] policy method references an enum-case present in the catalog.
  *
@@ -127,11 +129,21 @@ final class CatalogValidateCommand extends Command
         );
 
         $definitions = $catalog->all($panelId);
+        $runtimeKeys = [];
+
+        foreach ($this->laravel->tagged(RuntimePermissionBindings::TAG) as $contributor) {
+            if ($contributor instanceof RuntimePermissionBindings) {
+                foreach ($contributor->keys($panelId) as $key) {
+                    $runtimeKeys[$key] = true;
+                }
+            }
+        }
 
         $this->checkCatalogKeysHavePolicies(
             definitions: $definitions,
             abilityMap: $abilityMap,
             panelId: $panelId,
+            runtimeKeys: $runtimeKeys,
         );
 
         $this->checkAbilitiesAreCatalogued(
@@ -191,16 +203,18 @@ final class CatalogValidateCommand extends Command
      *
      * @param  list<PermissionDefinition>  $definitions
      * @param  array<string, string>  $abilityMap
+     * @param  array<string, true>  $runtimeKeys
      */
     private function checkCatalogKeysHavePolicies(
         array $definitions,
         array $abilityMap,
         string $panelId,
+        array $runtimeKeys,
     ): void {
         foreach ($definitions as $definition) {
             $key = $definition->key();
 
-            if (! isset($abilityMap[$key])) {
+            if (! isset($abilityMap[$key]) && ! isset($runtimeKeys[$key])) {
                 $message = "Panel [{$panelId}]: permission [{$key}] is in the catalog but has no policy method with #[GateAbility].";
 
                 $this->warnings[] = $message;

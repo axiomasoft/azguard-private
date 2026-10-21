@@ -1,0 +1,66 @@
+
+   PASS  Tests\Unit\Registry\CompositePermissionCatalogTest
+  ✓ CompositePermissionCatalog → it aggregates definitions from multipl… 0.27s  
+  ✓ CompositePermissionCatalog → it deduplicates same key from two buil… 0.02s  
+  ✓ CompositePermissionCatalog → it deduplicates same key from two buil… 0.09s  
+  ✓ CompositePermissionCatalog → it skips builder that does not support… 0.01s  
+  ✓ CompositePermissionCatalog → it adopts a non-null group when the fi… 0.10s  
+  ✓ CompositePermissionCatalog → it panels() returns registered panel I… 0.01s  
+  ✓ CompositePermissionCatalog → it resolves a Closure panelIds lazily…  0.09s  
+  ✓ CompositePermissionCatalog → it assert() throws InvalidPermissionKe… 0.02s  
+  ✓ CompositePermissionCatalog → it flush() resets built state and allo… 0.10s  
+  ✓ CompositePermissionCatalog → it groups() uses Other for null group   0.02s  
+  ✓ CompositePermissionCatalog → it returns empty list for panel with n… 0.09s  
+  ✓ CompositePermissionCatalog → it has() returns true for registered k… 0.01s  
+  ✓ CompositePermissionCatalog → it groups() returns definitions sorted… 0.10s  
+  ✓ CompositePermissionCatalog → it get() returns definition or null     0.02s  
+
+   PASS  Tests\Unit\Filament\FilamentPermissionCatalogBuilderTest
+  ✓ it builds definitions only for its panel                             0.10s  
+  ✓ it supports only its configured panel                                0.02s  
+
+   PASS  Tests\Feature\Filament\PageWidgetEnforcementTest
+  ✓ it aborts 403 on mount when a page is reached by URL without the pe… 0.25s  
+  ✓ it grants canAccess() for a page once the permission is granted      0.06s  
+  ✓ it proves an un-trait page stays URL-reachable — nav-hiding is not…  0.14s  
+  ✓ it grants canView() for a widget once the permission is granted      0.06s  
+  ✓ it denies canAccess() for a page when the user lacks the permission  0.14s  
+  ✓ it denies canView() for a widget when the user lacks the permission  0.05s  
+  ✓ it degrades to allow outside an AzGuard-linked panel (artisan/no-pa… 0.13s  
+  ✓ it lets a granted user through the URL mount gate                    0.06s  
+  ✓ it catalogs a guarded page permission so it is grantable in the Rol… 0.10s  
+
+   PASS  Tests\Feature\Filament\ResourceEnforcementTest
+  ✓ it grants resource access via a database role permission — no resou… 0.06s  
+  ✓ it defers (does not deny) resource access when the user has no perm… 0.13s  
+  ✓ it a later Gate::before can still grant after ResourceGate defers (… 0.05s  
+  ✓ it registers the discovered resource keys in the admin catalog       0.09s  
+  ✓ it defers for models that are not managed resources                  0.05s  
+
+   PASS  Tests\Unit\Filament\ResourceGateTest
+  ✓ it defers (does not deny) viewAny when the user lacks the permissio… 0.08s  
+  ✓ it grants viewAny when the user has the resource permission          0.02s  
+  ✓ it defers for an unmanaged model                                     0.10s  
+  ✓ it defers for an unknown ability                                     0.02s  
+  ✓ it maps bulk *Any actions to the singular permission                 0.09s  
+
+   PASS  Tests\Unit\Registry\EnumPermissionCatalogBuilderTest
+  ✓ EnumPermissionCatalogBuilder → it surfaces the missing enum class t… 0.03s  
+  ✓ EnumPermissionCatalogBuilder → it skips only the stale class and ke… 0.10s  
+
+   PASS  Tests\Unit\Filament\AzGuardFilamentServiceProviderTest
+  ✓ it is a ServiceProvider                                              0.07s  
+  ✓ it boots without exception when views directory does not exist       0.11s  
+
+   PASS  Tests\Unit\Registry\PolicyAbilityCatalogBuilderTest
+  ✓ PolicyAbilityCatalogBuilder → it skips only the stale class and kee… 0.02s  
+  ✓ PolicyAbilityCatalogBuilder → it returns empty list when the panel…  0.09s  
+  ✓ PolicyAbilityCatalogBuilder → it uses the injected manager — no sta… 0.01s  
+  ✓ PolicyAbilityCatalogBuilder → it still produces catalog entries for… 0.09s  
+  ✓ PolicyAbilityCatalogBuilder → it surfaces the missing policy class…  0.02s  
+  ✓ PolicyAbilityCatalogBuilder → it does not crash boot on a non-exist… 0.11s  
+
+  Tests:    45 passed (73 assertions)
+  Duration: 3.52s
+  Random Order Seed: 1792596597
+

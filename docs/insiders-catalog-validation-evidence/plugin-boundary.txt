@@ -1,0 +1,39 @@
+
+   PASS  Tests\Unit\Filament\FilamentArchTest
+  ✓ filament service provider extends ServiceProvider                    0.32s  
+  ✓ filament resources extend Filament Resource                          0.12s  
+  ✓ filament relation managers extend RelationManager                    0.09s  
+  ✓ filament artisan commands are final                                  0.02s  
+  ✓ filament permissions codegen classes are final                       0.12s  
+  ✓ no debugging calls in filament package                               0.21s  
+  ✓ filament plugin implements Filament Plugin contract                  0.08s  
+
+   PASS  Tests\Unit\Filament\AzGuardPluginTest
+  ✓ it source() overrides the config fallback                            0.02s  
+  ✓ it keyTemplate()/case() override the config fallback                 0.08s  
+  ✓ it boot() runs without exception                                     0.03s  
+  ✓ it isEnforcing() falls back to config when enforce() was not called  0.08s  
+  ✓ it make() resolves the container-bound instance — enabling test/app… 0.01s  
+  ✓ it implements Filament Plugin contract                               0.09s  
+  ✓ it forPanel() accepts arbitrary panel ids with ('super-admin')       0.01s  
+  ✓ it forPanel() accepts arbitrary panel ids with ('admin')             0.09s  
+  ✓ it forPanel() accepts arbitrary panel ids with ('tenant')            0.02s  
+  ✓ it forPanel() accepts arbitrary panel ids with ('app')               0.08s  
+  ✓ it returns correct plugin id                                         0.01s  
+  ✓ it register() injects RoleResource and DirectGrantResource into pan… 0.09s  
+  ✓ it reads default panelId from the az-guard-filament.panel config ke… 0.01s  
+  ✓ it register() writes the effective fluent options back into config…  0.09s  
+  ✓ it getAbilities() falls back to config when abilities() was not cal… 0.02s  
+  ✓ it getSource() falls back to config when source() was not called     0.09s  
+  ✓ it defaults panelId to config value (admin)                          0.01s  
+  ✓ it getKeyTemplate()/getCase() fall back to config when not called f… 0.11s  
+  ✓ it make() returns new instance each time                             0.03s  
+  ✓ it forPanel() overrides the config default panel                     0.09s  
+  ✓ it forPanel() sets panelId and returns same instance                 0.02s  
+  ✓ it abilities() overrides the config fallback                         0.09s  
+  ✓ it enforce() overrides the config fallback                           0.02s  
+
+  Tests:    30 passed (43 assertions)
+  Duration: 2.26s
+  Random Order Seed: 1792596784
+

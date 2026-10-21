@@ -1,0 +1,25 @@
+
+   FAIL  Tests\Feature\Filament\CatalogValidationTest
+  ⨯ it strictly validates actual resource page and widget runtime bindi… 0.31s  
+  ────────────────────────────────────────────────────────────────────────────  
+   FAILED  Tests\Feature\Filament\CatalogValidationTest > it strictly valida…   
+  Failed asserting that 1 is identical to 0.
+
+  at tests/Feature/Filament/CatalogValidationTest.php:87
+     83▕         'admin.project.view_any', 'admin.project.view', 'admin.project.create',
+     84▕         'admin.guarded_settings_page.view', 'admin.guarded_revenue_widget.view',
+     85▕     ]);
+     86▕     [$exit, $payload] = validateFilamentCatalog();
+  ➜  87▕     expect($exit)->toBe(0)->and($payload['warnings'])->toBe([])->and($payload['errors'])->toBe([]);
+     88▕     expect(array_map(fn ($definition) => $definition->key(), $catalog->all('admin')))->toBe($keys);
+     89▕ 
+     90▕     // Exercise the native Filament entry points, not only the discovery metadata.
+     91▕     $user = User::factory()->create();
+
+  1   tests/Feature/Filament/CatalogValidationTest.php:87
+
+
+  Tests:    1 failed (2 assertions)
+  Duration: 0.41s
+  Random Order Seed: 1792596346
+

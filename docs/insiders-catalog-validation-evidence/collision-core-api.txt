@@ -1,0 +1,50 @@
+
+   FAIL  Tests\Unit\Registry\CatalogValidateCommandTest
+  ⨯ it does not trust simple dynamic or forged Filament metadata in core
+  ⨯ it preserves enum and GateAbility validation with core alone
+  ✓ it still fails when a real policy ability is missing from the catal… 0.14s  
+
+   PASS  Tests\Unit\ApiBoundaryTest
+  ✓ the @api surface matches the committed snapshot fixture              0.06s  
+  ✓ every published contract carries @api                                0.12s  
+  ✓ no @api type references an @internal type in a public signature      0.02s  
+  ────────────────────────────────────────────────────────────────────────────  
+   FAILED  Tests\Unit\Registry\CatalogValidateCommandTest >…   QueryException   
+  SQLSTATE[42P01]: Undefined table: 7 ERROR:  table "az_direct_grants" does not exist (Connection: testbench, Host: insiders_qnn_azguard_pgsql, Port: 5432, Database: insiders_test, SQL: drop table "public"."az_direct_grants", "public"."az_guard_role_permissions", "public"."migrations", "public"."model_has_roles", "public"."model_has_scopes", "public"."projects", "public"."roles", "public"."ulid_users", "public"."users" cascade)
+
+  at vendor/laravel/framework/src/Illuminate/Database/Connection.php:608
+    604▕             $this->bindValues($statement, $this->prepareBindings($bindings));
+    605▕ 
+    606▕             $this->recordsHaveBeenModified();
+    607▕ 
+  ➜ 608▕             return $statement->execute();
+    609▕         });
+    610▕     }
+    611▕ 
+    612▕     /**
+
+
+  ────────────────────────────────────────────────────────────────────────────  
+   FAILED  Tests\Unit\Registry\CatalogVa…  UniqueConstraintViolationException   
+  SQLSTATE[23505]: Unique violation: 7 ERROR:  duplicate key value violates unique constraint "pg_type_typname_nsp_index"
+DETAIL:  Key (typname, typnamespace)=(roles, 2200) already exists. (Connection: testbench, Host: insiders_qnn_azguard_pgsql, Port: 5432, Database: insiders_test, SQL: create table "roles" ("id" bigserial not null primary key, "name" varchar(255) not null, "class_name" varchar(255) null, "level" integer not null default '0', "created_at" timestamp(0) without time zone null, "updated_at" timestamp(0) without time zone null))
+
+  at vendor/laravel/framework/src/Illuminate/Database/Connection.php:608
+    604▕             $this->bindValues($statement, $this->prepareBindings($bindings));
+    605▕ 
+    606▕             $this->recordsHaveBeenModified();
+    607▕ 
+  ➜ 608▕             return $statement->execute();
+    609▕         });
+    610▕     }
+    611▕ 
+    612▕     /**
+
+      [2m+8 vendor frames [22m
+  9   packages/core/database/migrations/2026_01_01_000000_create_az_guard_tables.php:13
+
+
+  Tests:    2 failed, 4 passed (223 assertions)
+  Duration: 0.70s
+  Random Order Seed: 1792596480
+

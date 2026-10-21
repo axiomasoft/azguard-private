@@ -6,6 +6,15 @@ the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html
 
 ## [Unreleased]
 
+### Fixed
+
+- **Filament catalog validation** — strict validation now recognizes exact
+  permission keys bound to active Filament resource authorization and the
+  AzGuard page/widget hooks through an optional internal contributor.
+  Orphans, unsupported abilities, disabled enforcement and replaced hooks
+  retain their diagnostics. Catalog keys, runtime authorization and the public
+  permission definition contract are unchanged.
+
 ### Added
 
 - **Per-package mutation testing** — `infection.core.json5`, `infection.filament.json5`,
