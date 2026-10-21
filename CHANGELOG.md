@@ -8,6 +8,13 @@ the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html
 
 ### Fixed
 
+- **Filament Doctor page authorization** — the built-in DoctorPage now uses
+  `HasAzGuardPage` to enforce its existing `admin.doctor_page.view` permission
+  in an enforced AzGuard-linked admin panel. Exact grants and existing wildcard
+  grants retain access; diagnostics, routes, views and permission keys are
+  unchanged. The existing no-panel, disabled-enforcement and policy-source
+  fallbacks remain in effect.
+
 - **Filament bulk binding diagnostics** — a shared permission slug now requires
   every native action alias in the canonical map to retain its authorization
   hooks. Replaced bulk `can*Any()` or authorization-response hooks for delete,

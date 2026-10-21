@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace AzGuard\Filament\Pages;
 
 use AzGuard\Filament\AzGuardPlugin;
+use AzGuard\Filament\Concerns\HasAzGuardPage;
 use AzGuard\Guard\AzGuardDiagnostics;
 use AzGuard\Runtime\RequestState;
 use BackedEnum;
@@ -25,6 +26,8 @@ use UnitEnum;
  */
 final class DoctorPage extends Page
 {
+    use HasAzGuardPage;
+
     protected static BackedEnum|string|null $navigationIcon = 'heroicon-o-stethoscope';
 
     protected static string|UnitEnum|null $navigationGroup = 'AzGuard';

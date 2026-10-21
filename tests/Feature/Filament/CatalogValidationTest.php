@@ -12,6 +12,7 @@ use AzGuard\Filament\Permissions\PermissionDiscovery;
 use AzGuard\Filament\Permissions\PermissionSchema;
 use AzGuard\Filament\Resources\DirectGrantResource;
 use AzGuard\Filament\Resources\RoleResource;
+use AzGuard\Guard\AzGuardDiagnostics;
 use AzGuard\Models\Role;
 use AzGuard\Models\RolePermission;
 use AzGuard\Registry\Builders\CompositePermissionCatalog;
@@ -35,6 +36,7 @@ use AzGuard\Tests\Stubs\User;
 use Filament\Facades\Filament;
 use Filament\Panel;
 use Illuminate\Support\Facades\Artisan;
+use Symfony\Component\HttpKernel\Exception\HttpException;
 
 afterEach(function (): void {
     CatalogProjectResource::checkPolicyExistence();
@@ -45,10 +47,11 @@ function catalogValidationPanel(
     array $pages = [GuardedSettingsPage::class],
     array $widgets = [GuardedRevenueWidget::class],
     array $resources = [CatalogProjectResource::class],
+    array $excludedPages = [DoctorPage::class],
 ): Panel {
     config([
         'az-guard-filament.exclude.resources' => [RoleResource::class, DirectGrantResource::class],
-        'az-guard-filament.exclude.pages' => [DoctorPage::class],
+        'az-guard-filament.exclude.pages' => $excludedPages,
     ]);
 
     AzGuard::panel('admin')
@@ -121,6 +124,64 @@ it('strictly validates actual resource page and widget runtime bindings', functi
         ->and(GuardedSettingsPage::canAccess())->toBeTrue()
         ->and(GuardedRevenueWidget::canView())->toBeTrue();
 });
+
+it('binds the built-in DoctorPage to its existing catalog permission', function (string $grant): void {
+    $panel = catalogValidationPanel(
+        pages: [],
+        widgets: [],
+        resources: [],
+        excludedPages: [],
+    );
+    // The plugin registers the actual final page; no replacement page or policy.
+    expect($panel->getPages())->toContain(DoctorPage::class);
+    $catalog = app(PermissionCatalog::class);
+    $keys = array_map(fn ($definition) => $definition->key(), $catalog->all('admin'));
+    expect($keys)->toBe(['admin.doctor_page.view']);
+
+    $diagnostics = app(AzGuardDiagnostics::class)->diagnose(panelFilter: 'admin');
+    $page = new DoctorPage;
+    expect($page->getDiagnoseResult())->toBe($diagnostics)
+        ->toHaveKeys(['errors', 'warnings', 'abilities']);
+
+    $user = User::factory()->create();
+    $this->actingAs($user);
+    expect($user->hasPermission('admin.doctor_page.view', 'admin'))->toBeFalse()
+        ->and(DoctorPage::canAccess())->toBeFalse();
+    expect(fn () => $page->mountCanAuthorizeAccess())->toThrow(HttpException::class);
+
+    $role = Role::create(['name' => 'doctor-runtime', 'level' => 1]);
+    RolePermission::create([
+        'role_id' => $role->getKey(), 'panel_id' => 'admin', 'permission_key' => $grant,
+    ]);
+    $user->assignRole($role->name);
+    $user->load('roles');
+    expect($user->hasPermission('admin.doctor_page.view', 'admin'))->toBeTrue()
+        ->and(DoctorPage::canAccess())->toBeTrue();
+    $page->mountCanAuthorizeAccess();
+
+    [$exit, $payload] = validateFilamentCatalog();
+    expect($exit)->toBe(0)->and($payload['warnings'])->toBe([])->and($payload['errors'])->toBe([])
+        ->and(array_map(fn ($definition) => $definition->key(), $catalog->all('admin')))->toBe($keys)
+        ->and($page->getDiagnoseResult())->toBe($diagnostics);
+})->with([
+    'exact permission' => ['admin.doctor_page.view'],
+    'admin wildcard' => ['admin.**'],
+    'super-admin wildcard' => ['**'],
+]);
+
+it('preserves the built-in DoctorPage access fallbacks', function (string $fallback): void {
+    catalogValidationPanel(pages: [], widgets: [], resources: [], excludedPages: []);
+    $this->actingAs(User::factory()->create());
+    expect(DoctorPage::canAccess())->toBeFalse();
+
+    match ($fallback) {
+        'no panel' => Filament::setCurrentPanel(null),
+        'disabled' => config(['az-guard-filament.enforce' => false]),
+        'policy source' => config(['az-guard-filament.source' => 'policy']),
+    };
+
+    expect(DoctorPage::canAccess())->toBeTrue();
+})->with(['no panel', 'disabled', 'policy source']);
 
 it('keeps warnings for disabled or policy-source enforcement', function (string $setting, mixed $value): void {
     catalogValidationPanel();

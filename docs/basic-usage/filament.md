@@ -133,6 +133,22 @@ it surfaces catalog conflicts, roles referencing unknown permissions, and the
 panel → ability → handler map. The navigation badge turns red on errors and
 yellow on warnings.
 
+The built-in `DoctorPage` uses `HasAzGuardPage`: in an enforced, linked panel,
+the authenticated AzGuard user needs the existing `{panel}.doctor_page.view`
+permission (`admin.doctor_page.view` with the default admin schema). Existing
+wildcard grants such as `admin.**` and `**` continue to apply. Filament checks
+access on mount and Livewire hydration as well as navigation. Custom key schemas
+and the configured page ability are resolved by the same evaluator.
+
+This corrects the formerly cosmetic permission without changing the page's
+routes, view or diagnostic data. Applications that relied on its default open
+access must grant that existing permission to the intended users. The shared
+evaluator retains its allowing fallbacks outside a linked panel, with
+`enforce = false` or `source = policy`, and when no authenticated user supporting
+`hasPermission()` is available. In policy-source mode, consumers remain
+responsible for page authorization. See the
+[binding correction and verification](../insiders-doctor-binding.md).
+
 ## Configuration
 
 `config/az-guard-filament.php` is the wiring surface — panel-linked classes,

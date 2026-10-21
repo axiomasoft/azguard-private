@@ -1,0 +1,37 @@
+
+   PASS  Tests\Feature\Filament\DoctorPageMemoizationTest
+  ✓ it recomputes once per request lifecycle (memo does not survive a f… 0.35s  
+  ✓ it runs diagnose() exactly once across the three render hooks        0.02s  
+  ✓ it surfaces the memoized diagnose payload unchanged to the view and… 0.10s  
+  ✓ it memoizes through the scoped RequestState, not a per-call recompu… 0.02s  
+
+   PASS  Tests\Feature\Filament\CatalogValidationTest
+  ✓ it keeps orphan forged and unsupported resource ability warnings     0.11s  
+  ✓ it keeps the shared permission warning when a native bulk hook is r… 0.08s  
+  ✓ it keeps the shared permission warning when a native bulk hook is r… 0.13s  
+  ✓ it keeps the shared permission warning when a native bulk hook is r… 0.06s  
+  ✓ it keeps the shared permission warning when a native bulk hook is r… 0.13s  
+  ✓ it keeps the shared permission warning when a native bulk hook is r… 0.06s  
+  ✓ it keeps the shared permission warning when a native bulk hook is r… 0.14s  
+  ✓ it does not claim resource keys when the runtime discovery has no m… 0.02s  
+  ✓ it preserves the built-in DoctorPage access fallbacks with ('policy… 0.13s  
+  ✓ it preserves the built-in DoctorPage access fallbacks with ('no pan… 0.05s  
+  ✓ it preserves the built-in DoctorPage access fallbacks with ('disabl… 0.14s  
+  ✓ it strictly validates actual resource page and widget runtime bindi… 0.07s  
+  ✓ it does not accept excluded subjects retained in a stale catalog     0.09s  
+  ✓ it does not treat trait names or unguarded discovery as active hook… 0.02s  
+  ✓ it keeps warnings for disabled or policy-source enforcement with da… 0.09s  
+  ✓ it keeps warnings for disabled or policy-source enforcement with da… 0.02s  
+  ✓ it recognizes every supported native resource ability                0.14s  
+  ✓ it keeps the diagnostic for an overridden resource authorization ho… 0.03s  
+  ✓ it does not accept previously catalogued keys after the linked pane… 0.12s  
+  ✓ it does not accept a resource that skips native authorization        0.02s  
+  ✓ it uses the configured key schema and page widget abilities for enu… 0.09s  
+  ✓ it binds the built-in DoctorPage to its existing catalog permission… 0.07s  
+  ✓ it binds the built-in DoctorPage to its existing catalog permission… 0.14s  
+  ✓ it binds the built-in DoctorPage to its existing catalog permission… 0.06s  
+
+  Tests:    28 passed (247 assertions)
+  Duration: 2.58s
+  Random Order Seed: 1792599553
+

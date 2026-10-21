@@ -1,0 +1,7 @@
+/insiders_qnn_azguard_pgsql running {"insiders_insiders_network":{"IPAMConfig":null,"Links":null,"Aliases":null,"DriverOpts":null,"GwPriority":0,"NetworkID":"d1d96a58d808c53d79a95595e706d1bb7b5d2517225c177f52d335dd85969a62","EndpointID":"f60e6af656c437fa79819fc83590c2a39299cbcd7a2bc70f8c21e2205c32f8b5","Gateway":"172.18.0.1","IPAddress":"172.18.0.5","MacAddress":"26:ff:a0:0d:71:da","IPPrefixLen":16,"IPv6Gateway":"","GlobalIPv6Address":"","GlobalIPv6PrefixLen":0,"DNSNames":["insiders_qnn_azguard_pgsql","aa1e2daa4403"]}}
+/var/run/postgresql:5432 - accepting connections
+insiders_test|azguard_test
+guarded insiders_qnn_azguard_pgsql/insiders_test
+AzGuard\Filament\Pages\DoctorPage /var/www/html/local-packages/azguard/packages/filament/src/Pages/DoctorPage.php
+AzGuard\Filament\Permissions\FilamentDiscovery /var/www/html/local-packages/azguard/packages/filament/src/Permissions/FilamentDiscovery.php
+Filament\Pages\Page /var/www/html/local-packages/azguard/vendor/filament/filament/src/Pages/Page.php

@@ -1,0 +1,115 @@
+
+   FAIL  Tests\Feature\Filament\CatalogValidationTest
+  ⨯ it preserves the built-in DoctorPage access fallbacks with ('policy… 0.44s  
+  ⨯ it preserves the built-in DoctorPage access fallbacks with ('disabl… 0.05s  
+  ⨯ it preserves the built-in DoctorPage access fallbacks with ('no pan… 0.12s  
+  ⨯ it binds the built-in DoctorPage to its existing catalog permission… 0.06s  
+  ⨯ it binds the built-in DoctorPage to its existing catalog permission… 0.13s  
+  ⨯ it binds the built-in DoctorPage to its existing catalog permission… 0.06s  
+  ────────────────────────────────────────────────────────────────────────────  
+   FAILED  Tests\Feature\Filament\CatalogValidationTest > it preserves the b…   
+  Failed asserting that true is false.
+
+  at tests/Feature/Filament/CatalogValidationTest.php:175
+    171▕ 
+    172▕ it('preserves the built-in DoctorPage access fallbacks', function (string $fallback): void {
+    173▕     catalogValidationPanel(pages: [], widgets: [], resources: [], excludedPages: []);
+    174▕     $this->actingAs(User::factory()->create());
+  ➜ 175▕     expect(DoctorPage::canAccess())->toBeFalse();
+    176▕ 
+    177▕     match ($fallback) {
+    178▕         'no panel' => Filament::setCurrentPanel(null),
+    179▕         'disabled' => config(['az-guard-filament.enforce' => false]),
+
+  1   tests/Feature/Filament/CatalogValidationTest.php:175
+
+  ────────────────────────────────────────────────────────────────────────────  
+   FAILED  Tests\Feature\Filament\CatalogValidationTest > it preserves the b…   
+  Failed asserting that true is false.
+
+  at tests/Feature/Filament/CatalogValidationTest.php:175
+    171▕ 
+    172▕ it('preserves the built-in DoctorPage access fallbacks', function (string $fallback): void {
+    173▕     catalogValidationPanel(pages: [], widgets: [], resources: [], excludedPages: []);
+    174▕     $this->actingAs(User::factory()->create());
+  ➜ 175▕     expect(DoctorPage::canAccess())->toBeFalse();
+    176▕ 
+    177▕     match ($fallback) {
+    178▕         'no panel' => Filament::setCurrentPanel(null),
+    179▕         'disabled' => config(['az-guard-filament.enforce' => false]),
+
+  1   tests/Feature/Filament/CatalogValidationTest.php:175
+
+  ────────────────────────────────────────────────────────────────────────────  
+   FAILED  Tests\Feature\Filament\CatalogValidationTest > it preserves the b…   
+  Failed asserting that true is false.
+
+  at tests/Feature/Filament/CatalogValidationTest.php:175
+    171▕ 
+    172▕ it('preserves the built-in DoctorPage access fallbacks', function (string $fallback): void {
+    173▕     catalogValidationPanel(pages: [], widgets: [], resources: [], excludedPages: []);
+    174▕     $this->actingAs(User::factory()->create());
+  ➜ 175▕     expect(DoctorPage::canAccess())->toBeFalse();
+    176▕ 
+    177▕     match ($fallback) {
+    178▕         'no panel' => Filament::setCurrentPanel(null),
+    179▕         'disabled' => config(['az-guard-filament.enforce' => false]),
+
+  1   tests/Feature/Filament/CatalogValidationTest.php:175
+
+  ────────────────────────────────────────────────────────────────────────────  
+   FAILED  Tests\Feature\Filament\CatalogValidationTest > it binds the built…   
+  Failed asserting that true is false.
+
+  at tests/Feature/Filament/CatalogValidationTest.php:149
+    145▕ 
+    146▕     $user = User::factory()->create();
+    147▕     $this->actingAs($user);
+    148▕     expect($user->hasPermission('admin.doctor_page.view', 'admin'))->toBeFalse()
+  ➜ 149▕         ->and(DoctorPage::canAccess())->toBeFalse();
+    150▕     expect(fn () => $page->mountCanAuthorizeAccess())->toThrow(HttpException::class);
+    151▕ 
+    152▕     $role = Role::create(['name' => 'doctor-runtime', 'level' => 1]);
+    153▕     RolePermission::create([
+
+  1   tests/Feature/Filament/CatalogValidationTest.php:149
+
+  ────────────────────────────────────────────────────────────────────────────  
+   FAILED  Tests\Feature\Filament\CatalogValidationTest > it binds the built…   
+  Failed asserting that true is false.
+
+  at tests/Feature/Filament/CatalogValidationTest.php:149
+    145▕ 
+    146▕     $user = User::factory()->create();
+    147▕     $this->actingAs($user);
+    148▕     expect($user->hasPermission('admin.doctor_page.view', 'admin'))->toBeFalse()
+  ➜ 149▕         ->and(DoctorPage::canAccess())->toBeFalse();
+    150▕     expect(fn () => $page->mountCanAuthorizeAccess())->toThrow(HttpException::class);
+    151▕ 
+    152▕     $role = Role::create(['name' => 'doctor-runtime', 'level' => 1]);
+    153▕     RolePermission::create([
+
+  1   tests/Feature/Filament/CatalogValidationTest.php:149
+
+  ────────────────────────────────────────────────────────────────────────────  
+   FAILED  Tests\Feature\Filament\CatalogValidationTest > it binds the built…   
+  Failed asserting that true is false.
+
+  at tests/Feature/Filament/CatalogValidationTest.php:149
+    145▕ 
+    146▕     $user = User::factory()->create();
+    147▕     $this->actingAs($user);
+    148▕     expect($user->hasPermission('admin.doctor_page.view', 'admin'))->toBeFalse()
+  ➜ 149▕         ->and(DoctorPage::canAccess())->toBeFalse();
+    150▕     expect(fn () => $page->mountCanAuthorizeAccess())->toThrow(HttpException::class);
+    151▕ 
+    152▕     $role = Role::create(['name' => 'doctor-runtime', 'level' => 1]);
+    153▕     RolePermission::create([
+
+  1   tests/Feature/Filament/CatalogValidationTest.php:149
+
+
+  Tests:    6 failed (27 assertions)
+  Duration: 0.98s
+  Random Order Seed: 1792599512
+

@@ -56,13 +56,6 @@ parameters:
 			count: 1
 			path: packages/core/src/Policies/AuthorizesPermission.php
 
-		# Public Filament page trait is intentionally enabled by package integrators outside source paths.
-		-
-			message: '#^Trait AzGuard\\Filament\\Concerns\\HasAzGuardPage is used zero times and is not analysed\.$#'
-			identifier: trait.unused
-			count: 1
-			path: packages/filament/src/Concerns/HasAzGuardPage.php
-
 		# Public Filament widget trait is intentionally enabled by package integrators outside source paths.
 		-
 			message: '#^Trait AzGuard\\Filament\\Concerns\\HasAzGuardWidget is used zero times and is not analysed\.$#'
