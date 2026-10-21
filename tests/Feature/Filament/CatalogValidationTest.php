@@ -18,12 +18,19 @@ use AzGuard\Registry\Builders\CompositePermissionCatalog;
 use AzGuard\Registry\Contracts\PermissionCatalog;
 use AzGuard\Registry\Definitions\SimplePermissionDefinition;
 use AzGuard\Tests\Stubs\Filament\BypassCatalogProjectResource;
+use AzGuard\Tests\Stubs\Filament\BypassDeleteAnyCanResource;
+use AzGuard\Tests\Stubs\Filament\BypassDeleteAnyResponseResource;
+use AzGuard\Tests\Stubs\Filament\BypassForceDeleteAnyCanResource;
+use AzGuard\Tests\Stubs\Filament\BypassForceDeleteAnyResponseResource;
+use AzGuard\Tests\Stubs\Filament\BypassRestoreAnyCanResource;
+use AzGuard\Tests\Stubs\Filament\BypassRestoreAnyResponseResource;
 use AzGuard\Tests\Stubs\Filament\CatalogProjectResource;
 use AzGuard\Tests\Stubs\Filament\GuardedRevenueWidget;
 use AzGuard\Tests\Stubs\Filament\GuardedSettingsPage;
 use AzGuard\Tests\Stubs\Filament\OverriddenRevenueWidget;
 use AzGuard\Tests\Stubs\Filament\OverriddenSettingsPage;
 use AzGuard\Tests\Stubs\Filament\PlainSettingsPage;
+use AzGuard\Tests\Stubs\Project;
 use AzGuard\Tests\Stubs\User;
 use Filament\Facades\Filament;
 use Filament\Panel;
@@ -232,6 +239,69 @@ it('uses the configured key schema and page widget abilities for enum source too
 it('recognizes every supported native resource ability', function (): void {
     config(['az-guard-filament.abilities' => array_values(array_unique(FilamentActions::MAP))]);
     catalogValidationPanel();
+    $catalog = app(PermissionCatalog::class);
+    $keys = array_map(fn ($definition) => $definition->key(), $catalog->all('admin'));
+    expect($keys)->toBe([
+        ...array_map(fn ($slug) => 'admin.project.'.$slug, array_values(array_unique(FilamentActions::MAP))),
+        'admin.guarded_settings_page.view', 'admin.guarded_revenue_widget.view',
+    ]);
     [$exit, $payload] = validateFilamentCatalog();
-    expect($exit)->toBe(0)->and($payload['warnings'])->toBe([]);
+    expect($exit)->toBe(0)->and($payload['warnings'])->toBe([])->and($payload['errors'])->toBe([])
+        ->and(array_map(fn ($definition) => $definition->key(), $catalog->all('admin')))->toBe($keys);
+
+    $user = User::factory()->create();
+    $this->actingAs($user);
+    $record = new Project;
+
+    foreach ([false, true] as $granted) {
+        if ($granted) {
+            $role = Role::create(['name' => 'catalog-all-native', 'level' => 1]);
+            foreach ($keys as $key) {
+                RolePermission::create(['role_id' => $role->getKey(), 'panel_id' => 'admin', 'permission_key' => $key]);
+            }
+            $user->assignRole($role->name);
+            $user->load('roles');
+        }
+
+        foreach (FilamentActions::MAP as $action => $slug) {
+            $hook = $action === 'update' ? 'Edit' : ucfirst($action);
+            $can = 'can'.$hook;
+            $response = 'get'.$hook.'AuthorizationResponse';
+            $arguments = (new ReflectionMethod(CatalogProjectResource::class, $response))->getNumberOfRequiredParameters() === 0
+                ? [] : [$record];
+
+            expect($user->hasPermission('admin.project.'.$slug, 'admin'))->toBe($granted)
+                ->and(CatalogProjectResource::$can(...$arguments))->toBe($granted)
+                ->and(CatalogProjectResource::$response(...$arguments)->allowed())->toBe($granted);
+        }
+    }
 });
+
+it('keeps the shared permission warning when a native bulk hook is replaced', function (string $resource, string $slug, string $can): void {
+    config(['az-guard-filament.abilities' => array_values(array_unique(FilamentActions::MAP))]);
+    catalogValidationPanel(resources: [$resource]);
+    $catalog = app(PermissionCatalog::class);
+    $keys = array_map(fn ($definition) => $definition->key(), $catalog->all('admin'));
+    $user = User::factory()->create();
+    $this->actingAs($user);
+    $key = 'admin.project.'.$slug;
+
+    expect($user->hasPermission($key, 'admin'))->toBeFalse()
+        ->and($resource::$can())->toBeTrue();
+    [$exit, $payload] = validateFilamentCatalog();
+    expect($exit)->toBe(1)->and($payload['errors'])->toBe([])
+        ->and($payload['warnings'])->toHaveCount(1)
+        ->and($payload['warnings'][0])->toContain($key)
+        ->and(array_map(fn ($definition) => $definition->key(), $catalog->all('admin')))->toBe($keys);
+
+    [$exit, $payload] = validateFilamentCatalog(strict: false);
+    expect($exit)->toBe(0)->and($payload['warnings'])->toHaveCount(1)
+        ->and($payload['warnings'][0])->toContain($key);
+})->with([
+    'deleteAny can override' => [BypassDeleteAnyCanResource::class, 'delete', 'canDeleteAny'],
+    'deleteAny response override' => [BypassDeleteAnyResponseResource::class, 'delete', 'canDeleteAny'],
+    'restoreAny can override' => [BypassRestoreAnyCanResource::class, 'restore', 'canRestoreAny'],
+    'restoreAny response override' => [BypassRestoreAnyResponseResource::class, 'restore', 'canRestoreAny'],
+    'forceDeleteAny can override' => [BypassForceDeleteAnyCanResource::class, 'force_delete', 'canForceDeleteAny'],
+    'forceDeleteAny response override' => [BypassForceDeleteAnyResponseResource::class, 'force_delete', 'canForceDeleteAny'],
+]);

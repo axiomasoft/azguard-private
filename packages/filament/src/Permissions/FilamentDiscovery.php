@@ -117,10 +117,17 @@ final readonly class FilamentDiscovery implements PermissionDiscovery
                     array_values(array_filter(
                         array_intersect($subject->abilities, FilamentActions::MAP),
                         function (string $ability) use ($resourceClass): bool {
-                            $action = $ability === 'update' ? 'Edit' : Str::studly($ability);
+                            // Shared slugs cover singular and bulk entry points alike.
+                            foreach (array_keys(FilamentActions::methodsFor([$ability])) as $method) {
+                                $action = $method === 'update' ? 'Edit' : ucfirst($method);
 
-                            return $this->usesHook($resourceClass, Resource::class, 'can'.$action)
-                                && $this->usesHook($resourceClass, Resource::class, 'get'.$action.'AuthorizationResponse');
+                                if (! $this->usesHook($resourceClass, Resource::class, 'can'.$action)
+                                    || ! $this->usesHook($resourceClass, Resource::class, 'get'.$action.'AuthorizationResponse')) {
+                                    return false;
+                                }
+                            }
+
+                            return true;
                         },
                     )),
                     $subject->model,

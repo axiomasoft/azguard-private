@@ -1,0 +1,25 @@
+
+   PASS  Tests\Feature\Filament\CatalogValidationTest
+  ✓ it recognizes every supported native resource ability                0.43s  
+  ✓ it keeps the shared permission warning when a native bulk hook is r… 0.06s  
+  ✓ it keeps the shared permission warning when a native bulk hook is r… 0.13s  
+  ✓ it keeps the shared permission warning when a native bulk hook is r… 0.06s  
+  ✓ it keeps the shared permission warning when a native bulk hook is r… 0.13s  
+  ✓ it keeps the shared permission warning when a native bulk hook is r… 0.06s  
+  ✓ it keeps the shared permission warning when a native bulk hook is r… 0.13s  
+  ✓ it keeps orphan forged and unsupported resource ability warnings     0.02s  
+  ✓ it keeps warnings for disabled or policy-source enforcement with da… 0.09s  
+  ✓ it keeps warnings for disabled or policy-source enforcement with da… 0.02s  
+  ✓ it does not accept excluded subjects retained in a stale catalog     0.09s  
+  ✓ it does not treat trait names or unguarded discovery as active hook… 0.02s  
+  ✓ it keeps the diagnostic for an overridden resource authorization ho… 0.08s  
+  ✓ it strictly validates actual resource page and widget runtime bindi… 0.06s  
+  ✓ it does not accept previously catalogued keys after the linked pane… 0.09s  
+  ✓ it does not claim resource keys when the runtime discovery has no m… 0.02s  
+  ✓ it does not accept a resource that skips native authorization        0.08s  
+  ✓ it uses the configured key schema and page widget abilities for enu… 0.02s  
+
+  Tests:    18 passed (183 assertions)
+  Duration: 1.66s
+  Random Order Seed: 1792598623
+

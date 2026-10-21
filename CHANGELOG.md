@@ -8,6 +8,12 @@ the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html
 
 ### Fixed
 
+- **Filament bulk binding diagnostics** — a shared permission slug now requires
+  every native action alias in the canonical map to retain its authorization
+  hooks. Replaced bulk `can*Any()` or authorization-response hooks for delete,
+  restore and force-delete preserve warnings and fail strict catalog validation.
+  Catalog keys and runtime authorization are unchanged.
+
 - **Filament catalog validation** — strict validation now recognizes exact
   permission keys bound to active Filament resource authorization and the
   AzGuard page/widget hooks through an optional internal contributor.

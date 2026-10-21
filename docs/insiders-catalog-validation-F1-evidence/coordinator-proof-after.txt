@@ -1,0 +1,8 @@
+
+   PASS  Tmp\azguardreproduction\CoordinatorF1ReproductionTest
+  ✓ it F1 coordinator verifies strict diagnostic rejects bulk-delete by… 0.38s  
+
+  Tests:    1 passed (4 assertions)
+  Duration: 0.49s
+  Random Order Seed: 1792598567
+
