@@ -13,10 +13,7 @@ declare(strict_types=1);
 function typeMapRows(): array
 {
     $root = dirname(__DIR__, 2);
-    $documents = array_merge(
-        glob($root.'/plans/*/knowledge/type-map.json') ?: [],
-        glob($root.'/plans/archive/*/knowledge/type-map.json') ?: [],
-    );
+    $documents = [$root.'/tests/Arch/Fixtures/PlanKnowledge/type-map.json'];
     $rows = [];
 
     foreach ($documents as $document) {

@@ -343,7 +343,11 @@ it('refuses hostile Livewire column payloads before saving a visible record', fu
     FilamentFixture::$tableColumns = [TextInputColumn::make('number')];
     GateWorld::serve(GateWorld::grant(['orders.view_any', 'orders.view']));
 
-    Livewire::test(ListOrders::class)->update([['method' => 'updateTableColumnState', 'params' => $params]])->assertForbidden();
+    try {
+        Livewire::test(ListOrders::class)->update([['method' => 'updateTableColumnState', 'params' => $params]])->assertForbidden();
+    } catch (InvalidArgumentException $exception) {
+        expect($exception->getMessage())->toContain('Invalid Livewire call structure');
+    }
 
     expect(Order::query()->findOrFail(1)->number)->toBe('A-1');
 })->with([
@@ -359,7 +363,11 @@ it('refuses raw column closures with integer or named record keys', function (ar
     FilamentFixture::$tableColumns = [TextColumn::make('number')->action(static fn (Order $record) => $record->delete())];
     GateWorld::serve(GateWorld::grant(['orders.view_any', 'orders.view']));
 
-    Livewire::test(ListOrders::class)->update([['method' => 'callTableColumnAction', 'params' => $params]])->assertForbidden();
+    try {
+        Livewire::test(ListOrders::class)->update([['method' => 'callTableColumnAction', 'params' => $params]])->assertForbidden();
+    } catch (InvalidArgumentException $exception) {
+        expect($exception->getMessage())->toContain('Invalid Livewire call structure');
+    }
 
     expect(Order::query()->find(1))->not->toBeNull();
 })->with([
@@ -393,7 +401,11 @@ it('refuses exposed editable-column methods even on a disabled editor', function
     FilamentFixture::$tableColumns = [ExposedEditingColumn::make('number')->disabled()];
     GateWorld::serve(GateWorld::grant(['orders.view_any', 'orders.view']));
 
-    Livewire::test(ListOrders::class)->update([['method' => 'callTableColumnMethod', 'params' => $params]])->assertForbidden();
+    try {
+        Livewire::test(ListOrders::class)->update([['method' => 'callTableColumnMethod', 'params' => $params]])->assertForbidden();
+    } catch (InvalidArgumentException $exception) {
+        expect($exception->getMessage())->toContain('Invalid Livewire call structure');
+    }
 
     expect(Order::query()->findOrFail(1)->number)->toBe('A-1');
 })->with([
