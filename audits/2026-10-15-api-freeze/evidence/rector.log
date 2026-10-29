@@ -1,3 +1,0 @@
-> vendor/bin/rector process --dry-run
-{"tool":"rector","result":"failed","fatal_errors":["These rules from \"$rectorConfig->skip()\" do not exist - remove them or fix their names:\n * Rector\\Php80\\Rector\\Ternary\\TernaryToNullsafeCoalesceRector"]}
-Script vendor/bin/rector process --dry-run handling the refactor:check event returned with error code 1
