@@ -48,16 +48,13 @@ AGENTS.md
 .cursor/
 .swissknife/
 .swissknife.json
-.mcp.json.example
 # Local planning, agent receipts and run logs are development infrastructure.
 # /plans/
 
 # Raw samples and the SQLite file of the load bench
 /bench/.runs/
 .phpunit.mutation.*.xml
-
 # Pinned security tools (bin/security-tools.sh)
 var/tools/
 
-# Pinned security tools (bin/security-tools.sh)
-var/tools/
+plans/*/artifacts/**/*.jsonl

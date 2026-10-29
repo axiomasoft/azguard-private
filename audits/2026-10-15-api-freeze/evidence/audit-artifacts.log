@@ -1,1 +1,0 @@
-{"result": "passed", "checks": {"local_links": 150, "json": 52, "py": 4, "svg": 4, "xml": 1, "php": 6}, "diagrams": "Checked 4 graphs: Mermaid, DOT, SVG", "note": "Artifact validation only; R18 invalid generated PHP is verified as expected evidence."}

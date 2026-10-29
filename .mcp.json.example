@@ -1,0 +1,18 @@
+{
+  "mcpServers": {
+    "maind": {
+      "command": "maind",
+      "args": [
+        "mcp",
+        "--scope",
+        "project:azguard"
+      ]
+    },
+    "perplexity": {
+      "command": "<HOME>/projects/packages/perplexity-web-mcp/start.sh",
+      "args": [
+        "--pool=default"
+      ]
+    }
+  }
+}

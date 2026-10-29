@@ -1,5 +1,0 @@
-{"driver":"pgsql","database":"azguard_test","ready":true}
-Using existing isolated azguard_test, host 127.0.0.1, port 55432
-[pgsql] php -d memory_limit=1G vendor/bin/pest --fail-on-skipped --group=engines
-Engine: pgsql PostgreSQL 16.14 on x86_64-pc-linux-musl, compiled by gcc (Alpine 15.2.0) 15.2.0, 64-bit
-{"tool":"pest","result":"passed","tests":71,"passed":71,"assertions":2670,"duration_ms":37242}
