@@ -9,6 +9,7 @@ them is a promise or a date. Open an issue with a concrete use case if one of th
 |:--|:--|:--|
 | Freshness receipt for replica reads | `Reads::Primary` is the default and gives strict freshness. With `Reads::Default` a replica can lag, which is documented and reported by `azguard:doctor` (`consistency.reads`). The receipt mostly exists already: `ChangeResult->state` carries the state token of a write. What is missing is an API that makes a replica read wait until it has caught up to a given token. | Applications that must read authorization data from replicas and still need read-your-writes after a grant or revoke. |
 | Subject-level write locking | Every write locks the `panel_state` row of its panel, so writes to one panel are serialized. Reads take no locks and are not blocked. Locking per subject would let writes for different subjects run in parallel. It needs a new lock order, deadlock analysis across drivers and changes to the panel epoch. | Measured write contention on one panel, for example bulk grant imports competing with interactive edits. The bench `consistency-load` profile reports lock wait and hold times. |
+| First-class metrics hooks | Deny and error rates, change duration, lock waits and cache invalidation are available from existing surfaces (the `access.decided` event, a change participant, database metrics; see `docs/advanced/operations.md`). A dedicated instrumentation API would be new public surface before 1.0. | A 1.1 candidate: measured demand for counters or spans emitted by AzGuard itself. |
 
 ## Panels and identities
 

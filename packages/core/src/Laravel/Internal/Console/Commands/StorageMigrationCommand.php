@@ -7,6 +7,7 @@ namespace AzGuard\Laravel\Internal\Console\Commands;
 use AzGuard\Exceptions\InvalidConfigurationException;
 use AzGuard\Laravel\Console\CommandSupport;
 use AzGuard\Laravel\Console\InvalidCommandInput;
+// nosemgrep: azguard.grant-table-outside-storage -- the migration command only asks the registry for table descriptors; it never reads or writes grant rows
 use AzGuard\Storage\Internal\StorageRegistry;
 use Illuminate\Console\Command;
 use Illuminate\Filesystem\Filesystem;

@@ -66,6 +66,28 @@ These are compatible and stay in minor versions: a new supported type; a new met
 or `Call` interface; a new optional trailing parameter on a method nobody overrides; a new constant; a new case of an
 open enum; a new promise of named arguments; closing an open enum.
 
+## Extension authors and persisted formats
+
+Three things are promised separately:
+
+- **API** (`#[Api]`): what an application calls, constructs or reads.
+- **SPI** (`#[Spi]`): what an extension implements (`Implement`) or only calls (`Call`). AzGuard calls an
+  `Implement` method positionally, so its parameter names may change; adding a method to the interface waits for the
+  next major version.
+- **Persisted format**: what is stored or emitted and read again later: the storage schema and its migrations, the audit
+  rows, event payload keys, state tokens, the doctor check keys and finding ids, the `explain` JSON and exception codes.
+  The machine formats below are pinned by fixtures, and `composer api:compat` compares them with the baseline.
+
+For an extension author this means:
+
+- depend only on types marked `#[Api]` or `#[Spi]`; a type in an `Internal` namespace or marked `@internal` can change in
+  any release;
+- a published migration is never edited; a schema change is a new migration, and the upgrade is checked from the
+  previous release with `bin/upgrade-fixture.sh`;
+- an event payload gains keys in a minor version and never loses or retypes one, so read keys by name and ignore the
+  ones you do not know;
+- a closed enum never gains a case, so `match` over it stays exhaustive; an open enum may, so keep a default arm.
+
 ## Machine formats
 
 The formats of [Machine formats](/reference/formats), [configuration](/reference/configuration),

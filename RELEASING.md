@@ -22,6 +22,9 @@ with a user-visible change edits `[Unreleased]`; the release moves it under the 
 1.0.0 is the first public release. From 1.0, versions follow SemVer: a breaking change of a supported contract bumps
 the major version of both packages. Mutation testing is deferred by the owner and does not block 1.0.0.
 
+The root `composer.lock` is the development and release lock: qualification jobs `composer install` from it,
+packages never ship it, and version-range jobs re-resolve with `composer update`.
+
 Both packages share **one version**. A release tags the monorepo and
 splits the same tag into every package repo, so `azguard` and
 `azguard-filament` always advance together.
@@ -58,8 +61,100 @@ A pull request that changes `compatibility.json` fails the `compat-baseline` gua
 `composer api:compat` locally before tagging; `bash bin/compat-drill.sh` proves on real patches in a throwaway clone
 that the comparison rejects the intentional breaks (D1–D5) and accepts the control (D6).
 
-Recommended repository settings (owner): require the `Compatibility` check and the other CI checks on `main` in branch
-protection, and restrict who may apply the `compat-baseline` label.
+## Repository settings
+
+The expected settings live in `.github/rulesets/` and `.github/CODEOWNERS`; `bin/repository-settings-audit.php` compares them
+with the live repository and only reads. Applying them is an owner act.
+
+```bash
+# create (first time)
+gh api -X POST repos/axiomasoft/azguard-private/rulesets --input .github/rulesets/main.json
+gh api -X POST repos/axiomasoft/azguard-private/rulesets --input .github/rulesets/tags.json
+gh api -X POST repos/axiomasoft/azguard-private/rulesets --input .github/rulesets/tag-creation.json
+# update an existing ruleset
+gh api -X PUT repos/axiomasoft/azguard-private/rulesets/<id> --input .github/rulesets/<file>.json
+# private vulnerability reporting, secret scanning and push protection
+gh api -X PUT repos/axiomasoft/azguard-private/private-vulnerability-reporting
+gh api -X PATCH repos/axiomasoft/azguard-private --input - <<'JSON'
+{"security_and_analysis": {"secret_scanning": {"status": "enabled"}, "secret_scanning_push_protection": {"status": "enabled"}}}
+JSON
+# audit
+php bin/repository-settings-audit.php --live
+```
+
+`main` allows no bypass actor; only the repository admin role may create `v*` tags, and no one may update or delete them.
+The `compat-baseline` label stays a triage-role decision (single maintainer).
+
+**Break-glass.** The owner temporarily sets `enforcement` to `disabled` on the `main` ruleset, performs the action,
+restores `active`, and records the date, the reason, the ruleset JSON before and after, and the commit in the plan's
+`artifacts/evidence/governance/break-glass.md`. `php bin/repository-settings-audit.php --live` must be green again before
+any tag.
+
+## Schema changes
+
+A migration that was published is never edited or removed: `tests/Arch/MigrationsImmutableTest.php` compares every
+migration file with the compatibility baseline (the newest stable tag, before it the `candidate` of
+`compatibility.json`). A schema change is a new migration file, together with an updated DDL artifact of
+`compatibility.json`.
+
+Before a schema-changing release, run the upgrade fixture on all four drivers:
+
+```bash
+base=$(python3 -c 'import json; print(json.load(open("compatibility.json"))["candidate"])')   # or the last stable tag
+for driver in sqlite pgsql mysql mariadb; do bash bin/upgrade-fixture.sh --from="$base" --to=HEAD --driver="$driver"; done
+```
+
+`bin/upgrade-fixture.sh` installs the older archive in a clean Laravel application, seeds grants, captures the decisions
+(`azguard:explain --json`) and the doctor, swaps to the newer archive, runs `php artisan migrate`, and fails when a
+decision or the doctor changed. It also reports whether `migrate:rollback` succeeds on the new schema; a migration that
+cannot be rolled back is declared in `UPGRADING.md`.
+
+## After the tag: verify the split and Packagist
+
+The split repositories are checked against the monorepo tag, then the published packages are installed in clean
+applications:
+
+```bash
+bash bin/split-verify.sh v1.0.0-rc.1            # tree identity per package, Packagist reference and core requirement
+bash bin/consumer-fixture.sh --source=packagist --version=1.0.0-rc.1 --laravel=12 --with-filament
+bash bin/consumer-fixture.sh --source=packagist --version=1.0.0-rc.1 --laravel=13 --with-filament
+```
+
+`bin/split-verify.sh` compares `packages/<dir>` of the monorepo tag with the tree of the split tag (extra paths of the
+split side must be listed in `.github/split-allowlist.txt`, empty by default), prints the mapping
+`monorepo <sha> -> split <sha>`, and checks that Packagist lists the version from the split commit and that the Filament
+package requires the same core version. Packagist indexes a tag some minutes after the push: an unreachable or stale
+document is exit `3` or `1`, never green; retry later. `bash bin/test-split-verify.sh` proves the script offline.
+
+## Release artifacts
+
+The `artifacts` job of `release.yml` runs `bin/release-artifacts.sh <version> <outdir>`: the two package archives
+(`azguard-core-<v>.zip`, `azguard-filament-<v>.zip`), a CycloneDX SBOM of each package's production dependencies
+(`sbom-core.cdx.json`, `sbom-filament.cdx.json`, made with the pinned `syft`) and `SHA256SUMS`. The job attests the build
+provenance of the four files and the release attaches all five to the GitHub Release. Verify a download:
+
+```bash
+sha256sum -c SHA256SUMS
+gh attestation verify azguard-core-<v>.zip --repo axiomasoft/azguard-private
+```
+
+The same script builds the files locally (`bash bin/release-artifacts.sh 1.0.0 /tmp/out`).
+
+## Critical mutation
+
+`composer mutate:critical` (`bin/mutation-gate.sh critical`) mutates the decision kernel, the authorization pipeline,
+the query witnesses, the cache and state tokens, the change transaction and the Filament guards, and requires every
+covered mutant to be killed. It is release-blocking: `release.yml` calls `mutation.yml` with `package: critical`, and
+`split` and `release` need it. A survivor is fixed by a test or marked `// @pest-mutate-ignore -- <reason>` as a proven
+equivalent mutant. It also runs weekly. It needs a coverage driver (pcov or Xdebug).
+
+## Dependency updates
+
+- A high or critical security update (Composer, npm, OSV) is triaged within 1 business day; an update forced by an
+  advisory is its own commit touching only `composer.lock` / `package-lock.json`.
+- An ordinary Dependabot update is reviewed within a week; superseded Dependabot PRs are closed.
+- Major updates are never auto-merged.
+- An OSV ignore needs `ignoreUntil` and a reason in `.github/osv-scanner.toml`.
 
 ## Cutting a release
 
@@ -95,6 +190,11 @@ protection, and restrict who may apply the `compat-baseline` label.
    bash bin/release-preflight.sh 1.0.0 HEAD
    ```
    The script reads `git show REF:CHANGELOG.md`; a working-tree-only edit fails.
+   A pre-release `1.0.0-rc.1` is served by its own `## [1.0.0-rc.1]` section, else by the `## [1.0.0]` section: one
+   section serves the release candidates and the stable tag of the same commit (`bash bin/release-preflight.sh
+   1.0.0-rc.1 HEAD`, `bash bin/release-notes.sh 1.0.0-rc.1 HEAD`).
+   The `validate` job of `release.yml` also requires that the tag is annotated, that the tagged commit is reachable from
+   `main`, and, for the first stable tag, that the commit changes only `compatibility.json` over the candidate.
    Run `bash bin/test-release-preflight.sh` for isolated matching, missing,
    malformed, prerelease, and working-tree-only fixtures.
    For the first stable release the qualified candidate C is not the commit that is tagged: a commit cannot name

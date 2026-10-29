@@ -1,4 +1,0 @@
-$ DB_CONNECTION=mariadb vendor/bin/pest tests/Feature/Parity --fail-on-skipped --exclude-group=sqlite
-{"tool":"pest","result":"passed","tests":15,"passed":15,"assertions":25,"duration_ms":19317}
-
-exit=0

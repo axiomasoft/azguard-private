@@ -1,1 +1,0 @@
-{"name":"db-pgsql","cmd":"composer test:db -- pgsql --parallel","exit":0,"started":"2026-10-13T17:12:30Z","finished":"2026-10-13T17:16:11Z","head":"c3e2c07a8a448c4e6061b51270359f4f004498e1"}

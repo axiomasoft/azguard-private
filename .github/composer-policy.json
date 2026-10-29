@@ -1,0 +1,6 @@
+{
+  "plugins": {
+    "pestphp/pest-plugin": "Pest registers its test runner plugin; dev-only"
+  },
+  "forbidden_script_commands": ["curl", "wget"]
+}

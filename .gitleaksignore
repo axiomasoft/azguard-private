@@ -1,0 +1,19 @@
+# Reviewed gitleaks findings; owner @academici; each block expires 2027-04-17 (re-review).
+
+# Expired (exp 2026-10-06) x.ai access tokens captured in committed grok review debug logs; sessions revoked by the owner.
+47105c3204d367a1d49865d51e5942e784e5ac1f:plans/2026.10.01-№1-AZGUARD-V1/artifacts/P4.10-P4.11-execution/review-debug.log:jwt:85
+bf36aaab71d90d0813a54a2494c37beed0e2aab3:plans/2026.10.01-№1-AZGUARD-V1/artifacts/P4.9-execution/review-interrupted-before-verdict/review-debug.log:jwt:85
+bf36aaab71d90d0813a54a2494c37beed0e2aab3:plans/2026.10.01-№1-AZGUARD-V1/artifacts/P4.9-execution/review-debug.log:jwt:84
+bf36aaab71d90d0813a54a2494c37beed0e2aab3:plans/2026.10.01-№1-AZGUARD-V1/artifacts/P4.22-execution/review-debug.log:jwt:83
+bf36aaab71d90d0813a54a2494c37beed0e2aab3:plans/2026.10.01-№1-AZGUARD-V1/artifacts/P4.21-execution/review-round-1/review-debug.log:jwt:88
+
+# Documentation placeholders, a test constant and an api snapshot hash: not credentials.
+f4404a069246f38aba6073bd6bd43166155919ef:plans/2026.10.10-№1-AZGUARD-CORE-STABILIZATION/artifacts/reviews/P2/P2.12/round1/grok-4.7.md:generic-api-key:34
+f4404a069246f38aba6073bd6bd43166155919ef:plans/2026.10.10-№1-AZGUARD-CORE-STABILIZATION/artifacts/reviews/P2/P2.12/round1/stream.jsonl:generic-api-key:139
+f4404a069246f38aba6073bd6bd43166155919ef:plans/2026.10.10-№1-AZGUARD-CORE-STABILIZATION/artifacts/reviews/P2/P2.12/round1/stream.jsonl:generic-api-key:140
+e549156b316fdf36a33a1bdecf0caa2e794dab43:tests/Feature/Filament/Pages/PanelsAndDoctorPagesTest.php:generic-api-key:25
+50fe4af5d71de7940f8b00ae8ddc5266899c96d6:audits/2026-09-29-audit/architecture-options.md:generic-api-key:106
+5cc75850087a32fdeba792414d1d493b75399511:.agents/plugins/bundles/php/laravel-best-practices/references/config.md:generic-api-key:30
+ed13827125d5184bf03888eb0dd03bdf60e09438:.agents/skills/laravel-best-practices/references/config.md:generic-api-key:30
+27d46b778d3cb31bcf7ed761fc287e948f635042:composer.json:generic-api-key:60
+6cd9cc10f0e37359e22155393ddde8315c9051b4:.claude/skills/laravel-best-practices/references/config.md:generic-api-key:30

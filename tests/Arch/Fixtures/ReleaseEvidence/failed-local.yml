@@ -1,0 +1,57 @@
+schema: urn:azguard:release-evidence:1
+version: 1.0.0-rc.1
+commit: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+candidate: bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb
+created_at: '2026-01-01T00:00:00Z'
+toolchain:
+  php:
+  - 8.3.0
+  laravel:
+  - '12.0'
+  - '13.0'
+  composer: '2.8'
+  node: '24'
+  databases:
+    pgsql: '16'
+    mysql: '8'
+    mariadb: '10.11'
+    redis: '7'
+workflows:
+  release: https://github.com/axiomasoft/azguard-private/actions/runs/1000
+  tests: https://github.com/axiomasoft/azguard-private/actions/runs/1001
+  nightly: https://github.com/axiomasoft/azguard-private/actions/runs/1002
+  compatibility: https://github.com/axiomasoft/azguard-private/actions/runs/1003
+  static: https://github.com/axiomasoft/azguard-private/actions/runs/1004
+  style: https://github.com/axiomasoft/azguard-private/actions/runs/1005
+  docs: https://github.com/axiomasoft/azguard-private/actions/runs/1006
+  security: https://github.com/axiomasoft/azguard-private/actions/runs/1007
+  zizmor: https://github.com/axiomasoft/azguard-private/actions/runs/1008
+local:
+- command: composer test
+  exit: 1
+  summary: 1 failed
+  log: logs/test.log
+artifacts:
+  core_archive: '1111111111111111111111111111111111111111111111111111111111111111'
+  filament_archive: '2222222222222222222222222222222222222222222222222222222222222222'
+  sbom_core: '3333333333333333333333333333333333333333333333333333333333333333'
+  sbom_filament: '4444444444444444444444444444444444444444444444444444444444444444'
+split:
+  core:
+    repo: axiomasoft/azguard
+    tag_sha: cccccccccccccccccccccccccccccccccccccccc
+    tree_identical: true
+  filament:
+    repo: axiomasoft/azguard-filament
+    tag_sha: dddddddddddddddddddddddddddddddddddddddd
+    tree_identical: true
+packagist:
+  core: 1.0.0-rc.1
+  filament: 1.0.0-rc.1
+benchmarks:
+  reference_host: host
+  comparison: bench.md
+settings_audit: audit.json
+owner_approval:
+  actor: academici
+  timestamp: '2026-01-01T00:00:00Z'

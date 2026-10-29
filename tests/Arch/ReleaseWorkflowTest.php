@@ -19,6 +19,8 @@ const RELEASE_CALLED = [
     'docs' => 'docs.yml',
     'nightly' => 'tests-nightly.yml',
     'compat' => 'compatibility.yml',
+    'security' => 'security.yml',
+    'mutation' => 'mutation.yml',
 ];
 
 /** The consumer-archive steps of `validate` and of the tests.yml consumer job: default, Filament, core-only, relocation. */
@@ -32,7 +34,7 @@ function releaseWorkflows(): array
 {
     $workflows = [];
 
-    foreach (['release.yml', 'split.yml', ...array_values(RELEASE_CALLED)] as $file) {
+    foreach (['release.yml', 'split.yml', 'docs-deploy.yml', ...array_values(RELEASE_CALLED)] as $file) {
         $workflows[$file] = Yaml::parseFile(dirname(__DIR__, 2).'/.github/workflows/'.$file);
     }
 
@@ -78,7 +80,7 @@ function releaseViolations(array $workflows): array
     $violations = [];
     $release = $workflows['release.yml'] ?? [];
     $jobs = $release['jobs'] ?? [];
-    $gates = ['validate', ...array_keys(RELEASE_CALLED)];
+    $gates = ['validate', 'validate-consumers', 'artifacts', ...array_keys(RELEASE_CALLED)];
 
     // Bypass closed: only tags trigger a release, the split only by a call.
     $triggers = releaseTriggers($release);
@@ -132,16 +134,79 @@ function releaseViolations(array $workflows): array
     if (preg_match('/composer (analyse|lint|test)\b|vendor\/bin\/(pest|phpstan|pint)/', $validate) === 1) {
         $violations[] = 'release.yml: validate repeats a called workflow';
     }
-    foreach (['validate' => $validate, 'tests.yml consumer-fixture' => releaseRuns($workflows['tests.yml']['jobs']['consumer-fixture'] ?? [])] as $where => $runs) {
+    foreach (['release.yml validate-consumers' => $jobs['validate-consumers'] ?? [], 'tests.yml consumer-fixture' => $workflows['tests.yml']['jobs']['consumer-fixture'] ?? []] as $where => $job) {
+        $runs = releaseRuns($job);
+
+        if (($job['strategy']['matrix']['laravel'] ?? null) !== [12, 13]) {
+            $violations[] = "{$where}: the consumer archives must run on Laravel 12 and 13";
+        }
+
         foreach (RELEASE_CONSUMER_MODES as $mode => $pattern) {
             if (preg_match($pattern, $runs) !== 1) {
                 $violations[] = "{$where}: no {$mode} consumer archive step";
             }
         }
+
+        if (str_contains($runs, '--laravel=13') || str_contains($runs, '--laravel=12')) {
+            $violations[] = "{$where}: the Laravel major must come from the matrix";
+        }
     }
 
     if (! str_contains($validate, 'bin/release-preflight.sh')) {
         $violations[] = 'release.yml: validate does not run the release preflight';
+    }
+
+    // Tag guards: annotated, reachable from main, the C+1 rule; all before the changelog preflight.
+    $validateSteps = releaseSteps($jobs['validate'] ?? []);
+    $stepNames = array_map(static fn (array $step): string => (string) ($step['name'] ?? ''), $validateSteps);
+    $position = static function (string $needle) use ($stepNames): ?int {
+        foreach ($stepNames as $index => $name) {
+            if (str_contains($name, $needle)) {
+                return $index;
+            }
+        }
+
+        return null;
+    };
+    $changelog = $position('changelog section');
+
+    foreach (['annotated tag', 'reachable from main', 'first stable tag'] as $guard) {
+        $at = $position($guard);
+
+        if ($at === null) {
+            $violations[] = "release.yml: validate has no guard for {$guard}";
+        } elseif ($changelog !== null && $at > $changelog) {
+            $violations[] = "release.yml: validate runs the {$guard} guard after the changelog preflight";
+        }
+    }
+
+    // artifacts: built by the script the developers run, attested, uploaded; the release attaches them.
+    $artifacts = $jobs['artifacts'] ?? [];
+    $artifactUses = implode("\n", array_map(static fn (array $step): string => (string) ($step['uses'] ?? ''), releaseSteps($artifacts)));
+    $permissions = $artifacts['permissions'] ?? [];
+    ksort($permissions);
+
+    if ($permissions !== ['attestations' => 'write', 'contents' => 'read', 'id-token' => 'write']) {
+        $violations[] = 'release.yml: artifacts must have contents: read, id-token: write and attestations: write';
+    }
+
+    if (! str_contains(releaseRuns($artifacts), 'bin/release-artifacts.sh')) {
+        $violations[] = 'release.yml: artifacts does not run bin/release-artifacts.sh';
+    }
+
+    if (! str_contains($artifactUses, 'actions/attest-build-provenance@')) {
+        $violations[] = 'release.yml: artifacts has no attestation step';
+    }
+
+    if (! str_contains($artifactUses, 'actions/upload-artifact@')) {
+        $violations[] = 'release.yml: artifacts does not upload the files';
+    }
+    $releaseSteps = releaseSteps($jobs['release'] ?? []);
+    $attached = implode("\n", array_map(static fn (array $step): string => (string) ($step['with']['files'] ?? ''), $releaseSteps));
+
+    if (! str_contains(implode("\n", array_map(static fn (array $step): string => (string) ($step['uses'] ?? ''), $releaseSteps)), 'actions/download-artifact@')
+        || ! str_contains($attached, 'dist/*.zip') || ! str_contains($attached, 'dist/*.cdx.json') || ! str_contains($attached, 'dist/SHA256SUMS')) {
+        $violations[] = 'release.yml: release does not attach the archives, the SBOMs and SHA256SUMS';
     }
 
     // Least privilege: write access for the release job alone.
@@ -152,7 +217,7 @@ function releaseViolations(array $workflows): array
         $writes = array_keys(array_filter((array) ($job['permissions'] ?? []), static fn (mixed $level): bool => $level === 'write'));
         $allowed = match ($id) {
             'release' => ['contents'],
-            'docs' => ['pages', 'id-token'],
+            'artifacts' => ['id-token', 'attestations'],
             default => [],
         };
 
@@ -161,11 +226,21 @@ function releaseViolations(array $workflows): array
         }
     }
 
-    // A call never deploys the documentation.
-    $deploy = (string) ($workflows['docs.yml']['jobs']['deploy']['if'] ?? '');
+    // The call grants only contents: read; the deploy lives in docs-deploy.yml.
+    if (($jobs['docs']['permissions'] ?? null) !== ['contents' => 'read']) {
+        $violations[] = 'release.yml: the docs call must grant only contents: read';
+    }
 
-    if (! str_contains($deploy, "github.ref == 'refs/heads/main'") || str_contains($deploy, '!=')) {
-        $violations[] = 'docs.yml: deploy must run only on main';
+    if (array_key_exists('deploy', $workflows['docs.yml']['jobs'] ?? [])) {
+        $violations[] = 'docs.yml: must not deploy';
+    }
+    $deployPermissions = $workflows['docs-deploy.yml']['jobs']['deploy']['permissions'] ?? [];
+    ksort($deployPermissions);
+
+    if ($deployPermissions !== ['id-token' => 'write', 'pages' => 'write']
+        || ($workflows['docs-deploy.yml']['permissions'] ?? null) !== ['contents' => 'read']
+        || ($workflows['docs-deploy.yml']['jobs']['build']['uses'] ?? null) !== './.github/workflows/docs.yml') {
+        $violations[] = 'docs-deploy.yml: the deploy must be the only Pages writer, built through docs.yml';
     }
 
     // The comparison: full history and tags, freshness before compatibility, the label only through env.
@@ -233,17 +308,17 @@ it('reports a broken release graph', function (Closure $break, string $violation
         $w['release.yml']['jobs']['split']['needs'] = array_values(array_diff($w['release.yml']['jobs']['split']['needs'], ['compat']));
 
         return $w;
-    }, 'release.yml: split must call split.yml and need compat, docs, nightly, static, style, tests, validate'],
+    }, 'release.yml: split must call split.yml and need artifacts, compat, docs, mutation, nightly, security, static, style, tests, validate, validate-consumers'],
     'release without the nightly gate' => [static function (array $w): array {
         $w['release.yml']['jobs']['release']['needs'] = array_values(array_diff($w['release.yml']['jobs']['release']['needs'], ['nightly']));
 
         return $w;
-    }, 'release.yml: release must need compat, docs, nightly, split, static, style, tests, validate'],
+    }, 'release.yml: release must need artifacts, compat, docs, mutation, nightly, security, split, static, style, tests, validate, validate-consumers'],
     'release without the split' => [static function (array $w): array {
-        $w['release.yml']['jobs']['release']['needs'] = ['validate', 'tests', 'static', 'style', 'docs', 'nightly', 'compat'];
+        $w['release.yml']['jobs']['release']['needs'] = ['validate', 'validate-consumers', 'tests', 'static', 'style', 'docs', 'nightly', 'compat', 'security'];
 
         return $w;
-    }, 'release.yml: release must need compat, docs, nightly, split, static, style, tests, validate'],
+    }, 'release.yml: release must need artifacts, compat, docs, mutation, nightly, security, split, static, style, tests, validate, validate-consumers'],
     'a called workflow without workflow_call' => [static function (array $w): array {
         unset($w['tests-nightly.yml']['on']['workflow_call']);
 
@@ -274,21 +349,58 @@ it('reports a broken release graph', function (Closure $break, string $violation
 
         return $w;
     }, 'release.yml: validate repeats a called workflow'],
-    'validate without the relocation rehearsal' => [static function (array $w): array {
-        $w['release.yml']['jobs']['validate']['steps'] = array_values(array_filter($w['release.yml']['jobs']['validate']['steps'], static fn (array $s): bool => ! str_contains((string) ($s['run'] ?? ''), 'relocated-audit')));
+    'validate-consumers without the relocation rehearsal' => [static function (array $w): array {
+        $w['release.yml']['jobs']['validate-consumers']['steps'] = array_values(array_filter($w['release.yml']['jobs']['validate-consumers']['steps'], static fn (array $s): bool => ! str_contains((string) ($s['run'] ?? ''), 'relocated-audit')));
 
         return $w;
-    }, 'validate: no relocated-audit consumer archive step'],
+    }, 'release.yml validate-consumers: no relocated-audit consumer archive step'],
+    'validate-consumers on Laravel 13 only' => [static function (array $w): array {
+        $w['release.yml']['jobs']['validate-consumers']['strategy']['matrix']['laravel'] = [13];
+
+        return $w;
+    }, 'release.yml validate-consumers: the consumer archives must run on Laravel 12 and 13'],
+    'tests.yml consumer job on Laravel 13 only' => [static function (array $w): array {
+        $w['tests.yml']['jobs']['consumer-fixture']['strategy']['matrix']['laravel'] = [13];
+
+        return $w;
+    }, 'tests.yml consumer-fixture: the consumer archives must run on Laravel 12 and 13'],
     'tests.yml consumer job without the relocation rehearsal' => [static function (array $w): array {
         $w['tests.yml']['jobs']['consumer-fixture']['steps'] = array_values(array_filter($w['tests.yml']['jobs']['consumer-fixture']['steps'], static fn (array $s): bool => ! str_contains((string) ($s['run'] ?? ''), 'relocated-audit')));
 
         return $w;
     }, 'tests.yml consumer-fixture: no relocated-audit consumer archive step'],
-    'validate without the core-only archive' => [static function (array $w): array {
-        $w['release.yml']['jobs']['validate']['steps'] = array_values(array_filter($w['release.yml']['jobs']['validate']['steps'], static fn (array $s): bool => ! str_contains((string) ($s['run'] ?? ''), 'core-only')));
+    'validate-consumers without the core-only archive' => [static function (array $w): array {
+        $w['release.yml']['jobs']['validate-consumers']['steps'] = array_values(array_filter($w['release.yml']['jobs']['validate-consumers']['steps'], static fn (array $s): bool => ! str_contains((string) ($s['run'] ?? ''), 'core-only')));
 
         return $w;
-    }, 'validate: no core-only consumer archive step'],
+    }, 'release.yml validate-consumers: no core-only consumer archive step'],
+    'validate without the annotated tag guard' => [static function (array $w): array {
+        $w['release.yml']['jobs']['validate']['steps'] = array_values(array_filter($w['release.yml']['jobs']['validate']['steps'], static fn (array $s): bool => ! str_contains((string) ($s['name'] ?? ''), 'annotated tag')));
+
+        return $w;
+    }, 'release.yml: validate has no guard for annotated tag'],
+    'validate without the main ancestry guard' => [static function (array $w): array {
+        $w['release.yml']['jobs']['validate']['steps'] = array_values(array_filter($w['release.yml']['jobs']['validate']['steps'], static fn (array $s): bool => ! str_contains((string) ($s['name'] ?? ''), 'reachable from main')));
+
+        return $w;
+    }, 'release.yml: validate has no guard for reachable from main'],
+    'artifacts without the attestation step' => [static function (array $w): array {
+        $w['release.yml']['jobs']['artifacts']['steps'] = array_values(array_filter($w['release.yml']['jobs']['artifacts']['steps'], static fn (array $s): bool => ! str_contains((string) ($s['uses'] ?? ''), 'attest-build-provenance')));
+
+        return $w;
+    }, 'release.yml: artifacts has no attestation step'],
+    'artifacts without attestation permissions' => [static function (array $w): array {
+        unset($w['release.yml']['jobs']['artifacts']['permissions']['attestations']);
+
+        return $w;
+    }, 'release.yml: artifacts must have contents: read, id-token: write and attestations: write'],
+    'release not attaching the SBOMs' => [static function (array $w): array {
+        foreach ($w['release.yml']['jobs']['release']['steps'] as &$step) {
+            unset($step['with']['files']);
+        }
+
+        return $w;
+    }, 'release.yml: release does not attach the archives, the SBOMs and SHA256SUMS'],
     'write access for the whole workflow' => [static function (array $w): array {
         $w['release.yml']['permissions'] = ['contents' => 'write'];
 
@@ -304,11 +416,16 @@ it('reports a broken release graph', function (Closure $break, string $violation
 
         return $w;
     }, 'release.yml: job compat has no least-privilege permissions'],
-    'docs deploying outside main' => [static function (array $w): array {
-        $w['docs.yml']['jobs']['deploy']['if'] = "github.event_name != 'pull_request'";
+    'docs call with Pages write' => [static function (array $w): array {
+        $w['release.yml']['jobs']['docs']['permissions']['pages'] = 'write';
 
         return $w;
-    }, 'docs.yml: deploy must run only on main'],
+    }, 'release.yml: the docs call must grant only contents: read'],
+    'docs deploying again' => [static function (array $w): array {
+        $w['docs.yml']['jobs']['deploy'] = ['runs-on' => 'ubuntu-latest'];
+
+        return $w;
+    }, 'docs.yml: must not deploy'],
     'a shallow comparison checkout' => [static function (array $w): array {
         unset($w['compatibility.yml']['jobs']['compare']['steps'][0]['with']['fetch-tags']);
 

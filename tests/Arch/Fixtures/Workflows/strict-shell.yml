@@ -1,0 +1,21 @@
+# Negative fixture for rule strict-shell: valid except for this one rule. Not under .github/, so GitHub never runs it.
+name: Fixture
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+        with:
+          persist-credentials: false
+      - name: Build
+        run: |
+          composer install
+          composer test

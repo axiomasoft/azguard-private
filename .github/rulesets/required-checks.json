@@ -1,0 +1,14 @@
+{
+  "contexts": [
+    "Tests · all lanes",
+    "Larastan (PHPStan level 9)",
+    "Laravel Pint",
+    "API and format compatibility",
+    "Docs · lint and build",
+    "Audit GitHub Actions workflows",
+    "Analyze (actions)",
+    "Conventional Commit title",
+    "Conventional Commit messages",
+    "Security · all gates"
+  ]
+}

@@ -1,2 +1,0 @@
-> vendor/bin/rector process --dry-run
-{"tool":"rector","result":"passed","totals":{"changed_files":0,"errors":0}}

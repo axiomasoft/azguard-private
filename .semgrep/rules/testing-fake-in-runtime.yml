@@ -1,0 +1,17 @@
+rules:
+  - id: azguard.testing-fake-in-runtime
+    languages: [php]
+    severity: ERROR
+    paths:
+      include:
+        - packages/core/src/
+        - .semgrep/tests/testing-fake-in-runtime.php
+      exclude:
+        - packages/core/src/Testing/
+    message: >-
+      Runtime code references `AzGuard\Testing\`. The fakes and contract tests are a test-time surface: depend on the
+      contract in `AzGuard\Contracts` and let the Testing namespace bind itself.
+    pattern-either:
+      - pattern-regex: '(?m)^[ \t]*use[ \t]+\\?AzGuard\\Testing\\'
+      - pattern-regex: '\bnew\s+\\?AzGuard\\Testing\\'
+      - pattern-regex: '\\?AzGuard\\Testing\\\w+(::|\()'

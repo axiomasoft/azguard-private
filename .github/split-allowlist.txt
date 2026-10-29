@@ -1,0 +1,2 @@
+# Paths that a split repository may hold beyond packages/<dir> of the monorepo tag, one per line.
+# Empty by default: the split action copies the subtree and nothing else.

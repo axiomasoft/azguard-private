@@ -1,2 +1,0 @@
-$ test -z "$(git grep -nE 'GateMode|retentionIn|gate\.mode' -- '*.php' packages/core/config ':!plans' ':!audits' ':!tests/Arch/LegacyNamesTest.php')"
-exit 0

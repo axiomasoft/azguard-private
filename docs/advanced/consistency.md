@@ -57,6 +57,18 @@ freshness**: a decision may reflect a state from before a committed revoke. `azg
 (`consistency.reads`). A freshness receipt that would make replica reads wait for a known commit is on the
 roadmap (`ROADMAP.md` in the repository).
 
+### Choosing primary or replica reads
+
+1. Does a user act on a grant or revoke they just made, or must a revoke take effect at once? Use
+   `Reads::Primary` (the default).
+2. Is the decision made in a job or a long-running worker that must see revokes made by other processes? Keep
+   `Reads::Primary` and add `StateRefresh::Check`.
+3. Is stale authorization for the lag of the replica acceptable, and do you need the read load off the primary?
+   `Reads::Default` may read from the replica. Measure the lag first and watch the `consistency.reads` finding of
+   `azguard:doctor`.
+4. Do you need replica reads and read-your-writes together? AzGuard has no freshness receipt in 1.0 (see
+   `ROADMAP.md`); read from the primary for that operation.
+
 ## DecisionSet
 
 `decideMany()` starts every request first (admission, before hooks). Then it reads the database authority of
@@ -121,6 +133,24 @@ failure. The final HTTP policy belongs to the host:
     });
 })
 ```
+
+## Failure semantics
+
+What a failure at each point of a change or a decision leaves behind. A change is one storage transaction.
+
+| Point | Outcome | Retry | Surfaced as |
+|---|---|---|---|
+| Database error before or after the panel-state update | the whole change rolls back: no rows, no version bump, no event, no journal row | safe; a deadlock or lock timeout is retried by the root itself | the database exception |
+| A pipe cancels or breaks the continuation | the whole operation, composite siblings included, rolls back | safe | `ChangeCancelledException` or the contract exception |
+| A participant (for example the audit journal) fails | the whole change rolls back, rows the participant already wrote included | safe | the participant's exception |
+| A listener of `StorageTouched` fails after the commit | the state stays committed; nothing rolls back | do not repeat the change: it is applied | the listener's exception |
+| A source, policy, hook, restriction or condition throws during a decision | the decision is denied with a failure reason, never allowed | by kind: `Transient` may be retried, `Contract` is a defect | `Decision::failure()` (see [Failures](#failures)) |
+| A malformed runtime permission or key | refused before any write | fix the input | `InvalidPermissionKeyException` |
+| A grant expires (`expires_at <= now`) | denies from that instant, also from a warm cache | n/a | `not_granted` |
+| Replica lag | a strict read goes to the primary; a lagging read is bounded by the state token check | n/a | see [Primary freshness and replicas](#primary-freshness-and-replicas) |
+
+Not asserted by a test, and therefore not a guarantee: the behaviour of a persistent cache store that is unreachable
+during a decision. The store belongs to the host; monitor it and set `cache.ttl` so that a stale entry is bounded.
 
 ## visibleTo and time of check
 

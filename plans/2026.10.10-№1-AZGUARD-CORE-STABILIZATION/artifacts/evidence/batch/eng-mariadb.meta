@@ -1,1 +1,0 @@
-{"name":"eng-mariadb","cmd":"composer test:db -- mariadb --engines","exit":0,"started":"2026-10-13T17:40:27Z","finished":"2026-10-13T17:51:32Z","head":"cc44ce7c9c609d9ffa8f3fb81aeff30a14e8ddd6"}

@@ -1,0 +1,24 @@
+rules:
+  - id: azguard.raw-sql-interpolation
+    languages: [php]
+    severity: ERROR
+    message: >-
+      A raw SQL fragment is built from an interpolated or concatenated string. Bind the values with `?` placeholders and the
+      bindings argument, and take identifiers from the storage layer (`Storage::table()`, the query grammar wrappers) instead.
+    pattern-either:
+      - patterns:
+          - pattern-either:
+              - pattern: DB::raw($S)
+              - pattern: $Q->whereRaw($S, ...)
+              - pattern: $Q->selectRaw($S, ...)
+              - pattern: $Q->orderByRaw($S, ...)
+              - pattern: $Q->havingRaw($S, ...)
+          - metavariable-regex:
+              metavariable: $S
+              regex: '(?s)^"[^"]*\$'
+      - pattern-either:
+          - pattern: DB::raw($A . $B)
+          - pattern: $Q->whereRaw($A . $B, ...)
+          - pattern: $Q->selectRaw($A . $B, ...)
+          - pattern: $Q->orderByRaw($A . $B, ...)
+          - pattern: $Q->havingRaw($A . $B, ...)

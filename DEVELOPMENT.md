@@ -140,7 +140,9 @@ durability flags, credentials and healthchecks locally and in CI. This avoids se
 compatibility issues and keeps one database configuration. Service logs are captured and the
 selected database is stopped even when tests fail.
 The matrix caches only Composer's downloaded archives, keyed by the Composer manifests and
-lockfiles; `composer update` still resolves and installs dependencies on every job.
+lockfiles; the matrix re-resolves with `composer update` because it is a version-range job.
+The root `composer.lock` is the development and release lock: non-range CI jobs use
+`composer install`, packages never ship it, and range jobs (`laravel`, `stability` matrices) re-resolve.
 The real-replica profile retains its persistent storage and WAL settings.
 
 ### Parallel database runs

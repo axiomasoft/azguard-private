@@ -1,0 +1,6 @@
+{
+  "$schema": "urn:swissknifeman:aicore:project-marker:v1",
+  "workspace": "axioma",
+  "project_id": "azguard",
+  "plans_store": "workspace"
+}

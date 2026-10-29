@@ -1,4 +1,0 @@
-$ ! grep -n 'continue-on-error' .github/workflows/tests.yml && grep -c 'consumer-fixture.sh' .github/workflows/release.yml | grep -qx 2
-259:        continue-on-error: true
-
---- exit 1 ---

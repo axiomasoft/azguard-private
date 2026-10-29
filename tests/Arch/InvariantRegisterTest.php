@@ -22,10 +22,7 @@ declare(strict_types=1);
 function invariantTable(): array
 {
     $root = dirname(__DIR__, 2);
-    $documents = array_merge(
-        glob($root.'/plans/*/knowledge/architecture.json') ?: [],
-        glob($root.'/plans/archive/*/knowledge/architecture.json') ?: [],
-    );
+    $documents = [$root.'/tests/Arch/Fixtures/PlanKnowledge/architecture.json'];
     $table = [];
 
     foreach ($documents as $document) {

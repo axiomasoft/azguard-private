@@ -2,14 +2,17 @@ name: Zizmor
 
 on:
   push:
-    branches: [main, 'feat/**']
+    branches: [main, 'feat/**', 'fix/**']
   pull_request:
     branches: [main]
-    paths: ['.github/workflows/**']
   workflow_dispatch:
 
 permissions:
   contents: read
+
+defaults:
+  run:
+    shell: bash
 
 jobs:
   zizmor:
@@ -17,14 +20,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+        with:
+          persist-credentials: false
 
-      - name: Install zizmor
-        run: pipx install zizmor
-
-      # Advisory: the audit reports its findings without failing the job (122 findings on 2026-10-14, mostly unpinned
-      # `uses:` references), so a green run is evidence that the audit ran, not that the workflows are clean.
       - name: Audit workflows
-        run: zizmor --persona regular .github/workflows/ || true
+        run: bash bin/security-tools.sh zizmor -- --persona=pedantic --min-severity=medium --config=.github/zizmor.yml .github/workflows/
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

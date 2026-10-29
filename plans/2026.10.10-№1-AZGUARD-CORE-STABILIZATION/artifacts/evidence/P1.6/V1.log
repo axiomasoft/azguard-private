@@ -1,7 +1,0 @@
-candidate=38dc04dc8b410afdd769aaa26ba1e29f221d6d79
-command=export PGSQL_PORT=55432 MYSQL_PORT=53306 REDIS_PORT=26379; git diff --quiet 09612160c98ca6133c894a8f90f5653b9dac6b8f -- packages/
-started_at=2026-10-11T13:59:54Z
-
-finished_at=2026-10-11T13:59:54Z
-exit=0
-duration_seconds=0.003

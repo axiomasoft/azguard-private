@@ -13,14 +13,22 @@ name: Split packages
 
 on:
   workflow_call:
+    secrets:
+      MONOREPO_SPLIT_TOKEN:
+        required: true
 
 permissions:
   contents: read
+
+defaults:
+  run:
+    shell: bash
 
 jobs:
   split:
     name: Split ${{ matrix.package.name }}
     runs-on: ubuntu-latest
+    environment: release
     strategy:
       fail-fast: false
       matrix:
@@ -34,18 +42,20 @@ jobs:
           SPLIT_ENABLED: ${{ vars.SPLIT_ENABLED }}
           MONOREPO_SPLIT_TOKEN: ${{ secrets.MONOREPO_SPLIT_TOKEN }}
         run: |
+          set -Eeuo pipefail
           if [[ "$SPLIT_ENABLED" != 'true' || -z "$MONOREPO_SPLIT_TOKEN" ]]; then
             echo '::error::Complete RELEASING.md setup: SPLIT_ENABLED=true and MONOREPO_SPLIT_TOKEN are required.'
             exit 1
           fi
 
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
         with:
           fetch-depth: 0
+          persist-credentials: false
 
       - name: Split packages/${{ matrix.package.dir }} -> ${{ matrix.package.name }}
-        uses: symplify/monorepo-split-github-action@v2.4.5
+        uses: symplify/monorepo-split-github-action@14e42e2437f674b8987c1f50ca3689116aea1893 # v2.4.5
         env:
           GITHUB_TOKEN: ${{ secrets.MONOREPO_SPLIT_TOKEN }}
         with:

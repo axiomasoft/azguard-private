@@ -1,0 +1,81 @@
+{
+  "name": "main",
+  "target": "branch",
+  "enforcement": "disabled",
+  "conditions": {
+    "ref_name": {
+      "include": [
+        "~DEFAULT_BRANCH"
+      ],
+      "exclude": []
+    }
+  },
+  "bypass_actors": [],
+  "rules": [
+    {
+      "type": "deletion"
+    },
+    {
+      "type": "non_fast_forward"
+    },
+    {
+      "type": "required_linear_history"
+    },
+    {
+      "type": "pull_request",
+      "parameters": {
+        "required_approving_review_count": 0,
+        "dismiss_stale_reviews_on_push": true,
+        "require_code_owner_review": false,
+        "require_last_push_approval": false,
+        "required_review_thread_resolution": true,
+        "allowed_merge_methods": [
+          "squash",
+          "rebase"
+        ]
+      }
+    },
+    {
+      "type": "required_status_checks",
+      "parameters": {
+        "strict_required_status_checks_policy": true,
+        "do_not_enforce_on_create": false,
+        "required_status_checks": [
+          {
+            "context": "Tests \u00b7 all lanes"
+          },
+          {
+            "context": "Larastan (PHPStan level 9)"
+          },
+          {
+            "context": "Laravel Pint"
+          },
+          {
+            "context": "API and format compatibility"
+          },
+          {
+            "context": "Docs \u00b7 lint and build"
+          },
+          {
+            "context": "Audit GitHub Actions workflows"
+          },
+          {
+            "context": "Analyze (actions)"
+          },
+          {
+            "context": "Conventional Commit title"
+          },
+          {
+            "context": "Conventional Commit messages"
+          },
+          {
+            "context": "Security \u00b7 all gates"
+          }
+        ]
+      }
+    }
+  ],
+  "id": 101,
+  "source_type": "Repository",
+  "source": "axiomasoft/azguard-private"
+}

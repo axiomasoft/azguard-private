@@ -1,6 +1,7 @@
 {
     "preset": "laravel",
     "exclude": [
+        ".semgrep",
         "audits",
         "plans"
     ],
