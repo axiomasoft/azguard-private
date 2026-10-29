@@ -1,4 +1,0 @@
-{"driver":"mysql","database":"azguard_test","ready":true}
-Using existing isolated azguard_test, host 127.0.0.1, port 53306
-[mysql] php -d memory_limit=1G vendor/bin/pest --fail-on-skipped --exclude-group=server-skip --group=database
-{"tool":"pest","result":"passed","tests":762,"passed":762,"assertions":3894,"duration_ms":61666}
