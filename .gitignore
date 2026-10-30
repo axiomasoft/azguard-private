@@ -10,6 +10,7 @@ vendor/
 .phpunit.result.cache
 .pestphp-laravel-unit-test-result-cache
 composer.lock
+!/composer.lock
 
 # Инструменты качества
 .rector_cache/
