@@ -32,7 +32,7 @@
             "uses": ["kernel", "catalog", "storage", "sources"]
         },
         "visibility": {
-            "src": ["packages/core/src/Directories"],
+            "src": ["packages/core/src/Directories", "packages/core/src/Authorization/Visibility.php"],
             "tests": ["Unit/Directories", "Feature/Visibility", "Feature/Directories", "Feature/Parity"],
             "uses": ["kernel", "authorization", "storage", "sources", "scopes"]
         },
