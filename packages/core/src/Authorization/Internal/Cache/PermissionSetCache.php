@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace AzGuard\Authorization\Internal\Cache;
 
+use AzGuard\Configuration\Internal\AzGuardConfig;
 use AzGuard\Contracts\Sources\Volatility;
 use AzGuard\Kernel\Decision\CodeStateToken;
 use AzGuard\Kernel\Decision\Grant;
@@ -33,7 +34,15 @@ final class PermissionSetCache
     /** @var array<string, string> */
     private array $panels = [];
 
-    public function __construct(private readonly Factory $stores) {}
+    private readonly int $maxMemoEntries;
+
+    private readonly int $maxStateEntries;
+
+    public function __construct(private readonly Factory $stores)
+    {
+        $this->maxMemoEntries = AzGuardConfig::memoLimit('max_memo_entries', config('azguard.cache.max_memo_entries', 1024));
+        $this->maxStateEntries = AzGuardConfig::memoLimit('max_state_entries', config('azguard.cache.max_state_entries', 1024));
+    }
 
     public function forgetPanel(string $panel): void
     {
@@ -143,8 +152,7 @@ final class PermissionSetCache
 
             return null;
         }
-        $this->sets[$key] = $entry;
-        $this->panels[$key] = $panel->id();
+        $this->rememberSet($key, $entry, $panel->id());
 
         return array_values(array_filter($entry['items'], static fn (Grant|RoleContribution $item): bool => $item->activeAt($now)));
     }
@@ -164,8 +172,7 @@ final class PermissionSetCache
             }
         }
         $entry = ['items' => $items, 'validUntil' => $validUntil];
-        $this->sets[$key] = $entry;
-        $this->panels[$key] = $panel->id();
+        $this->rememberSet($key, $entry, $panel->id());
         $store = $panel->settings()->cacheStore();
 
         $signer = SignedEnvelope::fromConfig(app('config'));
@@ -207,22 +214,41 @@ final class PermissionSetCache
 
     public function state(string $key): ?StateToken
     {
-        return $this->states[$key] ?? null;
+        $state = $this->states[$key] ?? null;
+
+        if ($state !== null) {
+            unset($this->states[$key]);
+            $this->states[$key] = $state;
+        }
+
+        return $state;
     }
 
     public function rememberState(string $key, StateToken $state): void
     {
-        if (isset($this->states[$key]) && ! $this->states[$key]->equals($state)) {
-            $this->sets = [];
-            $this->panels = [];
-        }
+        unset($this->states[$key]);
         $this->states[$key] = $state;
+
+        if (count($this->states) > $this->maxStateEntries) {
+            unset($this->states[array_key_first($this->states)]);
+        }
     }
 
     public function forgetState(string $key): void
     {
         unset($this->states[$key]);
-        $this->sets = [];
-        $this->panels = [];
+    }
+
+    /** @param array{items: list<Grant|RoleContribution>, validUntil: DateTimeImmutable} $entry */
+    private function rememberSet(string $key, array $entry, string $panel): void
+    {
+        unset($this->sets[$key], $this->panels[$key]);
+        $this->sets[$key] = $entry;
+        $this->panels[$key] = $panel;
+
+        if (count($this->sets) > $this->maxMemoEntries) {
+            $oldest = array_key_first($this->sets);
+            unset($this->sets[$oldest], $this->panels[$oldest]);
+        }
     }
 }

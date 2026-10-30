@@ -13,6 +13,9 @@ The release SHA will be selected after the remaining code and qualification work
 
 ### Upgrading to 2.0
 
+- Permission-set TTL now defaults to 300 seconds; shared entries are capped at 3600 seconds and the nearest expiry.
+  Request/job memo maps each retain at most 1024 entries, configurable downwards via `cache.max_memo_entries` and
+  `cache.max_state_entries`. See [caching](docs/advanced/caching.md) for targeted cleanup of older entries.
 - Shared permission-set caching requires an explicit `AZGUARD_CACHE_NAMESPACE` and a signing secret (the dedicated
   key or Laravel `APP_KEY`); configure bounded previous keys during rotation. Old unsigned entries are ignored and
   reloaded from the authoritative source. See [configuration](docs/reference/configuration.md).

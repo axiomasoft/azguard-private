@@ -50,7 +50,7 @@ return [
         'cache' => [
             // A Laravel cache store; null keeps permission sets for the request only.
             'store' => null,
-            'ttl' => 3600,
+            'ttl' => 300,
             'generation' => 1,
         ],
 
@@ -139,6 +139,9 @@ return [
     // ['old-id' => ['key' => 'old-secret', 'valid_until' => '2026-01-01T00:00:00.000000Z']].
     // Remove previous keys after that bounded rollout window. Source revision fencing still governs freshness.
     'cache' => [
+        // LRU limits per request or job, each between 1 and 1024.
+        'max_memo_entries' => 1024,
+        'max_state_entries' => 1024,
         'namespace' => env('AZGUARD_CACHE_NAMESPACE'),
         'signing_key' => env('AZGUARD_CACHE_SIGNING_KEY'),
         'key_id' => env('AZGUARD_CACHE_KEY_ID', 'active'),

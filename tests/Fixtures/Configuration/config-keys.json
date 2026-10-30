@@ -1,5 +1,7 @@
 [
     "cache.key_id",
+    "cache.max_memo_entries",
+    "cache.max_state_entries",
     "cache.namespace",
     "cache.previous_keys",
     "cache.signing_key",

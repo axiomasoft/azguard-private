@@ -129,7 +129,11 @@ final readonly class AzGuardConfig
         self::assertKnownKeys('schedule', $schedule, self::SCHEDULE_KEYS);
         $sets = self::section('decision_sets', $config->get('azguard.decision_sets', []));
         self::assertKnownKeys('decision_sets', $sets, self::DECISION_SETS_KEYS);
-        self::assertKnownKeys('cache', self::section('cache', $config->get('azguard.cache', [])), ['namespace', 'signing_key', 'key_id', 'previous_keys']);
+        $cache = self::section('cache', $config->get('azguard.cache', []));
+        self::assertKnownKeys('cache', $cache, ['namespace', 'signing_key', 'key_id', 'previous_keys', 'max_memo_entries', 'max_state_entries']);
+        foreach (['max_memo_entries', 'max_state_entries'] as $key) {
+            self::memoLimit($key, array_key_exists($key, $cache) ? $cache[$key] : 1024);
+        }
 
         return new self(
             self::panelProvidersFrom($panels['providers'] ?? []),
@@ -224,7 +228,7 @@ final readonly class AzGuardConfig
         $keys = ['sources', 'panels.providers', 'defaults.resource_prefix', 'defaults.trace_decisions',
             'defaults.tenants.resolvers', 'defaults.scopes.resolvers'];
         $groups = [
-            'cache' => ['key_id', 'namespace', 'previous_keys', 'signing_key'],
+            'cache' => ['key_id', 'namespace', 'previous_keys', 'signing_key', 'max_memo_entries', 'max_state_entries'],
             'ids' => ['host_keys'], 'catalog' => self::CATALOG_KEYS, 'discovery' => self::DISCOVERY_KEYS, 'gate' => self::GATE_KEYS,
             'schedule' => self::SCHEDULE_KEYS, 'storages.*' => self::STORAGE_KEYS, 'decision_sets' => self::DECISION_SETS_KEYS,
             'defaults.models' => self::MODEL_KEYS,
@@ -275,6 +279,15 @@ final readonly class AzGuardConfig
         $limit = self::integer('decision_sets.max_subjects', $value, false);
 
         return $limit !== null && $limit >= 1 ? $limit : throw self::invalidValue('decision_sets.max_subjects', $value, 'a positive integer');
+    }
+
+    /** @internal @throws InvalidConfigurationException */
+    public static function memoLimit(string $key, mixed $value): int
+    {
+        $limit = self::integer('cache.'.$key, $value, false);
+
+        return $limit !== null && $limit >= 1 && $limit <= 1024
+            ? $limit : throw self::invalidValue('cache.'.$key, $value, 'an integer between 1 and 1024');
     }
 
     private static function flag(string $key, mixed $value): bool

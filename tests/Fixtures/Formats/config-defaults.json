@@ -25,7 +25,7 @@
             "resource_prefix": true,
             "cache": {
                 "store": null,
-                "ttl": 3600,
+                "ttl": 300,
                 "generation": 1
             },
             "consistency": {
@@ -51,6 +51,8 @@
             "prune_expired": "daily"
         },
         "cache": {
+            "max_memo_entries": 1024,
+            "max_state_entries": 1024,
             "namespace": null,
             "signing_key": null,
             "key_id": "active",

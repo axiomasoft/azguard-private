@@ -21133,7 +21133,7 @@
                     "value": {
                         "resource_prefix": true,
                         "cache.store": null,
-                        "cache.ttl": 3600,
+                        "cache.ttl": 300,
                         "cache.generation": 1,
                         "consistency.reads": "primary",
                         "consistency.state_refresh": "request",

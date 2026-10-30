@@ -34,7 +34,7 @@ final readonly class PanelSettings
     public const array DEFAULTS = [
         self::RESOURCE_PREFIX => true,
         self::CACHE_STORE => null,
-        self::CACHE_TTL => 3600,
+        self::CACHE_TTL => 300,
         self::CACHE_GENERATION => 1,
         self::READS => 'primary',
         self::STATE_REFRESH => 'request',

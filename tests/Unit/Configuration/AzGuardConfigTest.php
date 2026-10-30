@@ -24,7 +24,7 @@ it('reads the defaults of the published configuration file', function (): void {
             'resource_prefix' => true,
             'trace_decisions' => false,
             'cache.store' => null,
-            'cache.ttl' => 3600,
+            'cache.ttl' => 300,
             'cache.generation' => 1,
             'consistency.reads' => 'primary',
             'consistency.state_refresh' => 'request',

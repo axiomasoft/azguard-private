@@ -28,7 +28,7 @@ A panel setting is resolved from these layers. The first layer that sets it wins
 | `defaults.models.permission` | `…\Permission` | Model of dynamic permissions |
 | `defaults.resource_prefix` | `true` | Prefix of full permission names: `true` uses the panel id (`admin.posts.view`), `false` uses no prefix, and a string is set per panel with `resourcePrefix()` |
 | `defaults.cache.store` | `null` | Laravel cache store for permission sets. With `null`, sets are memoized for the current request or job only |
-| `defaults.cache.ttl` | `3600` | Seconds a set stays in the store |
+| `defaults.cache.ttl` | `300` | Requested lifetime in seconds; shared entries are capped at 3600 seconds and the nearest grant expiry |
 | `defaults.cache.generation` | `1` | Part of every cache key. Raise it to drop all cached sets |
 | `defaults.consistency.reads` | `primary` | `Reads::Primary` reads grants from the write connection. `Reads::Default` uses the read replica and accepts replica lag |
 | `defaults.consistency.state_refresh` | `request` | `StateRefresh::Request` re-reads the state version once per request or job. `StateRefresh::Check` re-reads it before every check |
@@ -43,6 +43,8 @@ A panel setting is resolved from these layers. The first layer that sets it wins
 | `cache.signing_key` | `env('AZGUARD_CACHE_SIGNING_KEY')` | Dedicated secret of at least 32 bytes, or `null` to use Laravel's `APP_KEY` |
 | `cache.key_id` | `env('AZGUARD_CACHE_KEY_ID', 'active')` | Identifier of the active signing key |
 | `cache.previous_keys` | `[]` | Map of old key identifiers to `key` and UTC `valid_until`, for bounded rotation |
+| `cache.max_memo_entries` | `1024` | Maximum permission sets retained per request or job, from 1 to 1024 |
+| `cache.max_state_entries` | `1024` | Maximum source states retained per request or job, from 1 to 1024 |
 | `catalog.build_id` | `env('AZGUARD_BUILD_ID')` | Names the deployed build. Cached catalogs of another build are never used. Set it to the commit hash on every deploy |
 | `catalog.cache_path` | `null` | File for `azguard:catalog:cache`. The default is `bootstrap/cache/azguard.php` |
 | `storages.default.connection` | `env('AZGUARD_DB_CONNECTION')` | Database connection of the AzGuard tables (`null` is the default connection). See [Checks inside transactions](/concepts/decisions#checks-inside-database-transactions) |

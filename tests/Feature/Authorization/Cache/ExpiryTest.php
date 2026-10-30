@@ -68,3 +68,13 @@ it('enforces the configured absolute ttl even for nonexpiring raw authority', fu
     expect($cache->get('ttl-expiry', $panel, Volatility::Request, false, $now->modify('+1 second')))->toHaveCount(1)
         ->and($cache->get('ttl-expiry', $panel, Volatility::Request, false, $now->modify('+2 seconds')))->toBeNull();
 });
+
+it('caps the shared lifetime even when a longer ttl is requested', function (): void {
+    [, $panel] = AuthorizationWorld::compile(new CacheSource, fn (PanelBuilder $panel) => $panel->cache('array', 7200));
+    $now = Carbon::now()->toDateTimeImmutable();
+    (new PermissionSetCache(app('cache')))->put('hard-cap', $panel, Volatility::Stable, true, [AuthorizationWorld::grant()], $now);
+    $envelope = json_decode(app('cache')->store('array')->get('hard-cap'), true);
+    $stored = unserialize(base64_decode($envelope['payloadBase64'], true));
+    expect($stored['validUntil'])->toEqual($now->modify('+3600 seconds'));
+    expect((new PermissionSetCache(app('cache')))->get('hard-cap', $panel, Volatility::Stable, true, $now->modify('+3600 seconds')))->toBeNull();
+});
