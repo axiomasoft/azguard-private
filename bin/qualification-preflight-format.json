@@ -1,0 +1,7 @@
+{
+  "schema": "azguard.qualification.preflight.v1",
+  "required": ["schema", "created_at", "status", "qualification", "checks"],
+  "check_required": ["status", "detail"],
+  "check_statuses": ["passed", "failed", "unavailable"],
+  "qualification": "not performed"
+}

@@ -46,6 +46,39 @@ development lock with a matrix result or ignore platform requirements.
 
 ## Quality commands
 
+### Qualification preflight
+
+Before a qualification command, run `APP_ENV=testing DB_CONNECTION=sqlite
+DB_DATABASE=:memory: QUALIFICATION_SOURCE_SHA=$(git rev-parse HEAD)
+bin/qualification-preflight.sh` from a clean checkout. The command only reads
+the environment and writes `build/qualification/preflight.json`. Preserve that
+report as baseline evidence separately from the final qualification logs. A
+zero exit applies only to this checked environment; rerun after changing the
+checkout, runtime or target. It does not run tests or migrations. Its v1 JSON
+contains the source identity, tool observations and individual passed, failed
+or unavailable checks; neither unavailable nor failed is evidence of success.
+
+When unset, the test environment and SQLite defaults come from `phpunit.xml`;
+an explicit source SHA is checked against HEAD. Dirty state is recorded and
+must be retained with the report; it is not a claim that HEAD alone identifies
+the tested tree. Coverage may use PATH PHP or `php8.4`, as in the coverage gate.
+The current guard permits only SQLite `:memory:`. Server targets and the
+authority replica remain unavailable even when their names and hosts look safe:
+local ports alone cannot prove ownership, worker isolation or migration
+readiness. Do not run destructive server or Redis-backed bench qualification on
+the strength of this report. The Redis qualification test generates its own
+random key prefix; a supplied `REDIS_PREFIX` must be qualification-specific.
+Supplying a prefix alone does not prove Redis readiness or keyspace isolation,
+so the preflight remains nonzero for that external Redis target.
+The orchestration memory and project launcher are recorded as unavailable;
+an installed router may be used. This report is not a final qualification.
+Consumers of the v1 report should inspect individual statuses and the schema
+identifier, and retain the report alongside actual command logs and exit codes.
+The format contract and compatibility example are
+`bin/qualification-preflight-format.json` and
+`bin/qualification-preflight-compat.json`; check consumers against them when
+upgrading the report format.
+
 | Command | Tool | Description |
 |---|---|---|
 | `composer test` | Pest | The SQLite lane: every test except `engines`, `redis`, `replica` and `extended` |

@@ -29,6 +29,7 @@ The release SHA will be selected after the remaining code and qualification work
 
 ### Changed
 
+- Qualification preflight emits the versioned `azguard.qualification.preflight.v1` JSON baseline; consumers should check individual statuses and retain it separately from qualification evidence. Server and replica targets are not yet authorized by this preflight.
 - **core, filament:** Laravel 11 is no longer supported; the packages require Laravel 12 or 13 (`illuminate/*` `^12.0|^13.0`).
   The Laravel 11 fallbacks of the contract kit and the optimize registration are removed.
 - **core:** `StorageDescriptor::$connection` is the name of the connection the storage resolved to (`string`, no longer
