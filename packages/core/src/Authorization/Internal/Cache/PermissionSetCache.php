@@ -19,6 +19,7 @@ use AzGuard\Kernel\Identity\TenantRef;
 use AzGuard\Panels\Panel;
 use DateTimeImmutable;
 use Illuminate\Contracts\Cache\Factory;
+use Throwable;
 
 /** @internal Request/job memo and revision-keyed store of raw authority; never a decision cache. */
 final class PermissionSetCache
@@ -64,7 +65,7 @@ final class PermissionSetCache
             default => ['code', $state->panel(), $state->buildId(), $state->fingerprint()],
         };
 
-        return 'azguard:sets:'.IdentityCodec::digest([$revision, $generation, $subject, $tenant, array_values(array_unique($contexts)), $source, $readMode, $authority]);
+        return 'azguard:sets:v2:'.IdentityCodec::digest([$revision, $generation, $subject, $tenant, array_values(array_unique($contexts)), $source, $readMode, $authority]);
     }
 
     /** @return list<Grant|RoleContribution>|null */
@@ -76,22 +77,64 @@ final class PermissionSetCache
         $entry = $this->sets[$key] ?? null;
         $store = $panel->settings()->cacheStore();
 
-        if ($entry === null && $volatility === Volatility::Stable && $fenced && $store !== null) {
-            $stored = $this->decode($this->stores->store($store)->get($key));
+        $signer = SignedEnvelope::fromConfig(app('config'));
 
-            if ($stored !== null && isset($stored['items'], $stored['validUntil']) && is_array($stored['items'])
-                && array_is_list($stored['items']) && $stored['validUntil'] instanceof DateTimeImmutable) {
-                // Every item must be a contribution; one of another type discards the whole entry.
-                $items = [];
-                foreach ($stored['items'] as $item) {
-                    if (! $item instanceof Grant && ! $item instanceof RoleContribution) {
-                        $items = null;
+        if ($entry === null && $volatility === Volatility::Stable && $fenced && $store !== null && $signer !== null) {
+            $raw = null;
 
-                        break;
+            try {
+                $repository = $this->stores->store($store);
+                $raw = $repository->get($key);
+                $envelope = $signer->decode($raw, $key, $now);
+                $stored = $envelope === null ? null : $this->decode($envelope['payload']);
+
+                if ($stored !== null && count($stored) === 2 && isset($stored['items'], $stored['validUntil']) && is_array($stored['items'])
+                && array_is_list($stored['items']) && $stored['validUntil'] instanceof DateTimeImmutable
+                && $stored['validUntil'] == $envelope['validUntil']) {
+                    // Every item must be a contribution; one of another type discards the whole entry.
+                    $items = [];
+                    foreach ($stored['items'] as $item) {
+                        if (! $item instanceof Grant && ! $item instanceof RoleContribution) {
+                            $items = null;
+
+                            break;
+                        }
+                        // Re-run constructor invariants; serialized objects can bypass their factories.
+                        IdentityCodec::decode(IdentityCodec::encode($item->scope));
+
+                        if ($item->role !== null) {
+                            IdentityCodec::decode(IdentityCodec::encode($item->role));
+                        }
+
+                        if ($item instanceof Grant) {
+                            IdentityCodec::decode(IdentityCodec::encode($item->pattern));
+                            Grant::of($item->pattern, $item->source, $item->scope, $item->role, $item->origin, $item->expiresAt, $item->fields());
+                        } elseif ($item->role instanceof RoleKey) {
+                            RoleContribution::of($item->role, $item->scope, $item->source, $item->origin, $item->expiresAt, $item->fields());
+                        } else {
+                            $items = null;
+
+                            break;
+                        }
+                        $items[] = $item;
                     }
-                    $items[] = $item;
+                    $entry = $items === null ? null : ['items' => $items, 'validUntil' => $stored['validUntil']];
                 }
-                $entry = $items === null ? null : ['items' => $items, 'validUntil' => $stored['validUntil']];
+
+                if ($raw !== null && $entry === null) {
+                    $repository->forget($key);
+                }
+            } catch (Throwable) {
+                // A cache failure is a miss; the authoritative source still decides the outcome.
+                $entry = null;
+
+                if ($raw !== null) {
+                    try {
+                        $this->stores->store($store)->forget($key);
+                    } catch (Throwable) {
+                        // Best effort only.
+                    }
+                }
             }
         }
 
@@ -125,8 +168,20 @@ final class PermissionSetCache
         $this->panels[$key] = $panel->id();
         $store = $panel->settings()->cacheStore();
 
-        if ($volatility === Volatility::Stable && $fenced && $store !== null) {
-            $this->stores->store($store)->put($key, serialize($entry), $validUntil);
+        $signer = SignedEnvelope::fromConfig(app('config'));
+
+        if ($volatility === Volatility::Stable && $fenced && $store !== null && $signer !== null) {
+            $sharedUntil = min($validUntil, $now->modify('+'.min($ttl ?? 300, SignedEnvelope::MAX_TTL).' seconds'));
+            $sharedEntry = ['items' => $items, 'validUntil' => $sharedUntil];
+            $envelope = $signer->encode($key, serialize($sharedEntry), $now, $sharedUntil);
+
+            if ($envelope !== null) {
+                try {
+                    $this->stores->store($store)->put($key, $envelope, $sharedUntil);
+                } catch (Throwable) {
+                    // Shared storage is optional; the local entry remains valid.
+                }
+            }
         }
     }
 
@@ -142,7 +197,7 @@ final class PermissionSetCache
         if (! is_string($stored)) {
             return null;
         }
-        $entry = @unserialize($stored, ['allowed_classes' => [
+        $entry = @unserialize($stored, ['max_depth' => 64, 'allowed_classes' => [
             Grant::class, RoleContribution::class, PermissionPattern::class, RoleKey::class, AccessScope::class,
             TenantRef::class, AssignmentScopeRef::class, DateTimeImmutable::class,
         ]]);

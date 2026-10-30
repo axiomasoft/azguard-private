@@ -16,6 +16,7 @@
             "key": "cache.store",
             "finding_ids": {
                 "literal": [
+                    "cache.signing",
                     "cache.store"
                 ],
                 "uses_key": false

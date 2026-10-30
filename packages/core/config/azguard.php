@@ -133,6 +133,18 @@ return [
     |
     */
 
+    // Shared permission-set entries require a stable application/environment namespace and a secret of at least
+    // 32 bytes. With no dedicated key the Laravel APP_KEY is used. Keep secrets out of cache and logs.
+    // Rotate by changing key_id and signing_key, then allow the old id in previous_keys as
+    // ['old-id' => ['key' => 'old-secret', 'valid_until' => '2026-01-01T00:00:00.000000Z']].
+    // Remove previous keys after that bounded rollout window. Source revision fencing still governs freshness.
+    'cache' => [
+        'namespace' => env('AZGUARD_CACHE_NAMESPACE'),
+        'signing_key' => env('AZGUARD_CACHE_SIGNING_KEY'),
+        'key_id' => env('AZGUARD_CACHE_KEY_ID', 'active'),
+        'previous_keys' => [],
+    ],
+
     'catalog' => [
         'build_id' => env('AZGUARD_BUILD_ID'),
         'cache_path' => null,

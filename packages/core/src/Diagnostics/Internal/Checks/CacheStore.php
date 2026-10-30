@@ -25,6 +25,10 @@ final readonly class CacheStore implements DoctorCheck
     {
         foreach ($context->panels() as $panel) {
             yield from self::check($panel);
+
+            if ($panel->settings()->cacheStore() !== null && ! $context->config()->cacheSigningAvailable()) {
+                yield DoctorFinding::error('cache.signing', 'Panel '.$panel->id().' has a shared cache without a valid signing key and explicit namespace; shared caching is disabled.', 'panel:'.$panel->id());
+            }
         }
     }
 

@@ -80,6 +80,7 @@ contract.
 |---|---|---|
 | `audit.table` | error | The audit plugin has no storing source, or its `audit_log` table is missing or differs from the audit schema |
 | `cache.store` | error | A panel keeps permission sets in a cache store that does not exist or cannot hold them |
+| `cache.signing` | error | A shared permission-set cache lacks a valid signing key or explicit namespace |
 | `catalog.build_id` | warning | `catalog.build_id` is not set |
 | `catalog.cached` | warning | There is no catalog cache, or it does not hold the current catalog |
 | `catalog.collisions` | error | Permissions created at run time collide with the permissions of the catalog |
@@ -161,7 +162,7 @@ with a new basename, never as an edit of a published one.
 ## Environment names
 
 
-The package reads two environment variables, both through the configuration file: `AZGUARD_BUILD_ID`, `AZGUARD_DB_CONNECTION`. See [Configuration](/reference/configuration#environment-variables).
+The package reads `AZGUARD_BUILD_ID`, `AZGUARD_DB_CONNECTION`, `AZGUARD_CACHE_NAMESPACE`, `AZGUARD_CACHE_SIGNING_KEY` and `AZGUARD_CACHE_KEY_ID` through the configuration file. See [Configuration](/reference/configuration#environment-variables).
 
 
 ## HTTP mapping

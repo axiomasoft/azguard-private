@@ -15,6 +15,10 @@ use AzGuard\Tests\Fixtures\Authorization\Cache\CacheSource;
 use AzGuard\Tests\Fixtures\Authorization\Cache\FencedCacheSource;
 use Illuminate\Support\Carbon;
 
+beforeEach(function (): void {
+    config(['azguard.cache.namespace' => 'test-expiry', 'azguard.cache.signing_key' => str_repeat('k', 32)]);
+});
+
 it('expires warmed ordinary and administrative authority at the exact absolute boundary', function (bool $admin): void {
     $expires = Carbon::now('UTC')->addSecond()->toDateTimeImmutable();
     $source = new FencedCacheSource;
@@ -49,7 +53,8 @@ it('bounds cache validity by the nearest active expiry and rejects equality at n
     $short = AuthorizationWorld::grant(expires: $nearest);
     $long = AuthorizationWorld::grant(expires: $now->modify('+30 seconds'));
     $cache->put('nearest-expiry', $panel, Volatility::Stable, true, [$expired, $short, $long], $now);
-    $stored = unserialize(app('cache')->store('array')->get('nearest-expiry'));
+    $envelope = json_decode(app('cache')->store('array')->get('nearest-expiry'), true);
+    $stored = unserialize(base64_decode($envelope['payloadBase64'], true));
     expect($stored['validUntil'])->toEqual($nearest)
         ->and($cache->get('nearest-expiry', $panel, Volatility::Stable, true, $now))->toBe([$short, $long])
         ->and($cache->get('nearest-expiry', $panel, Volatility::Stable, true, $nearest))->toBeNull();

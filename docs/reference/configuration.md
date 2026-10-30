@@ -39,6 +39,10 @@ A panel setting is resolved from these layers. The first layer that sets it wins
 | `decision_sets.max_subjects` | `500` | Most distinct subjects of one `decideMany()`. Its reads share one snapshot. A larger set throws `DecisionSetTooLargeException` and is never split silently (see [Consistency](/advanced/consistency#decisionset)) |
 | `schedule.enabled` | `true` | Register scheduled pruning of expired grants |
 | `schedule.prune_expired` | `daily` | A scheduler frequency method name (`hourly`, `daily`, `weekly`), a cron expression, or `null` |
+| `cache.namespace` | `env('AZGUARD_CACHE_NAMESPACE')` | Explicit stable application and environment identifier required for shared permission-set caching |
+| `cache.signing_key` | `env('AZGUARD_CACHE_SIGNING_KEY')` | Dedicated secret of at least 32 bytes, or `null` to use Laravel's `APP_KEY` |
+| `cache.key_id` | `env('AZGUARD_CACHE_KEY_ID', 'active')` | Identifier of the active signing key |
+| `cache.previous_keys` | `[]` | Map of old key identifiers to `key` and UTC `valid_until`, for bounded rotation |
 | `catalog.build_id` | `env('AZGUARD_BUILD_ID')` | Names the deployed build. Cached catalogs of another build are never used. Set it to the commit hash on every deploy |
 | `catalog.cache_path` | `null` | File for `azguard:catalog:cache`. The default is `bootstrap/cache/azguard.php` |
 | `storages.default.connection` | `env('AZGUARD_DB_CONNECTION')` | Database connection of the AzGuard tables (`null` is the default connection). See [Checks inside transactions](/concepts/decisions#checks-inside-database-transactions) |
@@ -61,6 +65,15 @@ A panel setting is resolved from these layers. The first layer that sets it wins
 |---|---|
 | `AZGUARD_DB_CONNECTION` | `storages.default.connection` |
 | `AZGUARD_BUILD_ID` | `catalog.build_id` |
+| `AZGUARD_CACHE_NAMESPACE` | `cache.namespace` |
+| `AZGUARD_CACHE_SIGNING_KEY` | `cache.signing_key` |
+| `AZGUARD_CACHE_KEY_ID` | `cache.key_id` |
+
+Shared permission sets use signed, finite-lived envelopes; without valid signing material and a namespace, the shared
+path is disabled and doctor reports `cache.signing`. To rotate, deploy the new key and id together, allow the old id
+and secret with a finite UTC `valid_until`, and remove it after the rollout. Keep keys secret and use a distinct
+namespace per application and environment. Old unsigned entries are ignored. Revision and epoch fencing still control
+freshness; a valid same-key entry can be replayed until expiry while its source revision remains unchanged.
 
 ## Panel settings (`PanelBuilder`)
 

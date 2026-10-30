@@ -13,6 +13,9 @@ The release SHA will be selected after the remaining code and qualification work
 
 ### Upgrading to 2.0
 
+- Shared permission-set caching requires an explicit `AZGUARD_CACHE_NAMESPACE` and a signing secret (the dedicated
+  key or Laravel `APP_KEY`); configure bounded previous keys during rotation. Old unsigned entries are ignored and
+  reloaded from the authoritative source. See [configuration](docs/reference/configuration.md).
 - Source implementations still require only their existing capability interfaces. `SourceDescription` and
   `azguard:panels:list --sources --json` add `volatility` and a declaration-only `matrix`; consumers must not treat
   conditional visibility as an Allow. See [custom sources](docs/guides/custom-sources.md) for the v2 format and doctor findings.

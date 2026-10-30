@@ -1,6 +1,9 @@
 {
     "environment": [
         "AZGUARD_BUILD_ID",
+        "AZGUARD_CACHE_KEY_ID",
+        "AZGUARD_CACHE_NAMESPACE",
+        "AZGUARD_CACHE_SIGNING_KEY",
         "AZGUARD_DB_CONNECTION"
     ],
     "retired": {
@@ -46,6 +49,12 @@
         "schedule": {
             "enabled": true,
             "prune_expired": "daily"
+        },
+        "cache": {
+            "namespace": null,
+            "signing_key": null,
+            "key_id": "active",
+            "previous_keys": []
         },
         "catalog": {
             "build_id": null,

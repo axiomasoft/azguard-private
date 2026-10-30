@@ -19,6 +19,10 @@ use AzGuard\Tests\Fixtures\Authorization\Cache\FencedCacheSource;
 use AzGuard\Tests\Fixtures\Sources\Database\DatabaseWorld;
 use Illuminate\Support\Carbon;
 
+beforeEach(function (): void {
+    config(['azguard.cache.namespace' => 'test-isolation', 'azguard.cache.signing_key' => str_repeat('k', 32)]);
+});
+
 it('reuses Request and revisioned Stable raw contributions and always rereads Volatile', function (Volatility $reuse, bool $fenced, int $sameRequest, int $nextRequest): void {
     $source = $fenced ? new FencedCacheSource : new CacheSource;
     $source->reuse = $reuse;
@@ -63,7 +67,8 @@ it('stores a serializable raw shape containing only kernel contributions and dec
     $now = Carbon::now()->toDateTimeImmutable();
     $grant = AuthorizationWorld::grant(fields: ['city' => 'Volgograd', 'ids' => ['007', 7], 'flag' => true, 'missing' => null]);
     app(PermissionSetCache::class)->put('raw-shape', $panel, Volatility::Stable, true, [$grant], $now);
-    $payload = unserialize(app('cache')->store('array')->get('raw-shape'));
+    $envelope = json_decode(app('cache')->store('array')->get('raw-shape'), true);
+    $payload = unserialize(base64_decode($envelope['payloadBase64'], true));
     expect(array_keys($payload))->toBe(['items', 'validUntil'])->and($payload['items'])->toEqual([$grant]);
     $serialized = serialize($payload);
     expect($serialized)->not->toContain('Eloquent', 'Builder', 'Closure', 'AzGuard\\Kernel\\Decision\\Decision', 'EvaluationFrame', 'Policy');

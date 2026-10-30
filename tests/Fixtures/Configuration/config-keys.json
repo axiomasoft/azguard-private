@@ -1,4 +1,8 @@
 [
+    "cache.key_id",
+    "cache.namespace",
+    "cache.previous_keys",
+    "cache.signing_key",
     "catalog.build_id",
     "catalog.cache_path",
     "decision_sets.max_subjects",
