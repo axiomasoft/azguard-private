@@ -2,9 +2,13 @@
 
 declare(strict_types=1);
 
+use AzGuard\Authorization\Internal\EvaluationFrame;
+use AzGuard\Configuration\Internal\AzGuardConfig;
+use AzGuard\Contracts\Sources\Source;
 use AzGuard\Exceptions\DefinitionException;
 use AzGuard\Kernel\Identity\SubjectRef;
 use AzGuard\Panels\Internal\PanelRegistry;
+use AzGuard\Panels\Panel;
 use AzGuard\Sources\Database\DatabaseSource;
 use AzGuard\Sources\SourceManager;
 use AzGuard\Storage\Schema\StorageSchema;
@@ -27,6 +31,45 @@ it('binds object and named writers while preserving factory configuration and pa
     $writer = $named->writerSource();
     expect($writer)->toBeInstanceOf(DatabaseSource::class)->and($writer->isRolesOnly())->toBeTrue()
         ->and($writer->storageModels())->not->toBeEmpty();
+});
+
+it('reads with writer-free and manually constructed panels and resolves services per scope', function (): void {
+    app(StorageSchema::class)->create('default');
+
+    try {
+        DatabaseWorld::insert('role', [DatabaseWorld::row()]);
+        [$panel, $frame] = DatabaseWorld::compile(new class implements Source
+        {
+            public function id(): string
+            {
+                return 'read-only';
+            }
+        });
+        expect($panel->writerSource())->toBeNull();
+
+        $config = app(AzGuardConfig::class);
+        $count = 0;
+        app()->scoped(AzGuardConfig::class, function () use ($config, &$count) {
+            $count++;
+
+            return $config;
+        });
+        $source = DatabaseSource::make()->models(roleGrant: DatabaseRoleGrant::class);
+        expect(DatabaseWorld::items($source->roleGrants(SubjectRef::of('user', 1), [$frame->scope()], $frame)))->toHaveCount(1);
+        $source->storageModels();
+        expect($count)->toBe(1);
+        app()->forgetScopedInstances();
+        $source->storageModels();
+        expect($count)->toBe(2);
+        expect(fn () => $source->bindPanel('other'))->toThrow(DefinitionException::class);
+
+        $manual = new Panel('admin', 'Admin', false, $panel->settings(), [], []);
+        $manualFrame = new EvaluationFrame($manual, $frame->scope(), $frame->state(), $frame->now(), $frame->actor());
+        $manualSource = DatabaseSource::make()->models(roleGrant: DatabaseRoleGrant::class);
+        expect(DatabaseWorld::items($manualSource->roleGrants(SubjectRef::of('user', 1), [$manualFrame->scope()], $manualFrame)))->toHaveCount(1);
+    } finally {
+        app(StorageSchema::class)->drop('default');
+    }
 });
 
 it('uses panel services for an independently configured factory source with an evaluation context', function (): void {

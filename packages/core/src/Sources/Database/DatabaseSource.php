@@ -116,7 +116,7 @@ final class DatabaseSource implements ChecksHealth, DescribesSchema, FencesReads
     {
         $panel = $context->panel();
         $this->bindPanel($panel->id());
-        $this->services ??= $panel->writerSource()?->services;
+        $this->services ??= $panel->sourceContainer();
     }
 
     public static function make(): static

@@ -65,6 +65,7 @@ final readonly class PanelSources
     private function __construct(
         private string $panel,
         private array $sources,
+        private Container $container,
     ) {}
 
     /**
@@ -169,7 +170,13 @@ final readonly class PanelSources
             }
         }
 
-        return new self($panel, $sources);
+        return new self($panel, $sources, $container);
+    }
+
+    /** @internal The container used to assemble this panel, without resolving scoped services. */
+    public function container(): Container
+    {
+        return $this->container;
     }
 
     public function panel(): string
