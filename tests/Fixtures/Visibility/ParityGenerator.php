@@ -176,6 +176,7 @@ final class ParityGenerator
     /** Run the same generated facts through each entry point with cold, request memo and shared-store reads. */
     public static function cachedOracle(string $store): void
     {
+        self::configureSignedCache();
         app(StorageSchema::class)->create('default');
         $cacheEvents = (object) ['hits' => 0, 'writes' => 0];
         $cacheExpected = false;
@@ -346,6 +347,7 @@ final class ParityGenerator
     /** Run each entry point before and after revocation against the same cached authority. */
     public static function cacheGenerations(string $store): void
     {
+        self::configureSignedCache();
         app(StorageSchema::class)->create('default');
         DatabaseWorld::insert('permission', [DatabaseWorld::row('permission', overrides: ['permission' => 'orders.view'])]);
         [$visibility, $panel, $engine] = VisibilityWorld::compile(configure: fn (PanelBuilder $p) => $p->cache($store, 60), extra: [DatabaseSource::make()]);
@@ -370,5 +372,15 @@ final class ParityGenerator
                 app()->forgetScopedInstances();
             }
         }
+    }
+
+    private static function configureSignedCache(): void
+    {
+        config([
+            'azguard.cache.namespace' => 'parity-'.bin2hex(random_bytes(16)),
+            'azguard.cache.signing_key' => bin2hex(random_bytes(32)),
+            'azguard.cache.key_id' => 'parity',
+            'azguard.cache.previous_keys' => [],
+        ]);
     }
 }
