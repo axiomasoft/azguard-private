@@ -107,7 +107,9 @@ it('compares scalar batch and exact visibility against generated fixture facts',
                 $this->assertSame($expected, $query->orderBy('id')->pluck('id')->all(), "seed=$seed round=$round exact visibility; reproduce: AZGUARD_PROPERTY_SEED=$seed vendor/bin/pest tests/Feature/Parity/AuditParityTest.php");
             }
         } catch (Throwable $error) {
-            throw new RuntimeException("Parity seed=$seed; reproduce: AZGUARD_PROPERTY_SEED=$seed vendor/bin/pest tests/Feature/Parity/AuditParityTest.php", 0, $error);
+            fwrite(STDERR, "Parity seed=$seed; reproduce: AZGUARD_PROPERTY_SEED=$seed vendor/bin/pest tests/Feature/Parity/AuditParityTest.php\n");
+
+            throw $error;
         }
     }
 });
@@ -173,6 +175,41 @@ it('keeps binary and numeric contribution fields distinct in scalar batch and ex
 
 it('tracks authority generations across all entry points with a shared cache', function (): void {
     ParityGenerator::cacheGenerations('array');
+});
+
+it('checks generated facts independently in cold memo and shared array cache lanes', function (): void {
+    ParityGenerator::cachedOracle('array');
+});
+
+it('validates and selects inclusive reproducible seed ranges', function (): void {
+    $original = [];
+    foreach (['AZGUARD_PROPERTY_SEED', 'AZGUARD_PARITY_SEEDS', 'AZGUARD_FULL_SEEDS'] as $name) {
+        $original[$name] = getenv($name);
+        putenv($name);
+    }
+
+    try {
+        expect(ParityGenerator::seeds())->toBe([1, 2]);
+        putenv('AZGUARD_PARITY_SEEDS=1-50');
+        expect(ParityGenerator::seeds())->toBe(range(1, 50));
+        putenv('AZGUARD_PARITY_SEEDS=3-5');
+        expect(ParityGenerator::seeds())->toBe([3, 4, 5]);
+        putenv('AZGUARD_PARITY_SEEDS=1,2');
+        expect(ParityGenerator::seeds())->toBe([1, 2]);
+        putenv('AZGUARD_PARITY_SEEDS=2,4-5');
+        expect(ParityGenerator::seeds())->toBe([2, 4, 5]);
+        putenv('AZGUARD_PROPERTY_SEED=7');
+        expect(ParityGenerator::seeds())->toBe([7]);
+        putenv('AZGUARD_PROPERTY_SEED');
+        foreach (['0', '51', '5-3', '1-51', '1-2x', '', '1,', ',2', '1,,2', '1,51'] as $invalid) {
+            putenv('AZGUARD_PARITY_SEEDS='.$invalid);
+            expect(fn () => ParityGenerator::seeds())->toThrow(InvalidArgumentException::class);
+        }
+    } finally {
+        foreach ($original as $name => $value) {
+            putenv($value === false ? $name : $name.'='.$value);
+        }
+    }
 });
 
 it('applies global automatic roles only when the tenant allowlist admits them', function (bool $allowGlobal): void {

@@ -13,20 +13,40 @@ use AzGuard\Kernel\Identity\PermissionKey;
 use AzGuard\Kernel\Identity\PermissionPattern;
 use AzGuard\Kernel\Identity\TenantRef;
 use AzGuard\Panels\PanelBuilder;
+use AzGuard\Policies\Decides;
+use AzGuard\Policies\PolicyBinding;
 use AzGuard\Roles\Attributes\NotGrantable;
 use AzGuard\Roles\Attributes\Role;
 use AzGuard\Roles\BaseRole;
 use AzGuard\Roles\GrantedAutomatically;
 use AzGuard\Roles\SelectsAutomaticRoleScopes;
+use AzGuard\Schema\Field;
+use AzGuard\Schema\FieldTarget;
 use AzGuard\Sources\Database\DatabaseSource;
 use AzGuard\Storage\Internal\StorageMutation;
 use AzGuard\Storage\Schema\StorageSchema;
+use AzGuard\Tenancy\TenantPolicy;
 use AzGuard\Tests\Fixtures\Sources\Database\DatabaseWorld;
+use AzGuard\Tests\Modules\Scopes\Fixtures\Membership;
+use AzGuard\Tests\Modules\Scopes\Fixtures\Organization;
 use DateTimeImmutable;
+use Illuminate\Cache\Events\CacheHit;
+use Illuminate\Cache\Events\KeyWritten;
 use Illuminate\Database\Eloquent\Model;
 use InvalidArgumentException;
+use PHPUnit\Framework\Assert;
 use Random\Engine\Mt19937;
 use Random\Randomizer;
+use Throwable;
+
+class AuditParityVeto extends VisibilityPolicy
+{
+    #[Decides('orders.view')]
+    public function view(?Model $user, ?Model $resource): ?bool
+    {
+        return parent::view($user, $resource);
+    }
+}
 
 #[Role('audit-automatic')]
 #[NotGrantable]
@@ -130,7 +150,158 @@ final class ParityGenerator
             return [(int) $only];
         }
 
+        $range = getenv('AZGUARD_PARITY_SEEDS');
+
+        if ($range !== false) {
+            $seeds = [];
+            foreach (explode(',', $range) as $part) {
+                if (! preg_match('/\A([1-9][0-9]*)(?:-([1-9][0-9]*))?\z/', $part, $matches)) {
+                    throw new InvalidArgumentException('AZGUARD_PARITY_SEEDS must be a comma-separated list of seeds or inclusive ranges from 1 to 50.');
+                }
+                $first = (int) $matches[1];
+                $last = isset($matches[2]) ? (int) $matches[2] : $first;
+
+                if ($first > $last || $last > 50) {
+                    throw new InvalidArgumentException('AZGUARD_PARITY_SEEDS must contain ascending ranges from 1 to 50.');
+                }
+                array_push($seeds, ...range($first, $last));
+            }
+
+            return $seeds;
+        }
+
         return range(1, getenv('AZGUARD_FULL_SEEDS') === false ? 2 : 50);
+    }
+
+    /** Run the same generated facts through each entry point with cold, request memo and shared-store reads. */
+    public static function cachedOracle(string $store): void
+    {
+        app(StorageSchema::class)->create('default');
+        $cacheEvents = (object) ['hits' => 0, 'writes' => 0];
+        $cacheExpected = false;
+        app('events')->listen(CacheHit::class, static function (CacheHit $event) use ($cacheEvents, $store): void {
+            if ($event->storeName === $store && str_starts_with($event->key, 'azguard:sets:')) {
+                $cacheEvents->hits++;
+            }
+        });
+        app('events')->listen(KeyWritten::class, static function (KeyWritten $event) use ($cacheEvents, $store): void {
+            if ($event->storeName === $store && str_starts_with($event->key, 'azguard:sets:')) {
+                $cacheEvents->writes++;
+            }
+        });
+        foreach (self::seeds() as $seed) {
+            try {
+                $facts = new self($seed);
+                $cacheExpected = $cacheExpected || ! $facts->tenant || $facts->member;
+                VisibilityProject::query()->delete();
+                VisibilityProject::query()->insert($facts->rows);
+                VisibilityWorld::$tenanted = $facts->tenant;
+                AuditAutomaticRole::$enabled = $facts->automatic;
+                DatabaseWorld::storage()->mutate('admin', static function (StorageMutation $mutation) use ($facts): void {
+                    $mutation->table('permission_grants')->delete();
+                    $mutation->table('role_grants')->delete();
+                    foreach ($facts->contributions as $i => $fact) {
+                        $kind = $fact['role'] ? 'role' : 'permission';
+                        $value = $fact['role'] ? 'viewer' : ($fact['wildcard'] ? 'orders.*' : 'orders.view');
+                        $mutation->table($kind.'_grants')->insert(DatabaseWorld::row($kind, VisibilityWorld::scope($fact['scope']), [
+                            $kind => $value, 'origin' => 'generated-'.$i,
+                            'expires_at' => $fact['expired'] ? '2026-10-06 12:00:00' : null,
+                            'meta' => json_encode($fact['city'] === null ? [] : ['city' => $fact['city']], JSON_THROW_ON_ERROR),
+                        ]));
+                    }
+                    $mutation->touch('admin');
+                });
+                $source = DatabaseSource::make()->decisionFields(roleGrant: ['city'], permissionGrant: ['city']);
+                $records = VisibilityProject::query()->orderBy('id')->get();
+                $requests = $expected = [];
+                foreach ($records as $i => $record) {
+                    if ($facts->tenant && $facts->rows[$i]['org'] !== 'A') {
+                        continue;
+                    }
+                    $requests[] = AccessRequest::for(VisibilityWorld::subject(), PermissionKey::of('admin', 'orders.view'))->on(null, $record);
+
+                    if ($facts->allows($facts->rows[$i])) {
+                        $expected[] = $record->id;
+                    }
+                }
+                foreach (['scalar', 'batch', 'visibility'] as $generation => $entry) {
+                    [$visibility, $panel, $engine] = VisibilityWorld::compile(configure: static function (PanelBuilder $p) use ($facts, $store, $generation): void {
+                        $p->cache($store, 60, generation: $generation + 1)
+                            ->fields(FieldTarget::RoleGrant, [Field::string('city')->inMeta()])
+                            ->fields(FieldTarget::PermissionGrant, [Field::string('city')->inMeta()])
+                            ->grantConditions([VisibilityCondition::class])->roles([AuditAutomaticRole::class]);
+
+                        if ($facts->tenant && ! $facts->member) {
+                            $p->tenants(TenantPolicy::required(Organization::class)->requireMembership(new Membership([])));
+                        }
+
+                        if ($facts->before) {
+                            $p->before([VisibilityBefore::class]);
+                        }
+
+                        if ($facts->restriction) {
+                            $p->restrictions([VisibilityRestriction::class]);
+                        }
+
+                        if ($facts->veto) {
+                            $p->policies([PolicyBinding::for('orders.view', AuditParityVeto::class)]);
+                        }
+                    }, tenant: $facts->tenant, extra: [$source]);
+                    app()->forgetScopedInstances();
+                    $writesBefore = $cacheEvents->writes;
+                    $coldWrites = 0;
+                    foreach (['cold', 'memo', 'shared'] as $lane) {
+                        if ($lane === 'shared') {
+                            app()->forgetScopedInstances();
+                        }
+                        $hitsBefore = $cacheEvents->hits;
+                        $message = "seed=$seed entry=$entry lane=$lane; reproduce: AZGUARD_PROPERTY_SEED=$seed vendor/bin/pest tests/Feature/Parity/".($store === 'parity' ? 'SharedRedisParityTest.php' : 'AuditParityTest.php');
+                        $actual = [];
+
+                        if ($entry === 'visibility') {
+                            $actual = $visibility->visibleTo($panel, VisibilityProject::query(), VisibilityWorld::subject(), 'orders.view', $facts->tenant ? VisibilityWorld::scope() : null)->orderBy('id')->pluck('id')->all();
+                        } else {
+                            $batch = $entry === 'batch' ? $engine->decideMany($requests) : null;
+                            foreach ($requests as $i => $request) {
+                                $decision = $batch === null ? $engine->decide($panel, $request) : $batch->get($i);
+                                Assert::assertNull($decision->failure(), $message.' row='.$request->resource()->getKey().' failure: '.$decision->reason->value);
+
+                                if ($decision->allowed()) {
+                                    $actual[] = $request->resource()->getKey();
+                                }
+                            }
+                        }
+                        Assert::assertSame($expected, $actual, $message);
+
+                        // Exact visibility reads selections directly. Prime the same generation through scalar
+                        // after its cold query so the next queries run with populated authority caches.
+                        if ($entry === 'visibility' && $lane === 'cold') {
+                            foreach ($requests as $request) {
+                                $decision = $engine->decide($panel, $request);
+                                Assert::assertNull($decision->failure(), $message.' cache primer failure: '.$decision->reason->value);
+                            }
+                        }
+
+                        if ($lane === 'cold') {
+                            $coldWrites = $cacheEvents->writes - $writesBefore;
+                        }
+
+                        if ($lane === 'shared' && $entry !== 'visibility' && $coldWrites > 0) {
+                            Assert::assertGreaterThan($hitsBefore, $cacheEvents->hits, $message.' must read the shared authority cache');
+                        }
+                    }
+                }
+            } catch (Throwable $error) {
+                fwrite(STDERR, "Parity seed=$seed store=$store; reproduce: AZGUARD_PROPERTY_SEED=$seed vendor/bin/pest tests/Feature/Parity/".($store === 'parity' ? 'SharedRedisParityTest.php' : 'AuditParityTest.php')."\n");
+
+                throw $error;
+            }
+        }
+
+        if ($cacheExpected) {
+            Assert::assertGreaterThan(0, $cacheEvents->writes, 'Generated scenarios must populate the shared authority cache.');
+            Assert::assertGreaterThan(0, $cacheEvents->hits, 'Generated scenarios must read the shared authority cache after clearing request memo.');
+        }
     }
 
     public function source(): VisibilitySource
