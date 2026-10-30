@@ -1,5 +1,0 @@
-$ test ! -e packages/core/src/AzGuardManager.php && test -z "$(git grep -n 'AzGuardManager' -- '*.php' ':!plans' ':!audits' ':!tests/Arch/LegacyNamesTest.php')"
-exit 0
-# excluded matches:
-audits/2026-09-29-audit/Research/behavior-probes.php:13:$manager = new AzGuard\AzGuardManager;
-tests/Arch/LegacyNamesTest.php:13:    'AbilitiesResolver', 'NullSafeUniqueIndex', 'AzGuardManagerInterface', 'SkipGuardCheck',

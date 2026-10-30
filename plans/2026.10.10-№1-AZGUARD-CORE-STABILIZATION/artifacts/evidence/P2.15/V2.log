@@ -1,5 +1,0 @@
-# clean detached worktree at HEAD 564af531b30b9bf798606d75d8797de2874f49cc (git worktree add --detach)
-# started 2026-10-13T10:49:29Z
-> git diff --quiet HEAD -- packages tests bin docs
-exit=0
-# finished 2026-10-13T10:49:29Z

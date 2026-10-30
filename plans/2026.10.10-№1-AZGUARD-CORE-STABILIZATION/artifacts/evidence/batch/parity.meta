@@ -1,1 +1,0 @@
-{"name":"parity","cmd":"php -d memory_limit=1G vendor/bin/pest tests/Feature/Parity tests/Feature/InactiveCost tests/Regression --fail-on-skipped","exit":0,"started":"2026-10-13T17:06:55Z","finished":"2026-10-13T17:07:33Z","head":"c3e2c07a8a448c4e6061b51270359f4f004498e1"}

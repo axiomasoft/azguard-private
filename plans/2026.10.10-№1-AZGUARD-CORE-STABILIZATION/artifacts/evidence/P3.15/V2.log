@@ -1,3 +1,0 @@
-$ git diff --quiet HEAD -- packages tests bin docs ':!.github/workflows/tests-nightly.yml' ':!bin/test-db.php' ':!phpstan.neon' ':!tests/Feature/Authorization/Batch/DecideManyParityTest.php' ':!tests/Feature/Gate/GateParityTest.php' ':!tests/Feature/Visibility/ParityPropertyTest.php' ':!tests/Fixtures/Authorization/ScenarioGenerator.php' ':!tests/Fixtures/Testing/KitCase.php' ':!tests/README.md'
-# owner's uncommitted WIP (outside this item, unchanged byte for byte) excluded by pathspec
-exit=0

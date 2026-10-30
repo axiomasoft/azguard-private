@@ -1,2 +1,0 @@
-$ php -d memory_limit=1G vendor/bin/pest tests/Arch tests/Feature/InactiveCost --fail-on-skipped
-{"tool":"pest","result":"passed","tests":149,"passed":149,"assertions":1729,"duration_ms":8671}

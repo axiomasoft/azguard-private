@@ -1,5 +1,0 @@
-Composer detected issues in your platform:
-
-Your Composer dependencies require a PHP version ">= 8.4.1". You are running 8.3.35.
-
-PHP Fatal error:  Composer detected issues in your platform: Your Composer dependencies require a PHP version ">= 8.4.1". You are running 8.3.35. in /tmp/claude-1000/-home-vostrikov-projects-packages-azguard/e47c7c23-7bcf-4f7b-8f57-86e3ea42c041/scratchpad/wt-l13/vendor/composer/platform_check.php on line 22
