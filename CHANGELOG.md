@@ -53,6 +53,9 @@ The release SHA will be selected after the remaining code and qualification work
 
 ### Fixed
 
+- **core:** Automatic roles can opt into exact visibility with `SelectsAutomaticRoleScopes`, an additive SPI requiring a
+  complete finite scope selection. Existing roles remain valid and unsupported exact selections still fail closed.
+
 - **core:** `visibleTo()` no longer lists records that `decide()` refuses: a restriction or policy that reads
   `EvaluationContext::matchingGrants()` makes the query throw `VisibilityNotSupportedException` instead of seeing an
   empty list, and a custom `resolve()` is checked even when the scope has no tenant owner.

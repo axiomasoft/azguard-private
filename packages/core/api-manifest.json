@@ -22341,6 +22341,59 @@
             ]
         },
         {
+            "name": "AzGuard\\Roles\\SelectsAutomaticRoleScopes",
+            "publication": "spi-implement",
+            "since": "2.0",
+            "kind": "interface",
+            "final": false,
+            "abstract": false,
+            "readonly": false,
+            "parent": null,
+            "interfaces": [],
+            "namedArguments": true,
+            "contracts": [],
+            "constants": [],
+            "properties": [],
+            "methods": [
+                {
+                    "name": "exactAutomaticScopes",
+                    "visibility": "public",
+                    "static": false,
+                    "abstract": false,
+                    "final": false,
+                    "parameters": [
+                        {
+                            "name": "subject",
+                            "type": "Illuminate\\Database\\Eloquent\\Model",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "contextType",
+                            "type": "?string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "context",
+                            "type": "AzGuard\\Contracts\\Authorization\\EvaluationContext",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "?array",
+                    "returnsReference": false,
+                    "namedArguments": true,
+                    "contracts": [
+                        "@return list<AccessScope>|null"
+                    ]
+                }
+            ]
+        },
+        {
             "name": "AzGuard\\Roles\\SuperAdminRole",
             "publication": "api",
             "since": "1.0",

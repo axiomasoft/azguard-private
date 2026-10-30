@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace AzGuard\Authorization\Internal\Pipeline\Stages;
 
+use AzGuard\Authorization\Internal\ContributionQualifier;
 use AzGuard\Authorization\Internal\EvaluationFrame;
 use AzGuard\Authorization\Internal\Pipeline\Trace;
 use AzGuard\Authorization\Internal\ReadAttempt;
@@ -26,13 +27,10 @@ use AzGuard\Kernel\Internal\PatternMatcher;
 use AzGuard\Panels\Internal\PanelRegistry;
 use AzGuard\Policies\Internal\PolicyDecider;
 use AzGuard\Roles\BaseRole;
-use AzGuard\Roles\GrantedAutomatically;
-use AzGuard\Sources\Internal\EvaluatesAutomaticRoles;
 use AzGuard\Sources\Internal\PanelSources;
 use AzGuard\Tenancy\Internal\TenantMembershipRestriction;
 use Closure;
 use Illuminate\Contracts\Container\Container;
-use Illuminate\Support\Facades\Log;
 use RuntimeException;
 use Throwable;
 
@@ -204,41 +202,10 @@ final readonly class AuthorityStage
         foreach ($contributions as [$source,$item]) {
             $trace->qualifying($item);
 
-            if (! $item->activeAt($frame->now())) {
-                $trace->record('contribution', 'expired', $source::class);
+            [$roleDefinition, $reason] = ContributionQualifier::qualify($source, $item, $catalog, $frame->panel(), $frame->scope()->tenant, $frame->now());
 
-                continue;
-            }
-            $roleDefinition = $item->role === null ? null : ($catalog->roles()[$item->role->key()] ?? null);
-
-            if (! $item->scope->tenant->equals($frame->scope()->tenant)
-                && ($roleDefinition === null || ! in_array($roleDefinition['class'], $frame->panel()->tenants()->globalRoles(), true))) {
-                $trace->record('contribution', 'global_role_not_allowed', $source::class);
-
-                continue;
-            }
-
-            $automatic = $item instanceof RoleContribution && $source instanceof EvaluatesAutomaticRoles && $roleDefinition !== null
-                && is_subclass_of($roleDefinition['class'], GrantedAutomatically::class);
-
-            if ($item->role !== null && ($roleDefinition === null || (! $roleDefinition['grantable'] && ! $automatic))) {
-                $current = null;
-                foreach ($catalog->roles() as $candidate) {
-                    if (in_array($item->role->key(), $candidate['former_keys'], true)) {
-                        $current = $candidate['key'];
-
-                        break;
-                    }
-                }
-                $reason = $current !== null ? 'former_role_key' : ($roleDefinition === null ? 'unknown_role' : 'not_grantable_role');
+            if ($reason !== null) {
                 $trace->record('contribution', $reason, $source::class);
-                Log::notice('AzGuard ignored role contribution.', ['component' => $source::class, 'reason' => $reason, 'role' => $item->role->full(), 'current_key' => $current ?? $roleDefinition['key'] ?? null]);
-
-                continue;
-            }
-
-            if ($roleDefinition !== null && ! $this->roleScopeAccepted($roleDefinition, $item)) {
-                $trace->record('contribution', 'role_scope_not_accepted', $source::class);
 
                 continue;
             }
@@ -364,21 +331,5 @@ final readonly class AuthorityStage
         }
 
         return BoundaryStage::eligible($evaluator, $branch->scopeRuntime($request->subject()), $resolved, $branch, $branch->batchInputs, $trace);
-    }
-
-    /** @param CompiledRole $role */
-    private function roleScopeAccepted(array $role, Grant|RoleContribution $contribution): bool
-    {
-        if ($contribution->scope->context->isGlobal()) {
-            return ! $role['scope_required'];
-        }
-
-        foreach ($role['scopes'] as $scope) {
-            if ($scope['type'] === $contribution->scope->context->type()) {
-                return true;
-            }
-        }
-
-        return false;
     }
 }

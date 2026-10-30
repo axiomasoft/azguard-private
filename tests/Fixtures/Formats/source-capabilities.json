@@ -462,7 +462,7 @@
                 "exact_visibility": {
                     "status": "unsupported",
                     "basis": "static_declaration",
-                    "reason": "A registered GrantedAutomatically role makes FolderSource::contextsCovering return null, even if the role has a predicate adapter.",
+                    "reason": "An automatic role without SelectsAutomaticRoleScopes makes exact folder selection unsupported, even if it has a predicate adapter.",
                     "test_reference": "tests/Feature/Diagnostics/SourceCapabilitiesTest.php"
                 },
                 "stable_cache": {

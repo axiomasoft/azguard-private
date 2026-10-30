@@ -519,7 +519,7 @@ final class ReadAttempt
     }
 
     /** @return list<array{Source, Grant|RoleContribution, bool}> each witness with its source and whether it holds in every context */
-    public function selections(AccessRequest $request, EvaluationFrame $frame, string $type): array
+    public function selections(AccessRequest $request, EvaluationFrame $frame, ?string $type): array
     {
         $result = [];
         $allRefs = [];
@@ -534,49 +534,55 @@ final class ReadAttempt
             $this->begin($source);
 
             if ($source instanceof DatabaseSource) {
-                [$state, $selection] = $source->materializeSelection($this->sessions[$source->id()], $request->subject(), $request->permission(), $type, $frame, $this->unread($source));
+                [$state, $selection] = $source->materializeSelection($this->sessions[$source->id()], $request->subject(), $request->permission(), $type ?? 'global', $frame, $this->unread($source));
                 $this->observe($source, $state);
+                $selections = [$selection];
+            } elseif ($source instanceof FolderSource) {
+                $selections = $source->exactSelections($request->subject(), $type, $frame);
             } else {
-                $selection = $this->fenced($source, fn (): ?AssignmentScopeSelection => $source->contextsCovering($request->subject(), $request->permission(), $type, $frame));
+                $selection = $this->fenced($source, fn (): ?AssignmentScopeSelection => $source->contextsCovering($request->subject(), $request->permission(), $type ?? 'global', $frame));
+                $selections = [$selection];
             }
 
-            if ($selection === null) {
+            if ($selections === null || in_array(null, $selections, true)) {
                 throw new VisibilityNotSupportedException('unsupported_selection', $source::class);
             }
-            $refs = [];
-            foreach ($selection->refs() as $ref) {
-                if ($ref->type() !== $type) {
-                    throw new InvalidSourceContributionException('Selection reference has a different scope type.');
-                }
-                $refs[$ref->key()] = true;
-                $allRefs[$ref->key()] = true;
-            }
-
-            // A materialized selection never joins host rows with assignment tables.
-            if (count($allRefs) > 1000) {
-                throw new VisibilityNotSupportedException('selection_budget', $source::class);
-            }
-            foreach ($selection->contributions() as $item) {
-                $ref = $item->scope->context;
-
-                if (! $ref->isGlobal()) {
-                    $allRefs[$ref->key()] = true;
-
-                    if (count($allRefs) > 1000) {
-                        throw new VisibilityNotSupportedException('selection_budget', $source::class);
+            foreach ($selections as $selection) {
+                $refs = [];
+                foreach ($selection->refs() as $ref) {
+                    if ($ref->type() !== $type) {
+                        throw new InvalidSourceContributionException('Selection reference has a different scope type.');
                     }
+                    $refs[$ref->key()] = true;
+                    $allRefs[$ref->key()] = true;
                 }
 
-                if ($item->source !== $source->id()
-                    || ($item instanceof Grant && $item->pattern->panel() !== $frame->panel()->id())
-                    || ($item->role !== null && $item->role->panel() !== $frame->panel()->id())
-                    || (! $ref->isGlobal() && $ref->type() !== $type)
-                    || (! $ref->isGlobal() && ! $selection->isEverywhere() && ! isset($refs[$ref->key()]))
-                    || ($ref->isGlobal() && ! $selection->isEverywhere())
-                    || (! $item->scope->tenant->equals($frame->scope()->tenant) && ! $item->scope->tenant->isGlobal())) {
-                    throw new InvalidSourceContributionException('Selection witness differs from its source, panel or scope.');
+                // A materialized selection never joins host rows with assignment tables.
+                if (count($allRefs) > 1000) {
+                    throw new VisibilityNotSupportedException('selection_budget', $source::class);
                 }
-                $result[] = [$source, $item, $selection->appliesInEveryContext()];
+                foreach ($selection->contributions() as $item) {
+                    $ref = $item->scope->context;
+
+                    if (! $ref->isGlobal()) {
+                        $allRefs[$ref->key()] = true;
+
+                        if (count($allRefs) > 1000) {
+                            throw new VisibilityNotSupportedException('selection_budget', $source::class);
+                        }
+                    }
+
+                    if ($item->source !== $source->id()
+                        || ($item instanceof Grant && $item->pattern->panel() !== $frame->panel()->id())
+                        || ($item->role !== null && $item->role->panel() !== $frame->panel()->id())
+                        || (! $ref->isGlobal() && $ref->type() !== $type)
+                        || (! $ref->isGlobal() && ! $selection->isEverywhere() && ! isset($refs[$ref->key()]))
+                        || ($ref->isGlobal() && ! $selection->isEverywhere())
+                        || (! $item->scope->tenant->equals($frame->scope()->tenant) && ! $item->scope->tenant->isGlobal())) {
+                        throw new InvalidSourceContributionException('Selection witness differs from its source, panel or scope.');
+                    }
+                    $result[] = [$source, $item, $selection->appliesInEveryContext()];
+                }
             }
         }
 

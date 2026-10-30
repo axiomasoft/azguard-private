@@ -36,7 +36,7 @@ Run `php artisan azguard:doctor --json` against the configured panels before ser
 | Finding | `details.reason` | What is known before a request |
 |---|---|---|
 | `panels.sources.visibility` | `missing_query_support` | A grant source lacks `FiltersQueries`; exact visibility cannot use it. |
-| `panels.sources.visibility` | `automatic_roles` | A registered `GrantedAutomatically` role makes the folder source return null for exact selection. This remains true even if that role implements a predicate adapter. |
+| `panels.sources.visibility` | `automatic_roles` | A registered `GrantedAutomatically` role lacks `SelectsAutomaticRoleScopes`; a predicate adapter alone does not provide exact selection. |
 | `panels.sources.cache` | `stable_unfenced` | Stable grants lack `FencesReads`; cross-request permission-set caching is unavailable. |
 
 These are warnings because legacy sources remain valid for scalar and batch use. Doctor reads declarations and the
@@ -50,6 +50,17 @@ Selections must return valid witnesses, and policies, before hooks, conditions a
 predicates, row-dependent matching grants and budgets can still produce `VisibilityNotSupportedException`.
 Doctor cannot statically prove arbitrary PHP behavior. Unsupported SQL never means Allow, and applications must
 not replace it with PHP filtering after pagination.
+
+Automatic roles may additionally implement `SelectsAutomaticRoleScopes`. For a subject, tenant and mapping type,
+the method returns the complete finite list of `AccessScope` values for which the scalar `appliesTo()` would grant
+the role across the requested resource universe. It must include applicable tenant-wide and allowed global-tenant
+scopes. Return `null` for an unknown, incomplete, unbounded or otherwise inexact result; an empty list asserts no
+matches. The framework cannot infer completeness from a list, so this is an obligation of the implementation.
+`null` mapping type means no resource mapping, whereas the string `global` is a concrete scope type. FolderSource
+constructs the role witnesses and validates their scope and tenant; more than 1000 reported scopes is unsupported.
+Selections remain separate from granted-to-all and other sources. A throwing adapter, malformed scope, unsupported
+sibling, or unsupported condition fails the whole exact query. Legacy roles need no changes for scalar authorization;
+without this optional SPI their exact visibility remains unsupported. Existing `FiltersQueries` signatures are unchanged.
 
 ## Upgrade and format baseline
 

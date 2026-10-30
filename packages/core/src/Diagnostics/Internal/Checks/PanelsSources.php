@@ -16,6 +16,7 @@ use AzGuard\Diagnostics\DoctorContext;
 use AzGuard\Diagnostics\DoctorFinding;
 use AzGuard\Panels\Internal\PanelRegistry;
 use AzGuard\Roles\GrantedAutomatically;
+use AzGuard\Roles\SelectsAutomaticRoleScopes;
 use AzGuard\Sources\Database\DatabaseSource;
 use AzGuard\Sources\Folder\FolderSource;
 
@@ -39,7 +40,7 @@ final readonly class PanelsSources implements DoctorCheck
         foreach ($context->panels() as $panel) {
             $automaticRoles = [];
             foreach ($this->registry->catalog($panel->id())->roles() as $role) {
-                if (is_subclass_of($role['class'], GrantedAutomatically::class)) {
+                if (is_subclass_of($role['class'], GrantedAutomatically::class) && ! is_subclass_of($role['class'], SelectsAutomaticRoleScopes::class)) {
                     $automaticRoles[] = $role['class'];
                 }
             }
@@ -82,7 +83,7 @@ final readonly class PanelsSources implements DoctorCheck
             }
 
             if (is_a($source->class, FolderSource::class, true) && $automaticRoles !== []) {
-                $findings[] = DoctorFinding::warning('panels.sources.visibility', 'Automatic folder roles do not support exact selection; scalar and batch checks remain available.', $scope,
+                $findings[] = DoctorFinding::warning('panels.sources.visibility', 'Automatic folder roles lack exact scope selection; scalar and batch checks remain available.', $scope,
                     ['source' => $source->id, 'capability' => 'exact_visibility', 'reason' => 'automatic_roles', 'roles' => $automaticRoles]);
             }
         }

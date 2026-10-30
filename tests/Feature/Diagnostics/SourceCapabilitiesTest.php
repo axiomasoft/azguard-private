@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use AzGuard\Configuration\Internal\AzGuardConfig;
+use AzGuard\Contracts\Authorization\EvaluationContext;
 use AzGuard\Contracts\Sources\FencesReads;
 use AzGuard\Contracts\Sources\ProvidesGrants;
 use AzGuard\Contracts\Sources\ProvidesRoleGrants;
@@ -26,6 +27,7 @@ use AzGuard\Panels\PanelBuilder;
 use AzGuard\Roles\Attributes\Role;
 use AzGuard\Roles\BaseRole;
 use AzGuard\Roles\GrantedAutomatically;
+use AzGuard\Roles\SelectsAutomaticRoleScopes;
 use AzGuard\Sources\Database\DatabaseSource;
 use AzGuard\Sources\Folder\FolderSource;
 use AzGuard\Sources\Gate\GateSource;
@@ -84,6 +86,15 @@ class CapabilityAutomaticRole extends BaseRole implements GrantedAutomatically
     }
 }
 
+#[Role('capability-queryable')]
+class CapabilityQueryableRole extends CapabilityAutomaticRole implements SelectsAutomaticRoleScopes
+{
+    public function exactAutomaticScopes(Model $subject, ?string $contextType, EvaluationContext $context): ?array
+    {
+        return null;
+    }
+}
+
 /** @return list<DoctorFinding> */
 function capabilityFindings(Panel $panel): array
 {
@@ -120,7 +131,7 @@ function capabilityMatrixDocument(): array
     $rows['folder_automatic_role'] = $rows['folder'];
     $rows['folder_automatic_role']['matrix']['exact_visibility'] = [
         'status' => 'unsupported', 'basis' => 'static_declaration',
-        'reason' => 'A registered GrantedAutomatically role makes FolderSource::contextsCovering return null, even if the role has a predicate adapter.',
+        'reason' => 'An automatic role without SelectsAutomaticRoleScopes makes exact folder selection unsupported, even if it has a predicate adapter.',
         'test_reference' => 'tests/Feature/Diagnostics/SourceCapabilitiesTest.php',
     ];
 
@@ -202,6 +213,13 @@ it('warns about declared automatic folder roles without evaluating them', functi
     expect($findings)->toHaveCount(1)->and($findings[0]->key)->toBe('panels.sources.visibility')
         ->and($findings[0]->details['reason'])->toBe('automatic_roles')
         ->and($findings[0]->details['roles'])->toBe([CapabilityAutomaticRole::class]);
+    expect(fn () => $visibility->visibleTo($panel, VisibilityProject::query(), W::subject(), 'orders.view'))
+        ->toThrow(VisibilityNotSupportedException::class, 'unsupported_selection');
+});
+
+it('treats an automatic selection declaration as conditional rather than a runtime guarantee', function (): void {
+    [$visibility, $panel] = W::compile(configure: static fn (PanelBuilder $builder) => $builder->roles([CapabilityQueryableRole::class]));
+    expect(capabilityFindings($panel))->toBe([]);
     expect(fn () => $visibility->visibleTo($panel, VisibilityProject::query(), W::subject(), 'orders.view'))
         ->toThrow(VisibilityNotSupportedException::class, 'unsupported_selection');
 });
