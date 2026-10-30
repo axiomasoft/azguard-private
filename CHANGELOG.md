@@ -6,6 +6,27 @@ version) are documented here. Format: [Keep a Changelog](https://keepachangelog.
 
 ## [Unreleased]
 
+Target: **2.0.0-rc.1**, followed by **2.0.0** for both packages. The 1.0.0 entry below is a historical
+release claim; publication and consumption are not established by that claim alone. Treat 1.0 as potentially
+consumed. See [the publication inventory](build/release/publication-inventory.json) and [RELEASING.md](RELEASING.md).
+The release SHA will be selected after the remaining code and qualification work.
+
+### Upgrading to 2.0
+
+- Upgrade Laravel 11 applications to Laravel 12 or 13 before updating either package.
+- Treat `StorageDescriptor::$connection` as a resolved connection name, never null. Consumers that used null to mean
+  the current default must use the returned name and explicitly choose a new storage when changing connections.
+- Replace direct use of the internal constructors and methods listed below with supported factories and extension
+  contracts; use `DoctorContext::storages()` as a list of descriptors instead of relying on its former shape.
+- Rename custom participant table base names to lowercase ASCII names matching `[a-z][a-z0-9_]*`, and update any
+  schema and queries that refer to them. Set audit retention to at least one day.
+- Check wrapper calls that relied on a separately reloaded model: construct the wrapper from the intended current model.
+  Give relation editors the owner resource's `update` ability or configure `$azguardRelationAbility`; register widget
+  keys or provide a deciding trait before mounting widgets in an enforcing panel.
+- Regenerate API manifests with `composer api:manifest` and update tools consuming them for return-by-reference and
+  `@phpstan-type` records. Update command snapshot consumers for option mode and repeatability; review machine-format
+  fixtures and consumers against the 2.0 baseline before replacing that baseline through the release process.
+
 ### Changed
 
 - **core, filament:** Laravel 11 is no longer supported; the packages require Laravel 12 or 13 (`illuminate/*` `^12.0|^13.0`).

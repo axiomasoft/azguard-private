@@ -19,8 +19,17 @@ with a user-visible change edits `[Unreleased]`; the release moves it under the 
 
 ## Versioning: lockstep
 
-1.0.0 is the first public release. From 1.0, versions follow SemVer: a breaking change of a supported contract bumps
-the major version of both packages. Mutation testing is deferred by the owner and does not block 1.0.0.
+The historical changelog calls 1.0.0 the first public release, but that statement alone does not establish publication
+or consumption. Treat 1.0 as potentially consumed. The read-only [publication inventory](build/release/publication-inventory.json)
+records observations and access failures separately; an inaccessible private API or a 404 does not prove absence.
+The planned line is **2.0.0-rc.1**, then **2.0.0** for both packages because Unreleased contains breaking changes.
+The release SHA is chosen during P8 qualification after the code is complete. Existing tags must not be moved or rewritten.
+
+On 2026-10-30 the accessible origin advertised only `v0.3.0` and `v0.7.0`, and its GitHub releases API returned
+one release, `v0.3.0`. Both split tag queries required unavailable credentials; their release APIs returned 404.
+Packagist's stable and development metadata endpoints returned 404 for both package names, so no versions or
+source/dist references were returned. These observations do not prove that 1.0 was never published or consumed.
+The inventory is a timestamped local build artifact; retain it with the release evidence.
 
 Both packages share **one version**. A release tags the monorepo and
 splits the same tag into every package repo, so `azguard` and
@@ -92,7 +101,7 @@ protection, and restrict who may apply the `compat-baseline` label.
    before making the candidate commit.
 3. Verify the candidate tree read-only:
    ```bash
-   bash bin/release-preflight.sh 1.0.0 HEAD
+   bash bin/release-preflight.sh 2.0.0 HEAD
    ```
    The script reads `git show REF:CHANGELOG.md`; a working-tree-only edit fails.
    Run `bash bin/test-release-preflight.sh` for isolated matching, missing,
@@ -100,14 +109,14 @@ protection, and restrict who may apply the `compat-baseline` label.
    For the first stable release the qualified candidate C is not the commit that is tagged: a commit cannot name
    itself, so the next commit C+1 sets `candidate` in `compatibility.json` to C and changes nothing else
    (`git diff --name-only C C+1 -- . ':!plans'` prints only `compatibility.json`). Run `composer api:compat`,
-   `bash bin/compat-drill.sh --baseline=C` and `bash bin/release-preflight.sh 1.0.0 HEAD` on C+1 and wait for its CI
+   `bash bin/compat-drill.sh --baseline=C` and `bash bin/release-preflight.sh 2.0.0 HEAD` on C+1 and wait for its CI
    before tagging. The release run on the tag compares C+1 with C: a tag on the compared commit is never its own
    baseline.
-4. After explicit owner approval, create and push an annotated tag from the commit named above (for 1.0.0, C+1; for
+4. After explicit owner approval, create and push an annotated tag from the commit named above (for a first stable tag, C+1; for
    later releases, the candidate commit itself):
    ```bash
-   git tag -a v1.0.0 <C+1> -m "AzGuard 1.0.0"
-   git push origin v1.0.0
+   git tag -a v2.0.0 <qualified-commit> -m "AzGuard 2.0.0"
+   git push origin v2.0.0
    ```
 5. CI takes over. **`release.yml`** runs the whole qualification graph on the tagged commit, in the same run:
    - the called workflows `tests.yml` (PHP × Laravel × stability matrix, database lanes and engines, replica, Redis,
@@ -126,14 +135,14 @@ protection, and restrict who may apply the `compat-baseline` label.
 There is **no** post-tag workflow that commits `CHANGELOG.md` back to `main`; the
 tagged commit must already contain the version section.
 
-Local resolution of the `self.version` and `^1.0` constraints between packages is handled by the
+Local resolution of the `self.version` and `^2.0` constraints between packages is handled by the
 `versions` map in the root `composer.json` path repository — keep it in sync with
-the current release when bumping (for 1.0.0, both aliases are `1.0.x-dev`).
+the current release line when bumping (both aliases are `2.0.x-dev`).
 
 ## Split and Packagist status — 2026-10-10
 
-Split repositories and Packagist publication are deferred until the one-time setup below
-is done. GitHub Release creation requires successful splits of both packages. Missing
+The status recorded on 2026-10-10 was that split repositories and Packagist publication were deferred until the
+one-time setup below was done; consult the dated inventory for subsequent observations. GitHub Release creation requires successful splits of both packages. Missing
 `SPLIT_ENABLED=true` or `MONOREPO_SPLIT_TOKEN` fails publishing; it does not block a local annotated tag.
 
 ## One-time setup (before enabling split)
