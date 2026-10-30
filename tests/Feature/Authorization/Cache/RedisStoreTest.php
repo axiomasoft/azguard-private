@@ -21,20 +21,33 @@ beforeEach(function (): void {
         'database.redis.qualification' => ['host' => '127.0.0.1', 'port' => getenv('REDIS_PORT') ?: 26379, 'database' => 15],
         'cache.stores.qualification' => ['driver' => 'redis', 'connection' => 'qualification', 'prefix' => 'sets:']]);
     $this->redis = app('redis')->connection('qualification');
+    expect($this->redisPrefix)->toMatch('/\Aazguard-qualification-[0-9a-f]{24}:\z/')
+        ->and($this->redis->client()->getOption(Redis::OPT_PREFIX))->toBe($this->redisPrefix);
     expect((string) $this->redis->ping())->toBeIn(['1', 'PONG', '+PONG']);
+    // Refuse a collision before the test can write or cleanup this namespace.
+    expect($this->redis->client()->keys('*'))->toBe([]);
+    $this->redisNamespaceOwned = true;
     app(StorageSchema::class)->create('default');
     DatabaseWorld::insert('permission', [DatabaseWorld::row('permission')]);
 });
 afterEach(function (): void {
     // Remove only this run's namespace; never FLUSHDB/shared cache.
-    if (isset($this->redis)) {
+    if (isset($this->redis, $this->redisNamespaceOwned)) {
         $client = $this->redis->client();
-        $keys = $client->keys('*');
         $prefix = $client->getOption(Redis::OPT_PREFIX);
+        if (! is_string($prefix) || ! isset($this->redisPrefix) || $prefix !== $this->redisPrefix
+            || ! preg_match('/\Aazguard-qualification-[0-9a-f]{24}:\z/', $prefix)) {
+            throw new RuntimeException('Redis cleanup refused: qualification namespace changed or is invalid.');
+        }
+        $keys = $client->keys('*');
+        // Check the whole result before deleting anything, even if the client changes its prefix behavior.
         foreach ($keys as $key) {
-            if (str_starts_with($key, $prefix)) {
-                $client->del(substr($key, strlen($prefix)));
+            if (! is_string($key) || ! str_starts_with($key, $prefix)) {
+                throw new RuntimeException('Redis cleanup refused: a key lies outside the qualification namespace.');
             }
+        }
+        foreach ($keys as $key) {
+            $client->del(substr($key, strlen($prefix)));
         }
     }
 });

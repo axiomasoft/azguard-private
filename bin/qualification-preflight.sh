@@ -2,7 +2,7 @@
 set -u
 cd "$(dirname "$0")/.." || exit 1
 exec python3 - "$@" <<'PY'
-import datetime, hashlib, json, os, re, shutil, subprocess, sys
+import datetime, hashlib, json, os, re, secrets, shutil, subprocess, sys
 import argparse
 from pathlib import Path
 
@@ -22,6 +22,55 @@ def run(*args):
         return 127, '', str(e)
 def env(name, default=''):
     return os.environ.get(name, default)
+
+def compose_container(service, port, target_port, tmpfs=None, volume=None):
+    """Prove that the tested loopback port belongs to this checkout's healthy compose stand."""
+    rc, cid, _ = run('docker', 'compose', 'ps', '-q', service)
+    if rc or not re.fullmatch(r'[0-9a-f]{12,64}', cid):
+        return None, 'compose service absent or ambiguous'
+    rc, output, _ = run('docker', 'inspect', cid)
+    try:
+        containers = json.loads(output)
+        container = containers[0] if rc == 0 and len(containers) == 1 else {}
+        labels = container['Config']['Labels']
+        ports = container['NetworkSettings']['Ports'][f'{target_port}/tcp']
+        healthy = container['State']['Status'] == 'running' and container['State'].get('Health', {}).get('Status') == 'healthy'
+        owned = labels.get('com.docker.compose.service') == service and Path(labels.get('com.docker.compose.project.working_dir', '')).resolve() == root.resolve()
+        bound = len(ports) == 1 and ports[0]['HostIp'] == '127.0.0.1' and ports[0]['HostPort'] == str(port)
+        disposable = tmpfs is None or tmpfs in (container['HostConfig'].get('Tmpfs') or {})
+        if volume:
+            mounts = [m for m in container.get('Mounts', []) if m.get('Destination') == '/var/lib/postgresql/data']
+            if len(mounts) != 1 or mounts[0].get('Type') != 'volume':
+                return None, 'replica data volume is not owned'
+            vrc, vout, _ = run('docker', 'volume', 'inspect', mounts[0]['Name'])
+            volumes = json.loads(vout) if vrc == 0 else []
+            vl = volumes[0].get('Labels', {}) if len(volumes) == 1 else {}
+            disposable = vl.get('com.docker.compose.volume') == volume and vl.get('com.docker.compose.project') == labels.get('com.docker.compose.project')
+        if not (healthy and owned and bound and disposable):
+            return None, 'service ownership, health, loopback port or disposable storage not proven'
+    except (ValueError, KeyError, TypeError, IndexError):
+        return None, 'cannot inspect service ownership or port'
+    return cid, 'healthy owned compose service'
+
+def server_probe(driver, host, port, database):
+    if host != '127.0.0.1' or not port.isdigit() or not 1 <= int(port) <= 65535:
+        return 'failed', 'server must use an explicit loopback port'
+    if not re.fullmatch(r'[a-z0-9_]+_test', database) or re.search(r'(^|_)(prod|production|live)(_|$)', database, re.I):
+        return 'failed', 'database must be a non-production *_test name'
+    cid, reason = compose_container(driver if driver != 'pgsql' else 'postgres', port,
+                                    '5432' if driver == 'pgsql' else '3306',
+                                    '/var/lib/postgresql/data' if driver == 'pgsql' else '/var/lib/mysql')
+    if not cid:
+        return 'unavailable', reason
+    # Probe the same host endpoint, credentials and exact worker database used by TestCase.
+    # The password is read by PHP from its environment, never passed as argv or logged.
+    code = '''$p=strtoupper($argv[1]); $d=$argv[1]==="pgsql"?"pgsql":"mysql";
+      $u=getenv($p."_USERNAME")?:"azguard"; $w=getenv($p."_PASSWORD")?:"azguard";
+      try { $c=new PDO("$d:host=127.0.0.1;port=$argv[2];dbname=$argv[3]",$u,$w,[PDO::ATTR_TIMEOUT=>3,PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION]);
+        echo $c->query($d==="pgsql"?"select current_database()":"select database()")->fetchColumn(); }
+      catch (Throwable $e) { exit(1); }'''
+    rc, output, _ = run('php', '-r', code, driver, port, database)
+    return ('passed', 'owned disposable service and exact database reachable') if rc == 0 and output == database else ('unavailable', 'exact database is not reachable with the configured test user')
 
 rc, sha, _ = run('git', 'rev-parse', '--verify', 'HEAD^{commit}')
 expected = env('QUALIFICATION_SOURCE_SHA', sha if rc == 0 else '')
@@ -72,17 +121,93 @@ elif driver in ('pgsql', 'mysql', 'mariadb'):
     prefix = driver.upper()
     host, port = env(prefix + '_HOST', '127.0.0.1'), env(prefix + '_PORT', {'pgsql':'5432','mysql':'3306','mariadb':'3307'}[driver])
     db = env(prefix + '_DATABASE', 'azguard_test')
-    syntactic = host == '127.0.0.1' and port.isdigit() and 1 <= int(port) <= 65535 and re.fullmatch(r'[A-Za-z0-9_]+_(test|bench)', db) is not None and not re.search(r'(^|_)(prod|production|live)(_|$)', db, re.I)
-    # A local port can belong to a host database. Do not infer disposability from its name.
-    check('database.target', 'unavailable' if syntactic else 'failed', {'host': host, 'port': port, 'database': db, 'owner': 'database lane', 'reason': 'server ownership, worker databases and migrations are not proven by this preflight'})
+    token = env('TEST_TOKEN')
+    if token and db.endswith('_test'):
+        db = db[:-5] + '_' + token + '_test'
+    status, reason = server_probe(driver, host, port, db) if safe_environment else ('failed', 'unsafe environment aliases')
+    check('database.target', status, {'host': host, 'port': port, 'database': db, 'owner': 'database lane', 'reason': reason})
 else:
     check('database.target', 'failed', {'owner': 'database lane', 'reason': 'unknown DB_CONNECTION'})
-check('replica', 'failed' if env('AUTHORITY_REPLICA_TEST') else 'passed', {'owner': 'replica lane', 'reason': 'replica topology requires separate proof' if env('AUTHORITY_REPLICA_TEST') else 'not requested'})
+if env('AUTHORITY_REPLICA_TEST'):
+    ports = [env('AUTHORITY_PRIMARY_PORT', '25433'), env('AUTHORITY_REPLICA_PORT', '25434')]
+    reason = 'replica requires two distinct loopback compose ports and PostgreSQL'
+    status = 'failed'
+    if driver == 'pgsql' and safe_environment and not env('TEST_TOKEN') and all(p.isdigit() and 1 <= int(p) <= 65535 for p in ports) and ports[0] != ports[1]:
+        nodes = [compose_container('authority-primary', ports[0], '5432', volume='authority_primary_test'),
+                 compose_container('authority-replica', ports[1], '5432', volume='authority_replica_test')]
+        if all(cid for cid, _ in nodes) and nodes[0][0] != nodes[1][0]:
+            code = '''try { $c=new PDO("pgsql:host=127.0.0.1;port=$argv[1];dbname=azguard_authority_test","authority_test","authority_test",[PDO::ATTR_TIMEOUT=>3,PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION]);
+              echo $c->query("select current_database() || ':' || pg_is_in_recovery()::text")->fetchColumn(); } catch (Throwable $e) { exit(1); }'''
+            probes = [run('php', '-r', code, port) for port in ports]
+            status = 'passed' if probes[0][:2] == (0, 'azguard_authority_test:false') and probes[1][:2] == (0, 'azguard_authority_test:true') else 'unavailable'
+            reason = 'primary/standby topology proven' if status == 'passed' else 'primary/standby topology or credentials not proven'
+        else:
+            status, reason = 'unavailable', 'owned healthy primary and replica volumes and ports not proven'
+    check('replica', status, {'owner': 'replica lane', 'ports': ports, 'reason': reason})
+    # Replica tests select the primary independently of PGSQL_* and do not use TEST_TOKEN.
+    if driver == 'pgsql':
+        check('database.target', status, {'host': '127.0.0.1', 'port': ports[0], 'database': 'azguard_authority_test', 'owner': 'database lane', 'reason': reason})
+else:
+    check('replica', 'passed', {'owner': 'replica lane', 'reason': 'not requested'})
 prefix = env('REDIS_PREFIX')
-redis_ok = not prefix or (prefix.startswith('azguard-qualification-') and len(prefix) > len('azguard-qualification-') and prefix.endswith(':'))
+redis_ok = not prefix or re.fullmatch(r'azguard-qualification-[0-9a-f]{24}:', prefix) is not None
 check('redis.prefix', 'passed' if redis_ok else 'failed', {'owner': 'redis lane', 'reason': 'Redis test uses its own random prefix; bench Redis is not authorized' if redis_ok else 'prefix collides with an unqualified keyspace'})
-check('redis.readiness', 'unavailable' if prefix else 'passed', {'owner': 'redis lane', 'reason': 'a supplied prefix does not prove Redis keyspace isolation or readiness' if prefix else 'external Redis target not requested'})
-check('migrations', 'passed' if (root / 'vendor/autoload.php').is_file() and any(root.glob('packages/**/database/migrations/*.php')) else 'unavailable', {'owner': 'database lane', 'reason': 'migration files and installed autoloader required'})
+redis_requested = bool(prefix) or env('QUALIFICATION_REDIS') == '1'
+if redis_requested:
+    port = env('REDIS_PORT', '26379')
+    cid, reason = compose_container('redis', port, '6379') if port.isdigit() and 1 <= int(port) <= 65535 else (None, 'invalid Redis port')
+    status = 'unavailable'
+    if cid and 'redis' in ext:
+        code = '''try { $r=new Redis(); if (!$r->connect("127.0.0.1",(int)$argv[1],3) || !$r->select(15)) exit(1);
+          $p=$r->ping(); if ($p!==true && $p!=="PONG" && $p!=="+PONG") exit(1); echo "PONG"; } catch (Throwable $e) { exit(1); }'''
+        rc, output, _ = run('php', '-r', code, port)
+        status = 'passed' if rc == 0 and output == 'PONG' else 'unavailable'
+        reason = 'owned Redis DB 15 responded to PING' if status == 'passed' else 'Redis DB 15 did not respond using the test client'
+    elif cid:
+        reason = 'PHP redis extension is unavailable'
+    check('redis.readiness', status, {'owner': 'redis lane', 'port': port, 'database': 15, 'reason': reason})
+    if status == 'passed' and redis_ok:
+        probe_prefix = prefix or 'azguard-qualification-' + secrets.token_hex(12) + ':'
+        code = '''try { $r=new Redis(); if (!$r->connect("127.0.0.1",(int)$argv[1],3) || !$r->select(15)) exit(1);
+          $keys=$r->keys($argv[2]."*"); if (!is_array($keys)) exit(1); echo count($keys)===0?"empty":"collision"; } catch (Throwable $e) { exit(1); }'''
+        rc, output, _ = run('php', '-r', code, port, probe_prefix)
+        isolation = 'passed' if rc == 0 and output == 'empty' else ('failed' if rc == 0 and output == 'collision' else 'unavailable')
+        reason = 'checked namespace is empty; test checks its own random namespace at runtime' if isolation == 'passed' else 'namespace collision or isolation probe unavailable'
+    else:
+        isolation, reason = ('failed', 'invalid qualification prefix') if not redis_ok else ('unavailable', 'Redis readiness not proven')
+    check('redis.isolation', isolation, {'owner': 'redis lane', 'reason': reason})
+else:
+    check('redis.readiness', 'passed', {'owner': 'redis lane', 'reason': 'external Redis target not requested'})
+    check('redis.isolation', 'passed', {'owner': 'redis lane', 'reason': 'external Redis target not requested'})
+if driver == 'sqlite' and checks['database.target']['status'] == 'passed' and safe_environment:
+    rc, output, _ = run('php', 'bin/qualification-sqlite-migrations.php')
+    try:
+        migration_probe = json.loads(output) if rc == 0 else {}
+    except ValueError:
+        migration_probe = {}
+    verified = (migration_probe.get('status') == 'passed' and migration_probe.get('target') == 'sqlite::memory:'
+                and len(migration_probe.get('migrations', [])) == 2 and len(migration_probe.get('tables', [])) == 7)
+    check('migrations', 'passed' if verified else 'failed', {'owner': 'database lane', 'reason': 'isolated SQLite migrations executed' if verified else 'isolated SQLite migration probe failed', 'probe': migration_probe})
+elif driver in ('pgsql', 'mysql', 'mariadb') and checks['database.target']['status'] == 'passed':
+    # Read the migration ledger and schema on the exact already-proven test target.
+    # No migration or other write is performed against a server.
+    target = checks['database.target']['detail']
+    code = '''$p=strtoupper($argv[1]); $d=$argv[1]==="pgsql"?"pgsql":"mysql";
+      $u=$argv[4]==="replica"?"authority_test":(getenv($p."_USERNAME")?:"azguard");
+      $w=$argv[4]==="replica"?"authority_test":(getenv($p."_PASSWORD")?:"azguard");
+      try { $c=new PDO("$d:host=127.0.0.1;port=$argv[2];dbname=$argv[3]",$u,$w,[PDO::ATTR_TIMEOUT=>3,PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION]);
+        $m=$c->query("select count(distinct migration) from migrations where migration in ('2026_10_01_000000_create_azguard_storage','2026_10_20_000000_create_azguard_audit_log')")->fetchColumn();
+        $schema=$d==="pgsql"?"current_schema()":"database()";
+        $t=$c->query("select count(*) from information_schema.tables where table_schema=$schema and table_name in ('azg_permissions','azg_role_grants','azg_permission_grants','azg_panel_state','azg_subject_revisions','azg_storage_state','azg_audit_log')")->fetchColumn(); echo "$m:$t";
+      } catch (Throwable $e) { exit(1); }'''
+    rc, output, _ = run('php', '-r', code, driver, target['port'], target['database'], 'replica' if env('AUTHORITY_REPLICA_TEST') else 'server')
+    verified = rc == 0 and output == '2:7'
+    if env('AUTHORITY_REPLICA_TEST') and verified:
+        replica_rc, replica_output, _ = run('php', '-r', code, driver, ports[1], target['database'], 'replica')
+        verified = replica_rc == 0 and replica_output == '2:7'
+    check('migrations', 'passed' if verified else 'unavailable', {'owner': 'database lane', 'reason': 'migration ledger and required tables proven on the selected server target(s)' if verified else 'migration ledger or required tables not proven on every selected server target'})
+else:
+    check('migrations', 'unavailable', {'owner': 'database lane', 'reason': 'migration readiness has not been proven on this server target'})
 check('memory', 'unavailable', {'owner': 'orchestration', 'reason': 'project memory connection unavailable in this checkout'})
 check('project_launcher', 'unavailable', {'owner': 'orchestration', 'reason': 'project launcher not present; installed router may be used'})
 required = [k for k in checks if k not in ('memory', 'project_launcher')]
