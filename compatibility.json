@@ -3,6 +3,16 @@
     "candidate": "8a9c86f94a566a7366355804bc47f36f5f9e5125",
     "artifacts": [
         {
+            "id": "source-capabilities",
+            "path": "docs/reference/source-capabilities.json",
+            "kind": "format"
+        },
+        {
+            "id": "source-capabilities.fixture",
+            "path": "tests/Fixtures/Formats/source-capabilities.json",
+            "kind": "format"
+        },
+        {
             "id": "api.core",
             "path": "packages/core/api-manifest.json",
             "kind": "api"

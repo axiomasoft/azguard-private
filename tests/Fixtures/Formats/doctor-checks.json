@@ -132,7 +132,9 @@
             "key": "panels.sources",
             "finding_ids": {
                 "literal": [
-                    "panels.sources"
+                    "panels.sources",
+                    "panels.sources.cache",
+                    "panels.sources.visibility"
                 ],
                 "uses_key": false
             }

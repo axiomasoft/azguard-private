@@ -238,7 +238,7 @@ final readonly class PanelSources
 
         foreach ($this->sources as $attached) {
             $source = $attached['source'];
-            $descriptions[] = $source instanceof DescribesSchema
+            $description = $source instanceof DescribesSchema
                 ? self::described($panel, $source)
                 : new SourceDescription(
                     id: $source->id(),
@@ -246,6 +246,15 @@ final readonly class PanelSources
                     capabilities: self::capabilities($source),
                     dynamic: $source instanceof ProvidesPermissions && $source->isDynamic(),
                 );
+            $descriptions[] = new SourceDescription(
+                id: $description->id,
+                class: $description->class,
+                capabilities: $description->capabilities,
+                dynamic: $description->dynamic,
+                label: $description->label,
+                fields: $description->fields,
+                volatility: $source instanceof ProvidesGrants || $source instanceof ProvidesRoleGrants ? $source->volatility() : null,
+            );
         }
 
         return $descriptions;

@@ -9142,7 +9142,9 @@
             "parent": null,
             "interfaces": [],
             "namedArguments": true,
-            "contracts": [],
+            "contracts": [
+                "@phpstan-type CapabilityCell array{status: 'supported'|'unsupported'|'conditional', basis: 'static_declaration', reason: string, test_reference: string}"
+            ],
             "constants": [],
             "properties": [
                 {
@@ -9189,6 +9191,24 @@
                     "name": "label",
                     "visibility": "public",
                     "type": "string",
+                    "readonly": true,
+                    "static": false,
+                    "contracts": []
+                },
+                {
+                    "name": "matrix",
+                    "visibility": "public",
+                    "type": "array",
+                    "readonly": true,
+                    "static": false,
+                    "contracts": [
+                        "@var array<string, CapabilityCell> Declarations, never a runtime authorization or SQL-equivalence verdict."
+                    ]
+                },
+                {
+                    "name": "volatility",
+                    "visibility": "public",
+                    "type": "?AzGuard\\Contracts\\Sources\\Volatility",
                     "readonly": true,
                     "static": false,
                     "contracts": []
@@ -9245,6 +9265,14 @@
                             "variadic": false,
                             "hasDefault": true,
                             "default": "array (\n)"
+                        },
+                        {
+                            "name": "volatility",
+                            "type": "?AzGuard\\Contracts\\Sources\\Volatility",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "NULL"
                         }
                     ],
                     "return": null,
@@ -10180,7 +10208,8 @@
             "interfaces": [],
             "namedArguments": true,
             "contracts": [
-                "@phpstan-type Sources array{sources: list<array{id: string, label: string, class: string, capabilities: list<string>, dynamic: bool}>, named: list<array{name: string, origin: string}>, plugins: list<string>}",
+                "@phpstan-import-type CapabilityCell from SourceDescription",
+                "@phpstan-type Sources array{sources: list<array{id: string, label: string, class: string, capabilities: list<string>, dynamic: bool, volatility: ?string, matrix: array<string, CapabilityCell>}>, named: list<array{name: string, origin: string}>, plugins: list<string>}",
                 "@phpstan-type Entry array{id: string, label: string, default: bool, prefix: ?string, tenants: string, subjects: list<string>, writer: ?string, storage: ?string, plugins: list<string>, settings?: array<string, array{value: bool|int|string|null, origin: string}>, sources?: Sources, schema?: array<string, mixed>}"
             ],
             "constants": [],

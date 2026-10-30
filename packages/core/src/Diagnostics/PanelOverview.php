@@ -20,7 +20,9 @@ use BackedEnum;
  * and the panels page of the Filament package print it. It only reads.
  *
  *
- * @phpstan-type Sources array{sources: list<array{id: string, label: string, class: string, capabilities: list<string>, dynamic: bool}>, named: list<array{name: string, origin: string}>, plugins: list<string>}
+ * @phpstan-import-type CapabilityCell from SourceDescription
+ *
+ * @phpstan-type Sources array{sources: list<array{id: string, label: string, class: string, capabilities: list<string>, dynamic: bool, volatility: ?string, matrix: array<string, CapabilityCell>}>, named: list<array{name: string, origin: string}>, plugins: list<string>}
  * @phpstan-type Entry array{id: string, label: string, default: bool, prefix: ?string, tenants: string, subjects: list<string>, writer: ?string, storage: ?string, plugins: list<string>, settings?: array<string, array{value: bool|int|string|null, origin: string}>, sources?: Sources, schema?: array<string, mixed>}
  */
 #[Api(since: '1.0')]
@@ -116,6 +118,8 @@ final readonly class PanelOverview
                 'class' => $source->class,
                 'capabilities' => array_map(class_basename(...), $source->capabilities),
                 'dynamic' => $source->dynamic,
+                'volatility' => $source->volatility?->value,
+                'matrix' => $source->matrix,
             ], $panel->sources()),
             'named' => $named,
             'plugins' => $panel->pluginIds(),

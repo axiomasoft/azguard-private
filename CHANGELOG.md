@@ -13,6 +13,9 @@ The release SHA will be selected after the remaining code and qualification work
 
 ### Upgrading to 2.0
 
+- Source implementations still require only their existing capability interfaces. `SourceDescription` and
+  `azguard:panels:list --sources --json` add `volatility` and a declaration-only `matrix`; consumers must not treat
+  conditional visibility as an Allow. See [custom sources](docs/guides/custom-sources.md) for the v2 format and doctor findings.
 - Upgrade Laravel 11 applications to Laravel 12 or 13 before updating either package.
 - Treat `StorageDescriptor::$connection` as a resolved connection name, never null. Consumers that used null to mean
   the current default must use the returned name and explicitly choose a new storage when changing connections.
@@ -60,6 +63,8 @@ The release SHA will be selected after the remaining code and qualification work
 
 ### Added
 
+- **core:** Machine-readable source capability matrix, with conditional semantics and doctor warnings for declared
+  visibility and stable-cache limitations, without a new mandatory source method.
 - **docs:** Security and trust model with enforcement locations, P2–P6 proof obligations, and explicit limits
   for cache integrity, actor attribution, replica freshness and check/use atomicity.
 - **core:** A list field in its own JSON column (`Field::multiple()` without `inMeta()`), stored as JSON text and compared as a list.
