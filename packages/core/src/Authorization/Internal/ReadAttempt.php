@@ -71,6 +71,13 @@ final class ReadAttempt
     /** @var array<int|string, array{key: string, source: ProvidesGrants|ProvidesRoleGrants, items: list<Grant|RoleContribution>}> */
     private array $pending = [];
 
+    private ?string $currentSource = null;
+
+    public function currentSource(): ?string
+    {
+        return $this->currentSource;
+    }
+
     /** @param list<Attached> $sources */
     public function __construct(private readonly PanelCatalog $static, private readonly array $sources, private readonly EvaluationFrame $initial, private readonly ?PermissionSetCache $cache = null, private readonly bool $publish = true, private readonly ?ReadSessions $shared = null) {}
 
@@ -425,15 +432,19 @@ final class ReadAttempt
     /** @return list<array{Source, Grant|RoleContribution}> */
     public function contributions(AccessRequest $request, EvaluationFrame $frame, ?Trace $trace = null): array
     {
+        $this->currentSource = null;
         $contributions = [];
         $pending = [];
         // Authority is now consumed: recognize its root before any source can reuse request memo.
         foreach ($this->sources as ['source' => $source]) {
             if ($source instanceof DatabaseSource) {
+                $this->currentSource = $source::class;
                 $this->begin($source);
             }
         }
         foreach ($this->sources as ['source' => $source]) {
+            $this->currentSource = $source::class;
+
             if (! $source instanceof ProvidesGrants && ! $source instanceof ProvidesRoleGrants) {
                 continue;
             }
@@ -485,6 +496,8 @@ final class ReadAttempt
                 $this->pending[$entry['key']] = $entry;
             }
         }
+
+        $this->currentSource = null;
 
         return $contributions;
     }
@@ -596,8 +609,11 @@ final class ReadAttempt
 
     public function consumedFrame(EvaluationFrame $frame): EvaluationFrame
     {
+        $this->currentSource = null;
         $database = null;
         foreach ($this->sources as ['source' => $source]) {
+            $this->currentSource = $source::class;
+
             if ($source instanceof FencesReads && isset($this->stateKeys[$source->id()]) && ! isset($this->states[$source->id()])) {
                 $this->states[$source->id()] = $this->readState($source);
             }
@@ -606,6 +622,8 @@ final class ReadAttempt
                 $database = $this->states[$source->id()];
             }
         }
+
+        $this->currentSource = null;
 
         return $frame->withSourceStates($this->states, $database)->withAuthorityTransaction($this->transaction);
     }

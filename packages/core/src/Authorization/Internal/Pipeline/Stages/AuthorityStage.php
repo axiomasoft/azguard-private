@@ -37,7 +37,7 @@ use Throwable;
 /** @phpstan-import-type CompiledRole from RoleCompiler */
 final readonly class AuthorityStage
 {
-    public function __construct(private Container $container, private PanelRegistry $registry, private PolicyDecider $policies) {}
+    public function __construct(private Container $container, private PanelRegistry $registry, private PolicyDecider $policies, private TenantMembershipRestriction $membership) {}
 
     /** @return array{EvaluationFrame,Decision} */
     public function decide(AccessRequest $request, EvaluationFrame $frame, PanelCatalog $catalog, PermissionDefinition $definition, Trace $trace): array
@@ -62,9 +62,7 @@ final readonly class AuthorityStage
         }
 
         try {
-            $membership = new TenantMembershipRestriction($this->container);
-
-            $denied = $membership->check($request, $frame)->denied();
+            $denied = $this->membership->check($request, $frame)->denied();
             $trace->record('membership', $denied ? 'restricted' : 'pass', 'membership', null, [], $denied ? 'deny' : 'pass');
 
             if ($denied) {
@@ -166,6 +164,8 @@ final readonly class AuthorityStage
      */
     private function walk(AccessRequest $request, EvaluationFrame $frame, PanelCatalog $catalog, Trace $trace, Closure $accept): array
     {
+        $component = 'sources';
+
         try {
             $contributions = $frame->readAttempt?->contributions($request, $frame, $trace);
 
@@ -177,6 +177,7 @@ final readonly class AuthorityStage
                 $sources = PanelSources::of($this->registry->recipe($frame->panel()->id()), $this->container, catalog: $catalog);
                 $contributions = [];
                 foreach ($sources->all() as ['source' => $source]) {
+                    $component = $source::class;
                     [$items, $frame] = ReadAttempt::readSource($source, $request, $frame, $trace);
                     foreach ($items as $item) {
                         $contributions[] = [$source, $item];
@@ -184,6 +185,8 @@ final readonly class AuthorityStage
                 }
             }
             foreach ($contributions as [$source, $item]) {
+                $component = $source::class;
+
                 if ($item instanceof Grant) {
                     PermissionGrammar::assertPattern($item->pattern->local());
                 }
@@ -193,7 +196,7 @@ final readonly class AuthorityStage
                 }
             }
         } catch (Throwable $error) {
-            $component = isset($source) ? $source::class : 'sources';
+            $component = $frame->readAttempt?->currentSource() ?? $component;
             $reason = $error instanceof ConsistencyException ? DecisionReason::ConsistencyError : DecisionReason::SourceError;
             $trace->error('sources', $reason->value, $component, $error);
 
@@ -211,6 +214,7 @@ final readonly class AuthorityStage
             }
 
             try {
+                $component = $source::class;
                 $role = $roleDefinition === null ? null : $this->container->make($roleDefinition['class']);
 
                 if ($role !== null && ! $role instanceof BaseRole) {
@@ -231,7 +235,9 @@ final readonly class AuthorityStage
                 }
                 $passes = true;
                 foreach ($frame->panel()->grantConditions() as $declared) {
+                    $component = is_string($declared) ? $declared : $declared::class;
                     $condition = is_string($declared) ? $this->container->make($declared) : $declared;
+                    $component = is_object($condition) ? $condition::class : $component;
 
                     if (! $condition instanceof GrantCondition) {
                         throw new RuntimeException('Condition resolver did not return GrantCondition.');
@@ -247,7 +253,6 @@ final readonly class AuthorityStage
                     }
                 }
             } catch (Throwable $error) {
-                $component = isset($condition) && is_object($condition) ? $condition::class : $source::class;
                 $trace->error('condition', 'condition_error', $component, $error);
 
                 return [$frame, Decision::deny(DecisionReason::ConditionError, $frame->state(), $frame->scope(), $component), 0];

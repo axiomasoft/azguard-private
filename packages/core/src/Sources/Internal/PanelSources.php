@@ -131,6 +131,7 @@ final readonly class PanelSources
 
                 if ($source instanceof DatabaseSource) {
                     $source->bindPanel($panel);
+                    self::bindDatabase($source, $container);
                 }
 
                 if ($source instanceof RelationSource) {
@@ -335,7 +336,20 @@ final readonly class PanelSources
             return;
         }
 
-        $container->scoped($abstract, static fn (Container $container): Source => $container->make(SourceManager::class)->make($name, $panel));
+        $container->scoped($abstract, static function (Container $container) use ($name, $panel): Source {
+            $source = $container->make(SourceManager::class)->make($name, $panel);
+
+            if ($source instanceof DatabaseSource) {
+                self::bindDatabase($source, $container);
+            }
+
+            return $source;
+        });
+    }
+
+    private static function bindDatabase(DatabaseSource $source, Container $container): void
+    {
+        $source->bindServices($container);
     }
 
     private static function abstract(string $panel, string $name): string
