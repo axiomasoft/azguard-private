@@ -112,6 +112,13 @@ final class DatabaseSource implements ChecksHealth, DescribesSchema, FencesReads
         return $this->services ?? throw new DefinitionException('Attach DatabaseSource to a panel before resolving its services.');
     }
 
+    private function bindContext(EvaluationContext $context): void
+    {
+        $panel = $context->panel();
+        $this->bindPanel($panel->id());
+        $this->services ??= $panel->writerSource()?->services;
+    }
+
     public static function make(): static
     {
         return new self;
@@ -505,7 +512,7 @@ final class DatabaseSource implements ChecksHealth, DescribesSchema, FencesReads
     /** @internal The engine retains this pinned handle for the complete Prepare/authority attempt. */
     public function openReadSession(EvaluationContext $context): StorageReadSession
     {
-        $this->bindPanel($context->panel()->id());
+        $this->bindContext($context);
 
         return $this->resolvedStorage()->readSession($context->panel()->settings()->reads());
     }
@@ -943,7 +950,7 @@ final class DatabaseSource implements ChecksHealth, DescribesSchema, FencesReads
      */
     public function readContributions(SubjectRef $subject, array $scopes, EvaluationContext $context): array
     {
-        $this->bindPanel($context->panel()->id());
+        $this->bindContext($context);
         [$state, $items] = $this->materializeAssignments($this->resolvedStorage()->readSession($context->panel()->settings()->reads()), $context, $subject, $scopes);
 
         return ['state' => $state, ...$items];
