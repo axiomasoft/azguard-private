@@ -48,9 +48,34 @@ is used concurrently.
 - **Request state.** The authorizer, the permission-set memo, the current panel and the scope are Laravel
   *scoped* instances. Octane and the queue worker reset them between requests and jobs.
 - **Tenants in jobs.** A job does not inherit the tenant or scope of the request that dispatched it. Pass them
-  to the job and use `$user->inTenant($tenant)` or `on:`.
+  to the job explicitly. Request-only tenant and assignment scope resolvers receive an empty `Request` outside HTTP;
+  absent values resolve to global when optional and deny when required. A carried panel id is only a hint.
 - **Actor in jobs.** Wrap changes in `AzGuard::actingAs($user or 'reason', …)` so events and the audit journal
   record who made them.
+
+A queue handler can keep all authorization inputs explicit:
+
+```php
+use AzGuard\Facades\AzGuard;
+use AzGuard\Kernel\Decision\AccessRequest;
+use AzGuard\Kernel\Identity\AccessScope;
+use AzGuard\Kernel\Identity\AssignmentScopeRef;
+use AzGuard\Kernel\Identity\PermissionKey;
+use AzGuard\Kernel\Identity\SubjectRef;
+use AzGuard\Kernel\Identity\TenantRef;
+
+// $panelId, $subjectId, $tenantId and $projectId are job payload fields.
+$scope = AccessScope::in(TenantRef::of('organization', $tenantId), AssignmentScopeRef::of('project', $projectId));
+$request = AccessRequest::for(SubjectRef::of('user', $subjectId), PermissionKey::of($panelId, 'posts.update'))
+    ->inScope($scope);
+$decision = AzGuard::panel($panelId)->decide($request);
+if (! $decision->allowed()) {
+    return; // Handle the denial according to the job's policy.
+}
+```
+
+Choose aliases and permissions declared by the application. The subject being checked is separate from the actor
+recorded for changes; set the actor explicitly when needed.
 
 ## Manual database changes and restores
 
