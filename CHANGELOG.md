@@ -60,6 +60,8 @@ The release SHA will be selected after the remaining code and qualification work
 
 ### Added
 
+- **docs:** Security and trust model with enforcement locations, P2–P6 proof obligations, and explicit limits
+  for cache integrity, actor attribution, replica freshness and check/use atomicity.
 - **core:** A list field in its own JSON column (`Field::multiple()` without `inMeta()`), stored as JSON text and compared as a list.
 - **core:** `FieldSchema::$required`, `$multiple`, `$valueClass`; `PermissionManager::create(description:)`;
   `RelationSource::make(name:)`, so two sources of one scope type can share a panel.

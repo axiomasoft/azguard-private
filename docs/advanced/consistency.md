@@ -3,6 +3,10 @@
 This page lists what a decision guarantees about the authority it read, and what it does not. The design and its
 sources are in `audits/2026-10-09-consistency-design.md`.
 
+The [security and trust model](./security.md) names the trusted components, attacker capabilities and
+SEC-01–SEC-09 proof obligations for P2–P6. The guarantees here assume trusted source implementations and
+writers that preserve that contract; they do not authenticate an actor or authorize a caller of the change API.
+
 ## What a decision reflects
 
 A decision reflects the grant sources **at the moment it read them**. Host inputs (subject model, resource,
@@ -46,6 +50,17 @@ not evict anybody else's entry. On a cache hit, the decision's state comes from 
 `panel_state` LEFT JOIN `subject_revisions`, never from the cache entry, so it still shows the current panel
 version. Reads inside an authority transaction are never published to the shared cache.
 
+Keys also bind panel, subject, tenant, source, read mode and authority identity. A `Reads::Default` entry
+cannot satisfy a `Reads::Primary` lookup, even when both modes resolve to the same physical handle.
+The cache holds raw authority; membership, policy, conditions and restrictions are evaluated per operation.
+That evaluation uses the supplied host models, so the caller must reload stale host records when required.
+
+Cache key isolation is not byte integrity. The current serialized cache uses an allowed-class decoder;
+the versioned HMAC envelope, finite TTL and rotation specified in
+[SEC-04](./security.md#sec-04-serialized-authority-is-authenticated-before-use) are pending hardening.
+Even authenticated entries still depend on correct source revisions and can be replayed at an unchanged
+key until expiry. Redis access control and source fencing remain necessary.
+
 ## Primary freshness and replicas
 
 With `consistency(reads: Reads::Primary)` (the default) and `StateRefresh::Check`, a check that starts after a
@@ -56,6 +71,10 @@ request or job. Revokes committed by other processes become visible on the next 
 freshness**: a decision may reflect a state from before a committed revoke. `azguard:doctor` warns about it
 (`consistency.reads`). A freshness receipt that would make replica reads wait for a known commit is on the
 roadmap (`ROADMAP.md` in the repository).
+
+Sensitive writes and exports must load host records **and** authority from primary and use
+`StateRefresh::Check`. Configuring primary authority reads alone does not refresh a host model loaded from
+a replica, and `StateRefresh::Request` can retain authority observed before a revoke in the same request.
 
 ## DecisionSet
 
@@ -125,8 +144,20 @@ failure. The final HTTP policy belongs to the host:
 ## visibleTo and time of check
 
 `visibleTo()` builds a query from the grants it read. The rows are loaded later, when the query runs. A grant
-revoked between building the query and loading the rows can still show a row once. For writes, check the
-single record again with `check()` or `authorize()` (time of check vs. time of use).
+revoked between building the query and loading the rows can still show a row once. Query construction is
+not a reservation of authority for a later write, bulk action or export.
+
+For sensitive use, reload each concrete record from primary and check it again with `check()` or
+`authorize()` using primary authority and `StateRefresh::Check`. Revalidate its panel, tenant and assignment
+scope and current host membership/policy inputs. Do not trust a previously selected id or captured Builder
+as authorization for the record used now.
+
+This narrows the race; it does not make check and use atomic. A revoke can still commit after the fresh
+check and before the host effect. If that is unacceptable, the host write/export and every competing
+revoke must share an explicit transaction/lock/fence protocol. Keep the relevant locks through the effect
+and use compatible ordering on both paths. Separate database connections or an ordinary transaction
+wrapper alone do not coordinate those operations. State tokens cover grant authority, not arbitrary host
+rows or a future external export; the host must define the atomic boundary it can actually enforce.
 
 ## Writing outside AzGuard
 
@@ -134,6 +165,12 @@ The guarantees hold only for writes made through AzGuard: the public change API 
 `permissions()` and the other managers) and a change participant ([hooks and plugins](/advanced/hooks-and-plugins)) that writes its own tables
 in the same transaction. Editing `azg_*` tables by hand or restoring a backup bypasses revisions and epochs. Afterwards,
 run `azguard:state:reset {panel}`, which starts a new incarnation and raises the epoch.
+
+These APIs are trusted backend primitives, not a universal authorization gate for their caller. At an
+HTTP/Livewire boundary, the host must authenticate the actor server-side and explicitly authorize actor,
+target, role, tenant and assignment scope before calling them. `actingAs()` and explicit actor arguments
+provide audit attribution, not proof of identity or permission to grant. Jobs and CLI need an explicit
+trusted host policy too; there is no universal HTTP user in those contexts (D8).
 
 ## Lock ordering
 
@@ -161,3 +198,8 @@ AzGuard reads the state before and after each read of the source, up to three ti
 changing, the decision fails with `consistency_error`. Only the source read is repeated; nothing else runs
 again. Because these tokens are opaque and carry no subject revision, the source's cached sets are keyed by its
 whole state.
+
+The source must coordinate its writer and token update so equal tokens cannot enclose changed authority.
+A false or unchanged token defeats fencing; neither Redis isolation nor HMAC can detect that lie. Fencing
+stabilizes the source read attempt only and does not lock later host operations. See
+[SEC-05](./security.md#sec-05-a-read-reports-the-authority-it-actually-consumed).

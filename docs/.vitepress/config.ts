@@ -64,6 +64,7 @@ const sidebar = [
       { text: 'Hooks and plugins', link: '/advanced/hooks-and-plugins' },
       { text: 'Performance', link: '/advanced/performance' },
       { text: 'Consistency', link: '/advanced/consistency' },
+      { text: 'Security and trust model', link: '/advanced/security' },
       { text: 'Operations', link: '/advanced/operations' },
     ],
   },
