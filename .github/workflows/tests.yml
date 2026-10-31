@@ -33,8 +33,10 @@ jobs:
         include:
           - laravel: '12.*'
             testbench: '^10.0'
+            laravel_major: '12'
           - laravel: '13.*'
             testbench: '^11.0'
+            laravel_major: '13'
         exclude:
           # PHP 8.5 is only supported by Laravel 13.
           - laravel: '12.*'
@@ -65,6 +67,13 @@ jobs:
           composer require "laravel/framework:${{ matrix.laravel }}" "orchestra/testbench:${{ matrix.testbench }}" --dev --no-interaction --no-update
           composer update --${{ matrix.stability }} --prefer-dist --no-interaction --no-progress
 
+      - name: Retain solved dependency graph
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: composer-lock-php${{ matrix.php }}-laravel${{ matrix.laravel_major }}-${{ matrix.stability }}
+          path: composer.lock
+          if-no-files-found: error
+
       - name: Run tests
         run: vendor/bin/pest --ci --fail-on-skipped --exclude-group=engines --exclude-group=redis --exclude-group=replica --exclude-group=extended
         env:
@@ -91,8 +100,10 @@ jobs:
             service: mariadb
           - laravel: '12.*'
             testbench: '^10.0'
+            laravel_major: '12'
           - laravel: '13.*'
             testbench: '^11.0'
+            laravel_major: '13'
     env:
       PGSQL_PORT: 5432
       MYSQL_PORT: 3306
@@ -144,6 +155,13 @@ jobs:
           set -Eeuo pipefail
           composer require "laravel/framework:${{ matrix.laravel }}" "orchestra/testbench:${{ matrix.testbench }}" --dev --no-interaction --no-update
           composer update --prefer-dist --no-interaction --no-progress
+
+      - name: Retain solved dependency graph
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: composer-lock-db-${{ matrix.connection }}-laravel${{ matrix.laravel_major }}
+          path: composer.lock
+          if-no-files-found: error
 
       - name: Database lane, 8 workers (${{ matrix.connection }})
         run: composer test:db -- ${{ matrix.connection }} --parallel=8

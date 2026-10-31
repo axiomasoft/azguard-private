@@ -51,10 +51,7 @@ jobs:
           coverage: none
 
       - name: Audit locked dependencies
-        run: composer audit --locked --format=plain
-
-      - name: Abandoned production packages
-        run: composer audit --locked --no-dev --abandoned=fail --format=plain
+        run: composer audit --locked --abandoned=fail --format=plain
 
   osv:
     name: OSV scan
