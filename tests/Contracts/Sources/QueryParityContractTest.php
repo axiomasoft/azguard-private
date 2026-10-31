@@ -12,6 +12,7 @@ use AzGuard\Kernel\Decision\DecisionReason;
 use AzGuard\Kernel\Identity\AccessScope;
 use AzGuard\Kernel\Identity\AssignmentScopeRef;
 use AzGuard\Kernel\Identity\PermissionKey;
+use AzGuard\Kernel\Identity\SubjectRef;
 use AzGuard\Panels\PanelBuilder;
 use AzGuard\Roles\Attributes\NotGrantable;
 use AzGuard\Roles\Attributes\Role;
@@ -24,6 +25,7 @@ use AzGuard\Tenancy\TenantPolicy;
 use AzGuard\Testing\Contracts\SourceContractTests;
 use AzGuard\Testing\FakeSource;
 use AzGuard\Tests\Fixtures\Contracts\Probes\RunsAsAProbe;
+use AzGuard\Tests\Fixtures\Panels\User;
 use AzGuard\Tests\Fixtures\Visibility\VisibilityClient;
 use AzGuard\Tests\Fixtures\Visibility\VisibilityProjectScope;
 use AzGuard\Tests\Fixtures\Visibility\VisibilitySource;
@@ -52,12 +54,17 @@ final class ContractQueryableAutomaticRole extends BaseRole implements GrantedAu
 
     public function appliesTo(Model $subject, AccessScope $scope): bool
     {
-        return $subject->getKey() === 1 && $scope->context->type() === 'project' && $scope->context->id() === '1';
+        return ($subject->getKey() === 1 && $scope->context->type() === 'project' && $scope->context->id() === '1')
+            || ($subject->getKey() === 2 && $scope->context->isGlobal());
     }
 
     public function exactAutomaticScopes(Model $subject, ?string $contextType, EvaluationContext $context): ?array
     {
-        return $subject->getKey() === 1 && $contextType === 'project' ? [W::scope(1)] : [];
+        return match (true) {
+            $subject->getKey() === 1 && $contextType === 'project' => [W::scope(1)],
+            $subject->getKey() === 2 && $contextType === 'project' => [W::scope()],
+            default => [],
+        };
     }
 }
 
@@ -77,7 +84,8 @@ final class ContractUnqueryableAutomaticRole extends BaseRole implements Granted
 
     public function appliesTo(Model $subject, AccessScope $scope): bool
     {
-        return $subject->getKey() === 1 && $scope->context->type() === 'project' && $scope->context->id() === '1';
+        return ($subject->getKey() === 1 && $scope->context->type() === 'project' && $scope->context->id() === '1')
+            || ($subject->getKey() === 2 && $scope->context->isGlobal());
     }
 }
 
@@ -171,11 +179,12 @@ it('refuses exact visibility for a folder automatic role without a selection ada
     (new QueryParityProbe('folder-unsupported'))->run('sourceVisibilityMatchesScalarAndBatch');
 });
 
-it('enforces tenant membership for folder automatic roles', function (string $role, bool $queryable): void {
-    $membership = new Membership;
+function exerciseFolderTenantMode(string $mode, string $role, bool $queryable): void
+{
+    $membership = new Membership(members: ['1', '2']);
     [$visibility, $panel, $authorizer] = W::compile(new VisibilitySource, fn (PanelBuilder $builder) => $builder
         ->roles([$role])
-        ->tenants(TenantPolicy::required(Organization::class)->requireMembership($membership)), tenant: true);
+        ->tenants(TenantPolicy::required(Organization::class)->requireMembership($membership)), mode: $mode, tenant: true);
     $resource = VisibilityClient::query()->findOrFail(101);
     $request = AccessRequest::for(W::subject(), PermissionKey::of('admin', 'orders.view'))->on(null, $resource)->inTenant(W::tenant('A'));
     expect($authorizer->decide($panel, $request)->allowed())->toBeTrue()
@@ -194,10 +203,26 @@ it('enforces tenant membership for folder automatic roles', function (string $ro
     if ($queryable) {
         expect($visibility->visibleTo($panel, VisibilityClient::query(), W::subject(), 'orders.view', W::scope())->pluck('id')->all())->toBe([]);
     }
-})->with([
-    'queryable' => [ContractQueryableAutomaticRole::class, true],
-    'without selection adapter' => [ContractUnqueryableAutomaticRole::class, false],
-]);
+    $membership->members = ['1', '2'];
+    $second = SubjectRef::of('user', 2);
+    $inTenant = AccessRequest::for($second, PermissionKey::of('admin', 'orders.view'))->inTenant(W::tenant('A'));
+    $inContext = AccessRequest::for($second, PermissionKey::of('admin', 'orders.view'))->on(null, $resource)->inTenant(W::tenant('A'));
+    expect($authorizer->decide($panel, $inTenant)->allowed())->toBeTrue()
+        ->and($authorizer->decide($panel, $inContext)->allowed())->toBe($mode === 'inherit')
+        ->and($authorizer->decideMany([$inContext])->get(0)->allowed())->toBe($mode === 'inherit');
+}
+
+it('enforces tenant membership for folder automatic roles in inherit mode', function (): void {
+    User::query()->insert(['id' => 2]);
+    exerciseFolderTenantMode('inherit', ContractQueryableAutomaticRole::class, true);
+    exerciseFolderTenantMode('inherit', ContractUnqueryableAutomaticRole::class, false);
+});
+
+it('enforces tenant membership for folder automatic roles in isolated mode', function (): void {
+    User::query()->insert(['id' => 2]);
+    exerciseFolderTenantMode('isolated', ContractQueryableAutomaticRole::class, true);
+    exerciseFolderTenantMode('isolated', ContractUnqueryableAutomaticRole::class, false);
+});
 
 it('expires a database grant at the same boundary in scalar batch and visibility', function (): void {
     app(StorageSchema::class)->create('default');
@@ -232,7 +257,8 @@ it('isolates a database grant from other tenant and context resources in scalar 
     expect($visibility->visibleTo($panel, VisibilityClient::query(), W::subject(), 'orders.view', W::scope())->pluck('id')->all())->toBe([101]);
 });
 
-it('applies a tenant-wide database grant according to context inheritance without crossing tenants', function (string $mode, array $expected): void {
+function exerciseDatabaseTenantMode(string $mode, array $expected): void
+{
     app(StorageSchema::class)->create('default');
     [$visibility, $panel, $authorizer] = W::compile(new VisibilitySource, mode: $mode, tenant: true, extra: [DatabaseSource::make()]);
     AzGuard::panel('admin')->inTenant(W::tenant('A'))->for(W::subject())->grantPermission('orders.view');
@@ -246,10 +272,10 @@ it('applies a tenant-wide database grant according to context inheritance withou
             ->and($batch->get($index)->allowed())->toBe($allowed);
     }
     expect($visibility->visibleTo($panel, VisibilityClient::query(), W::subject(), 'orders.view', W::scope())->orderBy('id')->pluck('id')->all())->toBe($expected);
-})->with([
-    'inherited' => ['inherit', [101, 102, 103]],
-    'isolated' => ['isolated', []],
-]);
+}
+
+it('applies a tenant-wide database grant in inherit mode without crossing tenants', fn () => exerciseDatabaseTenantMode('inherit', [101, 102, 103]));
+it('applies a tenant-wide database grant in isolated mode without crossing tenants', fn () => exerciseDatabaseTenantMode('isolated', []));
 
 it('denies a database grant when tenant membership is absent in scalar batch and visibility', function (): void {
     app(StorageSchema::class)->create('default');

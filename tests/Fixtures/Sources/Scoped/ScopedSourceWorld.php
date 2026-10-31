@@ -338,7 +338,7 @@ final class ScopedSourceWorld
             ->and($decision->state)->toBeInstanceOf(StateToken::class)->and($decision->state->version())->toBe($version);
     }
 
-    private static function relations(): void
+    public static function relations(string $mode = 'inherit'): void
     {
         RelationWorld::seed();
         $project = new ProjectDefinition;
@@ -351,9 +351,9 @@ final class ScopedSourceWorld
         Store::query()->create(['id' => 8, 'tenant_id' => 'A', 'owner_id' => 2]);
         [,, $registry] = PanelWorld::compile([AdminPanel::class => static fn (PanelBuilder $panel): PanelBuilder => $panel
             ->for(Member::class)->resourcePrefix(false)->permissions([RelationPermission::class,
-                RelationSource::make($project, 'members', 'pivot.role'), RelationSource::make($store, 'owner', 'store-owner')])
-            ->roles([EditorRole::class, StoreOwnerRole::class])->plugins([ScopesPlugin::inherit($project, $store)])
-            ->tenants(TenantPolicy::required(ModelTenantDefinition::make(Organization::class, 'organization'))->requireMembership(new Membership))]);
+                DatabaseSource::make(), RelationSource::make($project, 'members', 'pivot.role'), RelationSource::make($store, 'owner', 'store-owner')])
+            ->roles([EditorRole::class, StoreOwnerRole::class])->plugins([$mode === 'inherit' ? ScopesPlugin::inherit($project, $store) : ScopesPlugin::isolated($project, $store)])
+            ->tenants(TenantPolicy::required(ModelTenantDefinition::make(Organization::class, 'organization'))->requireMembership(new Membership(members: ['1', '2'])))]);
         $panel = self::install($registry);
         foreach ([['project', 7, 'A', 'projects.edit', true], ['project', 8, 'A', 'projects.edit', false],
             ['project', 9, 'B', 'projects.edit', false], ['project', 7, 'B', 'projects.edit', false],
@@ -370,6 +370,16 @@ final class ScopedSourceWorld
         });
         expect(app(Authorizer::class)->decide($panel, self::request('projects.edit', AccessScope::in(TenantRef::of('organization', 'A'))))->reason)
             ->toBe(DecisionReason::NotGranted)->and($reads)->toBe(0);
+        // User 2 has no relation to project 7; tenant-wide authority inherits only in Inherit mode.
+        DatabaseWorld::insert('permission', [DatabaseWorld::row('permission', AccessScope::in(TenantRef::of('organization', 'A')), [
+            'subject_id' => '2', 'permission' => 'projects.edit',
+        ])]);
+        $engine = app(Authorizer::class);
+        $inTenant = self::request('projects.edit', AccessScope::in(TenantRef::of('organization', 'A')), subject: 2);
+        $inProject = self::request('projects.edit', RelationWorld::scope(7, 'A'), subject: 2);
+        expect($engine->decide($panel, $inTenant)->allowed())->toBeTrue()
+            ->and($engine->decide($panel, $inProject)->allowed())->toBe($mode === 'inherit')
+            ->and($engine->decideMany([$inProject])->get(0)->allowed())->toBe($mode === 'inherit');
     }
 
     private static function mixed(): void

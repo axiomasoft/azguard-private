@@ -4,12 +4,16 @@ declare(strict_types=1);
 
 use AzGuard\Tests\Fixtures\Sources\Scoped\ScopedSourceWorld;
 
-it('keeps relation membership inside its tenant and context in the source contract lane', function (): void {
+function exerciseRelationTenantMode(string $mode): void
+{
     ScopedSourceWorld::seed();
 
     try {
-        ScopedSourceWorld::run('relation project membership and store owner');
+        ScopedSourceWorld::relations($mode);
     } finally {
         ScopedSourceWorld::reset();
     }
-});
+}
+
+it('keeps relation membership inside tenant and context in inherit mode', fn () => exerciseRelationTenantMode('inherit'));
+it('keeps relation membership inside tenant and context in isolated mode', fn () => exerciseRelationTenantMode('isolated'));

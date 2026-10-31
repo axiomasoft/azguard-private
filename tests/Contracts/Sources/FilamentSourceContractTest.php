@@ -243,28 +243,52 @@ final class FilamentSourceContractTest extends TestCase
         $this->assertSame([], ContractFilamentProjectResource::getEloquentQuery()->pluck('id')->all());
     }
 
-    public function test_filament_definitions_respect_tenant_and_membership_boundaries(): void
+    public function test_filament_tenant_context_inheritance_in_inherit_mode(): void
+    {
+        $this->exerciseFilamentTenantContext('inherit');
+    }
+
+    public function test_filament_tenant_context_inheritance_in_isolated_mode(): void
+    {
+        $this->exerciseFilamentTenantContext('isolated');
+    }
+
+    private function exerciseFilamentTenantContext(string $mode): void
     {
         $membership = new Membership;
+        $tenant = TenantRef::of('team', 7);
+        $definition = new ProjectDefinition(recordClass: ContractFilamentProject::class, resolvedTenant: $tenant);
         FilamentFixture::$definitions = FilamentDefinitions::Resources;
         FilamentFixture::$abilities = ['view_any'];
         FilamentFixture::$guardPermissions = [FilamentSource::make('admin')];
         FilamentFixture::$adminTenantPolicy = TenantPolicy::required(Team::class)->requireMembership($membership);
+        FilamentFixture::$adminPlugins = [$mode === 'inherit' ? ScopesPlugin::inherit($definition) : ScopesPlugin::isolated($definition)];
         FilamentFixture::$pages = FilamentFixture::$widgets = [];
         $this->bootFilament();
+        Schema::create('contract_filament_projects', static function (Blueprint $table): void {
+            $table->id();
+        });
+        ContractFilamentProject::query()->insert([['id' => 7], ['id' => 8]]);
         $user = User::query()->findOrFail(1);
-        $tenant = TenantRef::of('team', 7);
         $other = TenantRef::of('team', 8);
         $request = AccessRequest::for(SubjectRef::of('user', 1), PermissionKey::of('admin', 'orders.view_any'))->inTenant($tenant);
         $otherRequest = $request->inTenant($other);
+        $context = AssignmentScopeRef::of('project', 7);
+        $scopedRequest = $request->inScope(AccessScope::in($tenant, $context));
+        $otherContextRequest = $request->inScope(AccessScope::in($tenant, AssignmentScopeRef::of('project', 8)));
         $panel = app(PanelRegistry::class)->get('admin');
         $authorizer = app(Authorizer::class);
         $this->assertFalse($authorizer->decide($panel, $request)->allowed());
         AzGuard::panel('admin')->inTenant($tenant)->for($user)->grantPermission('orders.view_any');
         $this->assertTrue($authorizer->decide($panel, $request)->allowed());
+        $this->assertSame($mode === 'inherit', $authorizer->decide($panel, $scopedRequest)->allowed());
+        $this->assertSame($mode === 'inherit', $authorizer->decideMany([$scopedRequest])->get(0)->allowed());
+        AzGuard::panel('admin')->inTenant($tenant)->for($user)->grantPermission('orders.view_any', $context);
+        $this->assertTrue($authorizer->decide($panel, $scopedRequest)->allowed());
+        $this->assertSame($mode === 'inherit', $authorizer->decide($panel, $otherContextRequest)->allowed());
         $this->assertFalse($authorizer->decide($panel, $otherRequest)->allowed());
         $membership->members = [];
         $this->assertFalse($authorizer->decide($panel, $request)->allowed());
-        $this->assertFalse($authorizer->decideMany([$request])->get(0)->allowed());
+        $this->assertFalse($authorizer->decideMany([$scopedRequest])->get(0)->allowed());
     }
 }

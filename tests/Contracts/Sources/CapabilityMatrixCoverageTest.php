@@ -32,7 +32,7 @@ function builtInCapabilityCoverage(): array
         'folder' => [
             'scalar' => $supported($folder), 'batch' => $supported($folder), 'exact_visibility' => $conditional($folder),
             'stable_cache' => $unsupported($unstable),
-            'tenant_inheritance' => $conditional(['QueryParityContractTest.php', 'enforces tenant membership for folder automatic roles']),
+            'tenant_inheritance' => $conditional(['QueryParityContractTest.php', 'enforces tenant membership for folder automatic roles in inherit mode']),
             'filament' => $conditional(['FilamentSourceContractTest.php', 'test_folder_automatic_role_grants_a_filament_resource_only_to_its_members']),
         ],
         'folder_automatic_role' => [
@@ -40,19 +40,19 @@ function builtInCapabilityCoverage(): array
             'batch' => $supported(['QueryParityContractTest.php', 'refuses exact visibility for a folder automatic role without a selection adapter']),
             'exact_visibility' => $unsupported(['QueryParityContractTest.php', 'refuses exact visibility for a folder automatic role without a selection adapter']),
             'stable_cache' => $unsupported($unstable),
-            'tenant_inheritance' => $conditional(['QueryParityContractTest.php', 'enforces tenant membership for folder automatic roles']),
+            'tenant_inheritance' => $conditional(['QueryParityContractTest.php', 'enforces tenant membership for folder automatic roles in inherit mode']),
             'filament' => $conditional(['FilamentSourceContractTest.php', 'test_folder_automatic_role_grants_a_filament_resource_only_to_its_members']),
         ],
         'database' => [
             'scalar' => $supported($database), 'batch' => $supported($database), 'exact_visibility' => $conditional($database),
             'stable_cache' => $conditional(['DatabaseCacheContractTest.php', 'reuses stable database authority and invalidates it after grant and revoke']),
-            'tenant_inheritance' => $conditional(['QueryParityContractTest.php', 'applies a tenant-wide database grant according to context inheritance without crossing tenants']),
+            'tenant_inheritance' => $conditional(['QueryParityContractTest.php', 'applies a tenant-wide database grant in inherit mode without crossing tenants']),
             'filament' => $conditional($filament),
         ],
         'relation' => [
             'scalar' => $supported($relation), 'batch' => $supported($relation), 'exact_visibility' => $conditional($relation),
             'stable_cache' => $unsupported($unstable),
-            'tenant_inheritance' => $conditional(['RelationTenantContractTest.php', 'keeps relation membership inside its tenant and context in the source contract lane']),
+            'tenant_inheritance' => $conditional(['RelationTenantContractTest.php', 'keeps relation membership inside tenant and context in inherit mode']),
             'filament' => $conditional(['FilamentSourceContractTest.php', 'test_relation_membership_controls_filament_record_and_visible_query']),
         ],
         'gate' => [
@@ -65,10 +65,71 @@ function builtInCapabilityCoverage(): array
             'scalar' => $supported($filament), 'batch' => $supported($filament),
             'exact_visibility' => $conditional(['FilamentSourceContractTest.php', 'test_relation_membership_controls_filament_record_and_visible_query']),
             'stable_cache' => $unsupported($unstable),
-            'tenant_inheritance' => $conditional(['FilamentSourceContractTest.php', 'test_filament_definitions_respect_tenant_and_membership_boundaries']),
+            'tenant_inheritance' => $conditional(['FilamentSourceContractTest.php', 'test_filament_tenant_context_inheritance_in_inherit_mode']),
             'filament' => $conditional($filament),
         ],
     ];
+}
+
+/** @return array<string, array<string, array{string, string}>> */
+function builtInTenantModeCoverage(): array
+{
+    $folder = [
+        'inherit' => ['QueryParityContractTest.php', 'enforces tenant membership for folder automatic roles in inherit mode'],
+        'isolated' => ['QueryParityContractTest.php', 'enforces tenant membership for folder automatic roles in isolated mode'],
+    ];
+
+    return [
+        'folder' => $folder,
+        'folder_automatic_role' => $folder,
+        'database' => [
+            'inherit' => ['QueryParityContractTest.php', 'applies a tenant-wide database grant in inherit mode without crossing tenants'],
+            'isolated' => ['QueryParityContractTest.php', 'applies a tenant-wide database grant in isolated mode without crossing tenants'],
+        ],
+        'relation' => [
+            'inherit' => ['RelationTenantContractTest.php', 'keeps relation membership inside tenant and context in inherit mode'],
+            'isolated' => ['RelationTenantContractTest.php', 'keeps relation membership inside tenant and context in isolated mode'],
+        ],
+        'gate' => [
+            'inherit' => ['GateSourceContractTest.php', 'test_gate_tenant_context_inherit_mode'],
+            'isolated' => ['GateSourceContractTest.php', 'test_gate_tenant_context_isolated_mode'],
+        ],
+        'filament' => [
+            'inherit' => ['FilamentSourceContractTest.php', 'test_filament_tenant_context_inheritance_in_inherit_mode'],
+            'isolated' => ['FilamentSourceContractTest.php', 'test_filament_tenant_context_inheritance_in_isolated_mode'],
+        ],
+    ];
+}
+
+/** @return list<string> */
+function builtInTenantModeCoverageErrors(array $variants): array
+{
+    $errors = [];
+    foreach (['folder', 'folder_automatic_role', 'database', 'relation', 'gate', 'filament'] as $profile) {
+        foreach (['inherit', 'isolated'] as $mode) {
+            $scenario = $variants[$profile][$mode] ?? null;
+
+            if (! is_array($scenario) || count($scenario) !== 2) {
+                $errors[] = "$profile.tenant_inheritance.$mode is missing its mandatory scenario.";
+
+                continue;
+            }
+            [$file, $name] = $scenario;
+
+            if (! preg_match('/(?:^|[ _])'.preg_quote($mode, '/').'(?:[ _]|$)/i', $name)) {
+                $errors[] = "$profile.tenant_inheritance.$mode must reference its distinct named mode scenario.";
+            }
+            $path = __DIR__.'/'.$file;
+            $contents = is_file($path) ? file_get_contents($path) : false;
+            $declaration = str_starts_with($name, 'test_') ? 'function '.$name.'(' : "it('".$name."'";
+
+            if (! is_string($contents) || ! str_contains($contents, $declaration)) {
+                $errors[] = "$profile.tenant_inheritance.$mode references a missing required-lane test.";
+            }
+        }
+    }
+
+    return $errors;
 }
 
 /** @return list<string> */
@@ -137,6 +198,11 @@ function builtInCapabilityExecutionErrors(array $coverage): array
             $scenarios[$file.'::'.$name] = [$file, $name];
         }
     }
+    foreach (builtInTenantModeCoverage() as $variants) {
+        foreach ($variants as [$file, $name]) {
+            $scenarios[$file.'::'.$name] = [$file, $name];
+        }
+    }
 
     $errors = [];
     foreach ($scenarios as $id => [$file, $name]) {
@@ -157,7 +223,21 @@ it('requires an executable source-specific contract for every built-in matrix ce
     $matrix = json_decode(file_get_contents(dirname(__DIR__, 3).'/docs/reference/source-capabilities.json'), true, flags: JSON_THROW_ON_ERROR);
     $coverage = builtInCapabilityCoverage();
     expect(builtInCapabilityCoverageErrors($matrix, $coverage))->toBe([]);
+    expect(builtInTenantModeCoverageErrors(builtInTenantModeCoverage()))->toBe([]);
     expect(builtInCapabilityExecutionErrors($coverage))->toBe([]);
+});
+
+it('fails the tenant mode guard when either scenario is missing or replaced', function (): void {
+    foreach (['folder', 'folder_automatic_role', 'database', 'relation', 'gate', 'filament'] as $profile) {
+        foreach (['inherit' => 'isolated', 'isolated' => 'inherit'] as $mode => $other) {
+            $variants = builtInTenantModeCoverage();
+            unset($variants[$profile][$mode]);
+            expect(builtInTenantModeCoverageErrors($variants))->toContain("$profile.tenant_inheritance.$mode is missing its mandatory scenario.");
+            $variants = builtInTenantModeCoverage();
+            $variants[$profile][$mode] = $variants[$profile][$other];
+            expect(builtInTenantModeCoverageErrors($variants))->toContain("$profile.tenant_inheritance.$mode must reference its distinct named mode scenario.");
+        }
+    }
 });
 
 it('fails the matrix guard when a built-in cell is removed or changes status', function (): void {
