@@ -192,6 +192,7 @@ trait SourceContractTests
         $empty = $this->azguardRead($source, $ref, $panel, $scopes, $now);
         $mutate('revoke');
         $this->assertTrue($before->equals($source->state($panel, $tenant)), 'A no-op revoke changed the state.');
+        $this->assertEqualsCanonicalizing($empty, $this->azguardRead($source, $ref, $panel, $scopes, $now), 'The same state returned different raw authority after a no-op revoke.');
         $mutate('grant');
         $granted = $source->state($panel, $tenant);
         $authority = $this->azguardRead($source, $ref, $panel, $scopes, $now);

@@ -19,9 +19,11 @@ final class BrokenFenceProbe
     use RunsAsAProbe;
     use SourceContractTests;
 
+    public function __construct(private readonly bool $driftOnNoopRevoke = false) {}
+
     protected function azguardSource(): Source
     {
-        return new BrokenFenceSource;
+        return new BrokenFenceSource(driftOnNoopRevoke: $this->driftOnNoopRevoke);
     }
 
     protected function azguardFenceMutation(Source $source, Panel $panel): ?callable
@@ -29,6 +31,11 @@ final class BrokenFenceProbe
         return $source->mutate(...);
     }
 }
+
+it('rejects changed authority after a no-op revoke with the same state', function (): void {
+    expect(fn () => (new BrokenFenceProbe(driftOnNoopRevoke: true))->run('fencedAuthorityChangesItsStateOnlyOnMutation'))
+        ->toThrow(AssertionFailedError::class, 'The same state returned different raw authority after a no-op revoke.');
+});
 
 it('rejects a stable source whose authority changes without changing its fence', function (): void {
     expect(fn () => (new BrokenFenceProbe)->run('fencedAuthorityChangesItsStateOnlyOnMutation'))

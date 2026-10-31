@@ -4,15 +4,29 @@ declare(strict_types=1);
 
 namespace AzGuard\Tests\Contracts\Sources;
 
+use AzGuard\Authorization\Internal\Authorizer;
 use AzGuard\Authorization\Visibility;
 use AzGuard\Contracts\Sources\Source;
 use AzGuard\Exceptions\VisibilityNotSupportedException;
+use AzGuard\Kernel\Decision\AccessRequest;
+use AzGuard\Kernel\Identity\PermissionKey;
+use AzGuard\Kernel\Identity\SubjectRef;
+use AzGuard\Kernel\Identity\TenantRef;
+use AzGuard\Panels\Internal\PanelRegistry;
+use AzGuard\Panels\PanelBuilder;
+use AzGuard\Policies\PolicyBinding;
 use AzGuard\Sources\Gate\GateSource;
+use AzGuard\Tenancy\TenantPolicy;
 use AzGuard\Testing\Contracts\SourceContractTests;
+use AzGuard\Tests\Fixtures\Panels\AdminPanel;
+use AzGuard\Tests\Fixtures\Panels\PanelWorld;
 use AzGuard\Tests\Fixtures\Panels\User;
 use AzGuard\Tests\Fixtures\PoliciesGate\GatePermission;
 use AzGuard\Tests\Fixtures\PoliciesGate\GateRecord;
 use AzGuard\Tests\Fixtures\PoliciesGate\GateWorld;
+use AzGuard\Tests\Fixtures\PoliciesGate\PhpPolicy;
+use AzGuard\Tests\Modules\Scopes\Fixtures\Membership;
+use AzGuard\Tests\Modules\Scopes\Fixtures\Organization;
 use AzGuard\Tests\TestCase;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Support\Facades\Gate;
@@ -39,12 +53,45 @@ final class GateSourceContractTest extends TestCase
             $deny->setAttribute('id', 2);
             $requests = [GateWorld::request()->on(null, $allow), GateWorld::request()->on(null, $deny)];
             $batch = $authorizer->decideMany($requests);
-            $this->assertTrue($authorizer->decide($panel, $requests[0])->allowed());
+            $first = $authorizer->decide($panel, $requests[0]);
+            $this->assertTrue($first->allowed(), $first->reason->value);
             $this->assertFalse($authorizer->decide($panel, $requests[1])->allowed());
             $this->assertTrue($batch->get(0)->allowed());
             $this->assertFalse($batch->get(1)->allowed());
             $this->expectException(VisibilityNotSupportedException::class);
             app(Visibility::class)->visibleTo($panel, GateRecord::query(), $requests[0]->subject(), GatePermission::Access);
+        } finally {
+            Relation::morphMap([], false);
+        }
+    }
+
+    public function test_tenant_membership_still_gates_native_policy_decisions(): void
+    {
+        GateWorld::seed();
+
+        try {
+            Gate::define('contract-tenant-gate', static fn (User $user): bool => $user->getKey() === 1);
+            User::query()->insert(['id' => 2]);
+            $membership = new Membership(members: ['1', '2']);
+            [, , $registry] = PanelWorld::compile([AdminPanel::class => static fn (PanelBuilder $panel) => $panel
+                ->for(User::class)->resourcePrefix(false)->permissions([GateWorld::permissions(), GateSource::make()->map(GatePermission::Access, 'contract-tenant-gate')])
+                ->policies([PolicyBinding::for(GatePermission::Php, PhpPolicy::class)])
+                ->tenants(TenantPolicy::required(Organization::class)->requireMembership($membership))]);
+            app()->instance(PanelRegistry::class, $registry);
+            app()->forgetInstance(Authorizer::class);
+            $panel = $registry->get('admin');
+            $authorizer = app(Authorizer::class);
+            $tenant = TenantRef::of('org', 'A');
+            $requests = [GateWorld::request()->inTenant($tenant), AccessRequest::for(SubjectRef::of('user', 2), PermissionKey::of('admin', GatePermission::Access->value))->inTenant($tenant)];
+            $batch = $authorizer->decideMany($requests);
+            $first = $authorizer->decide($panel, $requests[0]);
+            $this->assertTrue($first->allowed(), $first->reason->value);
+            $this->assertFalse($authorizer->decide($panel, $requests[1])->allowed());
+            $this->assertTrue($batch->get(0)->allowed());
+            $this->assertFalse($batch->get(1)->allowed());
+            $membership->members = [];
+            $this->assertFalse($authorizer->decide($panel, $requests[0])->allowed());
+            $this->assertFalse($authorizer->decideMany([$requests[0]])->get(0)->allowed());
         } finally {
             Relation::morphMap([], false);
         }

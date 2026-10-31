@@ -24,7 +24,9 @@ final class BrokenFenceSource implements FencesReads, ProvidesGrants
 
     public int $grantCalls = 0;
 
-    public function __construct(private readonly bool $drift = false, private readonly ?string $changing = null) {}
+    private int $revokes = 0;
+
+    public function __construct(private readonly bool $drift = false, private readonly ?string $changing = null, private readonly bool $driftOnNoopRevoke = false) {}
 
     public function id(): string
     {
@@ -47,6 +49,10 @@ final class BrokenFenceSource implements FencesReads, ProvidesGrants
     public function mutate(string $operation): void
     {
         $this->granted = $operation === 'grant';
+
+        if ($operation === 'revoke' && ++$this->revokes === 2 && $this->driftOnNoopRevoke) {
+            $this->granted = true;
+        }
     }
 
     public function grants(SubjectRef $subject, array $scopes, EvaluationContext $context): iterable

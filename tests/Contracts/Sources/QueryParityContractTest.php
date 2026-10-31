@@ -19,6 +19,7 @@ use AzGuard\Roles\GrantedAutomatically;
 use AzGuard\Roles\SelectsAutomaticRoleScopes;
 use AzGuard\Sources\Database\DatabaseSource;
 use AzGuard\Storage\Schema\StorageSchema;
+use AzGuard\Tenancy\TenantPolicy;
 use AzGuard\Testing\Contracts\SourceContractTests;
 use AzGuard\Testing\FakeSource;
 use AzGuard\Tests\Fixtures\Contracts\Probes\RunsAsAProbe;
@@ -26,6 +27,8 @@ use AzGuard\Tests\Fixtures\Visibility\VisibilityClient;
 use AzGuard\Tests\Fixtures\Visibility\VisibilityProjectScope;
 use AzGuard\Tests\Fixtures\Visibility\VisibilitySource;
 use AzGuard\Tests\Fixtures\Visibility\VisibilityWorld as W;
+use AzGuard\Tests\Modules\Scopes\Fixtures\Membership;
+use AzGuard\Tests\Modules\Scopes\Fixtures\Organization;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Carbon;
 use PHPUnit\Framework\AssertionFailedError;
@@ -198,6 +201,41 @@ it('isolates a database grant from other tenant and context resources in scalar 
             ->and($batch->get($index)->allowed())->toBe($allowed);
     }
     expect($visibility->visibleTo($panel, VisibilityClient::query(), W::subject(), 'orders.view', W::scope())->pluck('id')->all())->toBe([101]);
+});
+
+it('applies a tenant-wide database grant according to context inheritance without crossing tenants', function (string $mode, array $expected): void {
+    app(StorageSchema::class)->create('default');
+    [$visibility, $panel, $authorizer] = W::compile(new VisibilitySource, mode: $mode, tenant: true, extra: [DatabaseSource::make()]);
+    AzGuard::panel('admin')->inTenant(W::tenant('A'))->for(W::subject())->grantPermission('orders.view');
+    $resources = VisibilityClient::query()->orderBy('id')->get();
+    $requests = $resources->map(static fn ($resource) => AccessRequest::for(W::subject(), PermissionKey::of('admin', 'orders.view'))
+        ->on(null, $resource)->inTenant(W::tenant('A')))->all();
+    $batch = $authorizer->decideMany($requests);
+    foreach ($requests as $index => $request) {
+        $allowed = in_array($resources[$index]->id, $expected, true);
+        expect($authorizer->decide($panel, $request)->allowed())->toBe($allowed)
+            ->and($batch->get($index)->allowed())->toBe($allowed);
+    }
+    expect($visibility->visibleTo($panel, VisibilityClient::query(), W::subject(), 'orders.view', W::scope())->orderBy('id')->pluck('id')->all())->toBe($expected);
+})->with([
+    'inherited' => ['inherit', [101, 102, 103]],
+    'isolated' => ['isolated', []],
+]);
+
+it('denies a database grant when tenant membership is absent in scalar batch and visibility', function (): void {
+    app(StorageSchema::class)->create('default');
+    $membership = new Membership;
+    [$visibility, $panel, $authorizer] = W::compile(new VisibilitySource,
+        fn (PanelBuilder $builder) => $builder->tenants(TenantPolicy::required(Organization::class)->requireMembership($membership)),
+        tenant: true, extra: [DatabaseSource::make()]);
+    AzGuard::panel('admin')->inTenant(W::tenant('A'))->for(W::subject())->grantPermission('orders.view', AssignmentScopeRef::of('project', 1));
+    $membership->members = [];
+    $resource = VisibilityClient::query()->findOrFail(101);
+    $request = AccessRequest::for(W::subject(), PermissionKey::of('admin', 'orders.view'))->on(null, $resource)->inTenant(W::tenant('A'));
+
+    expect($authorizer->decide($panel, $request)->allowed())->toBeFalse()
+        ->and($authorizer->decideMany([$request])->get(0)->allowed())->toBeFalse()
+        ->and($visibility->visibleTo($panel, VisibilityClient::query(), W::subject(), 'orders.view', W::scope())->pluck('id')->all())->toBe([]);
 });
 
 it('rejects an incomplete source query filter', function (): void {

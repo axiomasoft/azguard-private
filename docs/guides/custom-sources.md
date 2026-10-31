@@ -34,7 +34,8 @@ Existing `SourceContractTests` consumers need no new methods. For a mutable `Fen
 optional `azguardFenceMutation(Source $source, Panel $panel): ?callable` hook. Return a callable accepting `grant`
 or `revoke` that changes the suite subject's global-scope authority on the attached source. Both operations must be
 idempotent, and the grant must be visible to the source. The contract checks that real changes advance the token,
-repeated operations leave it unchanged, and identical state yields identical raw contributions. Without a fixture
+repeated operations leave it unchanged, and identical state yields identical raw contributions, including immediately
+after a repeated revoke. Without a fixture
 the mutation branch is not run; a passing base suite alone does not prove a mutable fence.
 
 For exact query coverage, override `azguardQueryParity(): ?array` with a `supported` boolean and `scalar`, `batch`, and `visibility`
