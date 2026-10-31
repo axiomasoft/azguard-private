@@ -1,11 +1,15 @@
 # P4 finding dispositions
 
-Rechecked on 2026-10-31 against HEAD `8c25b2a7` and the local changes accompanying this document, preserving
-the intervening P1–P3 corrections. The previous execution was commit `87fb6255` against `c16fdefa`;
+Rechecked again on 2026-10-31 against HEAD `bc2cf89f`, preserving the P1–P3 corrections after the previous
+P4 recheck `5e256022` (based on `8c25b2a7`). The original execution was commit `87fb6255` against `c16fdefa`;
 its original outputs remain under `build/qualification/p4-grok/`. Finding numbers below are the order in
 each raw result's `findings` array, not a new severity ranking. Inputs are the final results in all five raw
 `P4*.jsonl` files and all four independent triages under the audit's `artifacts/review/grok-phases` directory.
 All 27 findings are dispositioned below; this is coverage of the reported findings, not of all P4 code.
+Every disposition was checked again against the raw finding, independent triage and current definitions/callers.
+The fixes and added controls described in the tables are already present from `87fb6255` and `5e256022`.
+No additional reproducible runtime defect was found in this rerun; only this disposition document changes.
+Fresh test output is under `build/qualification/p4-recheck-20261031/`; earlier output is historical evidence.
 
 This is a bounded follow-up, not complete P4 qualification. `P4.jsonl` explicitly did not review P4; the other
 reviews used selected patches, and P4.b skipped their middle. Neither the original empty finding list nor
@@ -26,7 +30,7 @@ or automatic migration of host identities.
 | 4. Surface method with no serving panel | Not established as a package vulnerability. Enforcement is deliberately attached to the serving Filament panel; null/unmanaged context is outside that boundary. Concrete effects in host methods still require their own checks. No global deny was added. | `FilamentContext.php::serving`, `of`; `RefusesSurfaceCalls.php::__invoke`; `FilamentGate.php::page`, `widget`; `docs/filament/security.md`. |
 | 5. Earlier download controller binding survives `bindIf` | Confirmed integration behavior, accepted as a trusted host controller override. The security guide already assigns replacement controllers row authorization duties; clarified that this includes pre-existing bindings. Replacing it unconditionally would silently discard a deliberate host replacement. | `AzGuardFilamentServiceProvider.php::register`; `docs/filament/security.md`; existing owner/legacy download refusal tests in `ExportDownloadAuthorizationTest.php`. |
 | 6. Discarded `ModelKey::where()` result | Rejected: both branches mutate the supplied builder. Serialization before the records restriction does not remove it from the local preflight query; chunk jobs recheck records. Added the distinguishing case with hidden selected key 3 while row 1 remains authorized; no headers or chunks are produced. | `packages/core/src/Support/ModelKey.php::where`; `ChecksPrepareCsvExport.php::hasAuthorizedRecord`; `ExportDownloadAuthorizationTest.php`: hidden selected keys case. |
-| 7. Nested queries with an unbuffered MySQL cursor | **Reproduced and fixed in this recheck.** On disposable MySQL 8.4.13 with `PDO::MYSQL_ATTR_USE_BUFFERED_QUERY=false`, otherwise authorized bulk callbacks, export preflight and preparation were refused. All three scans now use bounded `each(..., 100)` queries that finish fetching before nested authorization. Bulk still checks the complete selection before the callback; exports still stop after the first allowed row. This was an availability defect, not a demonstrated authorization bypass. | `AuthorizesActions.php::__invoke`, `AuthorizesExports.php::__invoke`, `ChecksPrepareCsvExport.php::hasAuthorizedRecord`; `StaleBulkAuthorizationTest.php`: 103 selected rows, allow and denial on the second page; `ExportDownloadAuthorizationTest.php`: preflight/preparation allow and revoked controls with unbuffered PDO. `build/qualification/p4-unbuffered-red.log`: 3 failures of 6 before the fix; `p4-unbuffered-final.log`: all 6 pass. |
+| 7. Nested queries with an unbuffered MySQL cursor | **Reproduced and fixed in `5e256022`; retained.** On disposable MySQL 8.4.13 with `PDO::MYSQL_ATTR_USE_BUFFERED_QUERY=false`, otherwise authorized bulk callbacks, export preflight and preparation were refused. All three scans now use bounded `each(..., 100)` queries that finish fetching before nested authorization. Bulk still checks the complete selection before the callback; exports still stop after the first allowed row. This was an availability defect, not a demonstrated authorization bypass. | `AuthorizesActions.php::__invoke`, `AuthorizesExports.php::__invoke`, `ChecksPrepareCsvExport.php::hasAuthorizedRecord`; `StaleBulkAuthorizationTest.php`: 103 selected rows, allow and denial on the second page; `ExportDownloadAuthorizationTest.php`: preflight/preparation allow and revoked controls with unbuffered PDO. `build/qualification/p4-unbuffered-red.log`: 3 failures of 6 before the fix; `p4-unbuffered-final.log`: all 6 pass. |
 
 The select-all-plus-explicit-keys fix already present at HEAD was preserved. The raw review's accepted residuals
 remain: host TOCTOU coordination, trusted low-level writes/system actors, replacement-controller responsibility,
@@ -81,7 +85,7 @@ resolves the concrete context; `VisibilityWorld::compile()` replaces registry/au
 the existing storage fixture; `SubjectAccess::grantPermission()` accepts the assignment scope as argument two.
 These observations do not extend the patch-only Grok review to unrelated files or phases.
 
-## Recheck implementation details and limits
+## Implementation details and limits of the previous recheck
 
 The original P4 run reported `coverage.status = not_reviewed` because maind and the hook blocked repository/git
 reads. Its empty findings array is not a passing review. P4.a/b/c remain static patch reviews, including P4.b's
@@ -119,7 +123,7 @@ A diagnostic PHPStan invocation including test files outside `phpstan.neon`'s co
 a passing gate. Runtime-only analysis is recorded separately in `phpstan-runtime.log`. No acceptance suite,
 real replica, MySQL unbuffered-cursor qualification, or concurrency/atomicity proof was claimed by that execution.
 
-## Current execution verification
+## Previous recheck verification (`5e256022`)
 
 Every result below is an actual invocation, not the coordinator's V1. All final commands exited 0, with no skipped
 tests. The two export tests added after the first SQLite group were then run with their entire file; the final
@@ -164,3 +168,42 @@ None of these intermediate results is represented as a final passing gate.
 V1 and the full suites it may start were not run, as instructed. There is still no claim of complete Grok P4
 coverage, real paused-replay replication qualification, MariaDB-specific execution, or atomic authorization with
 concurrent host changes. P5 and other phases were not started; no plan files or git commits were written.
+
+## Current rerun verification (`bc2cf89f`)
+
+The starting tree was clean. The comparison with `87fb6255` and `5e256022`, the five raw review results and
+four independent triages produced no change to the 27 dispositions above. The later P1–P3 changes are retained.
+In particular, the current qualification keys still guard recursion rather than cache completed decisions,
+`StorageReadSession` pins both PDO slots on its private connection, `ModelKey::where()` mutates the query,
+and the Filament scans still finish fetching each page before nested authorization queries. The framework's
+installed `chunk()` also retains the query's original limit/offset; export scans operate on a clone.
+
+These are fresh invocations against this HEAD, not reused results from the earlier executions. Each exited 0;
+no test was skipped. Outputs below are relative to `build/qualification/p4-recheck-20261031/`.
+
+| Proof | Output | Observed result | Findings covered |
+|---|---|---|---|
+| T1 | `focused.log` | SQLite: 153/153 tests, 1,083 assertions | P4.a.1–6; P4.b.1–6; P4.gap.1–7. Includes the assignment split-PDO controls, source parity negative controls, hidden/missing selections, renamed exports, revoked surfaces and download refusal. The accepted host/controller boundaries are additionally supported by the code and guide references in their dispositions. |
+| T2 | `primary-diagnostics.log` | SQLite: 24/24 tests, 124 assertions | P4.c.1–6. Includes both stale-read/primary qualification orders, Doctor/morph identity, failure telemetry and mixed batch read modes. It is split-PDO evidence, not paused-replay replication. |
+| T3 | `matrix-negative.log` | 1/1 test, 24 assertions | P4.gap.8: missing/replaced tenant-mode declarations are rejected. The matrix subprocess suite was not run. |
+| T4 | `mysql-files.log` | MySQL 8.4.13: 47/47 tests, 91 assertions | Both complete Filament files, including all six P4.a.7 unbuffered scenarios: bulk allow/denial on page two and export preflight/preparation allow/refusal. Engine version is retained in `mysql-version.log`. |
+| T5 | `runtime-analysis.log` | PHPStan over the three Filament scan files: 0 errors | Static validation of the retained cursor fixes. PHP reports that the optional turbo extension cannot load; analysis nevertheless completes successfully. |
+| T6 | `diff-check.log` | `git diff --check`: exit 0 | Final document diff. |
+
+Exact commands, in proof order, with output redirected to the files above:
+
+```bash
+php -d memory_limit=1G vendor/bin/pest tests/Contracts/Sources/QueryParityContractTest.php tests/Contracts/Sources/RelationTenantContractTest.php tests/Contracts/Sources/GateSourceContractTest.php tests/Contracts/Sources/FilamentSourceContractTest.php tests/Feature/Changes/AuthorizedAssignmentsExampleTest.php tests/Feature/Filament/Gate/ExportDownloadAuthorizationTest.php tests/Feature/Filament/Gate/StaleBulkAuthorizationTest.php tests/Feature/Filament/Gate/SurfacesTest.php tests/Feature/Filament/Gate/ForgedCallsTest.php --exclude-group=engines --fail-on-skipped
+php -d memory_limit=1G vendor/bin/pest tests/Feature/Authorization/PrimarySensitiveOperationTest.php tests/Feature/Diagnostics/MorphIdentityTest.php tests/Feature/Diagnostics/DoctorCommandTest.php tests/Feature/Authorization/FailureTelemetryTest.php tests/Feature/Authorization/Batch/PrimaryReadModeTest.php --fail-on-skipped
+php -d memory_limit=1G vendor/bin/pest tests/Contracts/Sources/CapabilityMatrixCoverageTest.php --filter='fails the tenant mode guard' --fail-on-skipped
+DB_CONNECTION=mysql MYSQL_PORT=33343 MYSQL_DATABASE=azguard_p4_recheck_test php -d memory_limit=1G vendor/bin/pest tests/Feature/Filament/Gate/StaleBulkAuthorizationTest.php tests/Feature/Filament/Gate/ExportDownloadAuthorizationTest.php --fail-on-skipped
+php -d memory_limit=1G vendor/bin/phpstan analyse --no-progress --memory-limit=1G packages/filament/src/Internal/Authorization/AuthorizesActions.php packages/filament/src/Internal/Exports/AuthorizesExports.php packages/filament/src/Internal/Exports/ChecksPrepareCsvExport.php
+git diff --check
+```
+
+T4 used a new disposable `mysql:8.4.13` container with its own database and local port; the container was stopped
+and removed afterwards. Test counts overlap between SQLite and MySQL and are not a unique-test total.
+There was no new red result to repair. No acceptance suite, P5 work, plan mutation or commit was performed.
+The original maind-blocked review remains `not_reviewed`; these local checks do not fill its missing Grok
+coverage or P4.b's unread patch middle. Real replication, MariaDB-specific execution and concurrent host
+atomicity remain outside the evidence of this rerun.
