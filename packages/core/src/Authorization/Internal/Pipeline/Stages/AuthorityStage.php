@@ -170,7 +170,7 @@ final readonly class AuthorityStage
             try {
                 $contributions = $frame->readAttempt?->contributions($request, $frame, $trace);
             } catch (Throwable $error) {
-                $component = $frame->readAttempt?->currentSource() ?? 'sources';
+                $component = $frame->readAttempt->currentSource() ?? 'sources';
 
                 throw $error;
             }

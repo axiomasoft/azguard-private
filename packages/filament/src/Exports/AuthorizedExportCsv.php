@@ -42,7 +42,9 @@ class AuthorizedExportCsv extends ExportCsv
 
         $query = EloquentSerializeFacade::unserialize($this->query)->useWritePdo();
 
-        if ($query->getModel()::class !== ($this->options[self::OPTION]['model'] ?? null)) {
+        $authority = $this->options[self::OPTION] ?? null;
+
+        if (! is_array($authority) || $query->getModel()::class !== ($authority['model'] ?? null)) {
             return;
         }
         $this->query = EloquentSerializeFacade::serialize($query);
@@ -105,7 +107,11 @@ class AuthorizedExportCsv extends ExportCsv
             $request = AccessRequest::for($subject, PermissionKey::of($panel->id(), $authority['permission']))->on(null, $record)->withSubjectModel($user);
 
             if ($access->decide($request)->allowed()) {
-                $visible[] = (string) $record->getKey();
+                $key = $record->getKey();
+
+                if (is_int($key) || is_string($key)) {
+                    $visible[] = (string) $key;
+                }
             }
         }
 

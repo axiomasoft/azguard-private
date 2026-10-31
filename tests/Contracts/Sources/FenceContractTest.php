@@ -7,6 +7,7 @@ use AzGuard\Kernel\Decision\DecisionReason;
 use AzGuard\Panels\Panel;
 use AzGuard\Panels\PanelBuilder;
 use AzGuard\Testing\Contracts\SourceContractTests;
+use AzGuard\Testing\FakeSource;
 use AzGuard\Testing\Internal\Contracts\ContractPermission;
 use AzGuard\Testing\Internal\Contracts\ContractWorld;
 use AzGuard\Tests\Fixtures\Contracts\Probes\RunsAsAProbe;
@@ -31,6 +32,27 @@ final class BrokenFenceProbe
         return $source->mutate(...);
     }
 }
+
+final class ReplacedFenceProbe
+{
+    use RunsAsAProbe;
+    use SourceContractTests;
+
+    protected function azguardSource(): Source
+    {
+        return new BrokenFenceSource;
+    }
+
+    protected function azguardAttach(PanelBuilder $panel, Source $source): void
+    {
+        $panel->permissions([new FakeSource($source->id())]);
+    }
+}
+
+it('rejects an attached source that lost its fencing capability', function (): void {
+    expect(fn () => (new ReplacedFenceProbe)->run('fencedAuthorityChangesItsStateOnlyOnMutation'))
+        ->toThrow(AssertionFailedError::class, 'The attached source must retain its fencing capability.');
+});
 
 it('rejects changed authority after a no-op revoke with the same state', function (): void {
     expect(fn () => (new BrokenFenceProbe(driftOnNoopRevoke: true))->run('fencedAuthorityChangesItsStateOnlyOnMutation'))

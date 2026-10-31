@@ -46,8 +46,8 @@ final class PermissionSetCache
 
     public function __construct(private readonly Factory $stores)
     {
-        $this->maxMemoEntries = AzGuardConfig::memoLimit('max_memo_entries', config('azguard.cache.max_memo_entries', 1024));
-        $this->maxStateEntries = AzGuardConfig::memoLimit('max_state_entries', config('azguard.cache.max_state_entries', 1024));
+        $this->maxMemoEntries = AzGuardConfig::cacheMemoLimit(app('config'), 'max_memo_entries');
+        $this->maxStateEntries = AzGuardConfig::cacheMemoLimit(app('config'), 'max_state_entries');
     }
 
     public function forgetPanel(string $panel): void
@@ -80,7 +80,7 @@ final class PermissionSetCache
             default => ['code', $state->panel(), $state->buildId(), $state->fingerprint()],
         };
 
-        return 'azguard:sets:v2:'.IdentityCodec::digest([config('azguard.cache.namespace'), $revision, $generation, $subject, $tenant, array_values(array_unique($contexts)), $source, $readMode, $authority]);
+        return 'azguard:sets:v2:'.IdentityCodec::digest([AzGuardConfig::cacheNamespace(app('config')), $revision, $generation, $subject, $tenant, array_values(array_unique($contexts)), $source, $readMode, $authority]);
     }
 
     /** @return list<Grant|RoleContribution>|null */
@@ -250,10 +250,14 @@ final class PermissionSetCache
                 $store->forget($key);
             }
         } elseif ($store instanceof RedisStore && is_string($raw) && $this->supportsStore($store)) {
-            $store->connection()->eval(
-                "if redis.call('get', KEYS[1]) == ARGV[1] then return redis.call('del', KEYS[1]) else return 0 end",
-                1, $store->getPrefix().$key, $raw,
-            );
+            $connection = $store->connection();
+            $script = "if redis.call('get', KEYS[1]) == ARGV[1] then return redis.call('del', KEYS[1]) else return 0 end";
+
+            if ($connection instanceof PhpRedisConnection) {
+                $connection->eval($script, 1, $store->getPrefix().$key, $raw);
+            } elseif ($connection instanceof PredisConnection) {
+                $connection->command('eval', [$script, 1, $store->getPrefix().$key, $raw]);
+            }
         }
     }
 

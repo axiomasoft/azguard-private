@@ -100,7 +100,7 @@ trait SourceContractTests
      *
      * `expected` optionally supplies an independent resource-id => boolean oracle, including tenant/context denials.
      *
-     * @return array{scalar: callable(): array, batch: callable(): array, visibility: callable(): array, supported: bool, expected?: array}|null
+     * @return array{scalar: callable(): array<int|string, mixed>, batch: callable(): array<int|string, mixed>, visibility: callable(): array<int|string, mixed>, supported: bool, expected?: array<int|string, mixed>}|null
      */
     protected function azguardQueryParity(): ?array
     {
@@ -118,7 +118,7 @@ trait SourceContractTests
         $this->azguardAssertQueryParity($case);
     }
 
-    /** @param array{scalar: callable(): array, batch: callable(): array, visibility: callable(): array, supported: bool, expected?: array} $case */
+    /** @param array{scalar: callable(): array<int|string, mixed>, batch: callable(): array<int|string, mixed>, visibility: callable(): array<int|string, mixed>, supported: bool, expected?: array<int|string, mixed>} $case */
     private function azguardAssertQueryParity(array $case): void
     {
         $scalar = ($case['scalar'])();
@@ -171,6 +171,12 @@ trait SourceContractTests
         }
         $panel = ContractWorld::panel(fn (PanelBuilder $builder) => $this->azguardAttach($builder, $source));
         $source = $this->azguardAttached($panel, $source);
+
+        if (! $source instanceof FencesReads) {
+            $this->assertInstanceOf(FencesReads::class, $source, 'The attached source must retain its fencing capability.');
+
+            return;
+        }
         $mutate = $this->azguardFenceMutation($source, $panel);
 
         if ($mutate === null) {

@@ -24,6 +24,7 @@ use Illuminate\Contracts\Auth\Access\Gate;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Illuminate\Support\Facades\Log;
 use Throwable;
 use UnitEnum;
@@ -89,7 +90,7 @@ final class FilamentGate
 
                 if (in_array(SoftDeletes::class, class_uses_recursive($record), true)
                     && in_array(FilamentContext::ability($action), ['restore', 'force_delete'], true)) {
-                    $query->withTrashed();
+                    $query->withoutGlobalScope(SoftDeletingScope::class);
                 }
                 $record = $query->find($record->getKey());
 
