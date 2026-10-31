@@ -63,8 +63,8 @@ version, and retain the inventory, scripts and verification output with the depl
    and validate aliases. The current keys are `type:id` or `global`; they are not the versioned JSON composites
    produced by `IdentityCodec::compose()` (`IdentityCodec::VERSION` is currently 1). Use the installed factories,
    not SQL string replacement, and verify keys in permission definitions and grants against their type/ID columns.
-4. Deploy the map and code together, reset state for every affected panel with `php artisan azguard:state:reset
-   <panel>`, invalidate external caches, restart workers, run Doctor in production mode and verify representative
+4. Deploy the map and code together, reset state for every affected panel with
+   `php artisan azguard:state:reset <panel>`, invalidate external caches, restart workers, run Doctor in production mode and verify representative
    subject, tenant and context access. Recount old and new values and compare hashes to the expected exports before
    resuming traffic. Retain the unchanged audit inventory and verify it separately.
 5. For rollback, quiesce writers again. Restore the consistent backup and matching old code/map, or use a rehearsed
