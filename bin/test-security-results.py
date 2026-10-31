@@ -22,6 +22,7 @@ class ResultTests(unittest.TestCase):
         self.sha = subprocess.check_output(['git', 'rev-parse', 'HEAD'], text=True).strip()
         self.report = self.directory / 'scan.sarif'
         self.sarif = {'version': '2.1.0', 'runs': [{'tool': {'driver': {'name': 'CodeQL'}},
+                      'automationDetails': {'id': '/language:actions/'},
                       'results': [], 'invocations': [{'executionSuccessful': True}]}]}
         self.write(self.sarif)
 
@@ -74,6 +75,20 @@ class ResultTests(unittest.TestCase):
     def test_sha_mismatch_fails(self):
         self.assertTrue(self.check(sha='0' * 40))
         self.assertTrue(self.check(sha='bad'))
+
+    def test_codeql_category_must_match_the_requested_language(self):
+        self.assertTrue(self.check(scanner='codeql-javascript-typescript'))
+        for category in (None, '', '/language:php/', '/language:actions/extra/'):
+            with self.subTest(category=category):
+                self.sarif['runs'][0]['automationDetails'] = {'id': category}
+                self.write(self.sarif)
+                self.assertTrue(self.check())
+        del self.sarif['runs'][0]['automationDetails']
+        self.write(self.sarif)
+        self.assertTrue(self.check())
+        self.sarif['runs'][0]['automationDetails'] = {'id': '/language:javascript-typescript/'}
+        self.write(self.sarif)
+        self.assertFalse(self.check(scanner='codeql-javascript-typescript'))
 
     def test_gitleaks_clean_and_finding(self):
         self.report.unlink()

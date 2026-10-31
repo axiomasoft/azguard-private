@@ -31,6 +31,12 @@ def validate_sarif(data, scanner):
         tool = run.get('tool', {}).get('driver', {}).get('name', '')
         if not isinstance(tool, str) or expected not in tool.lower():
             raise ValueError('unexpected SARIF tool')
+        if scanner.startswith('codeql-'):
+            # The workflow supplies this category to CodeQL for each language.
+            # A clean report from a different matrix lane must not satisfy it.
+            category = run.get('automationDetails', {}).get('id')
+            if category != f'/language:{scanner.removeprefix("codeql-")}/':
+                raise ValueError('CodeQL SARIF category does not match scanner scope')
         results = run.get('results')
         if not isinstance(results, list) or results:
             raise ValueError('SARIF results missing, invalid or contain findings')
