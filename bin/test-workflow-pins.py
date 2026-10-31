@@ -79,9 +79,30 @@ class PolicyTests(unittest.TestCase):
                     'echo "$TITLE"; python3 -c "$TITLE"'):
             with self.subTest(run=run):
                 self.check_bad(template.replace('echo VALUE', run))
-        self.assertEqual([], pins.check_workflow(template.replace('echo VALUE', 'git diff "$TITLE" -- . ":!plans"'), 'test.yml'))
+        self.check_bad(template.replace('echo VALUE', 'git diff "$TITLE" -- . ":!plans"'))
         self.check_bad(template.replace('TITLE:', 'BASH_ENV:').replace('VALUE', 'safe'))
         self.check_bad(BASE.replace('    steps:', f'    env: {{TITLE: "{expression}"}}\n    steps:').replace('echo safe', 'echo $TITLE'))
+
+    def test_fail_closed_execution_boundaries(self):
+        expression = '${{ github.event.pull_request.title }}'
+        for field in ('runs-on', 'container'):
+            self.check_bad(BASE.replace('runs-on: ubuntu-latest', f'{field}: "{expression}"'))
+        self.check_bad(BASE.replace('    steps:', f'    container:\n      image: "{expression}"\n    steps:'))
+        for expression in ('${{ needs.a.outputs.title }}', '${{ steps.a.outputs.title }}', '${{ matrix.title }}'):
+            self.check_bad(BASE.replace('echo safe', 'echo ' + expression))
+        producer = BASE.replace('jobs:\n', 'jobs:\n  a:\n    runs-on: ubuntu-latest\n    outputs:\n      title: ${{ github.event.pull_request.title }}\n    steps:\n      - run: echo safe\n')
+        self.check_bad(producer.replace('echo safe\n', 'echo ${{ needs.a.outputs.title }}\n', 1))
+        for name in ('PATH', 'LD_PRELOAD', 'LD_LIBRARY_PATH', 'NODE_OPTIONS', 'PYTHONPATH', 'GIT_EXTERNAL_DIFF', 'GIT_SSH_COMMAND'):
+            self.check_bad(BASE.replace('      - run: echo safe', f'      - env:\n          {name}: "${{{{ github.event.pull_request.title }}}}"\n        run: echo safe'))
+        self.check_bad(BASE.replace('echo safe', 'echo $GITHUB_HEAD_REF'))
+        self.check_bad(BASE.replace('      - run: echo safe', '      - env:\n          TITLE: "${{ github.event.pull_request.title }}"\n        run: python3 -c \'import os; os.system(os.environ["TITLE"])\''))
+
+    def test_snapshot_binds_workflow_environment_and_runner(self):
+        text = (pins.ROOT / '.github/workflows/compatibility.yml').read_text()
+        for modified in (text + '\n# review required\n',
+                         text.replace('permissions:\n', 'env: {GIT_EXTERNAL_DIFF: attacker}\npermissions:\n', 1),
+                         text.replace('runs-on: ubuntu-latest', 'runs-on: ${{ github.event.pull_request.title }}')):
+            self.assertTrue(pins.check_workflow(modified, 'compatibility.yml'))
 
     def test_env_context_cannot_be_injected_into_action_script(self):
         for expression in ('env.TITLE', 'toJSON(env)'):

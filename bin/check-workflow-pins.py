@@ -25,6 +25,28 @@ WRITE_PERMISSIONS = {
     ('dependabot-auto-merge.yml', 'sweep'): {'pull-requests'},
 }
 EXTERNAL = re.compile(r'^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+(?:/[A-Za-z0-9_.-]+)*@[0-9a-f]{40}$')
+# Exact workflow snapshots are the review boundary, not a shell-safety proof.
+# Any change to a snapshot requires reviewing the complete workflow and updating
+# its digest. Pin and permissions checks still apply to every snapshot.
+REVIEWED_WORKFLOWS = {
+    'bench.yml': '7c74b235f4378986e824240728c964dc86ffe667a8f665e001156181c5107f9d',
+    'code-style.yml': '47fc04265aa785339ee1f6e024feb4179268f5b50e69038894803d200ce0d51d',
+    'codeql.yml': '5b1ec5345b3d8dc7d493c0ba0beb481b4f7db5c797a5279d35f2fea9cfc715c8',
+    'compatibility.yml': '9265ea0c66f1083dde332e7f7de35c55aecf928f21ae92a012e90bf30f4acf71',
+    'dependabot-auto-merge.yml': '4b7d7bab17b16cfa72142d8f94e6d11d4a4f89f8c34c85a0c2bbac58320044c1',
+    'docs-deploy.yml': 'c3ba61342e3d816dc09dfaefe488f9a9a1087bc89e38d6bacb9e478266ae729c',
+    'docs.yml': '4ae6826bdb0d02c9df13a82b4865c85bc21811b0f296412c8f02018422ba22d6',
+    'mutation.yml': '519e1a2b6e93bf13149da5337d65b3fcf7bc76e5e803579833106f893bebe435',
+    'pr-check.yml': 'b72cad5c81a8fe3d9692fd65af390ace4a63c705f7219dc6f8b5f929fd0bb493',
+    'release.yml': '3bc796faac8ca0ffb837a5236ce911d7224f3b8a27649fefc9f74a0b9fb52490',
+    'security.yml': '8c897b09e7a97184f686c135055e7b4d89f083c339890290730ebde3cafb89bd',
+    'split.yml': '1271598a4c9f76f1472d6ff06fae36394bdb7a7084f52d050adb7ebbe2285127',
+    'static-analysis.yml': '75cfd1b9002f8fd952cf48a51dd07ab94a3836385ba3c6b9351ed79b677d1b05',
+    'tests-nightly.yml': 'f8a9a70f743fd556b8907537fa45c959d6f55b187d98d0f3d87bd9152a98021c',
+    'tests.yml': 'de667c8dbf99c03001f45d15278fef5fee7c8dbecb02e9aba7cd5d0f97b2b7ee',
+    'workers.yml': 'a0d14c246f8bb936af5fac18326cfc84c795304bf93f31869b5ff5a1522ac546',
+    'zizmor.yml': '0e978a5096c4632787d0952bd4ef73833d980cc08742d6a3a346c3d78e6a43c3',
+}
 UNTRUSTED = re.compile(r'\$\{\{.*?(?:\bgithub\b|\binputs\b|\benv\b)', re.I | re.S)
 # Only these action inputs are known to consume the value as data, not script.
 DATA_INPUTS = {
@@ -147,6 +169,42 @@ def mapping(loader, node, deep=False):
 Loader.add_constructor(yaml.resolver.BaseResolver.DEFAULT_MAPPING_TAG, mapping)
 
 
+def check_unreviewed(workflow, jobs, errors):
+    """Accept only a tiny non-executing data example without a snapshot.
+
+    This is intentionally not shell analysis. In particular, unknown env names,
+    outputs, runners, containers, actions and scripts require a full review.
+    """
+    if set(workflow) - {'name', 'on', True, 'permissions', 'jobs'}:
+        errors.append('unreviewed workflow configuration')
+    for job_id, job in jobs.items():
+        if not isinstance(job, dict):
+            continue
+        if set(job) - {'name', 'runs-on', 'permissions', 'steps'} or job.get('runs-on') != 'ubuntu-latest':
+            errors.append(f'{job_id}: unreviewed job configuration')
+        for step in job.get('steps', []):
+            if not isinstance(step, dict):
+                continue
+            if set(step) - {'name', 'uses', 'with', 'run', 'env'}:
+                errors.append(f'{job_id}: unreviewed step configuration')
+            env = step.get('env', {})
+            if not isinstance(env, dict) or set(env) - {'TITLE'}:
+                errors.append(f'{job_id}: unreviewed environment')
+            if 'run' in step and step['run'] not in ('echo safe', 'echo "$TITLE"'):
+                errors.append(f'{job_id}: unreviewed script')
+            if 'uses' in step:
+                ref = step['uses']
+                action = ref.split('@')[0].lower() if isinstance(ref, str) else ''
+                if action != 'actions/checkout' and ref not in LOCAL_WORKFLOWS and action != 'softprops/action-gh-release':
+                    errors.append(f'{job_id}: unreviewed action')
+                inputs = step.get('with', {})
+                permitted = {'persist-credentials'} if action == 'actions/checkout' or ref in LOCAL_WORKFLOWS else {'name', 'prerelease'}
+                if not isinstance(inputs, dict) or set(inputs) - permitted:
+                    errors.append(f'{job_id}: unreviewed action inputs')
+                if env:
+                    errors.append(f'{job_id}: unreviewed action environment')
+
+
 def check_workflow(text, filename):
     errors = []
     try:
@@ -158,6 +216,8 @@ def check_workflow(text, filename):
         jobs = workflow.get('jobs')
         if not isinstance(jobs, dict):
             raise ValueError('jobs must be a mapping')
+        if hashlib.sha256(text.encode()).hexdigest() != REVIEWED_WORKFLOWS.get(filename):
+            check_unreviewed(workflow, jobs, errors)
         events = workflow.get('on', workflow.get(True))
         check_shell_defaults(workflow.get('defaults'), errors, 'workflow')
         workflow_env = check_env(workflow.get('env'), errors, 'workflow')
