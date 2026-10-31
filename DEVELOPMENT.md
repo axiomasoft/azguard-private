@@ -64,7 +64,10 @@ an explicit source SHA is checked against HEAD. A changed PHPUnit target default
 fails closed. Dirty state and paths are recorded and fail the worktree check;
 a dirty tree cannot produce a passed baseline. Coverage may use PATH PHP or
 `php8.4`, as in the coverage gate; its reported binary is separate from the
-PATH PHP used for the target probes. `--read-only` explicitly selects this same
+PATH PHP used for the target probes. The selected coverage binary must also load
+the requested database driver and, for a Redis lane, the Redis extension; otherwise
+the coverage check fails even when the PATH PHP target probes pass.
+`--read-only` explicitly selects this same
 inspection mode; it does not disable the isolated memory migration probe.
 SQLite migration readiness runs both package migrations against an isolated
 in-memory Testbench connection. Server targets require a healthy Compose

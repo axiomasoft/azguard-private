@@ -42,6 +42,7 @@ class PreflightTest(unittest.TestCase):
         self.streaming = 'streaming'
         self.migration_port = None
         self.pcov = '1'
+        self.php_runtimes = {}
 
     def write_defaults(self):
         (self.root / 'phpunit.xml').write_text('<phpunit><php>' + ''.join(
@@ -89,7 +90,8 @@ class PreflightTest(unittest.TestCase):
         elif argv[0] in ('php', 'php8.4'):
             code = argv[2] if len(argv) > 2 else ''
             if 'get_loaded_extensions' in code:
-                output = json.dumps({'extensions': ['pdo_sqlite', 'pdo_pgsql', 'redis', 'pcov'], 'pcov_enabled': self.pcov})
+                output = json.dumps(self.php_runtimes.get(argv[0], {
+                    'extensions': ['pdo_sqlite', 'pdo_pgsql', 'redis', 'pcov'], 'pcov_enabled': self.pcov}))
             elif 'pg_is_in_recovery' in code:
                 standby = argv[-1] == '25434'
                 output = ('azguard_authority_test:' + ('true' if standby else 'false')) if 'pg_control_system' not in code else json.dumps({'database': 'azguard_authority_test', 'recovery': standby,
@@ -227,6 +229,33 @@ class PreflightTest(unittest.TestCase):
     def test_pcov_off_is_not_coverage(self):
         self.pcov = 'Off'
         self.assertNotEqual(self.execute()[0], 0)
+
+    def fallback_coverage(self, extensions):
+        self.php_runtimes = {
+            'php': {'extensions': ['pdo_sqlite', 'pdo_pgsql', 'redis'], 'pcov_enabled': '0'},
+            'php8.4': {'extensions': extensions + ['pcov'], 'pcov_enabled': '1'},
+        }
+
+    def test_coverage_fallback_without_target_pdo_is_rejected(self):
+        self.fallback_coverage(['pdo_sqlite', 'redis'])
+        code, report = self.execute(DB_CONNECTION='pgsql')
+        self.assertNotEqual(code, 0)
+        self.assertEqual(report['checks']['database.driver']['status'], 'passed')
+        self.assertEqual(report['checks']['database.target']['status'], 'passed')
+        self.assertEqual(report['checks']['coverage']['status'], 'failed')
+        self.assertEqual(report['checks']['coverage']['detail']['missing_extensions'], ['pdo_pgsql'])
+
+    def test_coverage_fallback_without_redis_is_rejected(self):
+        self.fallback_coverage(['pdo_sqlite'])
+        code, report = self.execute(QUALIFICATION_REDIS='1')
+        self.assertNotEqual(code, 0)
+        self.assertEqual(report['checks']['redis.readiness']['status'], 'passed')
+        self.assertEqual(report['checks']['coverage']['status'], 'failed')
+        self.assertEqual(report['checks']['coverage']['detail']['missing_extensions'], ['redis'])
+
+    def test_coverage_fallback_with_lane_extensions_is_accepted(self):
+        self.fallback_coverage(['pdo_sqlite', 'pdo_pgsql', 'redis'])
+        self.assertEqual(self.execute(DB_CONNECTION='pgsql')[0], 0)
 
     def test_atomic_replace_failure_preserves_previous_report(self):
         self.report.write_text('{"previous": true}\n')

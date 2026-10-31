@@ -135,6 +135,7 @@ except ValueError: php = {}
 ext = {x.lower() for x in php.get('extensions', [])}
 check('php.runtime', 'passed' if php else 'unavailable', php)
 coverage_php = None
+coverage_extensions = set()
 for binary in ('php', 'php8.4'):
     code, output, _ = run(binary, '-r', 'echo json_encode(["extensions"=>get_loaded_extensions(),"pcov_enabled"=>ini_get("pcov.enabled"),"xdebug_mode"=>ini_get("xdebug.mode")]);')
     try: candidate = json.loads(output) if code == 0 else {}
@@ -142,8 +143,8 @@ for binary in ('php', 'php8.4'):
     drivers = {x.lower() for x in candidate.get('extensions', [])}
     if ('pcov' in drivers and str(candidate.get('pcov_enabled')).lower() in ('1', 'on', 'yes', 'true')) or ('xdebug' in drivers and 'coverage' in (env('XDEBUG_MODE') or candidate.get('xdebug_mode') or '').split(',')):
         coverage_php = shutil.which(binary)
+        coverage_extensions = drivers
         break
-check('coverage', 'passed' if coverage_php else 'failed', {'owner': 'coverage driver', 'php': coverage_php})
 local, docker_detail = local_docker()
 rc, _, _ = run('docker', 'info', '--format', '{{.ServerVersion}}') if local else (1, '', '')
 check('docker.readiness', 'passed' if rc == 0 else 'unavailable', dict(docker_detail, exit=rc, owner='local test stand'))
@@ -165,6 +166,14 @@ safe_environment = app_env == 'testing' and not unsafe_aliases and defaults_ok
 check('environment', 'passed' if safe_environment else 'failed', {'app_env': app_env or None, 'unsupported_aliases': unsafe_aliases, 'owner': 'test target'})
 driver_ext = {'sqlite': 'pdo_sqlite', 'pgsql': 'pdo_pgsql', 'mysql': 'pdo_mysql', 'mariadb': 'pdo_mysql'}
 check('database.driver', 'passed' if driver in driver_ext and driver_ext[driver] in ext else 'failed', {'driver': driver or None, 'required_extension': driver_ext.get(driver), 'owner': 'database lane'})
+# Coverage can fall back to another PHP executable. That runtime must also be
+# able to run the requested target lane, independently of the PATH PHP probes.
+coverage_required = {driver_ext[driver]} if driver in driver_ext else set()
+if env('REDIS_PREFIX') or env('QUALIFICATION_REDIS') == '1':
+    coverage_required.add('redis')
+coverage_missing = sorted(coverage_required - coverage_extensions)
+check('coverage', 'passed' if coverage_php and not coverage_missing else 'failed',
+      {'owner': 'coverage driver', 'php': coverage_php, 'missing_extensions': coverage_missing})
 if driver == 'sqlite':
     ok = database == ':memory:' and not replica_requested and safe_environment
     check('database.target', 'passed' if ok else 'failed', {'driver': driver, 'database': database, 'owner': 'database lane'})

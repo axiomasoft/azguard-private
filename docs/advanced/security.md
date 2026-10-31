@@ -45,18 +45,17 @@ evaluates host inputs on each operation. Policy, membership, conditions and rest
 on a cache hit. “Live” means at evaluation time using the supplied host models, not an automatic reload
 of a model that the caller captured earlier.
 
-**Pending integrity hardening (D3):** shared authority must use a versioned HMAC envelope binding the exact
-namespace, full cache key, issue/expiry times and payload bytes. Verify the envelope, supported version,
-key id, time bounds and size limits **before deserialization**, then validate every contribution and its
-identity. Reject unsigned, malformed, tampered, expired or differently bound entries as a miss and reload
-from the source; a failed reload must deny. Rotation must support a bounded verification window for old
-keys and an active signing key, with finite TTL. Never log signing material.
+Shared authority uses a versioned HMAC envelope binding the namespace, full cache key digest,
+issue/expiry times and payload bytes. `PermissionSetCache::get()` reads the stored bytes without object
+deserialization and calls `SignedEnvelope::decode()` before its allowed-class payload decoder. The signer
+checks the version, key id, time bounds, size and MAC; contributions are then reconstructed through their
+validated factories. Unsigned, malformed, tampered, expired or differently bound entries are cache misses
+and reload from the source; a failed reload must deny.
 
-The current `PermissionSetCache::decode()` uses `unserialize(..., allowed_classes: ...)` and item type
-checks; it does **not** authenticate stored bytes. An attacker can forge a valid allowed `Grant` without
-introducing a new PHP class. Until the envelope work is qualified, writable shared cache remains a trusted
-integrity boundary; the Redis-only attacker guarantee is pending. An allowlist or dedicated prefix alone
-does not establish integrity.
+Cross-request caching requires an explicit namespace and signing material; unsupported stores or Redis
+client serialization/compression bypass it. Entries have finite TTL, and previous keys need an explicit
+verification deadline. See [cache configuration](../reference/configuration.md) for setup and rotation.
+An allowlist or dedicated prefix alone does not establish integrity. Never log signing material.
 
 HMAC establishes possession of a shared signing key, not which person acted. It provides neither
 confidentiality nor availability, does not repair an incorrect source state token, and cannot prevent replay
@@ -108,15 +107,17 @@ Paths are relative to the repository root. Method names identify enforcement, no
 
 ### SEC-04 — Serialized authority is authenticated before use
 
-- **Enforcement:** `PermissionSetCache::get()`, `decode()` and `put()` are the integration points;
-  HMAC verification before deserialization, bounded decoding and rotation are **pending**, as specified above.
+- **Enforcement:** `PermissionSetCache::get()`, `readEnvelope()`, `decode()` and `put()` integrate
+  `SignedEnvelope` in `packages/core/src/Authorization/Internal/Cache/SignedEnvelope.php` for HMAC verification
+  before payload deserialization, bounded decoding and rotation.
 - **Bypass and interference:** a Redis writer forges an allowed value object, copies another key's bytes or
   replays a signed entry. There is no Redis-lock substitute for key binding; revoke must change the source
   revision, and finite expiry bounds same-key replay. Key/backend compromise remains outside this guarantee.
-- **P2–P6 check:** extend `tests/Feature/Authorization/Cache/RedisStoreTest.php` with forged valid grants,
-  unsigned legacy entries, changed MAC/payload/key/namespace/times, expired entries, unknown versions/key ids,
-  oversize payloads and rotation. Require source reload, no forged grant, and denial if that reload fails.
-  These adversarial envelope cases are pending; current Redis round-trip tests do not prove integrity.
+- **P2–P6 checks:** `tests/Feature/Authorization/Cache/EnvelopeIntegrityTest.php` covers forged grants,
+  unsigned entries, tampering, copies, rotation and unsafe store transports. `SignedEnvelopeTest.php` in the
+  same directory covers authenticated invalid fields, exact expiry and oversize envelopes.
+  `tests/Feature/Authorization/Cache/RedisStoreTest.php` exercises real Redis tampering, replay after revoke
+  and transaction publication. Local in-memory tests do not replace that dedicated Redis qualification.
 
 ### SEC-05 — A read reports the authority it actually consumed
 

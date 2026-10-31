@@ -195,8 +195,12 @@ it('reports stable unfenced and missing query declarations before the first gran
     }
     $description = array_values(array_filter($panel->sources(), static fn (SourceDescription $s): bool => $s->id === 'legacy'))[0];
     expect($description->volatility)->toBe(Volatility::Stable)->and($description->matrix['exact_visibility']['status'])->toBe('unsupported');
-    expect(fn () => $visibility->visibleTo($panel, VisibilityProject::query(), W::subject(), 'orders.view'))
+    $query = VisibilityProject::query()->where('active', true);
+    $sql = $query->toSql();
+    $bindings = $query->getBindings();
+    expect(fn () => $visibility->visibleTo($panel, $query, W::subject(), 'orders.view'))
         ->toThrow(VisibilityNotSupportedException::class, 'source_error');
+    expect($query->toSql())->toBe($sql)->and($query->getBindings())->toBe($bindings);
 });
 
 it('exports the normalized description through the machine panel overview', function (): void {
@@ -213,8 +217,16 @@ it('warns about declared automatic folder roles without evaluating them', functi
     expect($findings)->toHaveCount(1)->and($findings[0]->key)->toBe('panels.sources.visibility')
         ->and($findings[0]->details['reason'])->toBe('automatic_roles')
         ->and($findings[0]->details['roles'])->toBe([CapabilityAutomaticRole::class]);
-    expect(fn () => $visibility->visibleTo($panel, VisibilityProject::query(), W::subject(), 'orders.view'))
+    $sources = app(PanelOverview::class)->panel($panel, sources: true)['sources']['sources'];
+    $folder = array_values(array_filter($sources, static fn (array $s): bool => $s['class'] === FolderSource::class))[0];
+    expect($folder['matrix']['exact_visibility']['status'])->toBe('conditional')
+        ->and(capabilityMatrixDocument()['sources']['folder_automatic_role']['matrix']['exact_visibility']['status'])->toBe('unsupported');
+    $query = VisibilityProject::query()->where('active', true);
+    $sql = $query->toSql();
+    $bindings = $query->getBindings();
+    expect(fn () => $visibility->visibleTo($panel, $query, W::subject(), 'orders.view'))
         ->toThrow(VisibilityNotSupportedException::class, 'unsupported_selection');
+    expect($query->toSql())->toBe($sql)->and($query->getBindings())->toBe($bindings);
 });
 
 it('treats an automatic selection declaration as conditional rather than a runtime guarantee', function (): void {

@@ -6,6 +6,8 @@ version) are documented here. Format: [Keep a Changelog](https://keepachangelog.
 
 ## [Unreleased]
 
+- Qualification preflight rejects a coverage PHP fallback missing the selected database or Redis extension.
+  The trust model now describes the implemented signed-cache boundary and its remaining replay limits.
 - Filament export authorization now follows the export action class when renamed; custom callbacks named `export`
   retain their own action permission. Custom bulk callbacks refuse non-scalar deselected keys before execution.
 - The role-assignment host example reloads records and membership from primary and explicitly qualifies actor

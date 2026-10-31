@@ -55,9 +55,9 @@ cannot satisfy a `Reads::Primary` lookup, even when both modes resolve to the sa
 The cache holds raw authority; membership, policy, conditions and restrictions are evaluated per operation.
 That evaluation uses the supplied host models, so the caller must reload stale host records when required.
 
-Cache key isolation is not byte integrity. The current serialized cache uses an allowed-class decoder;
-the versioned HMAC envelope, finite TTL and rotation specified in
-[SEC-04](./security.md#sec-04-serialized-authority-is-authenticated-before-use) are pending hardening.
+Cache key isolation is not byte integrity. Shared entries use a versioned HMAC envelope verified before
+the allowed-class payload decoder, with finite TTL and bounded previous-key verification as described in
+[SEC-04](./security.md#sec-04-serialized-authority-is-authenticated-before-use).
 Even authenticated entries still depend on correct source revisions and can be replayed at an unchanged
 key until expiry. Redis access control and source fencing remain necessary.
 
