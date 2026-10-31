@@ -162,16 +162,19 @@ Paths are relative to the repository root. Method names identify enforcement, no
 - **Enforcement:** `ChangePipeline::operate()` and
   `packages/core/src/Changes/Internal/ChangeValidator.php::finalize()` protect mutation structure and target
   validity. `packages/core/src/Changes/Internal/ActingActor.php::resolve()` supplies attribution. Neither
-  constitutes a universal actor authorization gate. The executable host service and its adversarial checks
-  required by D8 are **pending**; low-level APIs remain trusted backend primitives.
+  constitutes a universal actor authorization gate. The [executable host service](../../tests/Fixtures/Changes/AuthorizedRoleAssignments.php)
+  illustrates the D8 boundary; low-level APIs remain trusted backend primitives. See the
+  [assignment authorization guide](../guides/managing-grants.md) for its policy and integration duties.
 - **Bypass and interference:** exposing `grantRole()` or managers directly, trusting an HTTP actor field,
   confusing actor with target, or treating an old UI selection as permission. Re-resolve actor server-side
   and authorize actor/target/role/scope for every action. Concurrent membership or role changes need the
   host protocol from SEC-07 if atomicity is required; the grant lock alone does not authorize the actor.
 - **P2–P6 check:** `tests/Feature/Changes/ActorTest.php` proves guard/frame attribution and target separation;
-  `tests/Feature/Filament/Gate/ForgedCallsTest.php` exercises direct forged actions. Extend integration
-  coverage with the D8 host service: forged actor, foreign target/tenant/scope and role escalation must
-  produce no grant and no successful-effect journal entry. Attribution tests alone do not prove authorization.
+  `tests/Feature/Filament/Gate/ForgedCallsTest.php` exercises direct forged actions.
+  `tests/Feature/Changes/AuthorizedAssignmentsExampleTest.php` checks the example's denied grants and revokes,
+  forged actor fields, foreign targets and scopes, and a user job whose actor lost authority. It checks that
+  denials leave grants, revisions, successful events and audit rows unchanged. Attribution tests alone do not
+  prove authorization.
 
 ### SEC-09 — Failures deny with bounded public disclosure
 
