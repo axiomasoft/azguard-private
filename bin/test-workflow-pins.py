@@ -1,0 +1,57 @@
+#!/usr/bin/env python3
+"""Negative examples for the workflow policy."""
+
+import importlib.util
+from pathlib import Path
+import unittest
+
+spec = importlib.util.spec_from_file_location('workflow_pins', Path(__file__).with_name('check-workflow-pins.py'))
+pins = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(pins)
+
+BASE = '''
+on: pull_request
+permissions: {contents: read}
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with: {persist-credentials: false}
+      - run: echo safe
+'''
+
+
+class PolicyTests(unittest.TestCase):
+    def check_bad(self, text):
+        self.assertTrue(pins.check_workflow(text, 'test.yml'))
+
+    def test_valid(self):
+        self.assertEqual([], pins.check_workflow(BASE, 'test.yml'))
+
+    def test_bad_refs(self):
+        for ref in ('v4', 'd23441a', '${{ inputs.action }}', './.github/workflows/unknown.yml', 'docker://alpine:latest'):
+            with self.subTest(ref=ref):
+                self.check_bad(BASE.replace('actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803', ref))
+
+    def test_local_workflow_allowlist(self):
+        self.assertEqual([], pins.check_workflow(BASE.replace('actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803', './.github/workflows/tests.yml'), 'test.yml'))
+
+    def test_permissions(self):
+        self.check_bad(BASE.replace('permissions: {contents: read}', 'permissions: write-all'))
+        self.check_bad(BASE.replace('runs-on: ubuntu-latest', 'permissions: {contents: write}\n    runs-on: ubuntu-latest'))
+
+    def test_checkout_credentials(self):
+        self.check_bad(BASE.replace('persist-credentials: false', 'persist-credentials: true'))
+        self.check_bad(BASE.replace('        with: {persist-credentials: false}\n', ''))
+
+    def test_untrusted_inline_and_privileged_trigger(self):
+        self.check_bad(BASE.replace('echo safe', 'echo ${{ github.event.pull_request.title }}'))
+        self.check_bad(BASE.replace('pull_request', 'pull_request_target'))
+
+    def test_duplicate_keys(self):
+        self.check_bad(BASE.replace('permissions: {contents: read}', 'permissions: {contents: read}\npermissions: write-all'))
+
+
+if __name__ == '__main__':
+    unittest.main()
