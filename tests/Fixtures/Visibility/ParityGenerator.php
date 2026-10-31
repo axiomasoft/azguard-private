@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace AzGuard\Tests\Fixtures\Visibility;
 
+use AzGuard\Authorization\Internal\Cache\PermissionSetCache;
 use AzGuard\Contracts\Authorization\EvaluationContext;
 use AzGuard\Kernel\Decision\AccessRequest;
 use AzGuard\Kernel\Decision\Grant;
@@ -13,6 +14,7 @@ use AzGuard\Kernel\Identity\PermissionKey;
 use AzGuard\Kernel\Identity\PermissionPattern;
 use AzGuard\Kernel\Identity\TenantRef;
 use AzGuard\Panels\PanelBuilder;
+use AzGuard\Panels\StateRefresh;
 use AzGuard\Policies\Decides;
 use AzGuard\Policies\PolicyBinding;
 use AzGuard\Roles\Attributes\NotGrantable;
@@ -370,18 +372,22 @@ final class ParityGenerator
         self::configureSignedCache();
         app(StorageSchema::class)->create('default');
         DatabaseWorld::insert('permission', [DatabaseWorld::row('permission', overrides: ['permission' => 'orders.view'])]);
-        [$visibility, $panel, $engine] = VisibilityWorld::compile(configure: fn (PanelBuilder $p) => $p->cache($store, 60), extra: [DatabaseSource::make()]);
+        [$visibility, $panel, $engine] = VisibilityWorld::compile(configure: fn (PanelBuilder $p) => $p->cache($store, 60)->consistency(refresh: StateRefresh::Request), extra: [DatabaseSource::make()]);
         $record = VisibilityProject::query()->findOrFail(1);
         $request = AccessRequest::for(VisibilityWorld::subject(), PermissionKey::of('admin', 'orders.view'))->on(null, $record);
         foreach ([true, false] as $expected) {
             for ($round = 0; $round < 2; $round++) {
+                if ($round === 1) {
+                    app()->forgetScopedInstances();
+                }
+                $memo = app(PermissionSetCache::class);
                 $scalar = $engine->decide($panel, $request);
                 $batch = $engine->decideMany([$request])->get(0);
                 expect($scalar->failure())->toBeNull()->and($batch->failure())->toBeNull()
                     ->and($scalar->allowed())->toBe($expected)->and($batch->allowed())->toBe($expected)
                     ->and($visibility->visibleTo($panel, VisibilityProject::query(), VisibilityWorld::subject(), 'orders.view')->orderBy('id')->pluck('id')->all())
                     ->toBe($expected ? [1, 2, 3, 4] : []);
-                app()->forgetScopedInstances();
+                expect(app(PermissionSetCache::class))->toBe($memo);
             }
 
             if ($expected) {
@@ -389,7 +395,8 @@ final class ParityGenerator
                     $mutation->table('permission_grants')->where('panel', 'admin')->delete();
                     $mutation->touch('admin');
                 });
-                app()->forgetScopedInstances();
+                // Keep the warm request memo: StorageTouched must invalidate it before the next decision.
+                expect(app(PermissionSetCache::class))->toBe($memo);
             }
         }
     }

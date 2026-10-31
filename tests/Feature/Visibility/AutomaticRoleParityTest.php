@@ -12,6 +12,7 @@ use AzGuard\Contracts\Authorization\FiltersAccessQueries;
 use AzGuard\Contracts\Authorization\GrantCondition;
 use AzGuard\Contracts\Sources\ProvidesRoles;
 use AzGuard\Exceptions\InvalidSourceContributionException;
+use AzGuard\Exceptions\SubjectNotAcceptedException;
 use AzGuard\Exceptions\VisibilityNotSupportedException;
 use AzGuard\Kernel\Decision\AccessPredicate as P;
 use AzGuard\Kernel\Decision\AccessRequest;
@@ -295,17 +296,40 @@ it('rejects unknown, nongrantable and forged automatic contributions', function 
     expect($visibility->visibleTo($panel, User::query(), W::subject(), 'orders.view')->count())->toBe(0);
 })->with(['unknown', 'stored', 'untrusted', 'grant']);
 
-it('matches mapped scalar and exact results in each assignment mode with row-dependent conditions', function (string $mode): void {
+it('matches mapped scalar batch and exact results for present and missing subjects with row-dependent conditions', function (string $mode, int $subjectId): void {
     [$visibility, $panel, $authorizer] = W::compile(configure: fn (PanelBuilder $p) => $p->roles([MappedParityRole::class])->grantConditions([ParityActiveCondition::class]), mode: $mode);
+    $subject = SubjectRef::of('user', $subjectId);
+    $requests = [];
     $ids = [];
     foreach (VisibilityProject::query()->orderBy('id')->get() as $record) {
-        if ($authorizer->decide($panel, AccessRequest::for(W::subject(), PermissionKey::of('admin', 'orders.view'))->on(null, $record))->allowed()) {
+        $request = AccessRequest::for($subject, PermissionKey::of('admin', 'orders.view'))->on(null, $record);
+        $requests[] = $request;
+        $decision = $authorizer->decide($panel, $request);
+        expect($decision->failure())->toBeNull();
+
+        if ($decision->allowed()) {
             $ids[] = $record->id;
         }
     }
-    expect($ids)->toBe([1, 3])->and($visibility->visibleTo($panel, VisibilityProject::query(), W::subject(), 'orders.view')->orderBy('id')->pluck('id')->all())->toBe($ids)
-        ->and(MappedParityRole::$observedType)->toBe('project');
-})->with(['inherit', 'isolated', 'required']);
+    $batch = $authorizer->decideMany($requests);
+    foreach ($requests as $index => $request) {
+        expect($batch->get($index)->failure())->toBeNull()
+            ->and($batch->get($index)->allowed())->toBe(in_array($request->resource()->getKey(), $ids, true));
+    }
+    expect($ids)->toBe($subjectId === 1 ? [1, 3] : [])
+        ->and($visibility->visibleTo($panel, VisibilityProject::query(), $subject, 'orders.view')->orderBy('id')->pluck('id')->all())->toBe($ids)
+        ->and(MappedParityRole::$observedType)->toBe($subjectId === 1 ? 'project' : null);
+})->with(['inherit', 'isolated', 'required'])->with([1, 999]);
+
+it('rejects an incompatible subject before enumerating automatic scopes or changing the caller query', function (): void {
+    [$visibility, $panel] = W::compile(configure: fn (PanelBuilder $p) => $p->roles([MappedParityRole::class]));
+    $query = VisibilityProject::query()->where('city', 'Paris');
+    $before = [$query->toSql(), $query->getBindings()];
+    expect(fn () => $visibility->visibleTo($panel, $query, SubjectRef::of('other', 1), 'orders.view'))
+        ->toThrow(SubjectNotAcceptedException::class)
+        ->and(MappedParityRole::$observedType)->toBeNull()
+        ->and([$query->toSql(), $query->getBindings()])->toBe($before);
+});
 
 it('honours tenant boundaries and the global role allowlist', function (bool $allowed): void {
     MappedParityRole::$behavior = 'global-tenant';
