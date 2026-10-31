@@ -12,6 +12,7 @@ use AzGuard\Filament\Internal\Authorization\FilamentContext;
 use AzGuard\Kernel\Decision\AccessRequest;
 use AzGuard\Kernel\Identity\PermissionKey;
 use AzGuard\Laravel\Gate\GateBridge;
+use AzGuard\Panels\Reads;
 use Closure;
 use Filament\Facades\Filament;
 use Filament\Pages\Page;
@@ -22,6 +23,7 @@ use Illuminate\Auth\Access\Response;
 use Illuminate\Contracts\Auth\Access\Gate;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\Log;
 use Throwable;
 use UnitEnum;
@@ -65,6 +67,40 @@ final class FilamentGate
 
         if ($context === null || $context->excludes('resources', $resource)) {
             return $filament();
+        }
+
+        try {
+            if ($context->enforced() && ! in_array(FilamentContext::ability($action), ['view', 'view_any'], true)
+                && $context->access()->definition()->settings()->reads() !== Reads::Primary) {
+                return self::refused('azguard.filament.primary');
+            }
+        } catch (Throwable $error) {
+            Log::warning('AzGuard: Filament authorization failed.', ['exception' => $error::class]);
+
+            return self::refused('gate_error');
+        }
+
+        if ($context->enforced() && $record !== null) {
+            try {
+                if (! is_a($record, $resource::getModel(), true) || $record->getKey() === null) {
+                    return self::refused('azguard.filament.resource');
+                }
+                $query = $record->newQuery()->useWritePdo();
+
+                if (in_array(SoftDeletes::class, class_uses_recursive($record), true)
+                    && in_array(FilamentContext::ability($action), ['restore', 'force_delete'], true)) {
+                    $query->withTrashed();
+                }
+                $record = $query->find($record->getKey());
+
+                if (! $record instanceof Model) {
+                    return self::refused('azguard.filament.resource');
+                }
+            } catch (Throwable $error) {
+                Log::warning('AzGuard: a Filament record could not be resolved.', ['exception' => $error::class]);
+
+                return self::refused('gate_error');
+            }
         }
 
         return self::decide($context, $context->resourceKey($resource, $action), $record, $filament);

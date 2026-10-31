@@ -4,11 +4,15 @@ declare(strict_types=1);
 
 namespace AzGuard\Filament\Exports;
 
+use AnourValar\EloquentSerialize\Facades\EloquentSerializeFacade;
 use AzGuard\Attributes\Api;
 use AzGuard\Contracts\AzGuardSubject;
 use AzGuard\Facades\AzGuard;
+use AzGuard\Kernel\Decision\AccessRequest;
+use AzGuard\Kernel\Identity\PermissionKey;
 use AzGuard\Kernel\Identity\SubjectRef;
 use AzGuard\Kernel\Identity\TenantRef;
+use AzGuard\Panels\Reads;
 use AzGuard\Support\ModelKey;
 use Filament\Actions\Exports\Jobs\ExportCsv;
 use Illuminate\Database\Eloquent\Model;
@@ -32,6 +36,16 @@ class AuthorizedExportCsv extends ExportCsv
     {
         $this->records = $this->visibleRecords();
 
+        if ($this->records === []) {
+            return;
+        }
+
+        $query = EloquentSerializeFacade::unserialize($this->query)->useWritePdo();
+
+        if ($query->getModel()::class !== ($this->options[self::OPTION]['model'] ?? null)) {
+            return;
+        }
+        $this->query = EloquentSerializeFacade::serialize($query);
         parent::handle();
     }
 
@@ -42,7 +56,7 @@ class AuthorizedExportCsv extends ExportCsv
     {
         $authority = $this->options[self::OPTION] ?? null;
         $panel = AzGuard::currentPanel();
-        $user = $this->export->user;
+        $user = $this->export->user()->useWritePdo()->first();
 
         if (! is_array($authority) || ! is_string($authority['panel'] ?? null) || ! is_string($authority['permission'] ?? null)
             || ! is_string($authority['model'] ?? null) || ! is_subclass_of($authority['model'], Model::class)
@@ -52,11 +66,27 @@ class AuthorizedExportCsv extends ExportCsv
             return [];
         }
         $access = AzGuard::panel($panel->id());
-        $tenant = $authority['tenant'] ?? null;
+
+        if ($access->definition()->settings()->reads() !== Reads::Primary) {
+            return [];
+        }
+
+        if (! array_key_exists('tenant', $authority)) {
+            return [];
+        }
+        $tenant = $authority['tenant'];
 
         if (is_array($tenant) && is_string($tenant['type'] ?? null) && (is_string($tenant['id'] ?? null) || is_int($tenant['id'] ?? null))) {
             $access = $access->inTenant(TenantRef::of($tenant['type'], $tenant['id']));
+        } elseif ($tenant !== null) {
+            return [];
         }
+        $subject = SubjectRef::of($user->getMorphClass(), ModelKey::of($user));
+
+        if (! $access->definition()->accepts($subject)) {
+            return [];
+        }
+        $this->export->setRelation('user', $user);
         $model = new $authority['model'];
         $keys = [];
         foreach ($this->records as $key) {
@@ -68,12 +98,14 @@ class AuthorizedExportCsv extends ExportCsv
         if ($keys === []) {
             return [];
         }
-        $query = $access->visibility()->visibleTo($access->definition(), $model->newQuery(), SubjectRef::of($user->getMorphClass(), ModelKey::of($user)),
+        $query = $access->visibility()->visibleTo($access->definition(), $model->newQuery()->useWritePdo(), $subject,
             $authority['permission'], $access->scope());
         $visible = [];
-        foreach (ModelKey::where($query, $keys)->pluck($model->getQualifiedKeyName())->all() as $key) {
-            if (is_int($key) || is_string($key)) {
-                $visible[] = (string) $key;
+        foreach (ModelKey::where($query, $keys)->get() as $record) {
+            $request = AccessRequest::for($subject, PermissionKey::of($panel->id(), $authority['permission']))->on(null, $record)->withSubjectModel($user);
+
+            if ($access->decide($request)->allowed()) {
+                $visible[] = (string) $record->getKey();
             }
         }
 

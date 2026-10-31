@@ -60,7 +60,7 @@ final class AuthorizesActions
                 return self::relation($action, $action->getLivewire(), $resource);
             }
 
-            return $resource === null ? Response::deny() : FilamentGate::resource($resource, self::ability($action), $record);
+            return $resource === null ? Response::deny() : FilamentGate::resource($resource, $action->getName() === 'export' ? 'view' : self::ability($action), $record);
         });
     }
 
@@ -95,10 +95,19 @@ final class AuthorizesActions
             return;
         }
 
-        // Custom callbacks may consume raw keys or issue their own query instead of Filament's filtered collection.
-        // Refuse the entire selection before calling them if even one selected visible row is unauthorized.
-        foreach ($livewire->getSelectedTableRecordsQuery()->cursor() as $record) {
+        // Custom callbacks can consume raw keys, including keys omitted by the table's visibility or relation query.
+        // Require the complete explicit selection to resolve before allowing any effect.
+        $resolved = [];
+        foreach ($livewire->getSelectedTableRecordsQuery()->useWritePdo()->cursor() as $record) {
             abort_unless($action->getIndividualRecordAuthorizationResponse($record)->allowed(), 403);
+            $resolved[] = $livewire->getTableRecordKey($record);
+        }
+
+        if (! $livewire->isTrackingDeselectedTableRecords) {
+            $selected = $livewire->selectedTableRecords;
+            abort_unless(count(array_filter($selected, static fn (mixed $key): bool => is_string($key) || is_int($key))) === count($selected), 403);
+            $selected = array_unique(array_map(strval(...), $selected));
+            abort_unless(count(array_diff($selected, $resolved)) === 0, 403);
         }
     }
 
@@ -124,7 +133,12 @@ final class AuthorizesActions
         if ($owner === null || ! is_object($livewire)) {
             return Response::deny();
         }
-        $response = FilamentGate::resource($owner[0], FilamentContext::relationAbility($livewire::class), $owner[1]);
+        $record = $owner[1]->newQuery()->useWritePdo()->find($owner[1]->getKey());
+
+        if (! $record instanceof Model || $record::class !== $owner[0]::getModel()) {
+            return Response::deny();
+        }
+        $response = FilamentGate::resource($owner[0], FilamentContext::relationAbility($livewire::class), $record);
 
         if (! $response->allowed() || ! $action instanceof AttachAction && ! $action instanceof AssociateAction) {
             return $response;
