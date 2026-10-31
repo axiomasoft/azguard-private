@@ -19,7 +19,12 @@ use AzGuard\Kernel\Identity\SubjectRef;
 use AzGuard\Kernel\Identity\TenantRef;
 use AzGuard\Panels\Panel;
 use DateTimeImmutable;
+use Illuminate\Cache\ArrayStore;
+use Illuminate\Cache\RedisStore;
 use Illuminate\Contracts\Cache\Factory;
+use Illuminate\Redis\Connections\PhpRedisConnection;
+use Illuminate\Redis\Connections\PredisConnection;
+use Illuminate\Support\Carbon;
 use Throwable;
 
 /** @internal Request/job memo and revision-keyed store of raw authority; never a decision cache. */
@@ -93,7 +98,7 @@ final class PermissionSetCache
 
             try {
                 $repository = $this->stores->store($store);
-                $raw = $repository->get($key);
+                $raw = $this->readEnvelope($repository->getStore(), $key);
                 $envelope = $signer->decode($raw, $key, $now);
                 $stored = $envelope === null ? null : $this->decode($envelope['payload']);
 
@@ -184,12 +189,81 @@ final class PermissionSetCache
 
             if ($envelope !== null) {
                 try {
-                    $this->stores->store($store)->put($key, $envelope, $sharedUntil);
+                    $repository = $this->stores->store($store);
+
+                    if ($this->supportsStore($repository->getStore())) {
+                        $repository->put($key, $envelope, $sharedUntil);
+                    }
                 } catch (Throwable) {
                     // Shared storage is optional; the local entry remains valid.
                 }
             }
         }
+    }
+
+    /** Laravel's generic cache get may deserialize an attacker-controlled object before we can verify the MAC. */
+    private function supportsStore(mixed $store): bool
+    {
+        if ($store instanceof ArrayStore) {
+            return true;
+        }
+
+        if (! $store instanceof RedisStore) {
+            return false;
+        }
+        $connection = $store->connection();
+
+        return ($connection instanceof PhpRedisConnection && ! $connection->serialized() && ! $connection->compressed())
+            || $connection instanceof PredisConnection;
+    }
+
+    private function readEnvelope(mixed $store, string $key): mixed
+    {
+        if (! $this->supportsStore($store)) {
+            return null;
+        }
+
+        if ($store instanceof ArrayStore) {
+            $item = $store->all(false)[$key] ?? null;
+
+            if ($item === null) {
+                return null;
+            }
+
+            if ($item['expiresAt'] != 0 && Carbon::now()->getPreciseTimestamp(3) / 1000 >= $item['expiresAt']) {
+                $store->forget($key);
+
+                return null;
+            }
+            $raw = $item['value'];
+
+            if (is_string($raw) && str_starts_with($raw, '{')) {
+                return $raw;
+            }
+        } elseif ($store instanceof RedisStore) {
+            $raw = $store->connection()->get($store->getPrefix().$key);
+        } else {
+            return null;
+        }
+
+        if ($raw === null) {
+            return null;
+        }
+
+        // Laravel wraps strings with PHP serialization. Parse only that exact primitive, never unserialize it.
+        if (! is_string($raw) || strlen($raw) > SignedEnvelope::MAX_BYTES + 32
+            || preg_match('/\As:(0|[1-9][0-9]{0,6}):"/', $raw, $match) !== 1) {
+            return false;
+        }
+        $offset = strlen($match[0]);
+        $length = (int) $match[1];
+
+        if ($length > SignedEnvelope::MAX_BYTES || strlen($raw) !== $offset + $length + 2
+            || substr($raw, -2) !== '";') {
+            return false;
+        }
+
+        return substr($raw, $offset, $length);
     }
 
     /**

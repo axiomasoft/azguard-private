@@ -130,11 +130,11 @@ final class QualificationFaultStore extends RedisStore
         }
     }
 
-    public function get($key)
+    public function connection()
     {
         $this->fault('get');
 
-        return parent::get($key);
+        return parent::connection();
     }
 
     public function put($key, $value, $seconds)

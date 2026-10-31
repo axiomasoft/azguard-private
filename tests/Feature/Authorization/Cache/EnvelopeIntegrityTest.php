@@ -97,6 +97,92 @@ it('keeps oversized authoritative data locally without writing it to the shared 
         ->and($cache->get('large', $panel, Volatility::Stable, true, $now))->toEqual([$grant]);
 });
 
+it('does not deserialize a forged outer value in a serialized array store', function (): void {
+    config(['cache.stores.envelope_serialized' => ['driver' => 'array', 'serialize' => true], 'cache.serializable_classes' => null]);
+    [, $panel] = AuthorizationWorld::compile(new CacheSource, fn (PanelBuilder $panel) => $panel->cache('envelope_serialized', 60));
+    $now = Carbon::now()->toDateTimeImmutable();
+    $store = app('cache')->store('envelope_serialized')->getStore();
+    $cache = new PermissionSetCache(app('cache'));
+    $cache->put('array-outer', $panel, Volatility::Stable, true, [AuthorizationWorld::grant()], $now);
+    expect((new PermissionSetCache(app('cache')))->get('array-outer', $panel, Volatility::Stable, true, $now))->toHaveCount(1);
+    $store->forever('array-outer', $store->get('array-outer'));
+    expect((new PermissionSetCache(app('cache')))->get('array-outer', $panel, Volatility::Stable, true, $now))->toHaveCount(1);
+    $storage = $store->all(false);
+    $storage['array-outer']['value'] = serialize(new EnvelopeWakeupSentinel);
+    (new ReflectionProperty($store, 'storage'))->setValue($store, $storage);
+    EnvelopeWakeupSentinel::$woken = false;
+    expect((new PermissionSetCache(app('cache')))->get('array-outer', $panel, Volatility::Stable, true, $now))->toBeNull()
+        ->and(EnvelopeWakeupSentinel::$woken)->toBeFalse()
+        ->and($store->all(false))->not->toHaveKey('array-outer');
+});
+
+it('bypasses stores whose read transport cannot be inspected safely', function (): void {
+    config(['cache.stores.envelope_file' => ['driver' => 'file', 'path' => sys_get_temp_dir().'/azguard-unsupported-cache']]);
+    [, $panel] = AuthorizationWorld::compile(new CacheSource, fn (PanelBuilder $panel) => $panel->cache('envelope_file', 60));
+    $now = Carbon::now()->toDateTimeImmutable();
+    $cache = new PermissionSetCache(app('cache'));
+    $cache->put('unsupported', $panel, Volatility::Stable, true, [AuthorizationWorld::grant()], $now);
+    expect($cache->get('unsupported', $panel, Volatility::Stable, true, $now))->toHaveCount(1)
+        ->and((new PermissionSetCache(app('cache')))->get('unsupported', $panel, Volatility::Stable, true, $now))->toBeNull()
+        ->and(app('cache')->store('envelope_file')->get('unsupported'))->toBeNull();
+});
+
+it('verifies Redis bytes before any outer object deserialization', function (): void {
+    $prefix = 'azguard-envelope-'.bin2hex(random_bytes(12)).':';
+    config(['database.redis.envelope_integrity' => ['host' => '127.0.0.1', 'port' => getenv('REDIS_PORT') ?: 26379, 'database' => 15],
+        'cache.stores.envelope_redis' => ['driver' => 'redis', 'connection' => 'envelope_integrity', 'prefix' => $prefix],
+        'cache.serializable_classes' => null]);
+    $store = app('cache')->store('envelope_redis');
+    $connection = $store->getStore()->connection();
+    $client = $connection->client();
+    expect($client->getOption(Redis::OPT_SERIALIZER))->toBe(Redis::SERIALIZER_NONE)
+        ->and($connection->get($prefix.'outer'))->toBeNull();
+    [, $panel] = AuthorizationWorld::compile(new CacheSource, fn (PanelBuilder $panel) => $panel->cache('envelope_redis', 60));
+    $now = Carbon::now()->toDateTimeImmutable();
+    $authorityKey = null;
+
+    try {
+        (new PermissionSetCache(app('cache')))->put('outer', $panel, Volatility::Stable, true, [AuthorizationWorld::grant()], $now);
+        expect((new PermissionSetCache(app('cache')))->get('outer', $panel, Volatility::Stable, true, $now))->toHaveCount(1);
+        $connection->setex($prefix.'outer', 60, serialize(new EnvelopeWakeupSentinel));
+        EnvelopeWakeupSentinel::$woken = false;
+        expect((new PermissionSetCache(app('cache')))->get('outer', $panel, Volatility::Stable, true, $now))->toBeNull()
+            ->and(EnvelopeWakeupSentinel::$woken)->toBeFalse()
+            ->and($connection->get($prefix.'outer'))->toBeNull();
+
+        $connection->setex($prefix.'outer', 60, serialize(new EnvelopeWakeupSentinel));
+        $client->setOption(Redis::OPT_SERIALIZER, Redis::SERIALIZER_PHP);
+        expect((new PermissionSetCache(app('cache')))->get('outer', $panel, Volatility::Stable, true, $now))->toBeNull()
+            ->and(EnvelopeWakeupSentinel::$woken)->toBeFalse();
+        (new PermissionSetCache(app('cache')))->put('outer', $panel, Volatility::Stable, true, [AuthorizationWorld::grant()], $now);
+        $client->setOption(Redis::OPT_SERIALIZER, Redis::SERIALIZER_NONE);
+        expect($connection->get($prefix.'outer'))->toBe(serialize(new EnvelopeWakeupSentinel));
+
+        $source = new FencedCacheSource;
+        $source->reuse = Volatility::Stable;
+        [$engine, $authorityPanel, $request] = AuthorizationWorld::compile($source, fn (PanelBuilder $panel) => $panel->cache('envelope_redis', 60));
+        expect($engine->decide($authorityPanel, $request)->allowed())->toBeFalse();
+        $keys = $connection->keys($prefix.'azguard:sets:v2:*');
+        expect($keys)->toHaveCount(1);
+        $clientPrefix = $client->getOption(Redis::OPT_PREFIX) ?: '';
+        expect($keys[0])->toStartWith($clientPrefix.$prefix);
+        $authorityKey = substr($keys[0], strlen($clientPrefix));
+        app()->forgetScopedInstances();
+        expect($engine->decide($authorityPanel, $request)->allowed())->toBeFalse()->and($source->grantReads)->toBe(1);
+        $connection->setex($authorityKey, 60, serialize(new EnvelopeWakeupSentinel));
+        app()->forgetScopedInstances();
+        expect($engine->decide($authorityPanel, $request)->allowed())->toBeFalse()
+            ->and($source->grantReads)->toBe(2)->and(EnvelopeWakeupSentinel::$woken)->toBeFalse();
+    } finally {
+        $client->setOption(Redis::OPT_SERIALIZER, Redis::SERIALIZER_NONE);
+        $connection->del($prefix.'outer');
+
+        if ($authorityKey !== null) {
+            $connection->del($authorityKey);
+        }
+    }
+})->group('redis');
+
 final class EnvelopeWakeupSentinel
 {
     public static bool $woken = false;

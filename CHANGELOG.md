@@ -6,6 +6,10 @@ version) are documented here. Format: [Keep a Changelog](https://keepachangelog.
 
 ## [Unreleased]
 
+- Permission-set cache reads avoid cache-driver object deserialization before signature verification. Shared caching
+  now bypasses unsupported stores and Redis connections with client-side serialization or compression enabled;
+  use an uncompressed, non-serializing Redis connection for shared caching.
+
 Target: **2.0.0-rc.1**, followed by **2.0.0** for both packages. The 1.0.0 entry below is a historical
 release claim; publication and consumption are not established by that claim alone. Treat 1.0 as potentially
 consumed. See [the publication inventory](build/release/publication-inventory.json) and [RELEASING.md](RELEASING.md).

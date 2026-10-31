@@ -71,6 +71,11 @@ A panel setting is resolved from these layers. The first layer that sets it wins
 | `AZGUARD_CACHE_SIGNING_KEY` | `cache.signing_key` |
 | `AZGUARD_CACHE_KEY_ID` | `cache.key_id` |
 
+Permission-set caching supports Laravel's array store and Redis with Predis or PhpRedis without client-side
+serialization or compression. Other stores and Redis connections with those options enabled bypass the shared
+permission-set cache and reload the authoritative source; request-local memoization remains available. This avoids
+constructing objects in a cache driver before the signature can be checked.
+
 Shared permission sets use signed, finite-lived envelopes; without valid signing material and a namespace, the shared
 path is disabled and doctor reports `cache.signing`. To rotate, deploy the new key and id together, allow the old id
 and secret with a finite UTC `valid_until`, and remove it after the rollout. Keep keys secret and use a distinct
