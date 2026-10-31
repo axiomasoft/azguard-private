@@ -170,7 +170,18 @@ final class ParityGenerator
             return $seeds;
         }
 
-        return range(1, getenv('AZGUARD_FULL_SEEDS') === false ? 2 : 50);
+        $full = getenv('AZGUARD_FULL_SEEDS');
+
+        if ($full === false) {
+            return [1, 2];
+        }
+        $enabled = filter_var($full, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
+
+        if ($enabled === null) {
+            throw new InvalidArgumentException('AZGUARD_FULL_SEEDS must be a boolean.');
+        }
+
+        return range(1, $enabled ? 50 : 2);
     }
 
     /** Run the same generated facts through each entry point with cold, request memo and shared-store reads. */

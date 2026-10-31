@@ -17,6 +17,7 @@ use AzGuard\Kernel\Identity\PermissionPattern;
 use AzGuard\Kernel\Identity\RoleKey;
 use AzGuard\Kernel\Identity\SubjectRef;
 use AzGuard\Kernel\Identity\TenantRef;
+use AzGuard\Kernel\Internal\Narrow;
 use AzGuard\Panels\Panel;
 use DateTimeImmutable;
 use Illuminate\Cache\ArrayStore;
@@ -113,18 +114,15 @@ final class PermissionSetCache
 
                             break;
                         }
-                        // Re-run constructor invariants; serialized objects can bypass their factories.
-                        IdentityCodec::decode(IdentityCodec::encode($item->scope));
-
-                        if ($item->role !== null) {
-                            IdentityCodec::decode(IdentityCodec::encode($item->role));
-                        }
+                        // Keep the factory values: validation alone leaves serialized field references attached.
+                        $scope = Narrow::instance(IdentityCodec::decode(IdentityCodec::encode($item->scope)), AccessScope::class, 'cached scope');
+                        $role = $item->role === null ? null : Narrow::instance(IdentityCodec::decode(IdentityCodec::encode($item->role)), RoleKey::class, 'cached role');
 
                         if ($item instanceof Grant) {
-                            IdentityCodec::decode(IdentityCodec::encode($item->pattern));
-                            Grant::of($item->pattern, $item->source, $item->scope, $item->role, $item->origin, $item->expiresAt, $item->fields());
-                        } elseif ($item->role instanceof RoleKey) {
-                            RoleContribution::of($item->role, $item->scope, $item->source, $item->origin, $item->expiresAt, $item->fields());
+                            $pattern = Narrow::instance(IdentityCodec::decode(IdentityCodec::encode($item->pattern)), PermissionPattern::class, 'cached pattern');
+                            $item = Grant::of($pattern, $item->source, $scope, $role, $item->origin, $item->expiresAt, $item->fields());
+                        } elseif ($role !== null) {
+                            $item = RoleContribution::of($role, $scope, $item->source, $item->origin, $item->expiresAt, $item->fields());
                         } else {
                             $items = null;
 

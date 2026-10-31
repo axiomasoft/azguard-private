@@ -7,7 +7,12 @@ use AzGuard\Authorization\Internal\Cache\SignedEnvelope;
 use AzGuard\Configuration\Internal\AzGuardConfig;
 use AzGuard\Contracts\Sources\Volatility;
 use AzGuard\Diagnostics\DoctorContext;
-use AzGuard\Diagnostics\Internal\Checks\CacheStore;
+use AzGuard\Diagnostics\Internal\Checks\CacheIntegrity;
+use AzGuard\Kernel\Decision\Grant;
+use AzGuard\Kernel\Decision\RoleContribution;
+use AzGuard\Kernel\Identity\AccessScope;
+use AzGuard\Kernel\Identity\RoleKey;
+use AzGuard\Kernel\Identity\TenantRef;
 use AzGuard\Panels\PanelBuilder;
 use AzGuard\Tests\Fixtures\Authorization\AuthorizationWorld;
 use AzGuard\Tests\Fixtures\Authorization\Cache\CacheSource;
@@ -69,9 +74,43 @@ it('bypasses the shared store when signing configuration is missing', function (
     expect(app('cache')->store('array')->get('unsigned'))->toBeNull()
         ->and($cache->get('unsigned', $panel, Volatility::Stable, true, $now))->toHaveCount(1)
         ->and((new PermissionSetCache(app('cache')))->get('unsigned', $panel, Volatility::Stable, true, $now))->toBeNull();
-    $context = new DoctorContext([$panel], [], true, AzGuardConfig::fromRepository(app('config')));
-    expect(array_map(static fn ($finding) => $finding->key, iterator_to_array((new CacheStore)->run($context))))->toContain('cache.signing');
+    // Array storage is local; the signing diagnostic applies to a configured shared Redis transport.
+    [, $sharedPanel] = AuthorizationWorld::compile(new CacheSource, fn (PanelBuilder $panel) => $panel->cache('redis', 60));
+    $context = new DoctorContext([$sharedPanel], [], true, AzGuardConfig::fromRepository(app('config')));
+    expect(array_map(static fn ($finding) => $finding->key, iterator_to_array((new CacheIntegrity(app('config')))->run($context))))->toContain('cache.signing');
 });
+
+it('rehydrates signed contributions into detached factory values', function (string $class): void {
+    [, $panel] = AuthorizationWorld::compile(new CacheSource, fn (PanelBuilder $panel) => $panel->cache('array', 60));
+    $now = Carbon::now('UTC')->toDateTimeImmutable();
+    $marker = 'original';
+    $items = [];
+    for ($i = 0; $i < 2; $i++) {
+        // A signed serialized payload can carry references that the normal factories detach.
+        $item = (new ReflectionClass($class))->newInstanceWithoutConstructor();
+        $values = ['source' => 'generated', 'role' => RoleKey::of('admin', 'editor'),
+            'scope' => AccessScope::in(TenantRef::global()), 'origin' => 'manual', 'expiresAt' => null,
+            'fields' => ['marker' => &$marker]];
+
+        if ($class === Grant::class) {
+            $values['pattern'] = AuthorizationWorld::grant()->pattern;
+        }
+        foreach ($values as $name => $value) {
+            (new ReflectionProperty($class, $name))->setValue($item, $value);
+        }
+        $items[] = $item;
+    }
+    $until = $now->modify('+60 seconds');
+    $raw = SignedEnvelope::fromConfig(app('config'))->encode('detached', serialize(['items' => $items, 'validUntil' => $until]), $now, $until);
+    app('cache')->store('array')->put('detached', $raw, 60);
+    $cache = new PermissionSetCache(app('cache'));
+    $read = $cache->get('detached', $panel, Volatility::Stable, true, $now);
+    expect($read)->toHaveCount(2);
+    $fields = $read[0]->fields();
+    $fields['marker'] = 'mutated';
+    expect($read[0]->fields()['marker'])->toBe('original')->and($read[1]->fields()['marker'])->toBe('original')
+        ->and($cache->get('detached', $panel, Volatility::Stable, true, $now)[0]->fields()['marker'])->toBe('original');
+})->with([Grant::class, RoleContribution::class]);
 
 it('reloads authoritative denial when an attacker writes an unsigned grant', function (): void {
     $source = new FencedCacheSource;

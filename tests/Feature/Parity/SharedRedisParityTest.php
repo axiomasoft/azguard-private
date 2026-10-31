@@ -2,73 +2,77 @@
 
 declare(strict_types=1);
 
+use AzGuard\Tests\Fixtures\Visibility\AuditAutomaticRole;
 use AzGuard\Tests\Fixtures\Visibility\ParityGenerator;
+use AzGuard\Tests\Fixtures\Visibility\RedisParity;
 use AzGuard\Tests\Fixtures\Visibility\VisibilityWorld as W;
 
 require_once __DIR__.'/../../Fixtures/Visibility/VisibilityWorld.php';
 require_once __DIR__.'/../../Fixtures/Visibility/ParityGenerator.php';
 
 beforeEach(fn () => W::seed());
-afterEach(fn () => W::reset());
+afterEach(function (): void {
+    AuditAutomaticRole::$enabled = false;
+    W::reset();
+});
 
 it('tracks authority generations across all entry points with Redis shared across requests', function (): void {
-    $prefix = 'azguard-parity-'.bin2hex(random_bytes(12)).':';
-    config(['database.redis.client' => 'phpredis', 'database.redis.options.prefix' => $prefix,
-        'database.redis.parity' => ['host' => '127.0.0.1', 'port' => getenv('REDIS_PORT') ?: 26379, 'database' => 15],
-        'cache.stores.parity' => ['driver' => 'redis', 'connection' => 'parity', 'prefix' => 'sets:']]);
-    $client = app('redis')->connection('parity')->client();
-
-    if ($client->getOption(Redis::OPT_PREFIX) !== $prefix || ! preg_match('/\Aazguard-parity-[0-9a-f]{24}:\z/', $prefix)
-        || $client->keys('*') !== []) {
-        throw new RuntimeException('Redis parity namespace is not isolated and empty.');
-    }
-
-    try {
-        ParityGenerator::cacheGenerations('parity');
+    RedisParity::run(function (string $store, Redis $client): void {
+        ParityGenerator::cacheGenerations($store);
         expect($client->keys('*'))->not->toBeEmpty();
-    } finally {
-        if ($client->getOption(Redis::OPT_PREFIX) !== $prefix) {
-            throw new RuntimeException('Redis cleanup refused: namespace changed.');
-        }
-        $keys = $client->keys('*');
-        foreach ($keys as $key) {
-            if (! is_string($key) || ! str_starts_with($key, $prefix)) {
-                throw new RuntimeException('Redis cleanup refused: key outside namespace.');
-            }
-        }
-        foreach ($keys as $key) {
-            $client->del(substr($key, strlen($prefix)));
-        }
-    }
+    });
 })->group('redis', 'stand', 'server-skip');
 
 it('checks generated facts independently in cold memo and shared Redis lanes', function (): void {
-    $prefix = 'azguard-parity-'.bin2hex(random_bytes(12)).':';
-    config(['database.redis.client' => 'phpredis', 'database.redis.options.prefix' => $prefix,
-        'database.redis.parity' => ['host' => '127.0.0.1', 'port' => getenv('REDIS_PORT') ?: 26379, 'database' => 15],
-        'cache.stores.parity' => ['driver' => 'redis', 'connection' => 'parity', 'prefix' => 'sets:']]);
-    $client = app('redis')->connection('parity')->client();
+    RedisParity::run(function (string $store, Redis $client): void {
+        ParityGenerator::cachedOracle($store);
+        expect($client->keys('*'))->not->toBeEmpty();
+    });
+})->group('redis', 'stand', 'server-skip');
 
-    if ($client->getOption(Redis::OPT_PREFIX) !== $prefix || ! preg_match('/\Aazguard-parity-[0-9a-f]{24}:\z/', $prefix)
-        || $client->keys('*') !== []) {
-        throw new RuntimeException('Redis parity namespace is not isolated and empty.');
-    }
+it('restores Redis and cache state and cleans only its namespace after an oracle returns or fails', function (bool $fails): void {
+    $before = ['database.redis' => config('database.redis'), 'cache.stores' => config('cache.stores'), 'azguard.cache' => config('azguard.cache')];
+    $manager = app('redis');
+    $connections = $manager->connections();
+    $existing = app('cache')->store('array');
+    $foreign = new Redis;
+    $foreign->connect('127.0.0.1', (int) (getenv('REDIS_PORT') ?: 26379));
+    $foreign->select(15);
+    $key = 'azguard-parity-foreign-'.bin2hex(random_bytes(12));
+    $prefix = null;
+    $temporary = null;
+    $clientUsed = null;
+    $foreign->setex($key, 60, 'preserved');
 
     try {
-        ParityGenerator::cachedOracle('parity');
-        expect($client->keys('*'))->not->toBeEmpty();
-    } finally {
-        if ($client->getOption(Redis::OPT_PREFIX) !== $prefix) {
-            throw new RuntimeException('Redis cleanup refused: namespace changed.');
-        }
-        $keys = $client->keys('*');
-        foreach ($keys as $key) {
-            if (! is_string($key) || ! str_starts_with($key, $prefix)) {
-                throw new RuntimeException('Redis cleanup refused: key outside namespace.');
+        $oracle = function (string $store, Redis $client) use ($fails, &$prefix, &$temporary, &$clientUsed): void {
+            $prefix = $client->getOption(Redis::OPT_PREFIX);
+            $temporary = $store;
+            $clientUsed = $client;
+            app('cache')->store($store)->put('probe', 'value', 60);
+            AuditAutomaticRole::$enabled = true;
+            config(['azguard.cache.namespace' => 'changed-in-oracle']);
+
+            if ($fails) {
+                throw new RuntimeException('oracle failed');
             }
+        };
+
+        if ($fails) {
+            expect(fn () => RedisParity::run($oracle))->toThrow(RuntimeException::class, 'oracle failed');
+        } else {
+            RedisParity::run($oracle);
         }
-        foreach ($keys as $key) {
-            $client->del(substr($key, strlen($prefix)));
+        foreach ($before as $name => $value) {
+            expect(config($name))->toBe($value);
         }
+        expect(app('redis'))->toBe($manager)->and(app('cache')->store('array'))->toBe($existing)
+            ->and($manager->connections())->toBe($connections)->and($clientUsed->isConnected())->toBeFalse()
+            ->and(AuditAutomaticRole::$enabled)->toBeFalse()
+            ->and($foreign->get($key))->toBe('preserved')->and($foreign->keys($prefix.'*'))->toBe([]);
+        expect(fn () => app('cache')->store($temporary))->toThrow(InvalidArgumentException::class);
+    } finally {
+        $foreign->del($key);
+        $foreign->close();
     }
-})->group('redis', 'stand', 'server-skip');
+})->with([true, false])->group('redis', 'stand', 'server-skip');

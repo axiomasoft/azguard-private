@@ -205,6 +205,17 @@ it('validates and selects inclusive reproducible seed ranges', function (): void
             putenv('AZGUARD_PARITY_SEEDS='.$invalid);
             expect(fn () => ParityGenerator::seeds())->toThrow(InvalidArgumentException::class);
         }
+        putenv('AZGUARD_PARITY_SEEDS');
+        foreach (['0', 'false', '', 'off', 'no'] as $disabled) {
+            putenv('AZGUARD_FULL_SEEDS='.$disabled);
+            expect(ParityGenerator::seeds())->toBe([1, 2]);
+        }
+        foreach (['1', 'true', 'on', 'yes'] as $enabled) {
+            putenv('AZGUARD_FULL_SEEDS='.$enabled);
+            expect(ParityGenerator::seeds())->toBe(range(1, 50));
+        }
+        putenv('AZGUARD_FULL_SEEDS=invalid');
+        expect(fn () => ParityGenerator::seeds())->toThrow(InvalidArgumentException::class, 'AZGUARD_FULL_SEEDS');
     } finally {
         foreach ($original as $name => $value) {
             putenv($value === false ? $name : $name.'='.$value);

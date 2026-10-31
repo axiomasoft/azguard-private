@@ -6,6 +6,10 @@ version) are documented here. Format: [Keep a Changelog](https://keepachangelog.
 
 ## [Unreleased]
 
+- Exact visibility for resources without a scope mapping ignores concrete assignments, including the `global`
+  scope alias, while retaining tenant-wide grants and the usual validation for mapped resources.
+- Shared permission-set reads now retain reconstructed factory values, detaching serialized decision-field
+  references before placing contributions in request memo storage.
 - Source contract tests offer an optional mutation fixture for checking fenced grant and revoke state, including
   no-op writes and raw authority, and a finite-universe fixture for scalar, batch and visibility parity. Existing
   consumers need no new methods; configure the hooks to exercise those capabilities.

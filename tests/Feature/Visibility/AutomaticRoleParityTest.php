@@ -21,6 +21,7 @@ use AzGuard\Kernel\Identity\AssignmentScopeRef;
 use AzGuard\Kernel\Identity\PermissionKey;
 use AzGuard\Kernel\Identity\PermissionPattern;
 use AzGuard\Kernel\Identity\RoleKey;
+use AzGuard\Kernel\Identity\SubjectRef;
 use AzGuard\Kernel\Identity\TenantRef;
 use AzGuard\Panels\Internal\PanelRegistry;
 use AzGuard\Panels\Panel;
@@ -260,13 +261,15 @@ it('qualifies a trusted automatic witness in scalar and exact global visibility'
     expect(ParityAutomaticRole::$observedType)->toBeNull();
 });
 
-it('selects folder automatic roles exactly in global visibility', function (bool $applies): void {
+it('selects folder automatic roles exactly in global visibility', function (bool $applies, int $subjectId): void {
     ParityAutomaticRole::$applies = $applies;
     [$visibility, $panel, $authorizer] = parityGlobalWorld(new ParityRoleSource);
     $record = User::query()->firstOrFail();
-    expect($authorizer->decide($panel, AccessRequest::for(W::subject(), PermissionKey::of('admin', 'orders.view'))->on(null, $record))->allowed())->toBe($applies);
-    expect($visibility->visibleTo($panel, User::query(), W::subject(), 'orders.view')->pluck('id')->all())->toBe($applies ? [1] : []);
-})->with([true, false]);
+    $subject = SubjectRef::of('user', $subjectId);
+    $expected = $applies && $subjectId === 1;
+    expect($authorizer->decide($panel, AccessRequest::for($subject, PermissionKey::of('admin', 'orders.view'))->on(null, $record))->allowed())->toBe($expected);
+    expect($visibility->visibleTo($panel, User::query(), $subject, 'orders.view')->pluck('id')->all())->toBe($expected ? [1] : []);
+})->with([true, false])->with([1, 999]);
 
 it('rejects unknown, nongrantable and forged automatic contributions', function (string $case): void {
     $role = match ($case) {

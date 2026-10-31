@@ -563,6 +563,11 @@ final class ReadAttempt
             foreach ($selections as $selection) {
                 $refs = [];
                 foreach ($selection->refs() as $ref) {
+                    // Without a resource mapping, concrete assignments cannot apply (including alias "global").
+                    if ($type === null) {
+                        continue;
+                    }
+
                     if ($ref->type() !== $type) {
                         throw new InvalidSourceContributionException('Selection reference has a different scope type.');
                     }
@@ -576,6 +581,10 @@ final class ReadAttempt
                 }
                 foreach ($selection->contributions() as $item) {
                     $ref = $item->scope->context;
+
+                    if ($type === null && ! $ref->isGlobal()) {
+                        continue;
+                    }
 
                     if (! $ref->isGlobal()) {
                         $allRefs[$ref->key()] = true;
