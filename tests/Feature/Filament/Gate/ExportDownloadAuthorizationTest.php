@@ -223,6 +223,21 @@ it('does not prepare an export for hidden selected keys when another query row i
     expect($batch->added)->toBe([]);
 });
 
+it('keeps export preparation inside the serialized query window', function (int $offset): void {
+    $export = authorizationExport(GateWorld::grant(['orders.view_any', 'orders.view']));
+    $query = Order::query()->orderBy('id')->offset($offset)->limit(1);
+    $job = new ChecksPrepareCsvExport($export, EloquentSerializeFacade::serialize($query), ['number' => 'Number'], [AuthorizedExportCsv::OPTION => [
+        'panel' => 'admin', 'permission' => 'orders.view', 'tenant' => null, 'model' => Order::class,
+    ]]);
+    [, $batch] = $job->withFakeBatch();
+    app(CurrentPanel::class)->set(app(PanelRegistry::class)->get('admin'));
+
+    $job->handle();
+
+    expect(Storage::disk('local')->exists($export->getFileDirectory().'/headers.csv'))->toBe($offset === 0)
+        ->and($batch->added)->toHaveCount($offset === 0 ? 1 : 0);
+})->with([0, 99]);
+
 it('does not create a chunk when the selected record is no longer visible', function (): void {
     $user = GateWorld::grant(['orders.view_any', 'orders.view']);
     $export = authorizationExport($user);
@@ -271,6 +286,49 @@ it('does not create a chunk for a deleted export actor', function (): void {
 
     Storage::disk('local')->assertMissing($export->getFileDirectory().'/0000000000000001.csv');
 });
+
+it('checks export preflight and preparation with unbuffered MySQL reads', function (bool $prepare, bool $revoked): void {
+    $pdo = Order::query()->getConnection()->getPdo();
+
+    if ($pdo->getAttribute(PDO::ATTR_DRIVER_NAME) !== 'mysql') {
+        $this->markTestSkipped('This regression needs MySQL or MariaDB unbuffered reads.');
+    }
+    $user = GateWorld::grant(['orders.view_any', 'orders.view']);
+    GateWorld::serve($user);
+    Bus::fake();
+    $export = $prepare ? authorizationExport($user) : null;
+    $job = $export === null ? null : new ChecksPrepareCsvExport($export, EloquentSerializeFacade::serialize(Order::query()), ['number' => 'Number'], [AuthorizedExportCsv::OPTION => [
+        'panel' => 'admin', 'permission' => 'orders.view', 'tenant' => null, 'model' => Order::class,
+    ]], records: [1]);
+
+    if ($job !== null) {
+        [, $batch] = $job->withFakeBatch();
+        app(CurrentPanel::class)->set(app(PanelRegistry::class)->get('admin'));
+    }
+
+    if ($revoked) {
+        GateWorld::revoke('orders.view');
+    }
+    $buffered = $pdo->getAttribute(PDO::MYSQL_ATTR_USE_BUFFERED_QUERY);
+    $pdo->setAttribute(PDO::MYSQL_ATTR_USE_BUFFERED_QUERY, false);
+
+    try {
+        if ($job !== null) {
+            $job->handle();
+        } else {
+            Livewire::test(ListOrders::class)->callAction(TestAction::make('export')->table());
+        }
+    } finally {
+        $pdo->setAttribute(PDO::MYSQL_ATTR_USE_BUFFERED_QUERY, $buffered);
+    }
+
+    if ($export !== null) {
+        expect(Storage::disk('local')->exists($export->getFileDirectory().'/headers.csv'))->toBe(! $revoked)
+            ->and($batch->added)->toHaveCount($revoked ? 0 : 1);
+    } else {
+        expect(Export::query()->count())->toBe($revoked ? 0 : 1);
+    }
+})->with([false, true])->with([false, true])->group('engines', 'stand');
 
 it('refuses a serialized query for a different model even when its key matches an authorized record', function (): void {
     $user = GateWorld::grant(['orders.view_any', 'orders.view']);

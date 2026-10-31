@@ -73,7 +73,12 @@ final class ChecksPrepareCsvExport extends AuthorizedPrepareCsvExport
             $this->query = EloquentSerializeFacade::serialize($query);
 
             if ($this->records !== null) {
-                $keys = array_filter($this->records, static fn (mixed $key): bool => (is_string($key) || is_int($key)) && ModelKey::canHold($model, (string) $key));
+                $keys = [];
+                foreach ($this->records as $key) {
+                    if ((is_string($key) || is_int($key)) && ModelKey::canHold($model, (string) $key)) {
+                        $keys[] = (string) $key;
+                    }
+                }
 
                 if ($keys === []) {
                     return false;
@@ -82,17 +87,18 @@ final class ChecksPrepareCsvExport extends AuthorizedPrepareCsvExport
             }
             $query = $access->visibility()->visibleTo($access->definition(), $query, $subject, $authority['permission'], $access->scope());
 
-            foreach ($query->cursor() as $record) {
+            // Authorization can query this PDO too; materialize only one bounded page at a time.
+            $authorized = false;
+            (clone $query)->each(static function (Model $record) use ($subject, $panel, $user, $authority, $access, &$authorized): bool {
                 $request = AccessRequest::for($subject, PermissionKey::of($panel->id(), $authority['permission']))->on(null, $record)->withSubjectModel($user);
+                $authorized = $access->decide($request)->allowed();
 
-                if ($access->decide($request)->allowed()) {
-                    return true;
-                }
-            }
+                return ! $authorized;
+            }, 100);
+
+            return $authorized;
         } catch (Throwable) {
             return false;
         }
-
-        return false;
     }
 }

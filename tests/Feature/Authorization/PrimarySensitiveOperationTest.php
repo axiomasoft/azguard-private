@@ -68,3 +68,45 @@ it('restores the nested context when a primary-sensitive operation throws', func
     });
     expect($contexts->get($panel))->toBeNull();
 });
+
+it('qualifies roles permissions and superadmin independently across stale read and primary PDOs', function (bool $primaryFirst): void {
+    app(StorageSchema::class)->create('default');
+    DatabaseWorld::insert('permission', [DatabaseWorld::row('permission')]);
+    DatabaseWorld::insert('role', [DatabaseWorld::row(overrides: ['role' => 'root'])]);
+    [, $panel] = CacheWorld::database(DatabaseSource::make(), StateRefresh::Request, reads: Reads::Default);
+    $connection = DatabaseWorld::storage()->connection();
+
+    if ($connection->getDriverName() !== 'sqlite') {
+        $this->markTestSkipped('This split-PDO regression uses an isolated SQLite snapshot.');
+    }
+    $replica = new PDO('sqlite::memory:');
+    $replica->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+    $primary = $connection->getPdo();
+    foreach ($primary->query("select name, sql from sqlite_master where type = 'table' and name not like 'sqlite_%'")->fetchAll(PDO::FETCH_ASSOC) as $table) {
+        $replica->exec($table['sql']);
+        $name = '"'.str_replace('"', '""', $table['name']).'"';
+        foreach ($primary->query('select * from '.$name)->fetchAll(PDO::FETCH_ASSOC) as $row) {
+            $insert = $replica->prepare('insert into '.$name.' values ('.implode(',', array_fill(0, count($row), '?')).')');
+            $insert->execute(array_values($row));
+        }
+    }
+    $normal = new SubjectAccess($panel, DatabaseWorld::request()->subject());
+    $sensitive = $normal->onPrimary();
+    $sensitive->revokeRole('root');
+    $sensitive->revokePermission('documents.view');
+    $previous = $connection->getRawReadPdo();
+    $connection->setReadPdo($replica);
+
+    try {
+        // Repeat both orders on the same wrappers, authorizer and request memo after primary revocation.
+        foreach ([$primaryFirst, ! $primaryFirst, $primaryFirst] as $usePrimary) {
+            $access = $usePrimary ? $sensitive : $normal;
+            expect($access->isSuperAdmin())->toBe(! $usePrimary)
+                ->and($access->hasRole('root'))->toBe(! $usePrimary)
+                ->and($access->roleNames()->all())->toBe($usePrimary ? [] : ['root'])
+                ->and($access->permissionSet()->patterns())->toHaveCount($usePrimary ? 0 : 2);
+        }
+    } finally {
+        $connection->setReadPdo($previous);
+    }
+})->with([false, true])->group('server-skip');

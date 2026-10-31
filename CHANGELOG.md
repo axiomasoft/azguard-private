@@ -6,6 +6,8 @@ version) are documented here. Format: [Keep a Changelog](https://keepachangelog.
 
 ## [Unreleased]
 
+- Filament bulk and export preflight checks finish bounded record queries before nested authorization queries,
+  so authorized operations also work with unbuffered MySQL and MariaDB connections.
 - Qualification preflight rejects a coverage PHP fallback missing the selected database or Redis extension.
   The trust model now describes the implemented signed-cache boundary and its remaining replay limits.
 - Filament export authorization now follows the export action class when renamed; custom callbacks named `export`

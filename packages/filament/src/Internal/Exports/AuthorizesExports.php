@@ -66,13 +66,12 @@ final class AuthorizesExports
                 $query->useWritePdo();
 
                 if ($query->getModel()::class === $resource::getModel()) {
-                    foreach ($query->cursor() as $record) {
-                        if (FilamentGate::resource($resource, 'view', $record)->allowed()) {
-                            $authorized = true;
+                    // Do not hold an unbuffered cursor while the gate reloads and authorizes a record.
+                    (clone $query)->each(static function (Model $record) use ($resource, &$authorized): bool {
+                        $authorized = FilamentGate::resource($resource, 'view', $record)->allowed();
 
-                            break;
-                        }
-                    }
+                        return ! $authorized;
+                    }, 100);
                 }
             }
         } catch (Throwable $error) {

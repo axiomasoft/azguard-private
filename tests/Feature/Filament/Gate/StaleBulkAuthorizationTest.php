@@ -155,6 +155,30 @@ it('allows a custom bulk callback when the complete selection remains authorized
     expect(Order::query()->whereKey([1, 2])->count())->toBe(0);
 });
 
+it('checks every selected record with unbuffered MySQL reads before a bulk callback', function (bool $locked): void {
+    $pdo = Order::query()->getConnection()->getPdo();
+
+    if ($pdo->getAttribute(PDO::ATTR_DRIVER_NAME) !== 'mysql') {
+        $this->markTestSkipped('This regression needs MySQL or MariaDB unbuffered reads.');
+    }
+    $more = range(10, 110);
+    Order::query()->insert(array_map(static fn (int $id): array => ['id' => $id, 'number' => 'B-'.$id], $more));
+    // A denial on the second page must keep even the first page untouched.
+    Order::query()->whereKey(110)->update(['locked' => $locked]);
+    $selected = array_map(strval(...), [1, 2, ...$more]);
+    $buffered = $pdo->getAttribute(PDO::MYSQL_ATTR_USE_BUFFERED_QUERY);
+    $pdo->setAttribute(PDO::MYSQL_ATTR_USE_BUFFERED_QUERY, false);
+
+    try {
+        Livewire::test(ListOrders::class)->set('selectedTableRecords', $selected)
+            ->call('mountAction', 'delete', [], ['table' => true, 'bulk' => true]);
+    } finally {
+        $pdo->setAttribute(PDO::MYSQL_ATTR_USE_BUFFERED_QUERY, $buffered);
+    }
+
+    expect(Order::query()->whereKey($selected)->count())->toBe($locked ? count($selected) : 0);
+})->with([false, true])->group('engines', 'stand');
+
 final class SoftDeletedOrderForGate extends Model
 {
     use SoftDeletes;

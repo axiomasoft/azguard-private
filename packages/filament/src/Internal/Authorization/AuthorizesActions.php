@@ -112,10 +112,11 @@ final class AuthorizesActions
         // Custom callbacks can consume raw keys, including keys omitted by the table's visibility or relation query.
         // Require the complete explicit selection to resolve before allowing any effect.
         $resolved = [];
-        foreach ($livewire->getSelectedTableRecordsQuery()->useWritePdo()->cursor() as $record) {
+        // Finish each bounded SELECT before authorization opens another query on the same PDO.
+        $livewire->getSelectedTableRecordsQuery()->useWritePdo()->each(function (Model $record) use ($action, $livewire, &$resolved): void {
             abort_unless($action->getIndividualRecordAuthorizationResponse($record)->allowed(), 403);
             $resolved[] = $livewire->getTableRecordKey($record);
-        }
+        }, 100);
 
         if (! $tracking) {
             abort_unless(count(array_diff($selected, $resolved)) === 0, 403);
