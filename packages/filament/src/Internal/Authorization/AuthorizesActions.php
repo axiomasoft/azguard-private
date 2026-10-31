@@ -14,6 +14,8 @@ use Filament\Actions\DetachAction;
 use Filament\Actions\DetachBulkAction;
 use Filament\Actions\DissociateAction;
 use Filament\Actions\DissociateBulkAction;
+use Filament\Actions\ExportAction;
+use Filament\Actions\ExportBulkAction;
 use Filament\Resources\Resource as FilamentResource;
 use Filament\Tables\Contracts\HasTable;
 use Illuminate\Auth\Access\Response;
@@ -47,7 +49,7 @@ final class AuthorizesActions
             $bulkQuery = $action instanceof BulkAction && $livewire instanceof HasTable && $livewire->getTable()->hasQuery();
 
             return $otherwise ?? FilamentGate::resource($resource, $bulkQuery && ! str_ends_with($ability, '_any') ? $ability.'_any' : $ability,
-                $record instanceof Model && $action->getName() !== 'export' ? $record : null);
+                $record instanceof Model && ! self::exports($action) ? $record : null);
         });
 
         if (! $action instanceof BulkAction || FilamentContext::serving()?->enforced() !== true) {
@@ -60,7 +62,7 @@ final class AuthorizesActions
                 return self::relation($action, $action->getLivewire(), $resource);
             }
 
-            return $resource === null ? Response::deny() : FilamentGate::resource($resource, self::ability($action), $record);
+            return $resource === null ? Response::deny() : FilamentGate::resource($resource, self::exports($action) ? 'view' : self::ability($action), $record);
         });
     }
 
@@ -88,6 +90,11 @@ final class AuthorizesActions
         }
         abort_unless($action->shouldAuthorizeIndividualRecords(), 403);
 
+        if ($action instanceof ExportBulkAction) {
+            // Filament exports default to raw IDs, but our individual authorization callback needs fresh models.
+            $action->fetchSelectedRecords();
+        }
+
         if ($livewire->getDefaultActionIndividualRecordAuthorizationResponseResolver($action) !== null) {
             // Native bulk actions consume Filament's filtered collection and report individual failures.
             $action->fetchSelectedRecords();
@@ -95,11 +102,38 @@ final class AuthorizesActions
             return;
         }
 
-        // Custom callbacks may consume raw keys or issue their own query instead of Filament's filtered collection.
-        // Refuse the entire selection before calling them if even one selected visible row is unauthorized.
-        foreach ($livewire->getSelectedTableRecordsQuery()->cursor() as $record) {
+        // Filament clears explicit keys when switching to select-all. A custom callback may read those
+        // keys directly, so an inconsistent client state must never bypass their authorization.
+        $tracking = property_exists($livewire, 'isTrackingDeselectedTableRecords') && $livewire->isTrackingDeselectedTableRecords === true;
+        $selected = self::keys(property_exists($livewire, 'selectedTableRecords') ? $livewire->selectedTableRecords : null);
+        self::keys(property_exists($livewire, 'deselectedTableRecords') ? $livewire->deselectedTableRecords : null);
+        abort_if($tracking && $selected !== [], 403);
+
+        // Custom callbacks can consume raw keys, including keys omitted by the table's visibility or relation query.
+        // Require the complete explicit selection to resolve before allowing any effect.
+        $resolved = [];
+        // Finish each bounded SELECT before authorization opens another query on the same PDO.
+        $livewire->getSelectedTableRecordsQuery()->useWritePdo()->each(function (Model $record) use ($action, $livewire, &$resolved): void {
             abort_unless($action->getIndividualRecordAuthorizationResponse($record)->allowed(), 403);
+            $resolved[] = $livewire->getTableRecordKey($record);
+        }, 100);
+
+        if (! $tracking) {
+            abort_unless(count(array_diff($selected, $resolved)) === 0, 403);
         }
+    }
+
+    /** @return list<string> */
+    private static function keys(mixed $keys): array
+    {
+        abort_unless(is_array($keys), 403);
+        $validated = [];
+        foreach ($keys as $key) {
+            abort_unless(is_string($key) || is_int($key), 403);
+            $validated[] = (string) $key;
+        }
+
+        return array_values(array_unique($validated));
     }
 
     /** Whether the action links or unlinks the record of another resource to the record that owns the relation. */
@@ -124,7 +158,12 @@ final class AuthorizesActions
         if ($owner === null || ! is_object($livewire)) {
             return Response::deny();
         }
-        $response = FilamentGate::resource($owner[0], FilamentContext::relationAbility($livewire::class), $owner[1]);
+        $record = $owner[1]->newQuery()->useWritePdo()->find($owner[1]->getKey());
+
+        if (! $record instanceof Model || $record::class !== $owner[0]::getModel()) {
+            return Response::deny();
+        }
+        $response = FilamentGate::resource($owner[0], FilamentContext::relationAbility($livewire::class), $record);
 
         if (! $response->allowed() || ! $action instanceof AttachAction && ! $action instanceof AssociateAction) {
             return $response;
@@ -135,14 +174,21 @@ final class AuthorizesActions
 
     private static function ability(Action $action): string
     {
+        if (self::exports($action)) {
+            return 'view_any';
+        }
         $name = FilamentContext::ability($action->getName() ?? 'unnamed');
 
         return match ($name) {
             'edit' => 'update',
             'revoke' => 'delete',
             'why', 'why_grant' => 'view',
-            'export' => 'view_any',
             default => $name,
         };
+    }
+
+    private static function exports(Action $action): bool
+    {
+        return $action instanceof ExportAction || $action instanceof ExportBulkAction;
     }
 }

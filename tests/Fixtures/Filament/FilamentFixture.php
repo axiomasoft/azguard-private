@@ -6,7 +6,9 @@ namespace AzGuard\Tests\Fixtures\Filament;
 
 use AzGuard\Contracts\Diagnostics\DoctorCheck;
 use AzGuard\Filament\FilamentDefinitions;
+use AzGuard\Panels\Reads;
 use AzGuard\Policies\PolicyBinding;
+use AzGuard\Tenancy\TenantPolicy;
 use AzGuard\Tests\Fixtures\Filament\Guards\AdminMemberRole;
 use AzGuard\Tests\Fixtures\Filament\Pages\ProbePage;
 use AzGuard\Tests\Fixtures\Filament\Resources\ArchivedOrderResource;
@@ -49,6 +51,8 @@ final class FilamentFixture
     /** Whether the plugin of the `admin` Filament panel enforces its permissions. */
     public static bool $enforce;
 
+    public static ?Reads $reads = null;
+
     public static ?string $authority;
 
     /** @var array{resources?: list<string>, pages?: list<string>, widgets?: list<string>} */
@@ -65,6 +69,11 @@ final class FilamentFixture
 
     /** @var list<class-string> roles of the `admin` guard panel */
     public static array $adminRoles;
+
+    /** @var list<mixed> extra plugins of the admin guard panel */
+    public static array $adminPlugins;
+
+    public static ?TenantPolicy $adminTenantPolicy;
 
     /** Ids of the users that the member roles of the fixture guard panels admit. */
     public static array $members;
@@ -128,12 +137,15 @@ final class FilamentFixture
         self::$widgets = [];
         self::$definitions = FilamentDefinitions::Enums;
         self::$enforce = true;
+        self::$reads = null;
         self::$authority = null;
         self::$abilities = null;
         self::$exclude = [];
         self::$guardPermissions = [];
         self::$guardPolicies = [];
         self::$adminRoles = [AdminMemberRole::class];
+        self::$adminPlugins = [];
+        self::$adminTenantPolicy = null;
         self::$members = [1];
         self::$memberPermissions = ['pages.*'];
         self::$editors = [];

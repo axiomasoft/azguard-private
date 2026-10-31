@@ -36,6 +36,18 @@ final class AdminGuardPanel extends PanelProvider
             $panel->plugins([ReasonPlugin::make()]);
         }
 
+        if (FilamentFixture::$adminPlugins !== []) {
+            $panel->plugins(FilamentFixture::$adminPlugins);
+        }
+
+        if (FilamentFixture::$adminTenantPolicy !== null) {
+            $panel->tenants(FilamentFixture::$adminTenantPolicy);
+        }
+
+        if (FilamentFixture::$reads !== null) {
+            $panel->consistency(FilamentFixture::$reads);
+        }
+
         if (FilamentFixture::$doctorChecks !== []) {
             $panel->doctorChecks(FilamentFixture::$doctorChecks);
         }

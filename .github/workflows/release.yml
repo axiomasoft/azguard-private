@@ -55,6 +55,14 @@ jobs:
     permissions:
       contents: read
 
+  workers:
+    name: Persistent workers and memory
+    uses: ./.github/workflows/workers.yml
+    with:
+      memory: true
+    permissions:
+      contents: read
+
   security:
     name: Security
     uses: ./.github/workflows/security.yml
@@ -187,7 +195,7 @@ jobs:
 
   artifacts:
     name: Release artifacts
-    needs: [validate, validate-consumers, tests, static, style, docs, nightly, compat, security, mutation]
+    needs: [validate, validate-consumers, tests, static, style, docs, nightly, compat, security, mutation, workers]
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -228,7 +236,7 @@ jobs:
 
   split:
     name: Split validated packages
-    needs: [validate, validate-consumers, tests, static, style, docs, nightly, compat, security, mutation, artifacts]
+    needs: [validate, validate-consumers, tests, static, style, docs, nightly, compat, security, mutation, artifacts, workers]
     uses: ./.github/workflows/split.yml
     secrets:
       MONOREPO_SPLIT_TOKEN: ${{ secrets.MONOREPO_SPLIT_TOKEN }}
@@ -237,7 +245,7 @@ jobs:
 
   release:
     name: Create GitHub Release
-    needs: [validate, validate-consumers, tests, static, style, docs, nightly, compat, security, mutation, artifacts, split]
+    needs: [validate, validate-consumers, tests, static, style, docs, nightly, compat, security, mutation, artifacts, split, workers]
     runs-on: ubuntu-latest
     permissions:
       contents: write

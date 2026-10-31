@@ -9,6 +9,7 @@ use AzGuard\Catalog\Internal\CatalogCache;
 use AzGuard\Changes\Internal\ActingActor;
 use AzGuard\Context\Internal\CurrentContext;
 use AzGuard\Context\Internal\WithinContext;
+use AzGuard\Kernel\Identity\ActorRef;
 use AzGuard\Kernel\Identity\SubjectRef;
 use AzGuard\Panels\Internal\CurrentPanel;
 use AzGuard\Panels\Internal\PanelRegistry;
@@ -63,6 +64,36 @@ it('resolves the panel from the CurrentPanel of the current lifecycle', function
     [$second] = app(Authorizer::class)->resolve($subject, 'orders.view');
 
     expect($first->id())->toBe('admin')->and($second->id())->toBe('cabinet');
+});
+
+it('restores nested context and actor after an exception', function (): void {
+    [, $panel] = ScopeWorld::compile(new ScopeSource);
+    $contexts = app(CurrentContext::class);
+    $within = app(WithinContext::class);
+    $actors = app(ActingActor::class);
+    $outer = ScopeWorld::scope('A');
+    $inner = ScopeWorld::scope('B');
+    $outerActor = ActorRef::of('user', 1);
+    $innerActor = ActorRef::of('user', 2);
+
+    $within->run($panel, $outer, function () use ($within, $contexts, $actors, $panel, $outer, $inner, $outerActor, $innerActor): void {
+        $actors->run($outerActor, function () use ($within, $contexts, $actors, $panel, $outer, $inner, $outerActor, $innerActor): void {
+            try {
+                $within->run($panel, $inner, fn () => $actors->run($innerActor, function () use ($contexts, $actors, $panel, $inner, $innerActor): void {
+                    expect($contexts->get($panel))->toBe($inner)->and($actors->current($panel))->toBe($innerActor);
+
+                    throw new RuntimeException('nested failure');
+                }));
+                test()->fail('The nested callback must throw.');
+            } catch (RuntimeException $exception) {
+                expect($exception->getMessage())->toBe('nested failure');
+            }
+
+            expect($contexts->get($panel))->toBe($outer)->and($actors->current($panel))->toBe($outerActor);
+        });
+    });
+
+    expect($contexts->get($panel))->toBeNull()->and($actors->current($panel)?->reason)->toBe('console');
 });
 
 it('keeps scoped services out of the singleton graph', function (): void {

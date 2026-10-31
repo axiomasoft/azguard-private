@@ -8,6 +8,7 @@ use AzGuard\Kernel\Decision\AccessRequest;
 use AzGuard\Kernel\Decision\CodeStateToken;
 use AzGuard\Kernel\Decision\DecisionReason;
 use AzGuard\Kernel\Identity\SubjectRef;
+use AzGuard\Kernel\Identity\TenantRef;
 use AzGuard\Panels\PanelBuilder;
 use AzGuard\Sources\Database\DatabaseSource;
 use AzGuard\Storage\Internal\Storage;
@@ -18,6 +19,10 @@ use AzGuard\Tests\Fixtures\Authorization\Cache\CacheWorld;
 use AzGuard\Tests\Fixtures\Authorization\Cache\FencedCacheSource;
 use AzGuard\Tests\Fixtures\Sources\Database\DatabaseWorld;
 use Illuminate\Support\Carbon;
+
+beforeEach(function (): void {
+    config(['azguard.cache.namespace' => 'test-isolation', 'azguard.cache.signing_key' => str_repeat('k', 32)]);
+});
 
 it('reuses Request and revisioned Stable raw contributions and always rereads Volatile', function (Volatility $reuse, bool $fenced, int $sameRequest, int $nextRequest): void {
     $source = $fenced ? new FencedCacheSource : new CacheSource;
@@ -63,7 +68,8 @@ it('stores a serializable raw shape containing only kernel contributions and dec
     $now = Carbon::now()->toDateTimeImmutable();
     $grant = AuthorizationWorld::grant(fields: ['city' => 'Volgograd', 'ids' => ['007', 7], 'flag' => true, 'missing' => null]);
     app(PermissionSetCache::class)->put('raw-shape', $panel, Volatility::Stable, true, [$grant], $now);
-    $payload = unserialize(app('cache')->store('array')->get('raw-shape'));
+    $envelope = json_decode(app('cache')->store('array')->get('raw-shape'), true);
+    $payload = unserialize(base64_decode($envelope['payloadBase64'], true));
     expect(array_keys($payload))->toBe(['items', 'validUntil'])->and($payload['items'])->toEqual([$grant]);
     $serialized = serialize($payload);
     expect($serialized)->not->toContain('Eloquent', 'Builder', 'Closure', 'AzGuard\\Kernel\\Decision\\Decision', 'EvaluationFrame', 'Policy');
@@ -123,4 +129,24 @@ it('hits a shared store that unserializes without classes, as Laravel 13 does by
     $fresh = new PermissionSetCache(app('cache'));
 
     expect($fresh->get('plain-shape', $panel, Volatility::Stable, true, $now))->toEqual([$grant]);
+});
+
+it('preserves separate namespaces sharing the same cache store and signing secret', function (): void {
+    [, $panel] = AuthorizationWorld::compile(new CacheSource, fn (PanelBuilder $p) => $p->cache('array', 60));
+    $tuple = [CodeStateToken::of('admin', 'build', 'fp'), SubjectRef::of('user', 1),
+        TenantRef::global(), [], 'source', 'primary', 'authority', 1];
+    $now = Carbon::now()->toDateTimeImmutable();
+    config(['azguard.cache.namespace' => 'application-a']);
+    $keyA = PermissionSetCache::key(...$tuple);
+    (new PermissionSetCache(app('cache')))->put($keyA, $panel, Volatility::Stable, true, [AuthorizationWorld::grant()], $now);
+    $original = app('cache')->store('array')->get($keyA);
+    config(['azguard.cache.namespace' => 'application-b']);
+    $keyB = PermissionSetCache::key(...$tuple);
+    expect((new PermissionSetCache(app('cache')))->get($keyB, $panel, Volatility::Stable, true, $now))->toBeNull()
+        ->and(app('cache')->store('array')->get($keyA))->toBe($original);
+    (new PermissionSetCache(app('cache')))->put($keyB, $panel, Volatility::Stable, true, [], $now);
+    config(['azguard.cache.namespace' => 'application-a']);
+    expect((new PermissionSetCache(app('cache')))->get($keyA, $panel, Volatility::Stable, true, $now))->toHaveCount(1);
+    config(['azguard.cache.namespace' => 'application-b']);
+    expect((new PermissionSetCache(app('cache')))->get($keyB, $panel, Volatility::Stable, true, $now))->toBe([]);
 });

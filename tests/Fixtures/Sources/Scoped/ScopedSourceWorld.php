@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace AzGuard\Tests\Fixtures\Sources\Scoped;
 
 use AzGuard\Authorization\Internal\Authorizer;
+use AzGuard\Authorization\Visibility;
 use AzGuard\Contracts\Authorization\EvaluationContext;
 use AzGuard\Contracts\Authorization\GrantCondition;
 use AzGuard\Contracts\Scopes\ResolvedAssignmentScope;
@@ -338,7 +339,7 @@ final class ScopedSourceWorld
             ->and($decision->state)->toBeInstanceOf(StateToken::class)->and($decision->state->version())->toBe($version);
     }
 
-    private static function relations(): void
+    public static function relations(string $mode = 'inherit'): void
     {
         RelationWorld::seed();
         $project = new ProjectDefinition;
@@ -351,9 +352,9 @@ final class ScopedSourceWorld
         Store::query()->create(['id' => 8, 'tenant_id' => 'A', 'owner_id' => 2]);
         [,, $registry] = PanelWorld::compile([AdminPanel::class => static fn (PanelBuilder $panel): PanelBuilder => $panel
             ->for(Member::class)->resourcePrefix(false)->permissions([RelationPermission::class,
-                RelationSource::make($project, 'members', 'pivot.role'), RelationSource::make($store, 'owner', 'store-owner')])
-            ->roles([EditorRole::class, StoreOwnerRole::class])->plugins([ScopesPlugin::inherit($project, $store)])
-            ->tenants(TenantPolicy::required(ModelTenantDefinition::make(Organization::class, 'organization'))->requireMembership(new Membership))]);
+                DatabaseSource::make(), RelationSource::make($project, 'members', 'pivot.role'), RelationSource::make($store, 'owner', 'store-owner')])
+            ->roles([EditorRole::class, StoreOwnerRole::class])->plugins([$mode === 'inherit' ? ScopesPlugin::inherit($project, $store) : ScopesPlugin::isolated($project, $store)])
+            ->tenants(TenantPolicy::required(ModelTenantDefinition::make(Organization::class, 'organization'))->requireMembership(new Membership(members: ['1', '2'])))]);
         $panel = self::install($registry);
         foreach ([['project', 7, 'A', 'projects.edit', true], ['project', 8, 'A', 'projects.edit', false],
             ['project', 9, 'B', 'projects.edit', false], ['project', 7, 'B', 'projects.edit', false],
@@ -370,6 +371,39 @@ final class ScopedSourceWorld
         });
         expect(app(Authorizer::class)->decide($panel, self::request('projects.edit', AccessScope::in(TenantRef::of('organization', 'A'))))->reason)
             ->toBe(DecisionReason::NotGranted)->and($reads)->toBe(0);
+        // User 2 has no relation to project 7; tenant-wide authority inherits only in Inherit mode.
+        $engine = app(Authorizer::class);
+        $inTenant = self::request('projects.edit', AccessScope::in(TenantRef::of('organization', 'A')), subject: 2);
+        $inProject = self::request('projects.edit', RelationWorld::scope(7, 'A'), subject: 2);
+        expect($engine->decideMany([$inTenant, $inProject])->get(0)->allowed())->toBeFalse()
+            ->and($engine->decide($panel, $inProject)->allowed())->toBeFalse();
+        $assertParity = static function (string $tenant, array $expected) use ($panel, $engine): void {
+            $subject = SubjectRef::of('user', 2);
+            $records = RelationProjectResource::query()->orderBy('id')->get();
+            $requests = $records->map(static fn ($record) => self::request('projects.edit',
+                RelationWorld::scope((int) $record->getKey(), $tenant), subject: 2)->on($record->azguardAssignmentScope(), $record))->all();
+            $batch = $engine->decideMany($requests);
+            foreach ($requests as $index => $request) {
+                $allowed = in_array($records[$index]->getKey(), $expected, true);
+                expect($batch->get($index)->allowed())->toBe($allowed)
+                    ->and($engine->decide($panel, $request)->allowed())->toBe($allowed);
+            }
+            expect(app(Visibility::class)->visibleTo($panel, RelationProjectResource::query(), $subject, 'projects.edit',
+                AccessScope::in(TenantRef::of('organization', $tenant)))->orderBy('id')->pluck('id')->all())->toBe($expected);
+        };
+        $assertParity('A', []);
+        $assertParity('B', [9]); // A real relation in B must remain independent of the grant in A.
+        DatabaseWorld::insert('permission', [DatabaseWorld::row('permission', AccessScope::in(TenantRef::of('organization', 'A')), [
+            'subject_id' => '2', 'permission' => 'projects.edit',
+        ])]);
+        expect($engine->decide($panel, $inTenant)->allowed())->toBeTrue()
+            ->and($engine->decide($panel, $inProject)->allowed())->toBe($mode === 'inherit')
+            ->and($engine->decideMany([$inProject])->get(0)->allowed())->toBe($mode === 'inherit');
+        $assertParity('A', $mode === 'inherit' ? [7, 8] : []);
+        $assertParity('B', [9]);
+        // With no database grant in B, detaching the relation must deny on all paths in either mode.
+        RelationProjectResource::query()->findOrFail(9)->getConnection()->table('relation_project_user')->where('project_id', 9)->delete();
+        $assertParity('B', []);
     }
 
     private static function mixed(): void

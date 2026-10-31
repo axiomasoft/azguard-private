@@ -17,6 +17,55 @@ php artisan azguard:doctor --production    # also checks the catalog cache and t
 - **CI.** Run `php artisan azguard:doctor` in CI. It exits with `1` on errors and checks the configuration,
   panels, storages, sources, plugins and morph aliases.
 
+## Morph identity and alias changes
+
+Register stable aliases with `Relation::morphMap(['user' => User::class, /* tenant and context models */])`
+in the host before panels are built. AzGuard does not enable Laravel's process-wide `requireMorphMap` flag.
+Doctor checks declared subject, tenant and context models, including custom `getMorphClass()` values and reverse
+resolution. An unmapped class produces `morph.identity` warning in production; set
+`config(['azguard_doctor.strict_morph_identity' => true])` before running Doctor to make that warning an error.
+Existing identity validation can independently reject an FQCN. Alias collisions and aliases that do not resolve to
+the expected model are errors. Explicit tenant and context types also need matching map entries.
+
+Doctor validates the configured models and aliases; it does not scan stored identities, derived keys or historical
+actor types. A clean `morph.identity` result after changing the map is not evidence that stored rows were migrated.
+
+Changing an alias changes identity, even if the numeric IDs match. The host owns this migration; Doctor never
+performs it. Rehearse the following on a restored disposable copy using the same database engine and application
+version, and retain the inventory, scripts and verification output with the deployment record:
+
+1. Inventory every configured storage, connection and prefix, host polymorphic table, queued payload, cache and
+   integration that stores a type. For each `subject_type`, `tenant_type`, `context_type` and `actor_type` column,
+   group by exact type and count rows, including grants, permissions, subject revisions and audit history. Inventory
+   derived `tenant_key` and `context_key`, uniqueness constraints and both old and new aliases. Export sorted
+   primary keys and relevant identity columns and hash the export per table. Record the map from each old FQCN or
+   alias to exactly one model and new alias; resolve duplicate aliases and prospective unique-key collisions first.
+2. Decide a separate policy for audit history and actor identities. Preserve historical audit identities by default;
+   do not rewrite them without an approved policy. Include host relations and old queued jobs in the compatibility
+   plan. Take and restore-test a consistent backup of every affected database; record its location and hashes.
+3. Quiesce writers and workers, repeat the inventory and compare counts and hashes with the approved dry run. Abort
+   on drift, ambiguity, missing rows or collisions. In a transaction per database, run a host-written migration
+   against exact old values, covering every applicable type column and subject revision. Recompute derived keys
+   using the same AzGuard identity encoding as the installed version; never replace only the visible type when a
+   derived key also contains it. Verify affected-row counts, uniqueness and sorted identity exports against the
+   predicted transformed inventory before committing. For multiple databases, plan a coordinated recovery: there
+   is no cross-database transaction.
+
+   For storage schema 2, rebuild `tenant_key` with `AzGuard\Kernel\Identity\TenantRef::of($newType, $id)->key()`
+   and `context_key` with `AzGuard\Kernel\Identity\AssignmentScopeRef::of($newType, $id)->key()`. Use each
+   reference's `global()->key()` when its type and ID are both null. These factories preserve canonical string IDs
+   and validate aliases. The current keys are `type:id` or `global`; they are not the versioned JSON composites
+   produced by `IdentityCodec::compose()` (`IdentityCodec::VERSION` is currently 1). Use the installed factories,
+   not SQL string replacement, and verify keys in permission definitions and grants against their type/ID columns.
+4. Deploy the map and code together, reset state for every affected panel with `php artisan azguard:state:reset
+   <panel>`, invalidate external caches, restart workers, run Doctor in production mode and verify representative
+   subject, tenant and context access. Recount old and new values and compare hashes to the expected exports before
+   resuming traffic. Retain the unchanged audit inventory and verify it separately.
+5. For rollback, quiesce writers again. Restore the consistent backup and matching old code/map, or use a rehearsed
+   inverse migration only if all post-migration writes can be accounted for without data loss. Verify counts, hashes,
+   uniqueness and audit history against the rollback inventory, reset each panel's state again, invalidate caches,
+   restart workers and check Doctor and representative access before reopening traffic. Stop on any mismatch.
+
 ## Storage schema
 
 Each storage records its schema in `storage_state` (schema 2: the authority tables, `subject_revisions` and the
@@ -50,9 +99,44 @@ is used concurrently.
 - **Request state.** The authorizer, the permission-set memo, the current panel and the scope are Laravel
   *scoped* instances. Octane and the queue worker reset them between requests and jobs.
 - **Tenants in jobs.** A job does not inherit the tenant or scope of the request that dispatched it. Pass them
-  to the job and use `$user->inTenant($tenant)` or `on:`.
+  to the job explicitly. Request-only tenant and assignment scope resolvers receive an empty `Request` outside HTTP;
+  absent values resolve to global when optional and deny when required. A carried panel id is only a hint.
 - **Actor in jobs.** Wrap changes in `AzGuard::actingAs($user or 'reason', …)` so events and the audit journal
   record who made them.
+
+The repository's disposable archive consumer exercises one Octane/RoadRunner worker and one queue worker:
+`bash bin/worker-smoke.sh smoke` sends 1,000 requests and 1,000 jobs. `memory` runs 200 warmup requests and jobs followed
+by 10,000 measured requests and jobs; `soak` runs 100,000 of each. The nightly and release lanes run `memory`.
+Each run writes its versions, archive hash, logs and per-request PID, RSS and memo counts under
+`build/worker-smoke/`. The check fails if the worker changes, lifecycle counts do not return to zero, or peak RSS
+growth from the warmup baseline or over the final 5,000 samples exceeds the larger of 8 MiB and 10% of warmed RSS.
+HTTP and queue series are checked separately. Investigate a failure
+using the retained series; do not retry it as a substitute for investigation. The workload uses a temporary SQLite
+`worker_test.sqlite` database and does not require Redis.
+
+A queue handler can keep all authorization inputs explicit:
+
+```php
+use AzGuard\Facades\AzGuard;
+use AzGuard\Kernel\Decision\AccessRequest;
+use AzGuard\Kernel\Identity\AccessScope;
+use AzGuard\Kernel\Identity\AssignmentScopeRef;
+use AzGuard\Kernel\Identity\PermissionKey;
+use AzGuard\Kernel\Identity\SubjectRef;
+use AzGuard\Kernel\Identity\TenantRef;
+
+// $panelId, $subjectId, $tenantId and $projectId are job payload fields.
+$scope = AccessScope::in(TenantRef::of('organization', $tenantId), AssignmentScopeRef::of('project', $projectId));
+$request = AccessRequest::for(SubjectRef::of('user', $subjectId), PermissionKey::of($panelId, 'posts.update'))
+    ->inScope($scope);
+$decision = AzGuard::panel($panelId)->decide($request);
+if (! $decision->allowed()) {
+    return; // Handle the denial according to the job's policy.
+}
+```
+
+Choose aliases and permissions declared by the application. The subject being checked is separate from the actor
+recorded for changes; set the actor explicitly when needed.
 
 ## Manual database changes and restores
 

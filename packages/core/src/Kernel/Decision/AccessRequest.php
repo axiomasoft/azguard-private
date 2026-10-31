@@ -27,6 +27,7 @@ final readonly class AccessRequest
         private ?object $resource = null,
         private bool $traced = false,
         private ?object $subjectModel = null,
+        private bool $primaryRequested = false,
     ) {}
 
     public static function for(SubjectRef $subject, PermissionKey $permission): self
@@ -36,7 +37,7 @@ final readonly class AccessRequest
 
     public function inTenant(TenantRef $tenant): self
     {
-        return new self($this->subject, $this->permission, $tenant, $this->context, $this->resource, $this->traced, $this->subjectModel);
+        return new self($this->subject, $this->permission, $tenant, $this->context, $this->resource, $this->traced, $this->subjectModel, $this->primaryRequested);
     }
 
     /**
@@ -44,17 +45,17 @@ final readonly class AccessRequest
      */
     public function on(?AssignmentScopeRef $context, ?object $resource = null): self
     {
-        return new self($this->subject, $this->permission, $this->tenant, $context, $resource, $this->traced, $this->subjectModel);
+        return new self($this->subject, $this->permission, $this->tenant, $context, $resource, $this->traced, $this->subjectModel, $this->primaryRequested);
     }
 
     public function inScope(AccessScope $scope, ?object $resource = null): self
     {
-        return new self($this->subject, $this->permission, $scope->tenant, $scope->context, $resource, $this->traced, $this->subjectModel);
+        return new self($this->subject, $this->permission, $scope->tenant, $scope->context, $resource, $this->traced, $this->subjectModel, $this->primaryRequested);
     }
 
     public function traced(bool $trace = true): self
     {
-        return new self($this->subject, $this->permission, $this->tenant, $this->context, $this->resource, $trace, $this->subjectModel);
+        return new self($this->subject, $this->permission, $this->tenant, $this->context, $this->resource, $trace, $this->subjectModel, $this->primaryRequested);
     }
 
     /**
@@ -63,7 +64,20 @@ final readonly class AccessRequest
      */
     public function withSubjectModel(object $model): self
     {
-        return new self($this->subject, $this->permission, $this->tenant, $this->context, $this->resource, $this->traced, $model);
+        return new self($this->subject, $this->permission, $this->tenant, $this->context, $this->resource, $this->traced, $model, $this->primaryRequested);
+    }
+
+    /** Read database authority from primary for this request. */
+    #[Api(since: '2.0')]
+    public function onPrimary(): self
+    {
+        return new self($this->subject, $this->permission, $this->tenant, $this->context, $this->resource, $this->traced, $this->subjectModel, true);
+    }
+
+    #[Api(since: '2.0')]
+    public function requiresPrimary(): bool
+    {
+        return $this->primaryRequested;
     }
 
     public function subjectModel(): ?object

@@ -4047,6 +4047,14 @@
                             "variadic": false,
                             "hasDefault": true,
                             "default": "'manual'"
+                        },
+                        {
+                            "name": "primaryRequested",
+                            "type": "bool",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "false"
                         }
                     ],
                     "return": null,
@@ -4498,6 +4506,18 @@
                         }
                     ],
                     "return": "bool",
+                    "returnsReference": false,
+                    "namedArguments": true,
+                    "contracts": []
+                },
+                {
+                    "name": "onPrimary",
+                    "visibility": "public",
+                    "static": false,
+                    "abstract": false,
+                    "final": false,
+                    "parameters": [],
+                    "return": "self",
                     "returnsReference": false,
                     "namedArguments": true,
                     "contracts": []
@@ -9142,7 +9162,9 @@
             "parent": null,
             "interfaces": [],
             "namedArguments": true,
-            "contracts": [],
+            "contracts": [
+                "@phpstan-type CapabilityCell array{status: 'supported'|'unsupported'|'conditional', basis: 'static_declaration', reason: string, test_reference: string}"
+            ],
             "constants": [],
             "properties": [
                 {
@@ -9189,6 +9211,24 @@
                     "name": "label",
                     "visibility": "public",
                     "type": "string",
+                    "readonly": true,
+                    "static": false,
+                    "contracts": []
+                },
+                {
+                    "name": "matrix",
+                    "visibility": "public",
+                    "type": "array",
+                    "readonly": true,
+                    "static": false,
+                    "contracts": [
+                        "@var array<string, CapabilityCell> Declarations, never a runtime authorization or SQL-equivalence verdict."
+                    ]
+                },
+                {
+                    "name": "volatility",
+                    "visibility": "public",
+                    "type": "?AzGuard\\Contracts\\Sources\\Volatility",
                     "readonly": true,
                     "static": false,
                     "contracts": []
@@ -9245,6 +9285,14 @@
                             "variadic": false,
                             "hasDefault": true,
                             "default": "array (\n)"
+                        },
+                        {
+                            "name": "volatility",
+                            "type": "?AzGuard\\Contracts\\Sources\\Volatility",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "NULL"
                         }
                     ],
                     "return": null,
@@ -10180,7 +10228,8 @@
             "interfaces": [],
             "namedArguments": true,
             "contracts": [
-                "@phpstan-type Sources array{sources: list<array{id: string, label: string, class: string, capabilities: list<string>, dynamic: bool}>, named: list<array{name: string, origin: string}>, plugins: list<string>}",
+                "@phpstan-import-type CapabilityCell from SourceDescription",
+                "@phpstan-type Sources array{sources: list<array{id: string, label: string, class: string, capabilities: list<string>, dynamic: bool, volatility: ?string, matrix: array<string, CapabilityCell>}>, named: list<array{name: string, origin: string}>, plugins: list<string>}",
                 "@phpstan-type Entry array{id: string, label: string, default: bool, prefix: ?string, tenants: string, subjects: list<string>, writer: ?string, storage: ?string, plugins: list<string>, settings?: array<string, array{value: bool|int|string|null, origin: string}>, sources?: Sources, schema?: array<string, mixed>}"
             ],
             "constants": [],
@@ -15945,6 +15994,18 @@
                     "contracts": []
                 },
                 {
+                    "name": "onPrimary",
+                    "visibility": "public",
+                    "static": false,
+                    "abstract": false,
+                    "final": false,
+                    "parameters": [],
+                    "return": "self",
+                    "returnsReference": false,
+                    "namedArguments": true,
+                    "contracts": []
+                },
+                {
                     "name": "permission",
                     "visibility": "public",
                     "static": false,
@@ -15952,6 +16013,18 @@
                     "final": false,
                     "parameters": [],
                     "return": "AzGuard\\Kernel\\Identity\\PermissionKey",
+                    "returnsReference": false,
+                    "namedArguments": true,
+                    "contracts": []
+                },
+                {
+                    "name": "requiresPrimary",
+                    "visibility": "public",
+                    "static": false,
+                    "abstract": false,
+                    "final": false,
+                    "parameters": [],
+                    "return": "bool",
                     "returnsReference": false,
                     "namedArguments": true,
                     "contracts": []
@@ -21104,7 +21177,7 @@
                     "value": {
                         "resource_prefix": true,
                         "cache.store": null,
-                        "cache.ttl": 3600,
+                        "cache.ttl": 300,
                         "cache.generation": 1,
                         "consistency.reads": "primary",
                         "consistency.state_refresh": "request",
@@ -22308,6 +22381,59 @@
                     "returnsReference": false,
                     "namedArguments": true,
                     "contracts": []
+                }
+            ]
+        },
+        {
+            "name": "AzGuard\\Roles\\SelectsAutomaticRoleScopes",
+            "publication": "spi-implement",
+            "since": "2.0",
+            "kind": "interface",
+            "final": false,
+            "abstract": false,
+            "readonly": false,
+            "parent": null,
+            "interfaces": [],
+            "namedArguments": true,
+            "contracts": [],
+            "constants": [],
+            "properties": [],
+            "methods": [
+                {
+                    "name": "exactAutomaticScopes",
+                    "visibility": "public",
+                    "static": false,
+                    "abstract": false,
+                    "final": false,
+                    "parameters": [
+                        {
+                            "name": "subject",
+                            "type": "Illuminate\\Database\\Eloquent\\Model",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "contextType",
+                            "type": "?string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "context",
+                            "type": "AzGuard\\Contracts\\Authorization\\EvaluationContext",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "?array",
+                    "returnsReference": false,
+                    "namedArguments": true,
+                    "contracts": [
+                        "@return list<AccessScope>|null"
+                    ]
                 }
             ]
         },
@@ -31543,6 +31669,33 @@
                     "contracts": []
                 },
                 {
+                    "name": "azguardFenceMutation",
+                    "visibility": "protected",
+                    "static": false,
+                    "abstract": false,
+                    "final": false,
+                    "parameters": [
+                        {
+                            "name": "source",
+                            "type": "AzGuard\\Contracts\\Sources\\Source",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "panel",
+                            "type": "AzGuard\\Panels\\Panel",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "?callable",
+                    "returnsReference": false,
+                    "namedArguments": true,
+                    "contracts": []
+                },
+                {
                     "name": "azguardPermissions",
                     "visibility": "protected",
                     "static": false,
@@ -31554,6 +31707,20 @@
                     "namedArguments": true,
                     "contracts": [
                         "@return list<string|UnitEnum>"
+                    ]
+                },
+                {
+                    "name": "azguardQueryParity",
+                    "visibility": "protected",
+                    "static": false,
+                    "abstract": false,
+                    "final": false,
+                    "parameters": [],
+                    "return": "?array",
+                    "returnsReference": false,
+                    "namedArguments": true,
+                    "contracts": [
+                        "@return array{scalar: callable(): array, batch: callable(): array, visibility: callable(): array, supported: bool, expected?: array}|null"
                     ]
                 },
                 {
@@ -31582,6 +31749,18 @@
                 },
                 {
                     "name": "describeMatchesWhatTheSourceGives",
+                    "visibility": "public",
+                    "static": false,
+                    "abstract": false,
+                    "final": false,
+                    "parameters": [],
+                    "return": "void",
+                    "returnsReference": false,
+                    "namedArguments": true,
+                    "contracts": []
+                },
+                {
+                    "name": "fencedAuthorityChangesItsStateOnlyOnMutation",
                     "visibility": "public",
                     "static": false,
                     "abstract": false,
@@ -31642,6 +31821,18 @@
                 },
                 {
                     "name": "sourceTakesNowFromTheContext",
+                    "visibility": "public",
+                    "static": false,
+                    "abstract": false,
+                    "final": false,
+                    "parameters": [],
+                    "return": "void",
+                    "returnsReference": false,
+                    "namedArguments": true,
+                    "contracts": []
+                },
+                {
+                    "name": "sourceVisibilityMatchesScalarAndBatch",
                     "visibility": "public",
                     "static": false,
                     "abstract": false,

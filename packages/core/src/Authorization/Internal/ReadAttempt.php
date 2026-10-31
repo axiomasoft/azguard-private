@@ -71,6 +71,13 @@ final class ReadAttempt
     /** @var array<int|string, array{key: string, source: ProvidesGrants|ProvidesRoleGrants, items: list<Grant|RoleContribution>}> */
     private array $pending = [];
 
+    private ?string $currentSource = null;
+
+    public function currentSource(): ?string
+    {
+        return $this->currentSource;
+    }
+
     /** @param list<Attached> $sources */
     public function __construct(private readonly PanelCatalog $static, private readonly array $sources, private readonly EvaluationFrame $initial, private readonly ?PermissionSetCache $cache = null, private readonly bool $publish = true, private readonly ?ReadSessions $shared = null) {}
 
@@ -283,7 +290,7 @@ final class ReadAttempt
 
                     continue;
                 }
-                $groups[$session->handleIdentity()][] = [$attempt, $source, $requests[0][0]->subject(), $requests];
+                $groups[$session->handleIdentity()."\0".$attempt->initial->reads()->value][] = [$attempt, $source, $requests[0][0]->subject(), $requests];
             }
         }
         foreach ($groups as $members) {
@@ -425,15 +432,19 @@ final class ReadAttempt
     /** @return list<array{Source, Grant|RoleContribution}> */
     public function contributions(AccessRequest $request, EvaluationFrame $frame, ?Trace $trace = null): array
     {
+        $this->currentSource = null;
         $contributions = [];
         $pending = [];
         // Authority is now consumed: recognize its root before any source can reuse request memo.
         foreach ($this->sources as ['source' => $source]) {
             if ($source instanceof DatabaseSource) {
+                $this->currentSource = $source::class;
                 $this->begin($source);
             }
         }
         foreach ($this->sources as ['source' => $source]) {
+            $this->currentSource = $source::class;
+
             if (! $source instanceof ProvidesGrants && ! $source instanceof ProvidesRoleGrants) {
                 continue;
             }
@@ -486,6 +497,8 @@ final class ReadAttempt
             }
         }
 
+        $this->currentSource = null;
+
         return $contributions;
     }
 
@@ -519,7 +532,7 @@ final class ReadAttempt
     }
 
     /** @return list<array{Source, Grant|RoleContribution, bool}> each witness with its source and whether it holds in every context */
-    public function selections(AccessRequest $request, EvaluationFrame $frame, string $type): array
+    public function selections(AccessRequest $request, EvaluationFrame $frame, ?string $type): array
     {
         $result = [];
         $allRefs = [];
@@ -534,49 +547,64 @@ final class ReadAttempt
             $this->begin($source);
 
             if ($source instanceof DatabaseSource) {
-                [$state, $selection] = $source->materializeSelection($this->sessions[$source->id()], $request->subject(), $request->permission(), $type, $frame, $this->unread($source));
+                [$state, $selection] = $source->materializeSelection($this->sessions[$source->id()], $request->subject(), $request->permission(), $type ?? 'global', $frame, $this->unread($source));
                 $this->observe($source, $state);
+                $selections = [$selection];
+            } elseif ($source instanceof FolderSource) {
+                $selections = $source->exactSelections($request->subject(), $type, $frame);
             } else {
-                $selection = $this->fenced($source, fn (): ?AssignmentScopeSelection => $source->contextsCovering($request->subject(), $request->permission(), $type, $frame));
+                $selection = $this->fenced($source, fn (): ?AssignmentScopeSelection => $source->contextsCovering($request->subject(), $request->permission(), $type ?? 'global', $frame));
+                $selections = [$selection];
             }
 
-            if ($selection === null) {
+            if ($selections === null || in_array(null, $selections, true)) {
                 throw new VisibilityNotSupportedException('unsupported_selection', $source::class);
             }
-            $refs = [];
-            foreach ($selection->refs() as $ref) {
-                if ($ref->type() !== $type) {
-                    throw new InvalidSourceContributionException('Selection reference has a different scope type.');
-                }
-                $refs[$ref->key()] = true;
-                $allRefs[$ref->key()] = true;
-            }
-
-            // A materialized selection never joins host rows with assignment tables.
-            if (count($allRefs) > 1000) {
-                throw new VisibilityNotSupportedException('selection_budget', $source::class);
-            }
-            foreach ($selection->contributions() as $item) {
-                $ref = $item->scope->context;
-
-                if (! $ref->isGlobal()) {
-                    $allRefs[$ref->key()] = true;
-
-                    if (count($allRefs) > 1000) {
-                        throw new VisibilityNotSupportedException('selection_budget', $source::class);
+            foreach ($selections as $selection) {
+                $refs = [];
+                foreach ($selection->refs() as $ref) {
+                    // Without a resource mapping, concrete assignments cannot apply (including alias "global").
+                    if ($type === null) {
+                        continue;
                     }
+
+                    if ($ref->type() !== $type) {
+                        throw new InvalidSourceContributionException('Selection reference has a different scope type.');
+                    }
+                    $refs[$ref->key()] = true;
+                    $allRefs[$ref->key()] = true;
                 }
 
-                if ($item->source !== $source->id()
-                    || ($item instanceof Grant && $item->pattern->panel() !== $frame->panel()->id())
-                    || ($item->role !== null && $item->role->panel() !== $frame->panel()->id())
-                    || (! $ref->isGlobal() && $ref->type() !== $type)
-                    || (! $ref->isGlobal() && ! $selection->isEverywhere() && ! isset($refs[$ref->key()]))
-                    || ($ref->isGlobal() && ! $selection->isEverywhere())
-                    || (! $item->scope->tenant->equals($frame->scope()->tenant) && ! $item->scope->tenant->isGlobal())) {
-                    throw new InvalidSourceContributionException('Selection witness differs from its source, panel or scope.');
+                // A materialized selection never joins host rows with assignment tables.
+                if (count($allRefs) > 1000) {
+                    throw new VisibilityNotSupportedException('selection_budget', $source::class);
                 }
-                $result[] = [$source, $item, $selection->appliesInEveryContext()];
+                foreach ($selection->contributions() as $item) {
+                    $ref = $item->scope->context;
+
+                    if ($type === null && ! $ref->isGlobal()) {
+                        continue;
+                    }
+
+                    if (! $ref->isGlobal()) {
+                        $allRefs[$ref->key()] = true;
+
+                        if (count($allRefs) > 1000) {
+                            throw new VisibilityNotSupportedException('selection_budget', $source::class);
+                        }
+                    }
+
+                    if ($item->source !== $source->id()
+                        || ($item instanceof Grant && $item->pattern->panel() !== $frame->panel()->id())
+                        || ($item->role !== null && $item->role->panel() !== $frame->panel()->id())
+                        || (! $ref->isGlobal() && $ref->type() !== $type)
+                        || (! $ref->isGlobal() && ! $selection->isEverywhere() && ! isset($refs[$ref->key()]))
+                        || ($ref->isGlobal() && ! $selection->isEverywhere())
+                        || (! $item->scope->tenant->equals($frame->scope()->tenant) && ! $item->scope->tenant->isGlobal())) {
+                        throw new InvalidSourceContributionException('Selection witness differs from its source, panel or scope.');
+                    }
+                    $result[] = [$source, $item, $selection->appliesInEveryContext()];
+                }
             }
         }
 
@@ -590,8 +618,11 @@ final class ReadAttempt
 
     public function consumedFrame(EvaluationFrame $frame): EvaluationFrame
     {
+        $this->currentSource = null;
         $database = null;
         foreach ($this->sources as ['source' => $source]) {
+            $this->currentSource = $source::class;
+
             if ($source instanceof FencesReads && isset($this->stateKeys[$source->id()]) && ! isset($this->states[$source->id()])) {
                 $this->states[$source->id()] = $this->readState($source);
             }
@@ -600,6 +631,8 @@ final class ReadAttempt
                 $database = $this->states[$source->id()];
             }
         }
+
+        $this->currentSource = null;
 
         return $frame->withSourceStates($this->states, $database)->withAuthorityTransaction($this->transaction);
     }
@@ -612,7 +645,7 @@ final class ReadAttempt
 
         if ($source instanceof DatabaseSource) {
             $this->sessions[$source->id()] = $this->shared === null ? $source->openReadSession($this->initial)
-                : $this->shared->get($source, $this->initial->panel(), fn (): StorageReadSession => $source->openReadSession($this->initial));
+                : $this->shared->get($source, $this->initial->panel(), $this->initial->reads(), fn (): StorageReadSession => $source->openReadSession($this->initial));
             $this->transaction ??= $this->sessions[$source->id()]->transaction();
         }
         $authority = $source instanceof DatabaseSource
@@ -622,7 +655,7 @@ final class ReadAttempt
         $partition = $source instanceof DatabaseSource ? null : $this->initial->scope()->tenant;
         $key = IdentityCodec::digest([$this->initial->panel()->id(), $this->initial->state()->fingerprint(),
             $this->initial->panel()->settings()->cacheGeneration(), $partition, $source::class, $source->id(),
-            $this->initial->panel()->settings()->reads()->value, $authority]);
+            $this->initial->reads()->value, $authority]);
         $this->stateKeys[$source->id()] = $key;
 
         if ($source instanceof DatabaseSource) {
@@ -680,7 +713,7 @@ final class ReadAttempt
         $authority ??= $source instanceof DatabaseSource ? $this->sessions[$source->id()]->authorityIdentity() : $source::class;
 
         return PermissionSetCache::key($state, $request->subject(), $frame->scope()->tenant, $frame->sourceScopes(),
-            $source::class.':'.$source->id(), $frame->panel()->settings()->reads()->value, $authority, $frame->panel()->settings()->cacheGeneration());
+            $source::class.':'.$source->id(), $frame->reads()->value, $authority, $frame->panel()->settings()->cacheGeneration());
     }
 
     /**

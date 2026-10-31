@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace AzGuard\Authorization\Internal\Cache;
 
+use AzGuard\Configuration\Internal\AzGuardConfig;
 use AzGuard\Contracts\Sources\Volatility;
 use AzGuard\Kernel\Decision\CodeStateToken;
 use AzGuard\Kernel\Decision\Grant;
@@ -16,9 +17,16 @@ use AzGuard\Kernel\Identity\PermissionPattern;
 use AzGuard\Kernel\Identity\RoleKey;
 use AzGuard\Kernel\Identity\SubjectRef;
 use AzGuard\Kernel\Identity\TenantRef;
+use AzGuard\Kernel\Internal\Narrow;
 use AzGuard\Panels\Panel;
 use DateTimeImmutable;
+use Illuminate\Cache\ArrayStore;
+use Illuminate\Cache\RedisStore;
 use Illuminate\Contracts\Cache\Factory;
+use Illuminate\Redis\Connections\PhpRedisConnection;
+use Illuminate\Redis\Connections\PredisConnection;
+use Illuminate\Support\Carbon;
+use Throwable;
 
 /** @internal Request/job memo and revision-keyed store of raw authority; never a decision cache. */
 final class PermissionSetCache
@@ -32,7 +40,15 @@ final class PermissionSetCache
     /** @var array<string, string> */
     private array $panels = [];
 
-    public function __construct(private readonly Factory $stores) {}
+    private readonly int $maxMemoEntries;
+
+    private readonly int $maxStateEntries;
+
+    public function __construct(private readonly Factory $stores)
+    {
+        $this->maxMemoEntries = AzGuardConfig::memoLimit('max_memo_entries', config('azguard.cache.max_memo_entries', 1024));
+        $this->maxStateEntries = AzGuardConfig::memoLimit('max_state_entries', config('azguard.cache.max_state_entries', 1024));
+    }
 
     public function forgetPanel(string $panel): void
     {
@@ -64,7 +80,7 @@ final class PermissionSetCache
             default => ['code', $state->panel(), $state->buildId(), $state->fingerprint()],
         };
 
-        return 'azguard:sets:'.IdentityCodec::digest([$revision, $generation, $subject, $tenant, array_values(array_unique($contexts)), $source, $readMode, $authority]);
+        return 'azguard:sets:v2:'.IdentityCodec::digest([config('azguard.cache.namespace'), $revision, $generation, $subject, $tenant, array_values(array_unique($contexts)), $source, $readMode, $authority]);
     }
 
     /** @return list<Grant|RoleContribution>|null */
@@ -76,22 +92,61 @@ final class PermissionSetCache
         $entry = $this->sets[$key] ?? null;
         $store = $panel->settings()->cacheStore();
 
-        if ($entry === null && $volatility === Volatility::Stable && $fenced && $store !== null) {
-            $stored = $this->decode($this->stores->store($store)->get($key));
+        $signer = SignedEnvelope::fromConfig(app('config'));
 
-            if ($stored !== null && isset($stored['items'], $stored['validUntil']) && is_array($stored['items'])
-                && array_is_list($stored['items']) && $stored['validUntil'] instanceof DateTimeImmutable) {
-                // Every item must be a contribution; one of another type discards the whole entry.
-                $items = [];
-                foreach ($stored['items'] as $item) {
-                    if (! $item instanceof Grant && ! $item instanceof RoleContribution) {
-                        $items = null;
+        if ($entry === null && $volatility === Volatility::Stable && $fenced && $store !== null && $signer !== null) {
+            $raw = null;
 
-                        break;
+            try {
+                $repository = $this->stores->store($store);
+                $raw = $this->readEnvelope($repository->getStore(), $key);
+                $envelope = $signer->decode($this->unwrapEnvelope($raw), $key, $now);
+                $stored = $envelope === null ? null : $this->decode($envelope['payload']);
+
+                if ($stored !== null && count($stored) === 2 && isset($stored['items'], $stored['validUntil']) && is_array($stored['items'])
+                && array_is_list($stored['items']) && $stored['validUntil'] instanceof DateTimeImmutable
+                && $stored['validUntil'] == $envelope['validUntil']) {
+                    // Every item must be a contribution; one of another type discards the whole entry.
+                    $items = [];
+                    foreach ($stored['items'] as $item) {
+                        if (! $item instanceof Grant && ! $item instanceof RoleContribution) {
+                            $items = null;
+
+                            break;
+                        }
+                        // Keep the factory values: validation alone leaves serialized field references attached.
+                        $scope = Narrow::instance(IdentityCodec::decode(IdentityCodec::encode($item->scope)), AccessScope::class, 'cached scope');
+                        $role = $item->role === null ? null : Narrow::instance(IdentityCodec::decode(IdentityCodec::encode($item->role)), RoleKey::class, 'cached role');
+
+                        if ($item instanceof Grant) {
+                            $pattern = Narrow::instance(IdentityCodec::decode(IdentityCodec::encode($item->pattern)), PermissionPattern::class, 'cached pattern');
+                            $item = Grant::of($pattern, $item->source, $scope, $role, $item->origin, $item->expiresAt, $item->fields());
+                        } elseif ($role !== null) {
+                            $item = RoleContribution::of($role, $scope, $item->source, $item->origin, $item->expiresAt, $item->fields());
+                        } else {
+                            $items = null;
+
+                            break;
+                        }
+                        $items[] = $item;
                     }
-                    $items[] = $item;
+                    $entry = $items === null ? null : ['items' => $items, 'validUntil' => $stored['validUntil']];
                 }
-                $entry = $items === null ? null : ['items' => $items, 'validUntil' => $stored['validUntil']];
+
+                if ($raw !== null && $entry === null) {
+                    $this->forgetEnvelope($repository->getStore(), $key, $raw);
+                }
+            } catch (Throwable) {
+                // A cache failure is a miss; the authoritative source still decides the outcome.
+                $entry = null;
+
+                if ($raw !== null) {
+                    try {
+                        $this->forgetEnvelope($this->stores->store($store)->getStore(), $key, $raw);
+                    } catch (Throwable) {
+                        // Best effort only.
+                    }
+                }
             }
         }
 
@@ -100,8 +155,7 @@ final class PermissionSetCache
 
             return null;
         }
-        $this->sets[$key] = $entry;
-        $this->panels[$key] = $panel->id();
+        $this->rememberSet($key, $entry, $panel->id());
 
         return array_values(array_filter($entry['items'], static fn (Grant|RoleContribution $item): bool => $item->activeAt($now)));
     }
@@ -121,13 +175,108 @@ final class PermissionSetCache
             }
         }
         $entry = ['items' => $items, 'validUntil' => $validUntil];
-        $this->sets[$key] = $entry;
-        $this->panels[$key] = $panel->id();
+        $this->rememberSet($key, $entry, $panel->id());
         $store = $panel->settings()->cacheStore();
 
-        if ($volatility === Volatility::Stable && $fenced && $store !== null) {
-            $this->stores->store($store)->put($key, serialize($entry), $validUntil);
+        $signer = SignedEnvelope::fromConfig(app('config'));
+
+        if ($volatility === Volatility::Stable && $fenced && $store !== null && $signer !== null) {
+            $sharedUntil = min($validUntil, $now->modify('+'.min($ttl ?? 300, SignedEnvelope::MAX_TTL).' seconds'));
+            $sharedEntry = ['items' => $items, 'validUntil' => $sharedUntil];
+            $envelope = $signer->encode($key, serialize($sharedEntry), $now, $sharedUntil);
+
+            if ($envelope !== null) {
+                try {
+                    $repository = $this->stores->store($store);
+
+                    if ($this->supportsStore($repository->getStore())) {
+                        $repository->put($key, $envelope, $sharedUntil);
+                    }
+                } catch (Throwable) {
+                    // Shared storage is optional; the local entry remains valid.
+                }
+            }
         }
+    }
+
+    /** Laravel's generic cache get may deserialize an attacker-controlled object before we can verify the MAC. */
+    private function supportsStore(mixed $store): bool
+    {
+        if ($store instanceof ArrayStore) {
+            return true;
+        }
+
+        if (! $store instanceof RedisStore) {
+            return false;
+        }
+        $connection = $store->connection();
+
+        return ($connection instanceof PhpRedisConnection && ! $connection->serialized() && ! $connection->compressed())
+            || $connection instanceof PredisConnection;
+    }
+
+    private function readEnvelope(mixed $store, string $key): mixed
+    {
+        if (! $this->supportsStore($store)) {
+            return null;
+        }
+
+        if ($store instanceof ArrayStore) {
+            $item = $store->all(false)[$key] ?? null;
+
+            if ($item === null) {
+                return null;
+            }
+
+            if ($item['expiresAt'] != 0 && Carbon::now()->getPreciseTimestamp(3) / 1000 >= $item['expiresAt']) {
+                $store->forget($key);
+
+                return null;
+            }
+
+            return $item['value'];
+        } elseif ($store instanceof RedisStore) {
+            return $store->connection()->get($store->getPrefix().$key);
+        } else {
+            return null;
+        }
+    }
+
+    /** Remove only the rejected bytes, never a concurrent writer's replacement. */
+    private function forgetEnvelope(mixed $store, string $key, mixed $raw): void
+    {
+        if ($store instanceof ArrayStore) {
+            if (($store->all(false)[$key]['value'] ?? null) === $raw) {
+                $store->forget($key);
+            }
+        } elseif ($store instanceof RedisStore && is_string($raw) && $this->supportsStore($store)) {
+            $store->connection()->eval(
+                "if redis.call('get', KEYS[1]) == ARGV[1] then return redis.call('del', KEYS[1]) else return 0 end",
+                1, $store->getPrefix().$key, $raw,
+            );
+        }
+    }
+
+    private function unwrapEnvelope(mixed $raw): mixed
+    {
+        if ($raw === null || (is_string($raw) && str_starts_with($raw, '{'))) {
+            return $raw;
+        }
+
+        // Laravel wraps strings with PHP serialization. Parse only that exact primitive, never unserialize it.
+        if (! is_string($raw) || strlen($raw) > SignedEnvelope::MAX_BYTES + 32
+            || preg_match('/\As:(0|[1-9][0-9]{0,6}):"/', $raw, $match) !== 1) {
+            return false;
+        }
+        $offset = strlen($match[0]);
+        $length = (int) $match[1];
+
+        if ($length > SignedEnvelope::MAX_BYTES || strlen($raw) !== $offset + $length + 2
+            || substr($raw, -2) !== '";') {
+            return false;
+        }
+
+        return substr($raw, $offset, $length);
     }
 
     /**
@@ -142,7 +291,7 @@ final class PermissionSetCache
         if (! is_string($stored)) {
             return null;
         }
-        $entry = @unserialize($stored, ['allowed_classes' => [
+        $entry = @unserialize($stored, ['max_depth' => 64, 'allowed_classes' => [
             Grant::class, RoleContribution::class, PermissionPattern::class, RoleKey::class, AccessScope::class,
             TenantRef::class, AssignmentScopeRef::class, DateTimeImmutable::class,
         ]]);
@@ -152,22 +301,41 @@ final class PermissionSetCache
 
     public function state(string $key): ?StateToken
     {
-        return $this->states[$key] ?? null;
+        $state = $this->states[$key] ?? null;
+
+        if ($state !== null) {
+            unset($this->states[$key]);
+            $this->states[$key] = $state;
+        }
+
+        return $state;
     }
 
     public function rememberState(string $key, StateToken $state): void
     {
-        if (isset($this->states[$key]) && ! $this->states[$key]->equals($state)) {
-            $this->sets = [];
-            $this->panels = [];
-        }
+        unset($this->states[$key]);
         $this->states[$key] = $state;
+
+        if (count($this->states) > $this->maxStateEntries) {
+            unset($this->states[array_key_first($this->states)]);
+        }
     }
 
     public function forgetState(string $key): void
     {
         unset($this->states[$key]);
-        $this->sets = [];
-        $this->panels = [];
+    }
+
+    /** @param array{items: list<Grant|RoleContribution>, validUntil: DateTimeImmutable} $entry */
+    private function rememberSet(string $key, array $entry, string $panel): void
+    {
+        unset($this->sets[$key], $this->panels[$key]);
+        $this->sets[$key] = $entry;
+        $this->panels[$key] = $panel;
+
+        if (count($this->sets) > $this->maxMemoEntries) {
+            $oldest = array_key_first($this->sets);
+            unset($this->sets[$oldest], $this->panels[$oldest]);
+        }
     }
 }

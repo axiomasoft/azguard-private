@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace AzGuard\Sources\Database;
 
 use AzGuard\Attributes\Api;
+use AzGuard\Authorization\Internal\EvaluationFrame;
 use AzGuard\Catalog\Internal\PanelCatalog;
 use AzGuard\Catalog\PermissionDefinition;
 use AzGuard\Changes\Change;
@@ -72,6 +73,7 @@ use AzGuard\Storage\StorageDescriptor;
 use Closure;
 use DateTimeImmutable;
 use DateTimeZone;
+use Illuminate\Contracts\Container\Container;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Str;
@@ -97,6 +99,26 @@ final class DatabaseSource implements ChecksHealth, DescribesSchema, FencesReads
     private array $fields = ['role_grant' => [], 'permission_grant' => []];
 
     private ?string $panelId = null;
+
+    private ?Container $services = null;
+
+    /** @internal Bind the panel factory container without capturing scoped services. */
+    public function bindServices(Container $container): void
+    {
+        $this->services = $container;
+    }
+
+    private function services(): Container
+    {
+        return $this->services ?? throw new DefinitionException('Attach DatabaseSource to a panel before resolving its services.');
+    }
+
+    private function bindContext(EvaluationContext $context): void
+    {
+        $panel = $context->panel();
+        $this->bindPanel($panel->id());
+        $this->services ??= $panel->sourceContainer();
+    }
 
     public static function make(): static
     {
@@ -261,7 +283,7 @@ final class DatabaseSource implements ChecksHealth, DescribesSchema, FencesReads
      */
     public function storageModels(): array
     {
-        return [...app(AzGuardConfig::class)->defaultModels(), ...$this->selectedModels];
+        return [...$this->services()->make(AzGuardConfig::class)->defaultModels(), ...$this->selectedModels];
     }
 
     /** @internal Whether the connection of the storage has separate read hosts. */
@@ -455,7 +477,7 @@ final class DatabaseSource implements ChecksHealth, DescribesSchema, FencesReads
      */
     private function modelFields(string $kind): array
     {
-        $class = $this->selectedModels[$kind] ?? app(AzGuardConfig::class)->defaultModels()[$kind];
+        $class = $this->selectedModels[$kind] ?? $this->services()->make(AzGuardConfig::class)->defaultModels()[$kind];
 
         if (! is_a($class, RoleGrant::class, true) && ! is_a($class, PermissionGrant::class, true)) {
             throw new StorageMismatchException('Storage model '.$class.' must be a grant model.');
@@ -482,7 +504,7 @@ final class DatabaseSource implements ChecksHealth, DescribesSchema, FencesReads
 
         $this->bindPanel($panel->id());
         $session = $this->resolvedStorage()->readSession($panel->settings()->reads());
-        $fingerprint = app(PanelRegistry::class)->fingerprint($panel->id());
+        $fingerprint = $this->services()->make(PanelRegistry::class)->fingerprint($panel->id());
         [, $rows] = $this->consistently($session, $panel, $fingerprint, fn (): array => $this->permissionRows($session, $panel, $tenant));
 
         return $this->definitions($session, $panel, $tenant, $rows);
@@ -491,9 +513,9 @@ final class DatabaseSource implements ChecksHealth, DescribesSchema, FencesReads
     /** @internal The engine retains this pinned handle for the complete Prepare/authority attempt. */
     public function openReadSession(EvaluationContext $context): StorageReadSession
     {
-        $this->bindPanel($context->panel()->id());
+        $this->bindContext($context);
 
-        return $this->resolvedStorage()->readSession($context->panel()->settings()->reads());
+        return $this->resolvedStorage()->readSession($context instanceof EvaluationFrame ? $context->reads() : $context->panel()->settings()->reads());
     }
 
     /** @internal Read both edges on the same attempt handle. */
@@ -609,7 +631,7 @@ final class DatabaseSource implements ChecksHealth, DescribesSchema, FencesReads
             throw new PanelNotWritableException('Panel '.$panel.' stores role grants only.');
         }
         $storage = $this->resolvedStorage();
-        $reads = $this->lockedReads(app(PanelRegistry::class)->get($panel));
+        $reads = $this->lockedReads($this->services()->make(PanelRegistry::class)->get($panel));
 
         return $change->isAction()
             ? (new ActionWriter($storage->mutation($panel), $reads))->apply($change)
@@ -622,7 +644,7 @@ final class DatabaseSource implements ChecksHealth, DescribesSchema, FencesReads
      */
     private function touch(Change $change, string $panel): ChangeResult
     {
-        $reads = $this->lockedReads(app(PanelRegistry::class)->get($panel));
+        $reads = $this->lockedReads($this->services()->make(PanelRegistry::class)->get($panel));
         $previous = $reads->state()->version;
         $this->resolvedStorage()->mutation($panel)->touch($panel);
         $effect = new ChangeEffect(EffectKind::Updated, $change->type, null, null, strtolower((string) Str::ulid()), previousVersion: $previous, reason: $change->reason);
@@ -679,7 +701,7 @@ final class DatabaseSource implements ChecksHealth, DescribesSchema, FencesReads
     public function descriptor(): StorageDescriptor
     {
         if (! $this->selectedStorage instanceof Storage) {
-            return app(StorageRegistry::class)->descriptor($this->selectedStorage);
+            return $this->services()->make(StorageRegistry::class)->descriptor($this->selectedStorage);
         }
         $storage = $this->selectedStorage;
 
@@ -845,7 +867,7 @@ final class DatabaseSource implements ChecksHealth, DescribesSchema, FencesReads
         $this->bindPanel($panel->id());
         $storage = $this->resolvedStorage();
         $session = $storage->readSession(Reads::Primary);
-        $registry = app(PanelRegistry::class);
+        $registry = $this->services()->make(PanelRegistry::class);
         $fingerprint = $registry->fingerprint($panel->id());
         for ($attempt = 0; $attempt < 3; $attempt++) {
             $before = $this->token($session, $panel, $fingerprint);
@@ -871,7 +893,7 @@ final class DatabaseSource implements ChecksHealth, DescribesSchema, FencesReads
         $this->bindPanel($panel->id());
         $storage = $this->resolvedStorage();
 
-        return new LockedReads($storage, $storage->mutation($panel->id()), $panel, app(PanelRegistry::class), $this->selectedModels, $this->dynamic);
+        return new LockedReads($storage, $storage->mutation($panel->id()), $panel, $this->services()->make(PanelRegistry::class), $this->selectedModels, $this->dynamic);
     }
 
     /** @internal Whether a transaction is already open on the writer connection; its commit is then not ours. */
@@ -896,7 +918,7 @@ final class DatabaseSource implements ChecksHealth, DescribesSchema, FencesReads
         $this->bindPanel($panel->id());
         $session = $this->resolvedStorage()->readSession($panel->settings()->reads());
 
-        return $this->token($session, $panel, app(PanelRegistry::class)->fingerprint($panel->id()));
+        return $this->token($session, $panel, $this->services()->make(PanelRegistry::class)->fingerprint($panel->id()));
     }
 
     /** @param list<AccessScope> $scopes
@@ -929,8 +951,8 @@ final class DatabaseSource implements ChecksHealth, DescribesSchema, FencesReads
      */
     public function readContributions(SubjectRef $subject, array $scopes, EvaluationContext $context): array
     {
-        $this->bindPanel($context->panel()->id());
-        [$state, $items] = $this->materializeAssignments($this->resolvedStorage()->readSession($context->panel()->settings()->reads()), $context, $subject, $scopes);
+        $this->bindContext($context);
+        [$state, $items] = $this->materializeAssignments($this->resolvedStorage()->readSession($context instanceof EvaluationFrame ? $context->reads() : $context->panel()->settings()->reads()), $context, $subject, $scopes);
 
         return ['state' => $state, ...$items];
     }
@@ -1078,7 +1100,7 @@ final class DatabaseSource implements ChecksHealth, DescribesSchema, FencesReads
 
         $this->bindPanel($context->panel()->id());
 
-        return $this->materializeSelection($this->resolvedStorage()->readSession($context->panel()->settings()->reads()), $subject, $key, $contextType, $context)[1];
+        return $this->materializeSelection($this->resolvedStorage()->readSession($context instanceof EvaluationFrame ? $context->reads() : $context->panel()->settings()->reads()), $subject, $key, $contextType, $context)[1];
     }
 
     /**
@@ -1151,7 +1173,7 @@ final class DatabaseSource implements ChecksHealth, DescribesSchema, FencesReads
 
     private function resolvedStorage(): Storage
     {
-        return $this->selectedStorage instanceof Storage ? $this->selectedStorage : app(StorageRegistry::class)->get($this->selectedStorage);
+        return $this->selectedStorage instanceof Storage ? $this->selectedStorage : $this->services()->make(StorageRegistry::class)->get($this->selectedStorage);
     }
 
     /**

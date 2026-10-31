@@ -21,6 +21,7 @@ const RELEASE_CALLED = [
     'compat' => 'compatibility.yml',
     'security' => 'security.yml',
     'mutation' => 'mutation.yml',
+    'workers' => 'workers.yml',
 ];
 
 /** The consumer-archive steps of `validate` and of the tests.yml consumer job: default, Filament, core-only, relocation. */
@@ -308,17 +309,17 @@ it('reports a broken release graph', function (Closure $break, string $violation
         $w['release.yml']['jobs']['split']['needs'] = array_values(array_diff($w['release.yml']['jobs']['split']['needs'], ['compat']));
 
         return $w;
-    }, 'release.yml: split must call split.yml and need artifacts, compat, docs, mutation, nightly, security, static, style, tests, validate, validate-consumers'],
+    }, 'release.yml: split must call split.yml and need artifacts, compat, docs, mutation, nightly, security, static, style, tests, validate, validate-consumers, workers'],
     'release without the nightly gate' => [static function (array $w): array {
         $w['release.yml']['jobs']['release']['needs'] = array_values(array_diff($w['release.yml']['jobs']['release']['needs'], ['nightly']));
 
         return $w;
-    }, 'release.yml: release must need artifacts, compat, docs, mutation, nightly, security, split, static, style, tests, validate, validate-consumers'],
+    }, 'release.yml: release must need artifacts, compat, docs, mutation, nightly, security, split, static, style, tests, validate, validate-consumers, workers'],
     'release without the split' => [static function (array $w): array {
         $w['release.yml']['jobs']['release']['needs'] = ['validate', 'validate-consumers', 'tests', 'static', 'style', 'docs', 'nightly', 'compat', 'security'];
 
         return $w;
-    }, 'release.yml: release must need artifacts, compat, docs, mutation, nightly, security, split, static, style, tests, validate, validate-consumers'],
+    }, 'release.yml: release must need artifacts, compat, docs, mutation, nightly, security, split, static, style, tests, validate, validate-consumers, workers'],
     'a called workflow without workflow_call' => [static function (array $w): array {
         unset($w['tests-nightly.yml']['on']['workflow_call']);
 

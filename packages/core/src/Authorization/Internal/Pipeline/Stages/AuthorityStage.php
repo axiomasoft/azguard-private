@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace AzGuard\Authorization\Internal\Pipeline\Stages;
 
+use AzGuard\Authorization\Internal\ContributionQualifier;
 use AzGuard\Authorization\Internal\EvaluationFrame;
 use AzGuard\Authorization\Internal\Pipeline\Trace;
 use AzGuard\Authorization\Internal\ReadAttempt;
@@ -26,20 +27,17 @@ use AzGuard\Kernel\Internal\PatternMatcher;
 use AzGuard\Panels\Internal\PanelRegistry;
 use AzGuard\Policies\Internal\PolicyDecider;
 use AzGuard\Roles\BaseRole;
-use AzGuard\Roles\GrantedAutomatically;
-use AzGuard\Sources\Internal\EvaluatesAutomaticRoles;
 use AzGuard\Sources\Internal\PanelSources;
 use AzGuard\Tenancy\Internal\TenantMembershipRestriction;
 use Closure;
 use Illuminate\Contracts\Container\Container;
-use Illuminate\Support\Facades\Log;
 use RuntimeException;
 use Throwable;
 
 /** @phpstan-import-type CompiledRole from RoleCompiler */
 final readonly class AuthorityStage
 {
-    public function __construct(private Container $container, private PanelRegistry $registry, private PolicyDecider $policies) {}
+    public function __construct(private Container $container, private PanelRegistry $registry, private PolicyDecider $policies, private TenantMembershipRestriction $membership) {}
 
     /** @return array{EvaluationFrame,Decision} */
     public function decide(AccessRequest $request, EvaluationFrame $frame, PanelCatalog $catalog, PermissionDefinition $definition, Trace $trace): array
@@ -64,9 +62,7 @@ final readonly class AuthorityStage
         }
 
         try {
-            $membership = new TenantMembershipRestriction($this->container);
-
-            $denied = $membership->check($request, $frame)->denied();
+            $denied = $this->membership->check($request, $frame)->denied();
             $trace->record('membership', $denied ? 'restricted' : 'pass', 'membership', null, [], $denied ? 'deny' : 'pass');
 
             if ($denied) {
@@ -168,6 +164,8 @@ final readonly class AuthorityStage
      */
     private function walk(AccessRequest $request, EvaluationFrame $frame, PanelCatalog $catalog, Trace $trace, Closure $accept): array
     {
+        $component = 'sources';
+
         try {
             $contributions = $frame->readAttempt?->contributions($request, $frame, $trace);
 
@@ -179,6 +177,7 @@ final readonly class AuthorityStage
                 $sources = PanelSources::of($this->registry->recipe($frame->panel()->id()), $this->container, catalog: $catalog);
                 $contributions = [];
                 foreach ($sources->all() as ['source' => $source]) {
+                    $component = $source::class;
                     [$items, $frame] = ReadAttempt::readSource($source, $request, $frame, $trace);
                     foreach ($items as $item) {
                         $contributions[] = [$source, $item];
@@ -186,6 +185,8 @@ final readonly class AuthorityStage
                 }
             }
             foreach ($contributions as [$source, $item]) {
+                $component = $source::class;
+
                 if ($item instanceof Grant) {
                     PermissionGrammar::assertPattern($item->pattern->local());
                 }
@@ -195,7 +196,7 @@ final readonly class AuthorityStage
                 }
             }
         } catch (Throwable $error) {
-            $component = isset($source) ? $source::class : 'sources';
+            $component = $frame->readAttempt?->currentSource() ?? $component;
             $reason = $error instanceof ConsistencyException ? DecisionReason::ConsistencyError : DecisionReason::SourceError;
             $trace->error('sources', $reason->value, $component, $error);
 
@@ -204,46 +205,16 @@ final readonly class AuthorityStage
         foreach ($contributions as [$source,$item]) {
             $trace->qualifying($item);
 
-            if (! $item->activeAt($frame->now())) {
-                $trace->record('contribution', 'expired', $source::class);
+            [$roleDefinition, $reason] = ContributionQualifier::qualify($source, $item, $catalog, $frame->panel(), $frame->scope()->tenant, $frame->now());
 
-                continue;
-            }
-            $roleDefinition = $item->role === null ? null : ($catalog->roles()[$item->role->key()] ?? null);
-
-            if (! $item->scope->tenant->equals($frame->scope()->tenant)
-                && ($roleDefinition === null || ! in_array($roleDefinition['class'], $frame->panel()->tenants()->globalRoles(), true))) {
-                $trace->record('contribution', 'global_role_not_allowed', $source::class);
-
-                continue;
-            }
-
-            $automatic = $item instanceof RoleContribution && $source instanceof EvaluatesAutomaticRoles && $roleDefinition !== null
-                && is_subclass_of($roleDefinition['class'], GrantedAutomatically::class);
-
-            if ($item->role !== null && ($roleDefinition === null || (! $roleDefinition['grantable'] && ! $automatic))) {
-                $current = null;
-                foreach ($catalog->roles() as $candidate) {
-                    if (in_array($item->role->key(), $candidate['former_keys'], true)) {
-                        $current = $candidate['key'];
-
-                        break;
-                    }
-                }
-                $reason = $current !== null ? 'former_role_key' : ($roleDefinition === null ? 'unknown_role' : 'not_grantable_role');
+            if ($reason !== null) {
                 $trace->record('contribution', $reason, $source::class);
-                Log::notice('AzGuard ignored role contribution.', ['component' => $source::class, 'reason' => $reason, 'role' => $item->role->full(), 'current_key' => $current ?? $roleDefinition['key'] ?? null]);
-
-                continue;
-            }
-
-            if ($roleDefinition !== null && ! $this->roleScopeAccepted($roleDefinition, $item)) {
-                $trace->record('contribution', 'role_scope_not_accepted', $source::class);
 
                 continue;
             }
 
             try {
+                $component = $source::class;
                 $role = $roleDefinition === null ? null : $this->container->make($roleDefinition['class']);
 
                 if ($role !== null && ! $role instanceof BaseRole) {
@@ -264,7 +235,9 @@ final readonly class AuthorityStage
                 }
                 $passes = true;
                 foreach ($frame->panel()->grantConditions() as $declared) {
+                    $component = is_string($declared) ? $declared : $declared::class;
                     $condition = is_string($declared) ? $this->container->make($declared) : $declared;
+                    $component = is_object($condition) ? $condition::class : $component;
 
                     if (! $condition instanceof GrantCondition) {
                         throw new RuntimeException('Condition resolver did not return GrantCondition.');
@@ -280,7 +253,6 @@ final readonly class AuthorityStage
                     }
                 }
             } catch (Throwable $error) {
-                $component = isset($condition) && is_object($condition) ? $condition::class : $source::class;
                 $trace->error('condition', 'condition_error', $component, $error);
 
                 return [$frame, Decision::deny(DecisionReason::ConditionError, $frame->state(), $frame->scope(), $component), 0];
@@ -364,21 +336,5 @@ final readonly class AuthorityStage
         }
 
         return BoundaryStage::eligible($evaluator, $branch->scopeRuntime($request->subject()), $resolved, $branch, $branch->batchInputs, $trace);
-    }
-
-    /** @param CompiledRole $role */
-    private function roleScopeAccepted(array $role, Grant|RoleContribution $contribution): bool
-    {
-        if ($contribution->scope->context->isGlobal()) {
-            return ! $role['scope_required'];
-        }
-
-        foreach ($role['scopes'] as $scope) {
-            if ($scope['type'] === $contribution->scope->context->type()) {
-                return true;
-            }
-        }
-
-        return false;
     }
 }

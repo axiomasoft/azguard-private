@@ -184,6 +184,7 @@ it('V96 writes only the rows that are still visible when the export job runs', f
 
     expect($run($job()))->toBe("A-1\nA-2\nL-4\n");
 
+    Storage::disk('local')->delete('filament_exports/'.$export->getKey().'/0000000000000001.csv');
     GateWorld::revoke('orders.view');
     expect($run($job()))->toBe('');
 });
@@ -197,7 +198,7 @@ it('V96 writes no row without the guard panel of the export or with another one'
 
     $job->handle();
 
-    expect(Storage::disk('local')->get('filament_exports/'.$export->getKey().'/0000000000000001.csv'))->toBe('')
+    expect(Storage::disk('local')->get('filament_exports/'.$export->getKey().'/0000000000000001.csv'))->toBeNull()
         ->and(Context::getHidden(PanelContext::KEY))->toBeNull();
 });
 
@@ -216,7 +217,7 @@ it('rejects malformed integer export keys before querying resource rows', functi
 
     $job->handle();
 
-    expect(Storage::disk('local')->get('filament_exports/'.$export->getKey().'/0000000000000001.csv'))->toBe($hasValid ? "A-1\n" : '')
+    expect(Storage::disk('local')->get('filament_exports/'.$export->getKey().'/0000000000000001.csv'))->toBe($hasValid ? "A-1\n" : null)
         ->and($rowQueries)->toHaveCount($hasValid ? 2 : 0);
     foreach ($rowQueries as $sql) {
         expect($sql)->not->toContain(', 0', ', 5');
@@ -343,11 +344,13 @@ it('refuses hostile Livewire column payloads before saving a visible record', fu
     FilamentFixture::$tableColumns = [TextInputColumn::make('number')];
     GateWorld::serve(GateWorld::grant(['orders.view_any', 'orders.view']));
 
-    try {
-        Livewire::test(ListOrders::class)->update([['method' => 'updateTableColumnState', 'params' => $params]])->assertForbidden();
-    } catch (InvalidArgumentException $exception) {
-        expect($exception->getMessage())->toContain('Invalid Livewire call structure');
+    $mixed = array_key_exists(0, $params) && ! array_is_list($params);
+
+    if ($mixed) {
+        config(['app.debug' => false]);
     }
+    $response = Livewire::test(ListOrders::class)->update([['method' => 'updateTableColumnState', 'params' => $params]]);
+    $mixed ? $response->assertNotFound() : $response->assertForbidden();
 
     expect(Order::query()->findOrFail(1)->number)->toBe('A-1');
 })->with([
@@ -363,11 +366,13 @@ it('refuses raw column closures with integer or named record keys', function (ar
     FilamentFixture::$tableColumns = [TextColumn::make('number')->action(static fn (Order $record) => $record->delete())];
     GateWorld::serve(GateWorld::grant(['orders.view_any', 'orders.view']));
 
-    try {
-        Livewire::test(ListOrders::class)->update([['method' => 'callTableColumnAction', 'params' => $params]])->assertForbidden();
-    } catch (InvalidArgumentException $exception) {
-        expect($exception->getMessage())->toContain('Invalid Livewire call structure');
+    $mixed = array_key_exists(0, $params) && ! array_is_list($params);
+
+    if ($mixed) {
+        config(['app.debug' => false]);
     }
+    $response = Livewire::test(ListOrders::class)->update([['method' => 'callTableColumnAction', 'params' => $params]]);
+    $mixed ? $response->assertNotFound() : $response->assertForbidden();
 
     expect(Order::query()->find(1))->not->toBeNull();
 })->with([
@@ -401,11 +406,13 @@ it('refuses exposed editable-column methods even on a disabled editor', function
     FilamentFixture::$tableColumns = [ExposedEditingColumn::make('number')->disabled()];
     GateWorld::serve(GateWorld::grant(['orders.view_any', 'orders.view']));
 
-    try {
-        Livewire::test(ListOrders::class)->update([['method' => 'callTableColumnMethod', 'params' => $params]])->assertForbidden();
-    } catch (InvalidArgumentException $exception) {
-        expect($exception->getMessage())->toContain('Invalid Livewire call structure');
+    $mixed = array_key_exists(0, $params) && ! array_is_list($params);
+
+    if ($mixed) {
+        config(['app.debug' => false]);
     }
+    $response = Livewire::test(ListOrders::class)->update([['method' => 'callTableColumnMethod', 'params' => $params]]);
+    $mixed ? $response->assertNotFound() : $response->assertForbidden();
 
     expect(Order::query()->findOrFail(1)->number)->toBe('A-1');
 })->with([

@@ -6,6 +6,7 @@ namespace AzGuard\Authorization;
 
 use AzGuard\Attributes\Api;
 use AzGuard\Authorization\Internal\Authorizer;
+use AzGuard\Authorization\Internal\ContributionQualifier;
 use AzGuard\Authorization\Internal\EvaluationFrame;
 use AzGuard\Authorization\Internal\ModelSubjectResolver;
 use AzGuard\Authorization\Internal\Query\PredicateCompiler;
@@ -108,7 +109,7 @@ final readonly class Visibility
         $compiler = new PredicateCompiler;
         $mapping = $this->mapping($query, $frame, $compiler);
         $type = $mapping?->definition->type() ?? 'global';
-        $contributions = $definition->authority === PermissionAuthority::Grants ? $sourceRead->selections($request, $frame, $type) : [];
+        $contributions = $definition->authority === PermissionAuthority::Grants ? $sourceRead->selections($request, $frame, $mapping?->definition->type()) : [];
         $frame = $sourceRead->consumedFrame($frame);
         $compiler->constrain($query, P::pass());
         // Assemble on a detached group so an unsupported sibling never mutates the caller.
@@ -152,17 +153,9 @@ final readonly class Visibility
         } else {
             $branches = [];
             foreach ($contributions as [$source, $item, $everyContext]) {
-                if (! $item->activeAt($now)) {
-                    continue;
-                }
-                $roleDefinition = $item->role === null ? null : ($catalog->roles()[$item->role->key()] ?? null);
+                [$roleDefinition, $reason] = ContributionQualifier::qualify($source, $item, $catalog, $panel, $frame->scope()->tenant, $now);
 
-                if ($item->role !== null && ($roleDefinition === null || ! $roleDefinition['grantable'])) {
-                    continue;
-                }
-
-                if (! $item->scope->tenant->equals($frame->scope()->tenant)
-                    && ($roleDefinition === null || ! in_array($roleDefinition['class'], $panel->tenants()->globalRoles(), true))) {
+                if ($reason !== null) {
                     continue;
                 }
                 $ref = $item->scope->context;
@@ -176,9 +169,6 @@ final readonly class Visibility
                     continue;
                 }
 
-                if ($roleDefinition !== null && ($ref->isGlobal() ? $roleDefinition['scope_required'] : ! in_array($ref->type(), array_column($roleDefinition['scopes'], 'type'), true))) {
-                    continue;
-                }
                 $admin = $item instanceof RoleContribution && ($roleDefinition['super_admin'] ?? false);
                 $covers = $item instanceof Grant ? PatternMatcher::coversValidated($item->pattern->local(), $request->permission()->local())
                     : array_filter($roleDefinition['permissions'] ?? [], static fn (string $pattern): bool => PatternMatcher::coversValidated($pattern, $request->permission()->local())) !== [];
