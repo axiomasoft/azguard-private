@@ -10,6 +10,7 @@ use AzGuard\Contracts\Diagnostics\DoctorCheck;
 use AzGuard\Diagnostics\DoctorContext;
 use AzGuard\Diagnostics\DoctorFinding;
 use Illuminate\Contracts\Config\Repository;
+use Illuminate\Support\ConfigurationUrlParser;
 use Throwable;
 
 /** @internal Inspects configuration only; it never opens or writes to a cache. */
@@ -61,10 +62,11 @@ final readonly class CacheIntegrity implements DoctorCheck
             }
 
             $connection = $this->config->get('cache.stores.'.$store.'.connection', 'default');
+            $connectionConfig = (new ConfigurationUrlParser)->parseConfiguration($this->config->get('database.redis.'.$connection, []));
             $options = array_replace(
-                (array) $this->config->get('database.redis.'.$connection, []),
+                $connectionConfig,
                 (array) $this->config->get('database.redis.options', []),
-                (array) $this->config->get('database.redis.'.$connection.'.options', []),
+                (array) ($connectionConfig['options'] ?? []),
             );
 
             if ($this->config->get('database.redis.client', 'phpredis') === 'phpredis'

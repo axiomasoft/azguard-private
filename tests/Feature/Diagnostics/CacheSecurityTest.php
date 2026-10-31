@@ -90,5 +90,10 @@ it('reports configured unsafe Redis client transforms without opening a connecti
     [['database.redis.offline.options.serializer' => 1], true],
     [['database.redis.options.serializer' => 1, 'database.redis.offline.options.serializer' => 0], false],
     [['database.redis.options.serializer' => 1, 'database.redis.client' => 'predis'], false],
+    [['database.redis.offline.url' => 'redis://invalid.test?serializer=1'], true],
+    [['database.redis.offline' => 'redis://invalid.test?compression=1'], true],
+    [['database.redis.offline.serializer' => 1, 'database.redis.offline.url' => 'redis://invalid.test?serializer=0'], false],
+    [['database.redis.options.serializer' => 1, 'database.redis.offline.url' => 'redis://invalid.test?serializer=0'], true],
+    [['database.redis.offline.options.serializer' => 1, 'database.redis.offline.url' => 'redis://invalid.test?options[serializer]=0'], false],
     [[], false],
 ]);

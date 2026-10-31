@@ -1,6 +1,9 @@
-# P3 assertions checked against HEAD
+# P3 finding disposition
 
-Baseline: `91095023977a70dbdefda7f408cf166bf5e13e34`. Sources are the final result events in
+Original execution baseline: `91095023977a70dbdefda7f408cf166bf5e13e34`; its fixes were committed as
+`c16fdefa468f4b7c1ad8112327d89061fefdc306`. Re-execution baseline (2026-10-31):
+`d944d935c53c2764eb5ff29042696fedfe1eee19`, including the subsequent P1/P2/P4 changes, which are preserved.
+Sources are the final result events in
 `plans/2026.10.30-№1-AZGUARD-AUDIT-HARDENING/artifacts/review/grok-phases/P3*.jsonl` and their four preliminary
 triage documents. IDs below number findings in each raw result, in their original order. The original `P3.jsonl`
 contains **no code review**, because its tools were blocked. `P3.static.jsonl` omitted part of the diff; the gap
@@ -20,7 +23,7 @@ The existing Redis instance and other database containers were preserved.
 | S3 | **Rejected for installed dependency.** `vendor/laravel/framework/src/Illuminate/Cache/ArrayStore.php::all($unserialize = true)` supports false. Serialized-array and fresh-instance shared hits pass in `IsolationTest` and `EnvelopeIntegrityTest`. This is not a certification of every supported dependency version. |
 | S4 | **No bypass demonstrated.** `ReadAttempt` qualifies state before forming the contribution key; storage identity, incarnation, epoch, revision and generation participate in that key. State eviction does not promise deletion of unrelated sets. `BoundedMemoTest` now proves state eviction and reread with unchanged revision before separately changing revision and observing revoke. `TransactionGuardTest` and Redis rollback tests now deny in the same scope. |
 | S5 | **Already fixed by P2.** `PermissionSetCache::get()` assigns factory return values and reconstructs identity values. Existing detached-reference regressions for Grant and RoleContribution pass; no duplicate runtime change. |
-| S6 | **Confirmed observability gap, fixed.** Doctor now reports configured PhpRedis serializer/compression as `cache.transport`, without connecting. `CacheSecurityTest` covers connection options, global options, effective override to NONE, safe defaults and Predis. Runtime rejection remains based on the actual connection. Custom runtime client mutations cannot be certified by a configuration-only doctor. |
+| S6 | **Confirmed observability gap, fixed; remaining URL gap fixed in re-execution.** Doctor reports configured PhpRedis serializer/compression as `cache.transport`, without connecting. It now uses Laravel's ConfigurationUrlParser before merging connection, global and nested options in connector order. `CacheSecurityTest` covers array/string URLs, query options, effective overrides to NONE, safe defaults and Predis; four new cases failed before the fix. Runtime rejection remains based on the actual connection. Custom runtime client mutations cannot be certified by a configuration-only doctor. |
 | S7 | **Rejected as a shared-TTL violation.** The documented 3600-second cap applies to shared entries; local memo is request/job scoped (`AzGuardServiceProvider`). It honors configured TTL and contribution expiry. Worker tests prove lifecycle reset, including after a failing job. No new global local-memo cap was imposed. |
 | S8 | **Partly confirmed fixture robustness gaps, fixed.** Readiness curl now has timeouts and shutdown has a bounded grace period; worker count is explicit in the invocation as well as `rr.yaml`. The claim that the YAML lacked a one-worker pool is false. A free-port discovery/bind race remains possible; functional sample validation prevents treating an unrelated response as a valid series. Queue RSS is now checked independently in memory/soak modes. PR smoke versus scheduled/manual memory is the existing CI policy and was preserved. |
 | S9 | **Intended bounded encoding.** MAX_BYTES bounds the final JSON as well as payload, so base64 overhead reduces usable payload capacity. Oversized authoritative data stays local and is not published; the existing regression passes. No authorization defect established. |
@@ -34,7 +37,7 @@ The existing Redis instance and other database containers were preserved.
 | G3 | **Gap fixed.** State eviction and reread are observed before the source revision changes, independently of the revoke assertion. |
 | G4 | **Gap fixed.** Queue jobs store nonempty contributions and assert exact 1024 set/state bounds and aligned panel keys; RSS remains a supplementary observation. |
 | G5 | **Rejected.** Installed Mockery treats unconstrained `shouldReceive` as a stub, not an implicit at-least-once expectation. Both success and exception-job variants run and pass. Explicit once/twice expectations remain on job execution and queue consumption. |
-| G6 | **Partly rejected.** `doctor-cache-v2.json` exists and the cache snapshot passes. Explicit exit, finding-key and signing-severity assertions were added. The broader doctor inventory and healthy CRM snapshots have pre-existing MorphIdentity mismatches, reproduced with the baseline CacheIntegrity class; they were not regenerated as a P3 fix. |
+| G6 | **Partly rejected.** `doctor-cache-v2.json` exists and the cache snapshot passes. Explicit exit, finding-key and signing-severity assertions were added. The broader doctor inventory and healthy CRM snapshots had pre-existing MorphIdentity mismatches during the original execution. At the re-execution baseline those have been corrected by intervening work: all three DoctorSnapshotTest cases pass, with no snapshot edits in this round. |
 | G7 | **Gap fixed.** Parent test checks the exact forged payload for each attack and verifies that bait is unchanged and still readable afterward. The attacker process already writes the intended key. |
 | G8 | **Gap fixed.** Expiry test checks the ArrayStore expiry timestamp and a successful fresh-instance read immediately before the cap, then rejects equality. |
 | G9 | **Gap fixed.** `forgetState` is directly asserted, invalid bounds exercise both options, and unequal valid set/state limits are observed. Numeric strings representing valid integers are intentionally accepted by the existing configuration integer parser; they are not a runtime defect. |
@@ -48,7 +51,7 @@ The existing Redis instance and other database containers were preserved.
 | --- | --- |
 | C1 | Same as G1: matching Volatile read plus direct retention assertions. |
 | C2 | Same as G3: unchanged-revision eviction and authority reread first. |
-| C3 | **Gap fixed.** An old-kid envelope with changed payload and unchanged MAC is rejected inside the previous-key verification window; wakeup sentinel remains untouched. |
+| C3 | **Remaining oracle gap fixed in re-execution.** The c16fdefa sentinel payload would also fail shape validation if previous-key MAC verification were broken. The test now changes a valid contribution payload, retaining a matching deadline and the original MAC, and requires rejection both directly by SignedEnvelope and through PermissionSetCache inside the old-key window. A mutant that skips only previous-key MAC verification fails this test; the original gadget/no-wakeup assertion is retained. No runtime MAC defect was reproduced. |
 | C4 | **Gap fixed.** Unsupported file store is seeded with a real serialized wakeup gadget; cache get bypasses it without invoking the gadget. The owned directory is removed. |
 | C5 | Same as G12: missing current key, empty fallback, short and invalid base64 keys, invalid namespace, and an existing unsigned value are exercised. A valid APP_KEY fallback remains intentional. Minimum length is not an entropy guarantee. |
 | C6 | **Gap fixed.** A disposable TCP process acknowledges Redis connection setup and stalls the actual GET. The test warms Allow, commits revoke, changes transport, verifies a logged GET for the authority key, and observes authoritative NotGranted with grant queries. No separate probe can satisfy the oracle. |
@@ -72,7 +75,7 @@ The existing Redis instance and other database containers were preserved.
 | --- | --- |
 | D1 | **Gap fixed.** Snapshot explicitly requires cache.redis/cache.signing/cache.ttl, exit 1 and error severity for signing; unrelated doctor errors cannot satisfy those assertions. |
 | D2 | **Rejected at HEAD and strengthened.** `doctor-cache-v2.json` is present and nonempty; explicit key assertions now also prevent accidentally blessing an empty snapshot. |
-| D3 | **Not a full-format test.** This snapshot intentionally projects cache findings and their format. APP_KEY absence is covered through signing availability, not a separate promised app.key finding. The broader full-document snapshot remains independently pre-existing red. |
+| D3 | **Not a full-format test.** This snapshot intentionally projects cache findings and their format. APP_KEY absence is covered through signing availability, not a separate promised app.key finding. The broader full-document snapshot, red during the original execution, passes at re-execution after intervening work. |
 | D4 | **Gap fixed.** `CacheSecurityTest` contrasts development warning with production error and already checks disappearance with valid signing configuration. |
 | D5 | **Partly covered, no new policy invented.** Signing tests isolate invalid inputs; supported array/file/Redis paths, TTL cap and invalid memory bounds have dedicated tests. Empty Redis prefix is not forbidden when namespace and envelope binding provide isolation. Whitespace-only namespace is not an existing specified validation rule. |
 | D6 | **Rejected.** `permissions([OrderPermission::class, DatabaseSource::make()])` is valid fixture configuration; the passing cache snapshot explicitly observes security findings. |
@@ -86,7 +89,7 @@ The existing Redis instance and other database containers were preserved.
 | W2 | **Confirmed checker gap, fixed.** RSS growth now includes the maximum over all post-warmup samples relative to warmed RSS, in addition to the final-window growth. Negative 10,000-measurement fixtures cover early plateau and early transient peak; both were invisible to the old final-5000-only oracle. Warmup is deliberately excluded from measured growth. |
 | W3 | **Confirmed test distinction.** Poison `time` is timestamp tampering, not an independently signed expiry attack, and remains so. Exact bytes are now asserted; authenticated expiry/future/precision cases live in `SignedEnvelopeTest`. |
 | W4 | **Existing CI policy retained.** PR/push run smoke; scheduled/manual/opt-in runs memory. CLI rejection self-tests are now invoked by the workflow. No basis was supplied to change PR workload policy or add a dispatch schema. |
-| W5 | **Partly confirmed, fixed where meaningful.** HTTP markers now vary per request and are checked against the request number. Queue memory/soak now receive their own warmup, measured workload and RSS check. HTTP and queue are distinct processes; the old empty-header check alone never proved a transfer between them. Queue memo cleanup, including exception jobs, is independently covered. No generic queue Request-object reset guarantee is claimed. |
+| W5 | **Partly confirmed, fixed where meaningful.** HTTP markers vary per request and are checked against the request number. Queue memory/soak receive their own warmup, measured workload and RSS check. Re-execution fixes a c16fdefa reporting regression: --report jobs now counts measured jobs, excluding the 200 warmup jobs, just as requests does. HTTP and queue are distinct processes; the empty-header check alone never proved a transfer between them. Queue memo cleanup, including exception jobs, is independently covered. No generic queue Request-object reset guarantee is claimed. |
 | W6 | **Rejected by execution.** Archive self-test installed Octane 2.12.0, CLI 2.7.1, HTTP 3.6.0 and RR 3.0.1, then successfully drove one persistent HTTP worker and one queue worker. Pool size is explicit both in config and CLI. No speculative dependency change. |
 | W7 | **Rejected for the actual caller.** `RedisStoreTest` supplies matching target, bait, database and namespace; the separate producer deliberately receives signing material and the attacker does not. Five per-mode byte assertions now show the intended key was poisoned; unchanged bait rules out clearing the prefix. Missing-key arbitrary injection is not this fixture's contract. |
 | W8 | **Rejected.** WorkerMembership supplies membership without tenant model lookup; real worker self-test succeeds with the existing tenant marker model. |
@@ -96,7 +99,53 @@ The existing Redis instance and other database containers were preserved.
 | W12 | **Confirmed CI robustness gap, fixed.** Missing early-failure artifacts now warn, preserving the original failing step instead of adding a second failure. |
 | W13 | **Rejected.** `RedisStoreTest` invokes PoisonWorker through Symfony Process; the claimed missing caller was outside the reviewed fragment. All five modes were executed. |
 
-## Executed evidence
+## Re-execution evidence (2026-10-31)
+
+All 60 findings are accounted for above: S1-S9, G1-G12, C1-C19, D1-D7 and W1-W13.
+`P3.jsonl` has no findings because the review did not run; it is not a clean security verdict.
+The following are actual re-execution results, separate from the historical logs below. V1 is withheld
+and belongs to the conductor; neither V1 nor a whole acceptance suite was run here.
+
+- `build/p3-recheck/redis-url-before.log`: the expanded CacheSecurityTest `reports configured unsafe`
+  dataset before the runtime fix: 11 cases, 7 passed, 4 failed. The failures demonstrate missed transforms
+  and false warnings from ignoring URL overrides. No Redis connection is opened by this diagnostic.
+- `build/p3-recheck/targeted-tests.log`: `php -d memory_limit=1G vendor/bin/pest` with these eleven explicit
+  files and `--colors=never`: **127 passed, 100647 assertions**, including the Redis-group examples (no skips).
+
+| Findings rechecked | Test file(s), repository-relative |
+| --- | --- |
+| S2, G9, C13, C17 | `tests/Feature/Authorization/Cache/CacheKeyTest.php`, `BoundedMemoTest.php` in the same directory |
+| S3-S5, S7, S9, G1-G5, G8, G12, C1-C5, C9-C13, C15, C19 | `tests/Feature/Authorization/Cache/{BoundedMemo,EnvelopeIntegrity,Expiry,Isolation,SignedEnvelope,TransactionGuard}Test.php` |
+| S1, G2, G7, G10-G11, C6-C8, C14, C16, C18, W3, W7, W13 | `tests/Feature/Authorization/Cache/{RedisFailure,RedisStore,EnvelopeIntegrity}Test.php` |
+| S6, G6, D1-D7 | `tests/Feature/Diagnostics/CacheSecurityTest.php`, `tests/Regression/Formats/DoctorSnapshotTest.php` |
+
+- `build/p3-recheck/previous-mac-negative.log`: the single EnvelopeIntegrityTest `rotates keys only`
+  case with a disposable SignedEnvelope mutant that omits only previous-key MAC verification: **exit 1**,
+  failing at the new direct rejection assertion. The mutant and its bootstrap live only in ignored build output;
+  no production class was replaced. The corresponding unmodified implementation passed in the 127-test run.
+- `build/p3-recheck/{memory-check,worker-outcome,worker-cli}.log`: the repository self-check commands
+  `php tests/Fixtures/Workers/test-memory-check.php`, `php tests/Fixtures/Workers/test-verify.php` and
+  `bash tests/Fixtures/Workers/test-cli.sh` all passed. Memory fixtures include early plateau/peak negatives (W2).
+- `build/p3-recheck/style.log`: targeted Pint `--test` passed on the three changed PHP files.
+  `bash -n bin/worker-smoke.sh tests/Fixtures/Workers/test-cli.sh` passed.
+- `build/p3-recheck/worker-memory.log`: `bash bin/worker-smoke.sh memory --requests=5000 --jobs=5000
+  --report=build/p3-recheck/worker-report.json` passed against a fresh archive consumer, using Octane 2.12.0,
+  RoadRunner CLI 2.7.1, HTTP 3.6.0 and RR 3.0.1. One HTTP process and one distinct queue process each completed
+  5,200 lifecycles (200 warmup plus 5,000 measured). HTTP RSS growth was **2,199,552 bytes**, queue growth
+  **1,814,528 bytes**, both below **8,388,608 bytes**. The summary links to the retained series and process logs.
+- `build/p3-recheck/worker-report.json` and `report-check.log` in that directory: explicit report validation
+  passed for 5,000 measured requests, 5,000 measured jobs, 200 warmup each, distinct process IDs and exactly
+  5,200 records in each series. The old shell argument would report 5,200 jobs and fail that comparison.
+- `build/p3-recheck/diff-check.log`: clean `git diff --check`. No plan file was written and no commit was made.
+
+S8 and W2/W5/W6/W8-W11 are also exercised by the real archive-consumer memory run recorded below.
+W1/W4/W12 retain their bounded dispositions: hosted artifact transport was not executed locally, the workflow
+still runs smoke on PR/push and memory on schedule/manual/opt-in, and missing artifacts still warn.
+The free-port discovery/bind race, full supported-version matrix, custom runtime client mutations, external Redis
+TLS/ACLs and unexecuted full-default/soak workloads remain limits, not silently closed findings.
+This is a finding reconciliation with focused tests, not a new independent review of all P3 code.
+
+## Original execution evidence (historical, before c16fdefa)
 
 All logs are under ignored `build/p3-findings/`; no plan source, state or generated plan view was edited.
 

@@ -63,6 +63,12 @@ it('rotates keys only within the explicitly bounded verification window', functi
         ->and((new PermissionSetCache(app('cache')))->get('rotation', $panel, Volatility::Stable, true, $now->modify('+29 seconds')))->toHaveCount(1)
         ->and((new PermissionSetCache(app('cache')))->get('rotation', $panel, Volatility::Stable, true, $now->modify('+30 seconds')))->toBeNull();
     $forged = json_decode($raw, true, flags: JSON_THROW_ON_ERROR);
+    $forged['payloadBase64'] = base64_encode(serialize(['items' => [AuthorizationWorld::grant(fields: ['marker' => 'forged'])], 'validUntil' => $now->modify('+60 seconds')]));
+    $forgedRaw = json_encode($forged, JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR);
+    // This is a valid contribution shape: only MAC verification can reject this payload change.
+    expect(SignedEnvelope::fromConfig(app('config'))->decode($forgedRaw, 'rotation', $now))->toBeNull();
+    app('cache')->store('array')->put('rotation', $forgedRaw, 60);
+    expect((new PermissionSetCache(app('cache')))->get('rotation', $panel, Volatility::Stable, true, $now))->toBeNull();
     $forged['payloadBase64'] = base64_encode(serialize(new EnvelopeWakeupSentinel));
     app('cache')->store('array')->put('rotation', json_encode($forged, JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR), 60);
     EnvelopeWakeupSentinel::$woken = false;

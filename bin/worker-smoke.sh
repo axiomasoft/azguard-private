@@ -127,7 +127,7 @@ if [[ -n "$report_file" ]]; then
             "http_series" => $dir."/http.jsonl", "job_series" => $dir."/jobs.jsonl", "log" => $dir."/run.log",
             "memory" => $memory === "1" ? json_decode(file_get_contents($dir."/memory.json"), true, 512, JSON_THROW_ON_ERROR) : null];
         if (file_put_contents($target, json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR)."\n") === false) exit(1);
-    ' "$report_file" "$report" "$measured_requests" "$jobs" "$memory_check"
+    ' "$report_file" "$report" "$measured_requests" "$measured_jobs" "$memory_check"
     echo "summary report: $report_file"
 fi
 echo 'worker smoke passed'
