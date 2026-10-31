@@ -27,6 +27,9 @@ resolution. An unmapped class produces `morph.identity` warning in production; s
 Existing identity validation can independently reject an FQCN. Alias collisions and aliases that do not resolve to
 the expected model are errors. Explicit tenant and context types also need matching map entries.
 
+Doctor validates the configured models and aliases; it does not scan stored identities, derived keys or historical
+actor types. A clean `morph.identity` result after changing the map is not evidence that stored rows were migrated.
+
 Changing an alias changes identity, even if the numeric IDs match. The host owns this migration; Doctor never
 performs it. Rehearse the following on a restored disposable copy using the same database engine and application
 version, and retain the inventory, scripts and verification output with the deployment record:
@@ -47,6 +50,13 @@ version, and retain the inventory, scripts and verification output with the depl
    derived key also contains it. Verify affected-row counts, uniqueness and sorted identity exports against the
    predicted transformed inventory before committing. For multiple databases, plan a coordinated recovery: there
    is no cross-database transaction.
+
+   For storage schema 2, rebuild `tenant_key` with `AzGuard\Kernel\Identity\TenantRef::of($newType, $id)->key()`
+   and `context_key` with `AzGuard\Kernel\Identity\AssignmentScopeRef::of($newType, $id)->key()`. Use each
+   reference's `global()->key()` when its type and ID are both null. These factories preserve canonical string IDs
+   and validate aliases. The current keys are `type:id` or `global`; they are not the versioned JSON composites
+   produced by `IdentityCodec::compose()` (`IdentityCodec::VERSION` is currently 1). Use the installed factories,
+   not SQL string replacement, and verify keys in permission definitions and grants against their type/ID columns.
 4. Deploy the map and code together, reset state for every affected panel with `php artisan azguard:state:reset
    <panel>`, invalidate external caches, restart workers, run Doctor in production mode and verify representative
    subject, tenant and context access. Recount old and new values and compare hashes to the expected exports before

@@ -6,6 +6,10 @@ version) are documented here. Format: [Keep a Changelog](https://keepachangelog.
 
 ## [Unreleased]
 
+- Filament export authorization now follows the export action class when renamed; custom callbacks named `export`
+  retain their own action permission. Custom bulk callbacks refuse non-scalar deselected keys before execution.
+- The role-assignment host example reloads records and membership from primary and explicitly qualifies actor
+  authority on primary, including when the application's read PDO still has the old membership.
 - Shared permission-set keys now include the signing namespace. Invalid entries are removed only when their
   bytes still match the rejected value, preserving concurrent Redis replacements and separate applications.
 - Doctor reports configured Redis client serialization and compression that disable shared permission sets.

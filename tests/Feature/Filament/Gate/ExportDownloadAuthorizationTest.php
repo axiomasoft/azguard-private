@@ -10,6 +10,7 @@ use AzGuard\Filament\Internal\Exports\ChecksPrepareCsvExport;
 use AzGuard\Panels\Internal\CurrentPanel;
 use AzGuard\Panels\Internal\PanelRegistry;
 use AzGuard\Panels\Reads;
+use AzGuard\Permissions\RequiresGrant;
 use AzGuard\Tests\Fixtures\Filament\Exports\OrderExporter;
 use AzGuard\Tests\Fixtures\Filament\FilamentFixture;
 use AzGuard\Tests\Fixtures\Filament\GateWorld;
@@ -17,9 +18,13 @@ use AzGuard\Tests\Fixtures\Filament\Models\Order;
 use AzGuard\Tests\Fixtures\Filament\Models\User;
 use AzGuard\Tests\Fixtures\Filament\Resources\OrderResource;
 use AzGuard\Tests\Fixtures\Filament\Resources\Pages\ListOrders;
+use Filament\Actions\Action;
+use Filament\Actions\BulkAction;
 use Filament\Actions\ExportAction;
+use Filament\Actions\ExportBulkAction;
 use Filament\Actions\Exports\Models\Export;
 use Filament\Actions\Testing\TestAction;
+use Illuminate\Bus\ChainedBatch;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\Storage;
@@ -79,6 +84,61 @@ it('refuses a custom preparation subclass that could bypass the checked preparat
     expect(Export::query()->count())->toBe(0);
     Bus::assertNothingBatched();
 });
+
+it('does not authorize a custom callback named export with view permissions', function (bool $bulk): void {
+    GateWorld::serve(GateWorld::grant(['orders.view_any', 'orders.view']));
+    $action = $bulk ? BulkAction::make('export') : Action::make('export');
+    FilamentFixture::$toolbarActions = [$action->action(static function (): void {
+        Order::query()->whereKey(1)->delete();
+    })];
+
+    $page = Livewire::test(ListOrders::class);
+
+    if ($bulk) {
+        $page->set('selectedTableRecords', ['1']);
+    }
+    $page->call('mountAction', 'export', [], ['table' => true, 'bulk' => $bulk]);
+
+    expect(Order::query()->whereKey(1)->exists())->toBeTrue();
+})->with(['action' => false, 'bulk action' => true]);
+
+it('requires primary reads and the custom export permission for an ordinary callback named export', function (bool $bulk, bool $primary): void {
+    FilamentFixture::$reads = $primary ? Reads::Primary : Reads::Default;
+    FilamentFixture::$guardPermissions[] = CustomExportCallbackPermission::class;
+    $this->bootFilament();
+    GateWorld::seed();
+    GateWorld::serve(GateWorld::grant(['orders.view_any', 'orders.view', 'orders.export', 'orders.export_any']));
+    $action = $bulk ? BulkAction::make('export') : Action::make('export');
+    FilamentFixture::$toolbarActions = [$action->action(static function (): void {
+        Order::query()->whereKey(1)->delete();
+    })];
+
+    $page = Livewire::test(ListOrders::class);
+
+    if ($bulk) {
+        $page->set('selectedTableRecords', ['1']);
+    }
+    $page->call('mountAction', 'export', [], ['table' => true, 'bulk' => $bulk]);
+
+    expect(Order::query()->whereKey(1)->exists())->toBe(! $primary);
+})->with([false, true])->with([false, true]);
+
+it('keeps checked export authorization when a genuine export action is renamed', function (bool $bulk): void {
+    Bus::fake();
+    GateWorld::serve(GateWorld::grant(['orders.view_any', 'orders.view']));
+    $action = $bulk ? ExportBulkAction::make('download_rows') : ExportAction::make('download_rows');
+    FilamentFixture::$toolbarActions = [$action->exporter(OrderExporter::class)];
+
+    $page = Livewire::test(ListOrders::class);
+
+    if ($bulk) {
+        $page->set('selectedTableRecords', ['1']);
+    }
+    $page->callAction(TestAction::make('download_rows')->table()->bulk($bulk));
+
+    expect(Export::query()->count())->toBe(1);
+    Bus::assertDispatched(ChainedBatch::class, static fn (ChainedBatch $job): bool => $job->jobs->first() instanceof ChecksPrepareCsvExport);
+})->with(['action' => false, 'bulk action' => true]);
 
 it('refuses an owner download of a legacy export when its authorization cannot be reconstructed', function (): void {
     $user = GateWorld::grant(['orders.view_any', 'orders.view']);
@@ -148,6 +208,21 @@ it('prepares an authorized export and schedules checked chunks', function (): vo
     expect($batch->added)->toHaveCount(1)->and($batch->added[0])->toBeInstanceOf(AuthorizedExportCsv::class);
 });
 
+it('does not prepare an export for hidden selected keys when another query row is authorized', function (): void {
+    $user = GateWorld::grant(['orders.view_any', 'orders.view']);
+    $export = authorizationExport($user);
+    $job = new ChecksPrepareCsvExport($export, EloquentSerializeFacade::serialize(Order::query()), ['number' => 'Number'], [AuthorizedExportCsv::OPTION => [
+        'panel' => 'admin', 'permission' => 'orders.view', 'tenant' => null, 'model' => Order::class,
+    ]], records: [3]);
+    [, $batch] = $job->withFakeBatch();
+    app(CurrentPanel::class)->set(app(PanelRegistry::class)->get('admin'));
+
+    $job->handle();
+
+    Storage::disk('local')->assertMissing($export->getFileDirectory().'/headers.csv');
+    expect($batch->added)->toBe([]);
+});
+
 it('does not create a chunk when the selected record is no longer visible', function (): void {
     $user = GateWorld::grant(['orders.view_any', 'orders.view']);
     $export = authorizationExport($user);
@@ -211,3 +286,10 @@ it('refuses a serialized query for a different model even when its key matches a
 });
 
 final class UncheckedAuthorizationPrepare extends AuthorizedPrepareCsvExport {}
+
+#[RequiresGrant]
+enum CustomExportCallbackPermission: string
+{
+    case Export = 'orders.export';
+    case ExportAny = 'orders.export_any';
+}

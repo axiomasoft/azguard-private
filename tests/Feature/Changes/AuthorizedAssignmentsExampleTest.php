@@ -99,6 +99,44 @@ it('rechecks a user job at execution after the actor loses authority', function 
     expect($job)->toThrow(AuthorizationException::class)->and(assignmentSnapshot())->toEqual($before);
 });
 
+it('refuses assignments after primary host state changes while the read PDO is stale', function (string $change): void {
+    $connection = User::query()->getConnection();
+
+    if ($connection->getDriverName() !== 'sqlite') {
+        $this->markTestSkipped('This split-PDO regression uses an isolated SQLite snapshot.');
+    }
+    $primary = $connection->getPdo();
+    $replica = new PDO('sqlite::memory:');
+    $replica->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+    foreach ($primary->query("select name, sql from sqlite_master where type = 'table' and name not like 'sqlite_%'")->fetchAll(PDO::FETCH_ASSOC) as $table) {
+        $replica->exec($table['sql']);
+        $name = '"'.str_replace('"', '""', $table['name']).'"';
+        foreach ($primary->query('select * from '.$name)->fetchAll(PDO::FETCH_ASSOC) as $row) {
+            $insert = $replica->prepare('insert into '.$name.' values ('.implode(',', array_fill(0, count($row), '?')).')');
+            $insert->execute(array_values($row));
+        }
+    }
+
+    if ($change === 'project') {
+        Project::query()->whereKey(1)->update(['is_active' => false]);
+    } elseif ($change === 'authority') {
+        W::revoke($this->panel, 'tenant-admin', 3, 1);
+    } else {
+        $connection->table('organization_user')->where('organization_id', 1)->where('user_id', $change === 'actor membership' ? 3 : 2)->delete();
+    }
+    $before = assignmentSnapshot();
+    $previous = $connection->getRawReadPdo();
+    $connection->setReadPdo($replica);
+
+    try {
+        expect($connection->getReadPdo())->toBe($replica);
+        expect(fn () => $this->service->change(3, 2, 1, 1, 'analyst', true))->toThrow(AuthorizationException::class);
+    } finally {
+        $connection->setReadPdo($previous);
+    }
+    expect(assignmentSnapshot())->toEqual($before);
+})->with(['actor membership', 'target membership', 'project', 'authority'])->group('server-skip');
+
 it('allows an explicitly trusted maintenance job to use a server-owned system reason', function (): void {
     $result = AzGuard::actingAs('maintenance: backfill', fn () => AzGuard::panel('crm')
         ->inTenant(Organization::query()->findOrFail(1))->for(User::query()->findOrFail(2))

@@ -9,7 +9,8 @@ tests in `tests/Feature/Changes/AuthorizedAssignmentsExampleTest.php` use the CR
 an authenticated project tenant-admin may grant or revoke only `analyst`, only for another member of the
 same tenant, and only in an active project the actor manages. The service reloads the actor, target, tenant
 and project, checks membership, the exact role and project, and the actor's current authority before calling
-the real `grantRole()` or `revokeRole()`. It deliberately disallows tenant-wide and all-scope changes. Adapt
+the real `grantRole()` or `revokeRole()`. Host record and membership reloads use the write PDO; role qualification
+explicitly uses `onPrimary()`. The CRM panel also uses `StateRefresh::Check`. It deliberately disallows tenant-wide and all-scope changes. Adapt
 the policy to your application; a role catalog or a valid scope alone is not permission to assign it.
 
 For example, a controller can validate a narrow payload and obtain the actor from its configured guard:

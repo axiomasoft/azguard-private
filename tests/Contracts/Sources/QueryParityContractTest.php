@@ -55,14 +55,14 @@ final class ContractQueryableAutomaticRole extends BaseRole implements GrantedAu
     public function appliesTo(Model $subject, AccessScope $scope): bool
     {
         return ($subject->getKey() === 1 && $scope->context->type() === 'project' && $scope->context->id() === '1')
-            || ($subject->getKey() === 2 && $scope->context->isGlobal());
+            || ($subject->getKey() === 2 && $scope->tenant->equals(W::tenant('A')) && $scope->context->isGlobal());
     }
 
     public function exactAutomaticScopes(Model $subject, ?string $contextType, EvaluationContext $context): ?array
     {
         return match (true) {
             $subject->getKey() === 1 && $contextType === 'project' => [W::scope(1)],
-            $subject->getKey() === 2 && $contextType === 'project' => [W::scope()],
+            $subject->getKey() === 2 && $context->scope()->tenant->equals(W::tenant('A')) => [W::scope()],
             default => [],
         };
     }
@@ -85,7 +85,7 @@ final class ContractUnqueryableAutomaticRole extends BaseRole implements Granted
     public function appliesTo(Model $subject, AccessScope $scope): bool
     {
         return ($subject->getKey() === 1 && $scope->context->type() === 'project' && $scope->context->id() === '1')
-            || ($subject->getKey() === 2 && $scope->context->isGlobal());
+            || ($subject->getKey() === 2 && $scope->tenant->equals(W::tenant('A')) && $scope->context->isGlobal());
     }
 }
 
@@ -206,23 +206,44 @@ function exerciseFolderTenantMode(string $mode, string $role, bool $queryable): 
     $membership->members = ['1', '2'];
     $second = SubjectRef::of('user', 2);
     $inTenant = AccessRequest::for($second, PermissionKey::of('admin', 'orders.view'))->inTenant(W::tenant('A'));
-    $inContext = AccessRequest::for($second, PermissionKey::of('admin', 'orders.view'))->on(null, $resource)->inTenant(W::tenant('A'));
     expect($authorizer->decide($panel, $inTenant)->allowed())->toBeTrue()
-        ->and($authorizer->decide($panel, $inContext)->allowed())->toBe($mode === 'inherit')
-        ->and($authorizer->decideMany([$inContext])->get(0)->allowed())->toBe($mode === 'inherit');
+        ->and($authorizer->decideMany([$inTenant])->get(0)->allowed())->toBeTrue();
+    $resources = VisibilityClient::query()->orderBy('id')->get();
+    foreach (['A', 'B'] as $tenant) {
+        $requests = $resources->map(static fn ($record) => AccessRequest::for($second, PermissionKey::of('admin', 'orders.view'))
+            ->inScope(W::scope((int) $record->project_id, $tenant), $record))->all();
+        // Exercise the batch before scalar reads can warm any contributions.
+        $batch = $authorizer->decideMany($requests);
+        foreach ($requests as $index => $scoped) {
+            $allowed = $mode === 'inherit' && $tenant === 'A' && $resources[$index]->org === 'A';
+            expect($batch->get($index)->allowed())->toBe($allowed)
+                ->and($authorizer->decide($panel, $scoped)->allowed())->toBe($allowed);
+        }
+
+        if ($queryable) {
+            $expected = $mode === 'inherit' && $tenant === 'A' ? [101, 102, 103] : [];
+            expect($visibility->visibleTo($panel, VisibilityClient::query(), $second, 'orders.view', W::scope(tenant: $tenant))
+                ->orderBy('id')->pluck('id')->all())->toBe($expected);
+        }
+    }
+    $membership->members = [];
+    expect($authorizer->decide($panel, $inTenant)->allowed())->toBeFalse()
+        ->and($authorizer->decideMany([$inTenant])->get(0)->allowed())->toBeFalse();
+
+    if ($queryable) {
+        expect($visibility->visibleTo($panel, VisibilityClient::query(), $second, 'orders.view', W::scope())->pluck('id')->all())->toBe([]);
+    }
 }
 
-it('enforces tenant membership for folder automatic roles in inherit mode', function (): void {
+it('enforces tenant membership for folder automatic roles in inherit mode', function (string $role, bool $queryable): void {
     User::query()->insert(['id' => 2]);
-    exerciseFolderTenantMode('inherit', ContractQueryableAutomaticRole::class, true);
-    exerciseFolderTenantMode('inherit', ContractUnqueryableAutomaticRole::class, false);
-});
+    exerciseFolderTenantMode('inherit', $role, $queryable);
+})->with([[ContractQueryableAutomaticRole::class, true], [ContractUnqueryableAutomaticRole::class, false]]);
 
-it('enforces tenant membership for folder automatic roles in isolated mode', function (): void {
+it('enforces tenant membership for folder automatic roles in isolated mode', function (string $role, bool $queryable): void {
     User::query()->insert(['id' => 2]);
-    exerciseFolderTenantMode('isolated', ContractQueryableAutomaticRole::class, true);
-    exerciseFolderTenantMode('isolated', ContractUnqueryableAutomaticRole::class, false);
-});
+    exerciseFolderTenantMode('isolated', $role, $queryable);
+})->with([[ContractQueryableAutomaticRole::class, true], [ContractUnqueryableAutomaticRole::class, false]]);
 
 it('expires a database grant at the same boundary in scalar batch and visibility', function (): void {
     app(StorageSchema::class)->create('default');
@@ -284,10 +305,13 @@ it('denies a database grant when tenant membership is absent in scalar batch and
         fn (PanelBuilder $builder) => $builder->tenants(TenantPolicy::required(Organization::class)->requireMembership($membership)),
         tenant: true, extra: [DatabaseSource::make()]);
     AzGuard::panel('admin')->inTenant(W::tenant('A'))->for(W::subject())->grantPermission('orders.view', AssignmentScopeRef::of('project', 1));
-    $membership->members = [];
     $resource = VisibilityClient::query()->findOrFail(101);
     $request = AccessRequest::for(W::subject(), PermissionKey::of('admin', 'orders.view'))->on(null, $resource)->inTenant(W::tenant('A'));
 
+    expect($authorizer->decideMany([$request])->get(0)->allowed())->toBeTrue()
+        ->and($authorizer->decide($panel, $request)->allowed())->toBeTrue()
+        ->and($visibility->visibleTo($panel, VisibilityClient::query(), W::subject(), 'orders.view', W::scope())->pluck('id')->all())->toBe([101]);
+    $membership->members = [];
     expect($authorizer->decide($panel, $request)->allowed())->toBeFalse()
         ->and($authorizer->decideMany([$request])->get(0)->allowed())->toBeFalse()
         ->and($visibility->visibleTo($panel, VisibilityClient::query(), W::subject(), 'orders.view', W::scope())->pluck('id')->all())->toBe([]);
@@ -335,7 +359,9 @@ it('fails every decision in an affected batch if a source yields an invalid or i
     $resources = VisibilityClient::query()->orderBy('id')->limit(2)->get();
     $requests = $resources->map(static fn ($resource) => AccessRequest::for(W::subject(), PermissionKey::of('admin', 'orders.view'))->on(null, $resource))->all();
 
-    foreach ($authorizer->decideMany($requests) as $decision) {
+    $decisions = $authorizer->decideMany($requests);
+    expect($decisions)->toHaveCount(count($requests));
+    foreach ($decisions as $decision) {
         expect($decision->allowed())->toBeFalse()->and($decision->reason)->toBe(DecisionReason::SourceError);
     }
 })->with(['timeout', 'invalid']);

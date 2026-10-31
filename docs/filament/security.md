@@ -6,6 +6,12 @@ Visibility is not authorization. Direct Livewire calls on guarded pages and widg
 
 Custom bulk callbacks are also refused if select-all mode is combined with explicit selected keys. Filament clears those keys when entering select-all mode; accepting both would let a callback consume keys that the select-all query never checked.
 
+Custom callbacks must consume `getSelectedTableRecords()` or `getSelectedTableRecordsQuery()`, including in select-all mode. Deselected keys are only exclusions from that visible query, never an authorization allowlist. A fresh model query with `whereKeyNot($livewire->deselectedTableRecords)` can reach hidden rows and is the host callback's responsibility. Malformed non-scalar deselected keys are refused before the callback runs.
+
+Only `ExportAction` and `ExportBulkAction` use export view permissions and checked export jobs, even when renamed. A custom action named `export` requires its own action permission and the usual primary-read policy.
+
 Write actions and exports require the guard panel's `consistency.reads` setting to be `primary`; exports also require at least one currently authorized row. Enforced export actions use the package's checked preparation job; custom preparation job classes are refused. Before preparing an export and writing a chunk, the job reloads the actor and target records on the primary, applies the resource visibility query and decides each record again. A chunk with no authorized records creates no chunk file. These checks do not make a later write or export atomic with a concurrent revocation: sensitive host operations need a shared lock, transaction or fence protocol with the authority changes, on the appropriate connections.
 
 Filament's shared download route does not retain the source panel, tenant or exported record identities. The package therefore refuses that route, including for legacy exports and exports from other panels: ownership or the current panel configuration alone cannot prove current access to every row. This applies whenever the AzGuard Filament provider is installed, even if no panel currently enforces, because an export may predate that configuration. An application that replaces the download controller must itself re-resolve the actor, original panel, tenant and every exported record and refuse the whole file when it cannot prove current access.
+
+The provider registers this refusal as a default container binding (`bindIf`); an existing host binding for `DownloadExport` is a custom controller replacement with the same authorization duties.

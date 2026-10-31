@@ -66,6 +66,28 @@ it('allows a consistent select-all with deselections for a custom bulk callback'
         ->and(Order::query()->whereKey([2, 3])->count())->toBe(2);
 });
 
+it('refuses malformed deselected keys before running a custom callback', function (mixed $key): void {
+    Livewire::test(ListOrders::class)->set('isTrackingDeselectedTableRecords', true)
+        ->set('deselectedTableRecords', [$key])
+        ->call('mountAction', 'delete', [], ['table' => true, 'bulk' => true])->assertForbidden();
+
+    expect(Order::query()->whereKey([1, 2, 3])->count())->toBe(3);
+})->with(['array key' => [[['id' => 1]]], 'boolean key' => [true], 'null key' => [null]]);
+
+it('keeps hidden rows outside an empty-denylist select-all callback using the selected query', function (): void {
+    Order::query()->whereKey(4)->update(['locked' => false]);
+    FilamentFixture::$toolbarActions = [BulkAction::make('delete')->action(static function (ListOrders $livewire): void {
+        $livewire->getSelectedTableRecordsQuery()->delete();
+    })];
+
+    Livewire::test(ListOrders::class)->set('isTrackingDeselectedTableRecords', true)
+        ->set('deselectedTableRecords', [])
+        ->call('mountAction', 'delete', [], ['table' => true, 'bulk' => true])->assertSuccessful();
+
+    expect(Order::query()->whereKey([1, 2])->count())->toBe(0)
+        ->and(Order::query()->whereKey(3)->exists())->toBeTrue();
+});
+
 it('rechecks each selected record after its state changes before a custom callback', function (): void {
     $page = Livewire::test(ListOrders::class)->set('selectedTableRecords', ['1', '2']);
     Order::query()->whereKey(2)->update(['locked' => true]);

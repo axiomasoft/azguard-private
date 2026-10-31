@@ -119,6 +119,8 @@ final class GateSourceContractTest extends TestCase
             $this->assertTrue($authorizer->decide($panel, $scoped)->allowed());
             $this->assertTrue($authorizer->decideMany([$scoped])->get(0)->allowed());
             $membership->members = [];
+            $this->assertFalse($authorizer->decide($panel, $requests[0])->allowed());
+            $this->assertFalse($authorizer->decideMany([$requests[0]])->get(0)->allowed());
             $this->assertFalse($authorizer->decide($panel, $scoped)->allowed());
             $this->assertFalse($authorizer->decideMany([$scoped])->get(0)->allowed());
         } finally {

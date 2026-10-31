@@ -283,12 +283,23 @@ final class FilamentSourceContractTest extends TestCase
         $this->assertTrue($authorizer->decide($panel, $request)->allowed());
         $this->assertSame($mode === 'inherit', $authorizer->decide($panel, $scopedRequest)->allowed());
         $this->assertSame($mode === 'inherit', $authorizer->decideMany([$scopedRequest])->get(0)->allowed());
+        AzGuard::panel('admin')->inTenant($tenant)->for($user)->revokePermission('orders.view_any');
         AzGuard::panel('admin')->inTenant($tenant)->for($user)->grantPermission('orders.view_any', $context);
         $this->assertTrue($authorizer->decide($panel, $scopedRequest)->allowed());
-        $this->assertSame($mode === 'inherit', $authorizer->decide($panel, $otherContextRequest)->allowed());
+        $batch = $authorizer->decideMany([$scopedRequest, $otherContextRequest, $otherRequest]);
+        $this->assertTrue($batch->get(0)->allowed());
+        $this->assertFalse($authorizer->decide($panel, $otherContextRequest)->allowed());
+        $this->assertFalse($batch->get(1)->allowed());
+        $this->assertFalse($batch->get(2)->allowed());
         $this->assertFalse($authorizer->decide($panel, $otherRequest)->allowed());
+        // Both contexts are allowed before membership is revoked, so denial cannot be caused by scope alone.
+        AzGuard::panel('admin')->inTenant($tenant)->for($user)->grantPermission('orders.view_any');
+        $this->assertTrue($authorizer->decide($panel, $request)->allowed());
+        $this->assertTrue($authorizer->decideMany([$request])->get(0)->allowed());
         $membership->members = [];
         $this->assertFalse($authorizer->decide($panel, $request)->allowed());
+        $this->assertFalse($authorizer->decideMany([$request])->get(0)->allowed());
+        $this->assertFalse($authorizer->decide($panel, $scopedRequest)->allowed());
         $this->assertFalse($authorizer->decideMany([$scopedRequest])->get(0)->allowed());
     }
 }
