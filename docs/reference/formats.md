@@ -90,6 +90,7 @@ contract.
 | `direct_writes` | error | A grant or permission model does not extend the storage model, so its writes bypass AzGuard |
 | `panels.policies` | error / warning | A permission is bound twice (error), or the catalog cache records another discovery than the folders give now (warning) |
 | `grants.dead` | warning | Grants of a permission that no longer exists, or of a subject type that is not a morph alias |
+| `morph.identity` | error / warning | A declared model has an invalid or conflicting alias, or an alias that does not resolve back to it (error); a model uses its class name as its identity in production (warning, or error with `azguard_doctor.strict_morph_identity` enabled). Details include `model` and `alias` |
 | `storage.schema` | error | A storage cannot be reached, or its columns do not fit the declared host keys |
 | `panels.plugins` | error | A panel plugin is declared in a way the package cannot build |
 | `panels.relations` | error | The relations of a panel do not resolve |

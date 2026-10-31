@@ -10651,6 +10651,54 @@
    "phase": "P3",
    "reason": "owner of the scaffold config section",
    "used_by": null
+  },
+  {
+   "current": null,
+   "current_path": null,
+   "kind": "class",
+   "lines": null,
+   "current_marker": null,
+   "owner": "core",
+   "target": "AzGuard\\Diagnostics\\Internal\\Checks\\MorphIdentity",
+   "target_path": "packages/core/src/Diagnostics/Internal/Checks/MorphIdentity.php",
+   "marker": "internal",
+   "enum": null,
+   "action": "new",
+   "phase": "P4",
+   "reason": "read-only doctor check for stable morph identity",
+   "used_by": null
+  },
+  {
+   "current": null,
+   "current_path": null,
+   "kind": "class",
+   "lines": null,
+   "current_marker": null,
+   "owner": "core",
+   "target": "AzGuard\\Configuration\\Internal\\CacheSigningConfig",
+   "target_path": "packages/core/src/Configuration/Internal/CacheSigningConfig.php",
+   "marker": "internal",
+   "enum": null,
+   "action": "new",
+   "phase": "P4",
+   "reason": "internal cache signing configuration",
+   "used_by": null
+  },
+  {
+   "current": null,
+   "current_path": null,
+   "kind": "interface",
+   "lines": null,
+   "current_marker": null,
+   "owner": "core",
+   "target": "AzGuard\\Kernel\\Internal\\PrimaryReadContext",
+   "target_path": "packages/core/src/Kernel/Internal/PrimaryReadContext.php",
+   "marker": "internal",
+   "enum": null,
+   "action": "new",
+   "phase": "P4",
+   "reason": "internal context for primary authority reads",
+   "used_by": null
   }
  ]
 }
