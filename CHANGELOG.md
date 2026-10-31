@@ -19,7 +19,8 @@ version) are documented here. Format: [Keep a Changelog](https://keepachangelog.
 
 Target: **2.0.0-rc.1**, followed by **2.0.0** for both packages. The 1.0.0 entry below is a historical
 release claim; publication and consumption are not established by that claim alone. Treat 1.0 as potentially
-consumed. See [the publication inventory](build/release/publication-inventory.json) and [RELEASING.md](RELEASING.md).
+consumed. The timestamped local inventory is `build/release/publication-inventory.json`;
+retain a copy with the release evidence as described in [RELEASING.md](RELEASING.md).
 The release SHA will be selected after the remaining code and qualification work.
 
 ### Upgrading to 2.0
@@ -55,6 +56,12 @@ The release SHA will be selected after the remaining code and qualification work
   fixtures and consumers against the 2.0 baseline before replacing that baseline through the release process.
 
 ### Changed
+
+- Qualification preflight fails on dirty source trees, remote Docker endpoints, mismatched Compose configurations,
+  masked database storage and unowned Redis volumes. Replica readiness verifies cluster and upstream identity;
+  invalid lane switches or Redis prefixes fail before client probes, and report replacement is atomic.
+- CI jobs installing the development lock use PHP 8.4, matching its dependency requirements; the supported PHP
+  version matrix continues to resolve dependencies independently.
 
 - Qualification preflight emits the versioned `azguard.qualification.preflight.v1` JSON baseline, verifies SQLite migrations in memory, and checks owned test stands and server migration state. Redis namespace remains a separate runtime gate; retain the report alongside qualification evidence.
 

@@ -2,13 +2,14 @@
 set -u
 cd "$(dirname "$0")/.." || exit 1
 exec python3 - "$@" <<'PY'
-import datetime, hashlib, json, os, re, secrets, shutil, subprocess, sys
+import datetime, hashlib, json, os, re, secrets, shutil, subprocess, sys, tempfile
 import argparse
 from pathlib import Path
+import xml.etree.ElementTree as ET
 
 root = Path.cwd()
 parser = argparse.ArgumentParser(description='Inspect qualification prerequisites without running tests')
-parser.add_argument('--read-only', action='store_true', help='inspect prerequisites without running tests')
+parser.add_argument('--read-only', action='store_true', help='inspect without qualification tests; applies SQLite migrations in memory and opens read-only server/Redis probes (also the default)')
 parser.add_argument('--report', default='build/qualification/preflight.json', help='output JSON report path')
 args = parser.parse_args()
 checks = {}
@@ -23,9 +24,27 @@ def run(*args):
 def env(name, default=''):
     return os.environ.get(name, default)
 
+compose = ('docker', 'compose', '--project-directory', str(root), '-f', str(root / 'docker-compose.yml'), '--profile', 'authority-replica')
+containers_by_id = {}
+
+def local_docker():
+    # Resolve the same endpoint precedence as Docker before trusting daemon loopback bindings.
+    if env('DOCKER_CONTEXT') or not env('DOCKER_HOST'):
+        rc, output, _ = run('docker', 'context', 'inspect', env('DOCKER_CONTEXT')) if env('DOCKER_CONTEXT') else run('docker', 'context', 'inspect')
+        try:
+            endpoint = json.loads(output)[0]['Endpoints']['docker']['Host'] if rc == 0 else ''
+        except (ValueError, KeyError, TypeError, IndexError):
+            endpoint = ''
+    else:
+        endpoint = env('DOCKER_HOST')
+    local = endpoint.startswith('unix:///') and Path(endpoint[len('unix://'):]).is_socket()
+    return local, {'endpoint': endpoint, 'reason': 'local Unix socket required for client loopback probes'}
+
 def compose_container(service, port, target_port, tmpfs=None, volume=None):
     """Prove that the tested loopback port belongs to this checkout's healthy compose stand."""
-    rc, cid, _ = run('docker', 'compose', 'ps', '-q', service)
+    if checks['docker.readiness']['status'] != 'passed':
+        return None, 'local Docker endpoint not proven'
+    rc, cid, _ = run(*compose, 'ps', '-q', service)
     if rc or not re.fullmatch(r'[0-9a-f]{12,64}', cid):
         return None, 'compose service absent or ambiguous'
     rc, output, _ = run('docker', 'inspect', cid)
@@ -35,22 +54,45 @@ def compose_container(service, port, target_port, tmpfs=None, volume=None):
         labels = container['Config']['Labels']
         ports = container['NetworkSettings']['Ports'][f'{target_port}/tcp']
         healthy = container['State']['Status'] == 'running' and container['State'].get('Health', {}).get('Status') == 'healthy'
-        owned = labels.get('com.docker.compose.service') == service and Path(labels.get('com.docker.compose.project.working_dir', '')).resolve() == root.resolve()
+        workdir = labels.get('com.docker.compose.project.working_dir')
+        config_files = labels.get('com.docker.compose.project.config_files', '').split(',')
+        hrc, config_hash, _ = run(*compose, 'config', '--hash', service)
+        expected_hash = config_hash.split()[-1] if hrc == 0 and config_hash.split() else None
+        owned = (labels.get('com.docker.compose.service') == service and bool(workdir)
+                 and Path(workdir).resolve() == root.resolve()
+                 and config_files == [str(root / 'docker-compose.yml')]
+                 and expected_hash is not None and labels.get('com.docker.compose.config-hash') == expected_hash
+                 and bool(labels.get('com.docker.compose.project')))
         bound = len(ports) == 1 and ports[0]['HostIp'] == '127.0.0.1' and ports[0]['HostPort'] == str(port)
         disposable = tmpfs is None or tmpfs in (container['HostConfig'].get('Tmpfs') or {})
+        data_path = tmpfs or ('/data' if service == 'redis' else '/var/lib/postgresql/data')
+        # A nested bind/volume can mask tmpfs, including a nested PGDATA directory.
+        mounts = [m for m in container.get('Mounts', [])
+                  if Path(m['Destination']) == Path(data_path)
+                  or Path(data_path) in Path(m['Destination']).parents
+                  or Path(m['Destination']) in Path(data_path).parents]
+        if tmpfs:
+            disposable = disposable and all(m.get('Type') == 'tmpfs' and m['Destination'] == data_path for m in mounts)
+        if target_port == '5432':
+            pgdata = [v.split('=', 1)[1] for v in container['Config'].get('Env', []) if v.startswith('PGDATA=')]
+            disposable = disposable and len(pgdata) == 1 and (Path(pgdata[0]) == Path(data_path) or Path(data_path) in Path(pgdata[0]).parents) and '..' not in Path(pgdata[0]).parts
         if volume:
-            mounts = [m for m in container.get('Mounts', []) if m.get('Destination') == '/var/lib/postgresql/data']
-            if len(mounts) != 1 or mounts[0].get('Type') != 'volume':
-                return None, 'replica data volume is not owned'
+            if len(mounts) != 1 or mounts[0].get('Destination') != data_path or mounts[0].get('Type') != 'volume':
+                return None, 'data volume is not owned or is masked by another mount'
             vrc, vout, _ = run('docker', 'volume', 'inspect', mounts[0]['Name'])
             volumes = json.loads(vout) if vrc == 0 else []
             vl = volumes[0].get('Labels', {}) if len(volumes) == 1 else {}
-            disposable = vl.get('com.docker.compose.volume') == volume and vl.get('com.docker.compose.project') == labels.get('com.docker.compose.project')
+            disposable = disposable and vl.get('com.docker.compose.volume') == volume and vl.get('com.docker.compose.project') == labels.get('com.docker.compose.project')
         if not (healthy and owned and bound and disposable):
             return None, 'service ownership, health, loopback port or disposable storage not proven'
     except (ValueError, KeyError, TypeError, IndexError):
         return None, 'cannot inspect service ownership or port'
-    return cid, 'healthy owned compose service'
+    containers_by_id[cid] = container
+    checks['docker.readiness']['detail'].setdefault('services', {})[service] = {
+        'container': cid, 'project': labels['com.docker.compose.project'],
+        'config_files': config_files, 'config_hash': expected_hash,
+    }
+    return cid, 'healthy owned compose service with matching canonical configuration'
 
 def server_probe(driver, host, port, database):
     if host != '127.0.0.1' or not port.isdigit() or not 1 <= int(port) <= 65535:
@@ -77,7 +119,7 @@ expected = env('QUALIFICATION_SOURCE_SHA', sha if rc == 0 else '')
 check('source', 'passed' if rc == 0 and re.fullmatch('[0-9a-f]{40,64}', sha) and expected == sha else 'failed',
       {'head': sha if rc == 0 else None, 'expected': expected or None, 'owner': 'qualification source'})
 rc, dirty, _ = run('git', 'status', '--porcelain', '--untracked-files=normal')
-check('worktree', 'passed' if rc == 0 else 'unavailable', {'dirty': bool(dirty) if rc == 0 else None, 'owner': 'qualification source'})
+check('worktree', ('failed' if dirty else 'passed') if rc == 0 else 'unavailable', {'dirty': bool(dirty) if rc == 0 else None, 'changes': dirty.splitlines() if rc == 0 else None, 'owner': 'qualification source'})
 lock = root / 'composer.lock'
 rc, _, _ = run('git', 'ls-files', '--error-unmatch', 'composer.lock')
 lock_hash = hashlib.sha256(lock.read_bytes()).hexdigest() if lock.is_file() else None
@@ -98,24 +140,33 @@ for binary in ('php', 'php8.4'):
     try: candidate = json.loads(output) if code == 0 else {}
     except ValueError: candidate = {}
     drivers = {x.lower() for x in candidate.get('extensions', [])}
-    if ('pcov' in drivers and candidate.get('pcov_enabled') not in ('', '0', None)) or ('xdebug' in drivers and 'coverage' in (env('XDEBUG_MODE') or candidate.get('xdebug_mode') or '').split(',')):
+    if ('pcov' in drivers and str(candidate.get('pcov_enabled')).lower() in ('1', 'on', 'yes', 'true')) or ('xdebug' in drivers and 'coverage' in (env('XDEBUG_MODE') or candidate.get('xdebug_mode') or '').split(',')):
         coverage_php = shutil.which(binary)
         break
 check('coverage', 'passed' if coverage_php else 'failed', {'owner': 'coverage driver', 'php': coverage_php})
-rc, _, _ = run('docker', 'info', '--format', '{{.ServerVersion}}')
-check('docker.readiness', 'passed' if rc == 0 else 'unavailable', {'exit': rc, 'owner': 'local test stand'})
+local, docker_detail = local_docker()
+rc, _, _ = run('docker', 'info', '--format', '{{.ServerVersion}}') if local else (1, '', '')
+check('docker.readiness', 'passed' if rc == 0 else 'unavailable', dict(docker_detail, exit=rc, owner='local test stand'))
 
-driver = env('DB_CONNECTION', 'sqlite')
-app_env = env('APP_ENV', 'testing')
-database = env('DB_DATABASE', ':memory:')
+try:
+    defaults = {e.attrib['name']: e.attrib['value'] for e in ET.parse(root / 'phpunit.xml').findall('./php/env')}
+    defaults_ok = all(defaults.get(k) == v for k, v in {'APP_ENV': 'testing', 'DB_CONNECTION': 'sqlite', 'DB_DATABASE': ':memory:'}.items())
+except (OSError, ET.ParseError, KeyError):
+    defaults, defaults_ok = {}, False
+driver = env('DB_CONNECTION', defaults.get('DB_CONNECTION', ''))
+app_env = env('APP_ENV', defaults.get('APP_ENV', ''))
+database = env('DB_DATABASE', defaults.get('DB_DATABASE', ''))
 unsafe_aliases = [n for n in ('DATABASE_URL', 'DB_URL', 'DB_HOST', 'DB_PORT') if env(n)]
 if env('TEST_TOKEN') and not env('TEST_TOKEN').isdigit(): unsafe_aliases.append('TEST_TOKEN')
-safe_environment = app_env == 'testing' and not unsafe_aliases
+for switch in ('QUALIFICATION_REDIS', 'AUTHORITY_REPLICA_TEST'):
+    if env(switch) not in ('', '0', '1'): unsafe_aliases.append(switch)
+replica_requested = env('AUTHORITY_REPLICA_TEST') == '1'
+safe_environment = app_env == 'testing' and not unsafe_aliases and defaults_ok
 check('environment', 'passed' if safe_environment else 'failed', {'app_env': app_env or None, 'unsupported_aliases': unsafe_aliases, 'owner': 'test target'})
 driver_ext = {'sqlite': 'pdo_sqlite', 'pgsql': 'pdo_pgsql', 'mysql': 'pdo_mysql', 'mariadb': 'pdo_mysql'}
 check('database.driver', 'passed' if driver in driver_ext and driver_ext[driver] in ext else 'failed', {'driver': driver or None, 'required_extension': driver_ext.get(driver), 'owner': 'database lane'})
 if driver == 'sqlite':
-    ok = database == ':memory:' and not env('AUTHORITY_REPLICA_TEST')
+    ok = database == ':memory:' and not replica_requested and safe_environment
     check('database.target', 'passed' if ok else 'failed', {'driver': driver, 'database': database, 'owner': 'database lane'})
 elif driver in ('pgsql', 'mysql', 'mariadb'):
     prefix = driver.upper()
@@ -128,7 +179,7 @@ elif driver in ('pgsql', 'mysql', 'mariadb'):
     check('database.target', status, {'host': host, 'port': port, 'database': db, 'owner': 'database lane', 'reason': reason})
 else:
     check('database.target', 'failed', {'owner': 'database lane', 'reason': 'unknown DB_CONNECTION'})
-if env('AUTHORITY_REPLICA_TEST'):
+if replica_requested:
     ports = [env('AUTHORITY_PRIMARY_PORT', '25433'), env('AUTHORITY_REPLICA_PORT', '25434')]
     reason = 'replica requires two distinct loopback compose ports and PostgreSQL'
     status = 'failed'
@@ -137,10 +188,25 @@ if env('AUTHORITY_REPLICA_TEST'):
                  compose_container('authority-replica', ports[1], '5432', volume='authority_replica_test')]
         if all(cid for cid, _ in nodes) and nodes[0][0] != nodes[1][0]:
             code = '''try { $c=new PDO("pgsql:host=127.0.0.1;port=$argv[1];dbname=azguard_authority_test","authority_test","authority_test",[PDO::ATTR_TIMEOUT=>3,PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION]);
-              echo $c->query("select current_database() || ':' || pg_is_in_recovery()::text")->fetchColumn(); } catch (Throwable $e) { exit(1); }'''
+              $s=$c->query("select current_database() as database, pg_is_in_recovery() as recovery, system_identifier::text as cluster from pg_control_system()")->fetch(PDO::FETCH_ASSOC);
+              $s["receiver"]=$c->query("select status, sender_host, sender_port from pg_stat_wal_receiver")->fetchAll(PDO::FETCH_ASSOC);
+              echo json_encode($s,JSON_THROW_ON_ERROR); } catch (Throwable $e) { exit(1); }'''
             probes = [run('php', '-r', code, port) for port in ports]
-            status = 'passed' if probes[0][:2] == (0, 'azguard_authority_test:false') and probes[1][:2] == (0, 'azguard_authority_test:true') else 'unavailable'
-            reason = 'primary/standby topology proven' if status == 'passed' else 'primary/standby topology or credentials not proven'
+            try:
+                primary, standby = [json.loads(out) if rc == 0 else {} for rc, out, _ in probes]
+                addresses = [n.get('IPAddress') for n in containers_by_id[nodes[0][0]]['NetworkSettings']['Networks'].values()]
+                receivers = standby.get('receiver', [])
+                paired = (primary.get('database') == standby.get('database') == 'azguard_authority_test'
+                          and primary.get('recovery') is False and standby.get('recovery') is True
+                          and re.fullmatch(r'[0-9]+', primary.get('cluster', '')) is not None
+                          and primary.get('cluster') == standby.get('cluster') and len(receivers) == 1
+                          and receivers[0].get('status') == 'streaming'
+                          and receivers[0].get('sender_host') in ['authority-primary', *addresses]
+                          and str(receivers[0].get('sender_port')) == '5432')
+            except (ValueError, KeyError, TypeError):
+                paired = False
+            status = 'passed' if paired else 'unavailable'
+            reason = 'same cluster and streaming primary/standby topology proven' if paired else 'same-cluster upstream topology or credentials not proven'
         else:
             status, reason = 'unavailable', 'owned healthy primary and replica volumes and ports not proven'
     check('replica', status, {'owner': 'replica lane', 'ports': ports, 'reason': reason})
@@ -155,7 +221,7 @@ check('redis.prefix', 'passed' if redis_ok else 'failed', {'owner': 'redis lane'
 redis_requested = bool(prefix) or env('QUALIFICATION_REDIS') == '1'
 if redis_requested:
     port = env('REDIS_PORT', '26379')
-    cid, reason = compose_container('redis', port, '6379') if port.isdigit() and 1 <= int(port) <= 65535 else (None, 'invalid Redis port')
+    cid, reason = compose_container('redis', port, '6379', volume='redis_data') if redis_ok and safe_environment and port.isdigit() and 1 <= int(port) <= 65535 else (None, 'invalid Redis prefix, environment or port')
     status = 'unavailable'
     if cid and 'redis' in ext:
         code = '''try { $r=new Redis(); if (!$r->connect("127.0.0.1",(int)$argv[1],3) || !$r->select(15)) exit(1);
@@ -200,9 +266,9 @@ elif driver in ('pgsql', 'mysql', 'mariadb') and checks['database.target']['stat
         $schema=$d==="pgsql"?"current_schema()":"database()";
         $t=$c->query("select count(*) from information_schema.tables where table_schema=$schema and table_name in ('azg_permissions','azg_role_grants','azg_permission_grants','azg_panel_state','azg_subject_revisions','azg_storage_state','azg_audit_log')")->fetchColumn(); echo "$m:$t";
       } catch (Throwable $e) { exit(1); }'''
-    rc, output, _ = run('php', '-r', code, driver, target['port'], target['database'], 'replica' if env('AUTHORITY_REPLICA_TEST') else 'server')
+    rc, output, _ = run('php', '-r', code, driver, target['port'], target['database'], 'replica' if replica_requested else 'server')
     verified = rc == 0 and output == '2:7'
-    if env('AUTHORITY_REPLICA_TEST') and verified:
+    if replica_requested and verified:
         replica_rc, replica_output, _ = run('php', '-r', code, driver, ports[1], target['database'], 'replica')
         verified = replica_rc == 0 and replica_output == '2:7'
     check('migrations', 'passed' if verified else 'unavailable', {'owner': 'database lane', 'reason': 'migration ledger and required tables proven on the selected server target(s)' if verified else 'migration ledger or required tables not proven on every selected server target'})
@@ -216,7 +282,17 @@ report = {'schema': 'azguard.qualification.preflight.v1', 'created_at': datetime
 path = root / args.report
 try:
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(json.dumps(report, indent=2, sort_keys=True) + '\n')
+    temporary = None
+    try:
+        with tempfile.NamedTemporaryFile(mode='w', dir=path.parent, prefix='.' + path.name + '.', delete=False) as output:
+            temporary = Path(output.name)
+            output.write(json.dumps(report, indent=2, sort_keys=True) + '\n')
+            output.flush()
+            os.fsync(output.fileno())
+        os.replace(temporary, path)
+    finally:
+        if temporary is not None:
+            temporary.unlink(missing_ok=True)
 except OSError as e:
     print('preflight: cannot write report:', e, file=sys.stderr)
     sys.exit(1)

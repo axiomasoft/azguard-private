@@ -20,7 +20,7 @@ with a user-visible change edits `[Unreleased]`; the release moves it under the 
 ## Versioning: lockstep
 
 The historical changelog calls 1.0.0 the first public release, but that statement alone does not establish publication
-or consumption. Treat 1.0 as potentially consumed. The read-only [publication inventory](build/release/publication-inventory.json)
+or consumption. Treat 1.0 as potentially consumed. The read-only local inventory `build/release/publication-inventory.json`
 records observations and access failures separately; an inaccessible private API or a 404 does not prove absence.
 The planned line is **2.0.0-rc.1**, then **2.0.0** for both packages because Unreleased contains breaking changes.
 The release SHA is chosen during P8 qualification after the code is complete. Existing tags must not be moved or rewritten.
@@ -29,7 +29,8 @@ On 2026-10-30 the accessible origin advertised only `v0.3.0` and `v0.7.0`, and i
 one release, `v0.3.0`. Both split tag queries required unavailable credentials; their release APIs returned 404.
 Packagist's stable and development metadata endpoints returned 404 for both package names, so no versions or
 source/dist references were returned. These observations do not prove that 1.0 was never published or consumed.
-The inventory is a timestamped local build artifact; retain it with the release evidence.
+The inventory is a timestamped, ignored local build artifact, not a repository link.
+Retain a copy with the release evidence supplied for approval; a fresh clone does not contain it.
 
 The root `composer.lock` is the development and release lock: qualification jobs `composer install` from it,
 packages never ship it, and version-range jobs re-resolve with `composer update`.
@@ -124,9 +125,9 @@ The split repositories are checked against the monorepo tag, then the published 
 applications:
 
 ```bash
-bash bin/split-verify.sh v1.0.0-rc.1            # tree identity per package, Packagist reference and core requirement
-bash bin/consumer-fixture.sh --source=packagist --version=1.0.0-rc.1 --laravel=12 --with-filament
-bash bin/consumer-fixture.sh --source=packagist --version=1.0.0-rc.1 --laravel=13 --with-filament
+bash bin/split-verify.sh v2.0.0-rc.1            # tree identity per package, Packagist reference and core requirement
+bash bin/consumer-fixture.sh --source=packagist --version=2.0.0-rc.1 --laravel=12 --with-filament
+bash bin/consumer-fixture.sh --source=packagist --version=2.0.0-rc.1 --laravel=13 --with-filament
 ```
 
 `bin/split-verify.sh` compares `packages/<dir>` of the monorepo tag with the tree of the split tag (extra paths of the
@@ -147,7 +148,7 @@ sha256sum -c SHA256SUMS
 gh attestation verify azguard-core-<v>.zip --repo axiomasoft/azguard-private
 ```
 
-The same script builds the files locally (`bash bin/release-artifacts.sh 1.0.0 /tmp/out`).
+The same script builds the files locally (`bash bin/release-artifacts.sh 2.0.0-rc.1 /tmp/out`).
 
 ## Critical mutation
 
@@ -196,12 +197,12 @@ equivalent mutant. It also runs weekly. It needs a coverage driver (pcov or Xdeb
    before making the candidate commit.
 3. Verify the candidate tree read-only:
    ```bash
-   bash bin/release-preflight.sh 2.0.0 HEAD
+   bash bin/release-preflight.sh 2.0.0-rc.1 HEAD
    ```
    The script reads `git show REF:CHANGELOG.md`; a working-tree-only edit fails.
-   A pre-release `1.0.0-rc.1` is served by its own `## [1.0.0-rc.1]` section, else by the `## [1.0.0]` section: one
+   A pre-release `2.0.0-rc.1` is served by its own `## [2.0.0-rc.1]` section, else by the `## [2.0.0]` section: one
    section serves the release candidates and the stable tag of the same commit (`bash bin/release-preflight.sh
-   1.0.0-rc.1 HEAD`, `bash bin/release-notes.sh 1.0.0-rc.1 HEAD`).
+   2.0.0-rc.1 HEAD`, `bash bin/release-notes.sh 2.0.0-rc.1 HEAD`).
    The `validate` job of `release.yml` also requires that the tag is annotated, that the tagged commit is reachable from
    `main`, and, for the first stable tag, that the commit changes only `compatibility.json` over the candidate.
    Run `bash bin/test-release-preflight.sh` for isolated matching, missing,
@@ -212,12 +213,18 @@ equivalent mutant. It also runs weekly. It needs a coverage driver (pcov or Xdeb
    `bash bin/compat-drill.sh --baseline=C` and `bash bin/release-preflight.sh 2.0.0 HEAD` on C+1 and wait for its CI
    before tagging. The release run on the tag compares C+1 with C: a tag on the compared commit is never its own
    baseline.
-4. After explicit owner approval, create and push an annotated tag from the commit named above (for a first stable tag, C+1; for
-   later releases, the candidate commit itself):
+4. After explicit owner approval, publish the planned release candidate from the qualified candidate C:
    ```bash
-   git tag -a v2.0.0 <qualified-commit> -m "AzGuard 2.0.0"
+   git tag -a v2.0.0-rc.1 <qualified-candidate-C> -m "AzGuard 2.0.0-rc.1"
+   git push origin v2.0.0-rc.1
+   ```
+   The subsequent stable release needs its own qualification and approval. For a first stable tag,
+   use the baseline-only commit C+1 described above, never C:
+   ```bash
+   git tag -a v2.0.0 <qualified-baseline-commit-C+1> -m "AzGuard 2.0.0"
    git push origin v2.0.0
    ```
+   If a stable baseline tag already exists, tag the qualified candidate itself instead.
 5. CI takes over. **`release.yml`** runs the whole qualification graph on the tagged commit, in the same run:
    - the called workflows `tests.yml` (PHP × Laravel × stability matrix, database lanes and engines, replica, Redis,
      coverage, consumer archives), `static-analysis.yml` (PHPStan, type coverage), `code-style.yml` (Pint, Rector),
@@ -237,7 +244,10 @@ tagged commit must already contain the version section.
 
 Local resolution of the `self.version` and `^2.0` constraints between packages is handled by the
 `versions` map in the root `composer.json` path repository — keep it in sync with
-the current release line when bumping (both aliases are `2.0.x-dev`).
+the current release line when bumping (both aliases are `2.0.x-dev`). The local
+map's stable `2.0.0` identity exercises monorepo development resolution; it does
+not attest installation of `2.0.0-rc.1`. Release validation separately resolves
+the tag-stamped archives, including prereleases.
 
 ## Split and Packagist status — 2026-10-10
 
