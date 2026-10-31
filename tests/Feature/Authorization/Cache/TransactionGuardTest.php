@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use AzGuard\Authorization\Internal\Cache\SignedEnvelope;
 use AzGuard\Authorization\Internal\Pipeline\Stages\AuthorityStage;
 use AzGuard\Authorization\Internal\Pipeline\Trace;
 use AzGuard\Contracts\Sources\Volatility;
@@ -19,6 +20,7 @@ use AzGuard\Tests\Fixtures\Sources\Database\DatabasePermission;
 use AzGuard\Tests\Fixtures\Sources\Database\DatabaseWorld;
 use AzGuard\Tests\Fixtures\Sources\Relation\ProjectDefinition;
 use AzGuard\Tests\Fixtures\Sources\Relation\RelationWorld;
+use Illuminate\Support\Carbon;
 
 beforeEach(function (): void {
     app(StorageSchema::class)->create('default');
@@ -26,6 +28,7 @@ beforeEach(function (): void {
 });
 
 it('never publishes tentative host-transaction authority and preserves rollback and own invalidation', function (): void {
+    config(['azguard.cache.namespace' => 'transaction-guard', 'azguard.cache.signing_key' => str_repeat('t', 32)]);
     $storage = DatabaseWorld::storage();
     $storage->mutate('admin', function (StorageMutation $m): void {
         $m->table('permission_grants')->delete();
@@ -35,6 +38,11 @@ it('never publishes tentative host-transaction authority and preserves rollback 
     $store = app('cache')->store('array');
     expect($engine->decide($panel, DatabaseWorld::request())->allowed())->toBeFalse();
     $before = (new ReflectionProperty($store->getStore(), 'storage'))->getValue($store->getStore());
+    expect($before)->toHaveCount(1);
+    $key = array_key_first($before);
+    $signer = SignedEnvelope::fromConfig(app('config'));
+    expect($signer)->not->toBeNull()
+        ->and($signer->decode($store->get($key), $key, Carbon::now()->toDateTimeImmutable()))->not->toBeNull();
     expect(function () use ($engine, $panel, $storage, $store, $before): void {
         $engine->withinAuthorityTransaction($panel, function () use ($engine, $panel, $storage, $store, $before): void {
             $storage->mutate('admin', function (StorageMutation $m): void {
@@ -47,6 +55,7 @@ it('never publishes tentative host-transaction authority and preserves rollback 
             throw new RuntimeException('rollback tentative grant');
         });
     })->toThrow(RuntimeException::class, 'rollback tentative grant');
+    expect((new ReflectionProperty($store->getStore(), 'storage'))->getValue($store->getStore()))->toEqual($before);
     app()->forgetScopedInstances();
     expect($engine->decide($panel, DatabaseWorld::request())->allowed())->toBeFalse();
     $storage->mutate('admin', function (StorageMutation $m): void {

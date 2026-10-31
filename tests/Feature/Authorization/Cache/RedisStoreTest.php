@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use AzGuard\Authorization\Internal\Cache\PermissionSetCache;
+use AzGuard\Authorization\Internal\Cache\SignedEnvelope;
 use AzGuard\Configuration\Internal\AzGuardConfig;
 use AzGuard\Contracts\Sources\Volatility;
 use AzGuard\Kernel\Decision\DecisionReason;
@@ -175,6 +176,10 @@ it('does not publish a tentative host transaction grant to Redis', function (): 
     $keys = $client->keys('*');
     expect($keys)->toHaveCount(1);
     $raw = $client->get(substr($keys[0], strlen($this->redisPrefix)));
+    $cacheKey = substr($keys[0], strlen($this->redisPrefix.'sets:'));
+    $signer = SignedEnvelope::fromConfig(app('config'));
+    expect($signer)->not->toBeNull()
+        ->and($signer->decode(app('cache')->store('qualification')->get($cacheKey), $cacheKey, Carbon::now()->toDateTimeImmutable()))->not->toBeNull();
     expect(function () use ($engine, $panel, $storage, $client, $keys, $raw): void {
         $engine->withinAuthorityTransaction($panel, function () use ($engine, $panel, $storage, $client, $keys, $raw): void {
             $storage->mutate('admin', static function (StorageMutation $m): void {
@@ -188,6 +193,8 @@ it('does not publish a tentative host transaction grant to Redis', function (): 
             throw new RuntimeException('rollback tentative grant');
         });
     })->toThrow(RuntimeException::class, 'rollback tentative grant');
+    expect($client->keys('*'))->toBe($keys)
+        ->and($client->get(substr($keys[0], strlen($this->redisPrefix))))->toBe($raw);
     app()->forgetScopedInstances();
     expect($engine->decide($panel, DatabaseWorld::request())->reason)->toBe(DecisionReason::NotGranted);
 })->group('redis', 'stand', 'server-skip');

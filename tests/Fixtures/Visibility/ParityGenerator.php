@@ -30,9 +30,9 @@ use AzGuard\Tests\Fixtures\Sources\Database\DatabaseWorld;
 use AzGuard\Tests\Modules\Scopes\Fixtures\Membership;
 use AzGuard\Tests\Modules\Scopes\Fixtures\Organization;
 use DateTimeImmutable;
-use Illuminate\Cache\Events\CacheHit;
 use Illuminate\Cache\Events\KeyWritten;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Events\QueryExecuted;
 use InvalidArgumentException;
 use PHPUnit\Framework\Assert;
 use Random\Engine\Mt19937;
@@ -178,11 +178,12 @@ final class ParityGenerator
     {
         self::configureSignedCache();
         app(StorageSchema::class)->create('default');
-        $cacheEvents = (object) ['hits' => 0, 'writes' => 0];
+        $cacheEvents = (object) ['writes' => 0, 'grantReads' => 0, 'sharedChecks' => 0];
         $cacheExpected = false;
-        app('events')->listen(CacheHit::class, static function (CacheHit $event) use ($cacheEvents, $store): void {
-            if ($event->storeName === $store && str_starts_with($event->key, 'azguard:sets:')) {
-                $cacheEvents->hits++;
+        app('db')->connection()->listen(static function (QueryExecuted $query) use ($cacheEvents): void {
+            if (str_starts_with(strtolower(ltrim($query->sql)), 'select')
+                && preg_match('/azg_(permission|role)_grants["`]/', $query->sql) === 1) {
+                $cacheEvents->grantReads++;
             }
         });
         app('events')->listen(KeyWritten::class, static function (KeyWritten $event) use ($cacheEvents, $store): void {
@@ -251,11 +252,12 @@ final class ParityGenerator
                     app()->forgetScopedInstances();
                     $writesBefore = $cacheEvents->writes;
                     $coldWrites = 0;
+                    $coldReads = 0;
                     foreach (['cold', 'memo', 'shared'] as $lane) {
                         if ($lane === 'shared') {
                             app()->forgetScopedInstances();
                         }
-                        $hitsBefore = $cacheEvents->hits;
+                        $readsBefore = $cacheEvents->grantReads;
                         $message = "seed=$seed entry=$entry lane=$lane; reproduce: AZGUARD_PROPERTY_SEED=$seed vendor/bin/pest tests/Feature/Parity/".($store === 'parity' ? 'SharedRedisParityTest.php' : 'AuditParityTest.php');
                         $actual = [];
 
@@ -285,10 +287,15 @@ final class ParityGenerator
 
                         if ($lane === 'cold') {
                             $coldWrites = $cacheEvents->writes - $writesBefore;
+                            $coldReads = $cacheEvents->grantReads - $readsBefore;
                         }
 
                         if ($lane === 'shared' && $entry !== 'visibility' && $coldWrites > 0) {
-                            Assert::assertGreaterThan($hitsBefore, $cacheEvents->hits, $message.' must read the shared authority cache');
+                            // Safe cache reads bypass Laravel's CacheHit event. A warm read with no grant
+                            // queries after clearing memo proves the stored authority was accepted.
+                            Assert::assertGreaterThan(0, $coldReads, $message.' cold lane must read authority');
+                            Assert::assertSame($readsBefore, $cacheEvents->grantReads, $message.' must read the shared authority cache');
+                            $cacheEvents->sharedChecks++;
                         }
                     }
                 }
@@ -301,7 +308,7 @@ final class ParityGenerator
 
         if ($cacheExpected) {
             Assert::assertGreaterThan(0, $cacheEvents->writes, 'Generated scenarios must populate the shared authority cache.');
-            Assert::assertGreaterThan(0, $cacheEvents->hits, 'Generated scenarios must read the shared authority cache after clearing request memo.');
+            Assert::assertGreaterThan(0, $cacheEvents->sharedChecks, 'Generated scenarios must read the shared authority cache after clearing request memo.');
         }
     }
 
