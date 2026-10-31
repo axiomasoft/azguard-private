@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use AzGuard\Configuration\Internal\AzGuardConfig;
 use AzGuard\Contracts\Authorization\EvaluationContext;
+use AzGuard\Contracts\Authorization\FiltersAccessQueries;
 use AzGuard\Contracts\Sources\FencesReads;
 use AzGuard\Contracts\Sources\ProvidesGrants;
 use AzGuard\Contracts\Sources\ProvidesRoleGrants;
@@ -16,7 +17,10 @@ use AzGuard\Diagnostics\Internal\Checks\PanelsSources;
 use AzGuard\Diagnostics\PanelOverview;
 use AzGuard\Exceptions\VisibilityNotSupportedException;
 use AzGuard\Filament\Sources\FilamentSource;
+use AzGuard\Kernel\Decision\AccessPredicate;
 use AzGuard\Kernel\Decision\AccessRequest;
+use AzGuard\Kernel\Decision\Grant;
+use AzGuard\Kernel\Decision\RoleContribution;
 use AzGuard\Kernel\Decision\StateToken;
 use AzGuard\Kernel\Identity\AccessScope;
 use AzGuard\Kernel\Identity\PermissionKey;
@@ -83,6 +87,15 @@ class CapabilityAutomaticRole extends BaseRole implements GrantedAutomatically
     public function appliesTo(Model $subject, AccessScope $scope): bool
     {
         throw new LogicException('Doctor must not evaluate an automatic role.');
+    }
+}
+
+#[Role('capability-predicate-automatic')]
+class CapabilityPredicateAutomaticRole extends CapabilityAutomaticRole implements FiltersAccessQueries
+{
+    public function predicate(AccessRequest $request, string $resourceType, EvaluationContext $context, Grant|RoleContribution|null $contribution = null): AccessPredicate
+    {
+        return AccessPredicate::pass();
     }
 }
 
@@ -211,12 +224,12 @@ it('exports the normalized description through the machine panel overview', func
         ->and(capabilityFindings($panel))->toBe([]);
 });
 
-it('warns about declared automatic folder roles without evaluating them', function (): void {
-    [$visibility, $panel] = W::compile(configure: static fn (PanelBuilder $builder) => $builder->roles([CapabilityAutomaticRole::class]));
+it('warns about declared automatic folder roles without evaluating them', function (string $role): void {
+    [$visibility, $panel] = W::compile(configure: static fn (PanelBuilder $builder) => $builder->roles([$role]));
     $findings = capabilityFindings($panel);
     expect($findings)->toHaveCount(1)->and($findings[0]->key)->toBe('panels.sources.visibility')
         ->and($findings[0]->details['reason'])->toBe('automatic_roles')
-        ->and($findings[0]->details['roles'])->toBe([CapabilityAutomaticRole::class]);
+        ->and($findings[0]->details['roles'])->toBe([$role]);
     $sources = app(PanelOverview::class)->panel($panel, sources: true)['sources']['sources'];
     $folder = array_values(array_filter($sources, static fn (array $s): bool => $s['class'] === FolderSource::class))[0];
     expect($folder['matrix']['exact_visibility']['status'])->toBe('conditional')
@@ -227,13 +240,17 @@ it('warns about declared automatic folder roles without evaluating them', functi
     expect(fn () => $visibility->visibleTo($panel, $query, W::subject(), 'orders.view'))
         ->toThrow(VisibilityNotSupportedException::class, 'unsupported_selection');
     expect($query->toSql())->toBe($sql)->and($query->getBindings())->toBe($bindings);
-});
+})->with([CapabilityAutomaticRole::class, CapabilityPredicateAutomaticRole::class]);
 
 it('treats an automatic selection declaration as conditional rather than a runtime guarantee', function (): void {
     [$visibility, $panel] = W::compile(configure: static fn (PanelBuilder $builder) => $builder->roles([CapabilityQueryableRole::class]));
     expect(capabilityFindings($panel))->toBe([]);
-    expect(fn () => $visibility->visibleTo($panel, VisibilityProject::query(), W::subject(), 'orders.view'))
+    $query = VisibilityProject::query()->where('active', true);
+    $sql = $query->toSql();
+    $bindings = $query->getBindings();
+    expect(fn () => $visibility->visibleTo($panel, $query, W::subject(), 'orders.view'))
         ->toThrow(VisibilityNotSupportedException::class, 'unsupported_selection');
+    expect($query->toSql())->toBe($sql)->and($query->getBindings())->toBe($bindings);
 });
 
 it('keeps a conditional declaration separate from a runtime unsupported selection', function (): void {

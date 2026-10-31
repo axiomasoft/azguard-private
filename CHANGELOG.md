@@ -6,6 +6,7 @@ version) are documented here. Format: [Keep a Changelog](https://keepachangelog.
 
 ## [Unreleased]
 
+- Development instructions identify the planned 2.0 release line and distinguish historical 1.0 notes from publication evidence.
 - Filament bulk and export preflight checks finish bounded record queries before nested authorization queries,
   so authorized operations also work with unbuffered MySQL and MariaDB connections.
 - Qualification preflight rejects a coverage PHP fallback missing the selected database or Redis extension.
