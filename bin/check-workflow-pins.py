@@ -20,7 +20,8 @@ WRITE_PERMISSIONS = {
     ('docs-deploy.yml', 'deploy'): {'pages', 'id-token'},
     ('release.yml', 'artifacts'): {'id-token', 'attestations'},
     ('release.yml', 'release'): {'contents'},
-    ('dependabot-auto-merge.yml', 'auto-merge'): {'contents', 'pull-requests'},
+    ('dependabot-auto-merge.yml', 'auto-merge'): {'pull-requests'},
+    ('dependabot-auto-merge.yml', 'sweep'): {'pull-requests'},
 }
 EXTERNAL = re.compile(r'^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+(?:/[A-Za-z0-9_.-]+)*@[0-9a-f]{40}$')
 UNTRUSTED = re.compile(r'\$\{\{[^}]*(?:\bgithub\b|\binputs\b)', re.I)
@@ -70,10 +71,10 @@ def executes_env_as_script(run, names):
 # This privileged trigger must never check out or execute PR-controlled code.
 # Deliberately require the complete job: changes to this seam require policy review.
 DEPENDABOT_JOB = {
-    'name': 'Auto-merge Dependabot patch', 'runs-on': 'ubuntu-latest',
+    'name': 'Disable auto-merge on Dependabot PR', 'runs-on': 'ubuntu-latest',
     'concurrency': {'group': 'dependabot-auto-merge-${{ github.event.pull_request.number }}', 'cancel-in-progress': False},
-    'if': "github.event.pull_request.user.login == 'dependabot[bot]' && github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.base.repo.full_name == github.repository\n",
-    'permissions': {'contents': 'write', 'pull-requests': 'write'},
+    'if': "github.event_name == 'pull_request_target' && github.event.pull_request.user.login == 'dependabot[bot]' && github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.base.repo.full_name == github.repository\n",
+    'permissions': {'pull-requests': 'write'},
     'steps': [
         {'name': 'Fetch Dependabot metadata', 'id': 'meta', 'uses': 'dependabot/fetch-metadata@25dd0e34f4fe68f24cc83900b1fe3fe149efef98'},
         {'name': 'Disable Dependabot auto-merge', 'if': 'always()',
@@ -86,6 +87,23 @@ fi
          'env': {'PR_URL': '${{ github.event.pull_request.html_url }}', 'GH_TOKEN': '${{ secrets.GITHUB_TOKEN }}',
                  'META_RESULT': '${{ steps.meta.outcome }}'}},
     ],
+}
+DEPENDABOT_SWEEP = {
+    'name': 'Disable existing Dependabot auto-merge requests',
+    'if': "github.event_name != 'pull_request_target'",
+    'runs-on': 'ubuntu-latest',
+    'permissions': {'pull-requests': 'write'},
+    'steps': [{'name': 'Reconcile open Dependabot PRs',
+               'run': '''numbers=$(gh api --paginate "repos/$REPOSITORY/pulls?state=open&per_page=100" --jq '.[] | select(.user.login == "dependabot[bot]") | .number')
+for number in $numbers; do
+  [[ "$number" =~ ^[0-9]+$ ]]
+  enabled=$(gh pr view "$number" --repo "$REPOSITORY" --json autoMergeRequest --jq '.autoMergeRequest != null')
+  if [[ "$enabled" == true ]]; then
+    gh pr merge --disable-auto "$number" --repo "$REPOSITORY"
+  fi
+done
+''',
+               'env': {'REPOSITORY': '${{ github.repository }}', 'GH_TOKEN': '${{ secrets.GITHUB_TOKEN }}'}}],
 }
 
 
@@ -122,8 +140,8 @@ def check_workflow(text, filename):
         workflow_env = check_env(workflow.get('env'), errors, 'workflow')
         if events == 'pull_request_target' or isinstance(events, (dict, list)) and 'pull_request_target' in events:
             if not (filename == 'dependabot-auto-merge.yml'
-                    and events == {'pull_request_target': {'types': ['opened', 'synchronize', 'reopened']}}
-                    and jobs == {'auto-merge': DEPENDABOT_JOB}
+                    and events == {'pull_request_target': {'types': ['opened', 'synchronize', 'reopened']}, 'workflow_dispatch': None, 'schedule': [{'cron': '*/15 * * * *'}]}
+                    and jobs == {'auto-merge': DEPENDABOT_JOB, 'sweep': DEPENDABOT_SWEEP}
                     and set(workflow) <= {'name', 'on', True, 'permissions', 'defaults', 'jobs'}
                     and workflow.get('defaults') == {'run': {'shell': 'bash'}}):
                 errors.append('pull_request_target is only permitted for the fixed Dependabot job')

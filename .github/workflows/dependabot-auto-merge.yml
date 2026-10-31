@@ -1,8 +1,11 @@
-name: Dependabot Auto-merge
+name: Disable Dependabot auto-merge
 
 on:
   pull_request_target:
     types: [opened, synchronize, reopened]
+  workflow_dispatch:
+  schedule:
+    - cron: '*/15 * * * *'
 
 permissions:
   contents: read
@@ -13,17 +16,17 @@ defaults:
 
 jobs:
   auto-merge:
-    name: Auto-merge Dependabot patch
+    name: Disable auto-merge on Dependabot PR
     runs-on: ubuntu-latest
     concurrency:
       group: dependabot-auto-merge-${{ github.event.pull_request.number }}
       cancel-in-progress: false
     if: >
+      github.event_name == 'pull_request_target' &&
       github.event.pull_request.user.login == 'dependabot[bot]' &&
       github.event.pull_request.head.repo.full_name == github.repository &&
       github.event.pull_request.base.repo.full_name == github.repository
     permissions:
-      contents: write
       pull-requests: write
 
     steps:
@@ -43,3 +46,24 @@ jobs:
           PR_URL: ${{ github.event.pull_request.html_url }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           META_RESULT: ${{ steps.meta.outcome }}
+
+  sweep:
+    name: Disable existing Dependabot auto-merge requests
+    if: github.event_name != 'pull_request_target'
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+    steps:
+      - name: Reconcile open Dependabot PRs
+        run: |
+          numbers=$(gh api --paginate "repos/$REPOSITORY/pulls?state=open&per_page=100" --jq '.[] | select(.user.login == "dependabot[bot]") | .number')
+          for number in $numbers; do
+            [[ "$number" =~ ^[0-9]+$ ]]
+            enabled=$(gh pr view "$number" --repo "$REPOSITORY" --json autoMergeRequest --jq '.autoMergeRequest != null')
+            if [[ "$enabled" == true ]]; then
+              gh pr merge --disable-auto "$number" --repo "$REPOSITORY"
+            fi
+          done
+        env:
+          REPOSITORY: ${{ github.repository }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -42,6 +42,7 @@ jobs:
           export PYTHONPATH="$tmp/pyyaml-6.0.2/lib" PYTHONDONTWRITEBYTECODE=1
           /usr/bin/python3 bin/check-workflow-pins.py
           /usr/bin/python3 bin/test-workflow-pins.py
+          /usr/bin/python3 bin/test-dependabot-policy.py
 
   composer-audit:
     name: Composer audit

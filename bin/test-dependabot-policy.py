@@ -57,42 +57,61 @@ def eligible(author='dependabot[bot]', head='owner/repo', base='owner/repo',
              actor='dependabot[bot]', update='version-update:semver-patch'):
     values = {
         'github.event.pull_request.user.login': author,
+        'github.event_name': 'pull_request_target',
         'github.event.pull_request.head.repo.full_name': head,
         'github.event.pull_request.base.repo.full_name': base,
         'github.repository': 'owner/repo',
         'github.actor': actor,
         'steps.meta.outputs.update-type': update,
     }
-    return (evaluate(JOB['if'], values) and update == 'version-update:semver-patch'
-            and 'gh pr merge --auto ' in MERGE['run'])
+    return evaluate(JOB['if'], values)
 
 
 class DependabotPolicyTest(unittest.TestCase):
     def test_eligibility_matrix(self):
-        self.assertFalse(eligible())
+        self.assertTrue(eligible())
         for case in (
             {'author': 'human'},
             {'author': 'human', 'actor': 'dependabot[bot]'},
             {'head': 'fork/repo'},
             {'base': 'other/repo'},
-            {'update': 'version-update:semver-minor'},
-            {'update': 'version-update:semver-major'},
-            # The action reports the highest update type in a mixed group.
-            {'update': 'version-update:semver-major', 'actor': 'human'},
-            {'update': ''},
         ):
             with self.subTest(case=case):
                 self.assertFalse(eligible(**case))
-        self.assertFalse(eligible(actor='human'))
+        self.assertTrue(eligible(actor='human'))
+        # No update type, including a patch, can arm auto-merge under D21.
+        self.assertNotIn('gh pr merge --auto ', MERGE['run'])
 
     def test_trusted_metadata_and_permissions(self):
-        self.assertEqual(set(WORKFLOW['on']), {'pull_request_target'})
-        self.assertEqual(JOB['permissions'], {'contents': 'write', 'pull-requests': 'write'})
+        self.assertEqual(set(WORKFLOW['on']), {'pull_request_target', 'workflow_dispatch', 'schedule'})
+        self.assertEqual(JOB['permissions'], {'pull-requests': 'write'})
         self.assertEqual(META['uses'],
                          'dependabot/fetch-metadata@25dd0e34f4fe68f24cc83900b1fe3fe149efef98')
         self.assertNotIn('with', META)  # Preserve the action's verification defaults.
         self.assertNotIn('continue-on-error', META)
         self.assertEqual(len(JOB['steps']), 2)  # No PR checkout or untrusted code.
+
+    def test_sweep_existing_requests_and_failures(self):
+        sweep = WORKFLOW['jobs']['sweep']
+        self.assertEqual(sweep['permissions'], {'pull-requests': 'write'})
+        with tempfile.TemporaryDirectory() as directory:
+            gh = pathlib.Path(directory) / 'gh'
+            gh.write_text('#!/bin/bash\n'
+                          'case "$1 $2" in\n'
+                          '  "api --paginate") [[ "$FAIL" != list ]] || exit 1; printf "1\\n2\\n" ;;\n'
+                          '  "pr view") [[ "$FAIL" != view ]] || exit 1; [[ "$3" == 1 ]] && echo true || echo false ;;\n'
+                          '  "pr merge") [[ "$FAIL" != merge ]] || exit 1; printf "%s\\n" "$*" >> "$LOG" ;;\n'
+                          'esac\n')
+            gh.chmod(0o755)
+            log = pathlib.Path(directory) / 'log'
+            for failure in ('', 'list', 'view', 'merge'):
+                log.write_text('')
+                result = subprocess.run(['/bin/bash', '-e', '-c', sweep['steps'][0]['run']],
+                                        capture_output=True, text=True,
+                                        env={'PATH': directory, 'REPOSITORY': 'owner/repo',
+                                             'FAIL': failure, 'LOG': str(log)})
+                self.assertEqual(result.returncode == 0, not failure, result.stderr)
+                self.assertEqual(log.read_text(), 'pr merge --disable-auto 1 --repo owner/repo\n' if not failure else '')
 
     def test_reconcile_existing_auto_merge(self):
         # Exercise the actual shell against an API stub, including API failures.
