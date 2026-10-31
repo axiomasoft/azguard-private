@@ -8,6 +8,7 @@ use AzGuard\Contracts\Diagnostics\DoctorCheck;
 use AzGuard\Filament\FilamentDefinitions;
 use AzGuard\Panels\Reads;
 use AzGuard\Policies\PolicyBinding;
+use AzGuard\Tenancy\TenantPolicy;
 use AzGuard\Tests\Fixtures\Filament\Guards\AdminMemberRole;
 use AzGuard\Tests\Fixtures\Filament\Pages\ProbePage;
 use AzGuard\Tests\Fixtures\Filament\Resources\ArchivedOrderResource;
@@ -68,6 +69,11 @@ final class FilamentFixture
 
     /** @var list<class-string> roles of the `admin` guard panel */
     public static array $adminRoles;
+
+    /** @var list<mixed> extra plugins of the admin guard panel */
+    public static array $adminPlugins;
+
+    public static ?TenantPolicy $adminTenantPolicy;
 
     /** Ids of the users that the member roles of the fixture guard panels admit. */
     public static array $members;
@@ -138,6 +144,8 @@ final class FilamentFixture
         self::$guardPermissions = [];
         self::$guardPolicies = [];
         self::$adminRoles = [AdminMemberRole::class];
+        self::$adminPlugins = [];
+        self::$adminTenantPolicy = null;
         self::$members = [1];
         self::$memberPermissions = ['pages.*'];
         self::$editors = [];

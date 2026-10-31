@@ -5,31 +5,48 @@ declare(strict_types=1);
 namespace AzGuard\Tests\Contracts\Sources;
 
 use AzGuard\Authorization\Internal\Authorizer;
+use AzGuard\Contracts\Scopes\MapsAssignmentScope;
+use AzGuard\Contracts\Scopes\ProvidesAccessScope;
+use AzGuard\Contracts\Scopes\ProvidesAssignmentScope;
 use AzGuard\Contracts\Sources\ProvidesGrants;
 use AzGuard\Contracts\Sources\ProvidesRoleGrants;
 use AzGuard\Facades\AzGuard;
+use AzGuard\Filament\Concerns\AuthorizesResource;
 use AzGuard\Filament\FilamentDefinitions;
 use AzGuard\Filament\Sources\FilamentSource;
 use AzGuard\Kernel\Decision\AccessRequest;
 use AzGuard\Kernel\Identity\AccessScope;
+use AzGuard\Kernel\Identity\AssignmentScopeRef;
 use AzGuard\Kernel\Identity\PermissionKey;
 use AzGuard\Kernel\Identity\SubjectRef;
+use AzGuard\Kernel\Identity\TenantRef;
 use AzGuard\Panels\Internal\PanelRegistry;
 use AzGuard\Roles\Attributes\NotGrantable;
 use AzGuard\Roles\Attributes\Role;
 use AzGuard\Roles\BaseRole;
 use AzGuard\Roles\GrantedAutomatically;
+use AzGuard\Scopes\ContextAware;
+use AzGuard\Scopes\ScopesPlugin;
 use AzGuard\Sources\Gate\GateSource;
+use AzGuard\Sources\Relation\RelationSource;
+use AzGuard\Tenancy\TenantPolicy;
 use AzGuard\Tests\Fixtures\Filament\BootsFilament;
 use AzGuard\Tests\Fixtures\Filament\FilamentFixture;
 use AzGuard\Tests\Fixtures\Filament\GateWorld;
+use AzGuard\Tests\Fixtures\Filament\Models\Team;
 use AzGuard\Tests\Fixtures\Filament\Models\User;
 use AzGuard\Tests\Fixtures\Filament\Resources\ArchivedOrderResource;
 use AzGuard\Tests\Fixtures\Filament\Resources\OrderResource;
+use AzGuard\Tests\Fixtures\Sources\Relation\ProjectDefinition;
+use AzGuard\Tests\Modules\Scopes\Fixtures\Membership;
 use AzGuard\Tests\TestCase;
 use Filament\Facades\Filament;
+use Filament\Resources\Resource;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\ServiceProvider;
 
 final class ContractGateProvider extends ServiceProvider
@@ -53,6 +70,55 @@ final class ContractFilamentMember extends BaseRole implements GrantedAutomatica
     public function appliesTo(Model $subject, AccessScope $scope): bool
     {
         return $subject->getKey() === 1;
+    }
+}
+
+final class ContractFilamentProject extends Model implements MapsAssignmentScope, ProvidesAccessScope, ProvidesAssignmentScope
+{
+    use ContextAware;
+
+    protected $table = 'contract_filament_projects';
+
+    protected $guarded = [];
+
+    public $timestamps = false;
+
+    public function azguardContextType(): string
+    {
+        return 'project';
+    }
+
+    public function azguardScope(): AccessScope
+    {
+        return AccessScope::in(TenantRef::global(), AssignmentScopeRef::of('project', (string) $this->getKey()));
+    }
+
+    public function members(): BelongsToMany
+    {
+        return $this->belongsToMany(User::class, 'contract_filament_memberships', 'project_id', 'user_id')->withPivot('role');
+    }
+}
+
+final class ContractFilamentProjectResource extends Resource
+{
+    use AuthorizesResource;
+
+    protected static ?string $model = ContractFilamentProject::class;
+
+    protected static ?string $slug = 'contract-projects';
+}
+
+#[Role('contract-project-editor')]
+final class ContractFilamentProjectEditor extends BaseRole
+{
+    public function permissions(): array
+    {
+        return ['contract-projects.view'];
+    }
+
+    public function scopes(): array
+    {
+        return [new ProjectDefinition(recordClass: ContractFilamentProject::class, global: true)];
     }
 }
 
@@ -142,5 +208,63 @@ final class FilamentSourceContractTest extends TestCase
         $this->assertFalse(ArchivedOrderResource::canViewAny());
         GateWorld::serve(User::query()->findOrFail(2));
         $this->assertFalse(OrderResource::canViewAny());
+    }
+
+    public function test_relation_membership_controls_filament_record_and_visible_query(): void
+    {
+        $definition = new ProjectDefinition(recordClass: ContractFilamentProject::class, global: true);
+        FilamentFixture::$definitions = FilamentDefinitions::Resources;
+        FilamentFixture::$abilities = ['view'];
+        FilamentFixture::$resources = [ContractFilamentProjectResource::class];
+        FilamentFixture::$adminRoles = [ContractFilamentProjectEditor::class];
+        FilamentFixture::$adminPlugins = [ScopesPlugin::inherit($definition)];
+        FilamentFixture::$guardPermissions = [FilamentSource::make('admin'), RelationSource::make($definition, 'members', 'pivot.role')];
+        FilamentFixture::$pages = FilamentFixture::$widgets = [];
+        $this->bootFilament();
+        Schema::create('contract_filament_projects', static function (Blueprint $table): void {
+            $table->id();
+        });
+        Schema::create('contract_filament_memberships', static function (Blueprint $table): void {
+            $table->unsignedBigInteger('project_id');
+            $table->unsignedBigInteger('user_id');
+            $table->string('role');
+        });
+        ContractFilamentProject::query()->insert([['id' => 7], ['id' => 8]]);
+        $allowed = ContractFilamentProject::query()->findOrFail(7);
+        $denied = ContractFilamentProject::query()->findOrFail(8);
+        $allowed->members()->attach(1, ['role' => 'contract-project-editor']);
+        GateWorld::serve(User::query()->findOrFail(1));
+
+        $this->assertTrue(ContractFilamentProjectResource::canView($allowed));
+        $this->assertFalse(ContractFilamentProjectResource::canView($denied));
+        $this->assertSame([7], ContractFilamentProjectResource::getEloquentQuery()->orderBy('id')->pluck('id')->all());
+        $allowed->members()->detach(1);
+        $this->assertFalse(ContractFilamentProjectResource::canView($allowed));
+        $this->assertSame([], ContractFilamentProjectResource::getEloquentQuery()->pluck('id')->all());
+    }
+
+    public function test_filament_definitions_respect_tenant_and_membership_boundaries(): void
+    {
+        $membership = new Membership;
+        FilamentFixture::$definitions = FilamentDefinitions::Resources;
+        FilamentFixture::$abilities = ['view_any'];
+        FilamentFixture::$guardPermissions = [FilamentSource::make('admin')];
+        FilamentFixture::$adminTenantPolicy = TenantPolicy::required(Team::class)->requireMembership($membership);
+        FilamentFixture::$pages = FilamentFixture::$widgets = [];
+        $this->bootFilament();
+        $user = User::query()->findOrFail(1);
+        $tenant = TenantRef::of('team', 7);
+        $other = TenantRef::of('team', 8);
+        $request = AccessRequest::for(SubjectRef::of('user', 1), PermissionKey::of('admin', 'orders.view_any'))->inTenant($tenant);
+        $otherRequest = $request->inTenant($other);
+        $panel = app(PanelRegistry::class)->get('admin');
+        $authorizer = app(Authorizer::class);
+        $this->assertFalse($authorizer->decide($panel, $request)->allowed());
+        AzGuard::panel('admin')->inTenant($tenant)->for($user)->grantPermission('orders.view_any');
+        $this->assertTrue($authorizer->decide($panel, $request)->allowed());
+        $this->assertFalse($authorizer->decide($panel, $otherRequest)->allowed());
+        $membership->members = [];
+        $this->assertFalse($authorizer->decide($panel, $request)->allowed());
+        $this->assertFalse($authorizer->decideMany([$request])->get(0)->allowed());
     }
 }

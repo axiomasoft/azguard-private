@@ -5,6 +5,7 @@ declare(strict_types=1);
 use AzGuard\Contracts\Authorization\EvaluationContext;
 use AzGuard\Contracts\Sources\AssignmentScopeSelection;
 use AzGuard\Contracts\Sources\Source;
+use AzGuard\Exceptions\VisibilityNotSupportedException;
 use AzGuard\Facades\AzGuard;
 use AzGuard\Kernel\Decision\AccessRequest;
 use AzGuard\Kernel\Decision\DecisionReason;
@@ -169,6 +170,34 @@ it('matches scalar batch and exact visibility for a folder automatic role', func
 it('refuses exact visibility for a folder automatic role without a selection adapter', function (): void {
     (new QueryParityProbe('folder-unsupported'))->run('sourceVisibilityMatchesScalarAndBatch');
 });
+
+it('enforces tenant membership for folder automatic roles', function (string $role, bool $queryable): void {
+    $membership = new Membership;
+    [$visibility, $panel, $authorizer] = W::compile(new VisibilitySource, fn (PanelBuilder $builder) => $builder
+        ->roles([$role])
+        ->tenants(TenantPolicy::required(Organization::class)->requireMembership($membership)), tenant: true);
+    $resource = VisibilityClient::query()->findOrFail(101);
+    $request = AccessRequest::for(W::subject(), PermissionKey::of('admin', 'orders.view'))->on(null, $resource)->inTenant(W::tenant('A'));
+    expect($authorizer->decide($panel, $request)->allowed())->toBeTrue()
+        ->and($authorizer->decideMany([$request])->get(0)->allowed())->toBeTrue();
+
+    if ($queryable) {
+        expect($visibility->visibleTo($panel, VisibilityClient::query(), W::subject(), 'orders.view', W::scope())->pluck('id')->all())->toBe([101]);
+    } else {
+        expect(fn () => $visibility->visibleTo($panel, VisibilityClient::query(), W::subject(), 'orders.view', W::scope()))
+            ->toThrow(VisibilityNotSupportedException::class);
+    }
+    $membership->members = [];
+    expect($authorizer->decide($panel, $request)->allowed())->toBeFalse()
+        ->and($authorizer->decideMany([$request])->get(0)->allowed())->toBeFalse();
+
+    if ($queryable) {
+        expect($visibility->visibleTo($panel, VisibilityClient::query(), W::subject(), 'orders.view', W::scope())->pluck('id')->all())->toBe([]);
+    }
+})->with([
+    'queryable' => [ContractQueryableAutomaticRole::class, true],
+    'without selection adapter' => [ContractUnqueryableAutomaticRole::class, false],
+]);
 
 it('expires a database grant at the same boundary in scalar batch and visibility', function (): void {
     app(StorageSchema::class)->create('default');
