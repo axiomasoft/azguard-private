@@ -22,6 +22,9 @@ The release SHA will be selected after the remaining code and qualification work
 
 ### Upgrading to 2.0
 
+- Enforcing Filament panels require `consistency.reads: primary` for writes and exports. The shared export download
+  route is refused, including for legacy exports and other panels, because it cannot reconstruct row authorization;
+  applications replacing it must reauthorize the actor, original context and every exported record before download.
 - Doctor JSON consumers should accept the new `cache.integrity` finding IDs and the changed `cache.signing` severity;
   `cache.store` no longer exposes the store name in its details. Redis isolation requires external verification.
 - Permission-set TTL now defaults to 300 seconds; shared entries are capped at 3600 seconds and the nearest expiry.
@@ -70,6 +73,7 @@ The release SHA will be selected after the remaining code and qualification work
 
 ### Fixed
 
+- **filament:** Custom bulk actions reject inconsistent select-all and explicit-key state before invoking callbacks.
 - **core:** Automatic roles can opt into exact visibility with `SelectsAutomaticRoleScopes`, an additive SPI requiring a
   complete finite scope selection. Existing roles remain valid and unsupported exact selections still fail closed.
 

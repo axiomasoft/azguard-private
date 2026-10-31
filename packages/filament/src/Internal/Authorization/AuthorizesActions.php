@@ -95,6 +95,10 @@ final class AuthorizesActions
             return;
         }
 
+        // Filament clears explicit keys when switching to select-all. A custom callback may read those
+        // keys directly, so an inconsistent client state must never bypass their authorization.
+        abort_if($livewire->isTrackingDeselectedTableRecords && $livewire->selectedTableRecords !== [], 403);
+
         // Custom callbacks can consume raw keys, including keys omitted by the table's visibility or relation query.
         // Require the complete explicit selection to resolve before allowing any effect.
         $resolved = [];
