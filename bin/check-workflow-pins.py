@@ -14,10 +14,13 @@ LOCAL_WORKFLOWS = {
     './.github/workflows/' + name + '.yml' for name in (
         'tests', 'static-analysis', 'code-style', 'docs', 'tests-nightly',
         'compatibility', 'workers', 'security', 'mutation', 'split',
+        'codeql', 'zizmor', 'secret-scan',
     )
 }
+SELF_WORKFLOWS = {'$' + name[1:] for name in LOCAL_WORKFLOWS}
 WRITE_PERMISSIONS = {
     ('codeql.yml', 'analyze'): {'security-events'},
+    ('release.yml', 'codeql'): {'security-events'},
     ('docs-deploy.yml', 'deploy'): {'pages', 'id-token'},
     ('release.yml', 'artifacts'): {'id-token', 'attestations'},
     ('release.yml', 'release'): {'contents'},
@@ -33,21 +36,22 @@ EXTERNAL = re.compile(r'^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+(?:/[A-Za-z0-9_.-]+)*@[0
 REVIEWED_WORKFLOWS = {
     'bench.yml': '7c74b235f4378986e824240728c964dc86ffe667a8f665e001156181c5107f9d',
     'code-style.yml': '47fc04265aa785339ee1f6e024feb4179268f5b50e69038894803d200ce0d51d',
-    'codeql.yml': '5b1ec5345b3d8dc7d493c0ba0beb481b4f7db5c797a5279d35f2fea9cfc715c8',
+    'codeql.yml': 'a99f13a2a0fdb46414cc68ae5ca68d2703aa2cafbdd3edf83ab9228557702b0a',
     'compatibility.yml': '9265ea0c66f1083dde332e7f7de35c55aecf928f21ae92a012e90bf30f4acf71',
     'dependabot-auto-merge.yml': '4b7d7bab17b16cfa72142d8f94e6d11d4a4f89f8c34c85a0c2bbac58320044c1',
-    'docs-deploy.yml': 'c3ba61342e3d816dc09dfaefe488f9a9a1087bc89e38d6bacb9e478266ae729c',
+    'docs-deploy.yml': '15efe0198116c95ea5205fc336f8eef90139efc68e157b00d1259c1dece6d5bf',
     'docs.yml': '4ae6826bdb0d02c9df13a82b4865c85bc21811b0f296412c8f02018422ba22d6',
     'mutation.yml': '519e1a2b6e93bf13149da5337d65b3fcf7bc76e5e803579833106f893bebe435',
     'pr-check.yml': 'b72cad5c81a8fe3d9692fd65af390ace4a63c705f7219dc6f8b5f929fd0bb493',
-    'release.yml': '3bc796faac8ca0ffb837a5236ce911d7224f3b8a27649fefc9f74a0b9fb52490',
+    'release.yml': '3db06c462cca5da842df6b00e71a1037898beaa04f091561747e57bac5336239',
+    'secret-scan.yml': '723c8c713216a2dd7cfec29640c6c0a566eee060a3f624a07b4000be77ea30d7',
     'security.yml': '8c897b09e7a97184f686c135055e7b4d89f083c339890290730ebde3cafb89bd',
     'split.yml': '1271598a4c9f76f1472d6ff06fae36394bdb7a7084f52d050adb7ebbe2285127',
     'static-analysis.yml': '75cfd1b9002f8fd952cf48a51dd07ab94a3836385ba3c6b9351ed79b677d1b05',
     'tests-nightly.yml': 'f8a9a70f743fd556b8907537fa45c959d6f55b187d98d0f3d87bd9152a98021c',
     'tests.yml': 'de667c8dbf99c03001f45d15278fef5fee7c8dbecb02e9aba7cd5d0f97b2b7ee',
     'workers.yml': 'a0d14c246f8bb936af5fac18326cfc84c795304bf93f31869b5ff5a1522ac546',
-    'zizmor.yml': '0e978a5096c4632787d0952bd4ef73833d980cc08742d6a3a346c3d78e6a43c3',
+    'zizmor.yml': '990d076e22403ff6b33bcc7d00056f882912e21f4007935f7a3188bfea9d3913',
 }
 UNTRUSTED = re.compile(r'\$\{\{.*?(?:\bgithub\b|\binputs\b|\benv\b)', re.I | re.S)
 # Only these action inputs are known to consume the value as data, not script.
@@ -255,7 +259,8 @@ def check_workflow(text, filename):
                     raise ValueError(f'{job_id}: step must be a mapping')
                 ref = node.get('uses')
                 if ref is not None:
-                    if not isinstance(ref, str) or not (ref in LOCAL_WORKFLOWS or EXTERNAL.fullmatch(ref)):
+                    if not isinstance(ref, str) or not (ref in LOCAL_WORKFLOWS or
+                            node is job and ref in SELF_WORKFLOWS or EXTERNAL.fullmatch(ref)):
                         errors.append(f'{job_id}: forbidden uses: {ref}')
                     if isinstance(ref, str) and ref.lower().startswith('actions/checkout@'):
                         if not isinstance(node.get('with'), dict) or node['with'].get('persist-credentials') is not False:

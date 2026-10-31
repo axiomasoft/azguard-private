@@ -21,43 +21,43 @@ defaults:
 jobs:
   tests:
     name: Tests
-    uses: ./.github/workflows/tests.yml
+    uses: $/.github/workflows/tests.yml
     permissions:
       contents: read
 
   static:
     name: Static analysis
-    uses: ./.github/workflows/static-analysis.yml
+    uses: $/.github/workflows/static-analysis.yml
     permissions:
       contents: read
 
   style:
     name: Code style
-    uses: ./.github/workflows/code-style.yml
+    uses: $/.github/workflows/code-style.yml
     permissions:
       contents: read
 
   docs:
     name: Documentation
-    uses: ./.github/workflows/docs.yml
+    uses: $/.github/workflows/docs.yml
     permissions:
       contents: read
 
   nightly:
     name: Tests (nightly depth)
-    uses: ./.github/workflows/tests-nightly.yml
+    uses: $/.github/workflows/tests-nightly.yml
     permissions:
       contents: read
 
   compat:
     name: Compatibility
-    uses: ./.github/workflows/compatibility.yml
+    uses: $/.github/workflows/compatibility.yml
     permissions:
       contents: read
 
   workers:
     name: Persistent workers and memory
-    uses: ./.github/workflows/workers.yml
+    uses: $/.github/workflows/workers.yml
     with:
       memory: true
     permissions:
@@ -65,13 +65,33 @@ jobs:
 
   security:
     name: Security
-    uses: ./.github/workflows/security.yml
+    uses: $/.github/workflows/security.yml
+    permissions:
+      contents: read
+
+  codeql:
+    name: CodeQL
+    uses: $/.github/workflows/codeql.yml
+    permissions:
+      contents: read
+      actions: read
+      security-events: write
+
+  zizmor:
+    name: Zizmor
+    uses: $/.github/workflows/zizmor.yml
+    permissions:
+      contents: read
+
+  secret-scan:
+    name: Secret scan
+    uses: $/.github/workflows/secret-scan.yml
     permissions:
       contents: read
 
   mutation:
     name: Critical mutation
-    uses: ./.github/workflows/mutation.yml
+    uses: $/.github/workflows/mutation.yml
     with:
       package: critical
     permissions:
@@ -195,7 +215,7 @@ jobs:
 
   artifacts:
     name: Release artifacts
-    needs: [validate, validate-consumers, tests, static, style, docs, nightly, compat, security, mutation, workers]
+    needs: [validate, validate-consumers, tests, static, style, docs, nightly, compat, security, codeql, zizmor, secret-scan, mutation, workers]
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -236,8 +256,8 @@ jobs:
 
   split:
     name: Split validated packages
-    needs: [validate, validate-consumers, tests, static, style, docs, nightly, compat, security, mutation, artifacts, workers]
-    uses: ./.github/workflows/split.yml
+    needs: [validate, validate-consumers, tests, static, style, docs, nightly, compat, security, codeql, zizmor, secret-scan, mutation, artifacts, workers]
+    uses: $/.github/workflows/split.yml
     secrets:
       MONOREPO_SPLIT_TOKEN: ${{ secrets.MONOREPO_SPLIT_TOKEN }}
     permissions:
@@ -245,7 +265,7 @@ jobs:
 
   release:
     name: Create GitHub Release
-    needs: [validate, validate-consumers, tests, static, style, docs, nightly, compat, security, mutation, artifacts, split, workers]
+    needs: [validate, validate-consumers, tests, static, style, docs, nightly, compat, security, codeql, zizmor, secret-scan, mutation, artifacts, split, workers]
     runs-on: ubuntu-latest
     permissions:
       contents: write

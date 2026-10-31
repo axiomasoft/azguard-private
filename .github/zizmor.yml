@@ -1,3 +1,7 @@
 # Zizmor allowlist. Only `rules.<rule-id>.ignore: ["<file>:<line>"]` entries; each preceded by
 # `# owner: @<login>; reason: <text>; expires: YYYY-MM-DD` (expiry <= 180 days).
-rules: {}
+rules:
+  superfluous-actions:
+    ignore:
+      # owner: @academici; reason: retain the pinned release action's existing release semantics; expires: 2027-04-17
+      - release.yml:290

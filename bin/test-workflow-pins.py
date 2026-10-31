@@ -2,6 +2,7 @@
 """Negative examples for the workflow policy."""
 
 import importlib.util
+import hashlib
 import subprocess
 import sys
 import tempfile
@@ -39,6 +40,23 @@ class PolicyTests(unittest.TestCase):
 
     def test_local_workflow_allowlist(self):
         self.assertEqual([], pins.check_workflow(BASE.replace('actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803', './.github/workflows/tests.yml'), 'test.yml'))
+
+    def test_self_repository_workflows_are_allowed_only_as_jobs(self):
+        text = '''
+on: workflow_dispatch
+permissions: {contents: read}
+jobs:
+  test:
+    uses: $/.github/workflows/tests.yml
+'''
+        def check_reviewed(workflow):
+            pins.REVIEWED_WORKFLOWS['self.yml'] = hashlib.sha256(workflow.encode()).hexdigest()
+            return pins.check_workflow(workflow, 'self.yml')
+
+        self.addCleanup(pins.REVIEWED_WORKFLOWS.pop, 'self.yml', None)
+        self.assertEqual([], check_reviewed(text))
+        self.assertTrue(any('forbidden uses' in error for error in check_reviewed(text.replace('tests.yml', 'unknown.yml'))))
+        self.assertTrue(any('forbidden uses' in error for error in check_reviewed(BASE.replace('actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803', '$/.github/workflows/tests.yml'))))
 
     def test_permissions(self):
         self.check_bad(BASE.replace('permissions: {contents: read}', 'permissions: write-all'))
