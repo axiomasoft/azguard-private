@@ -1,0 +1,50 @@
+name: Worker lifecycle
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  schedule:
+    - cron: '31 2 * * *'
+  workflow_dispatch:
+  workflow_call:
+    inputs:
+      memory:
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+jobs:
+  worker:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: zip, pdo_sqlite, sqlite3
+          tools: composer:v2
+          coverage: none
+      - name: Validate outcome and memory checkers
+        run: |
+          php tests/Fixtures/Workers/test-verify.php
+          php tests/Fixtures/Workers/test-memory-check.php
+      - name: Exercise persistent workers
+        run: |
+          if [[ '${{ github.event_name }}' == 'schedule' || '${{ inputs.memory }}' == 'true' || '${{ github.event_name }}' == 'workflow_dispatch' ]]; then
+            bash bin/worker-smoke.sh memory
+          else
+            bash bin/worker-smoke.sh smoke
+          fi
+      - name: Retain series and logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: worker-lifecycle-${{ github.run_id }}
+          path: build/worker-smoke/
+          if-no-files-found: error
