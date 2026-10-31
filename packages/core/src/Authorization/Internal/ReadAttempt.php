@@ -290,7 +290,9 @@ final class ReadAttempt
 
                     continue;
                 }
-                $groups[$session->handleIdentity()."\0".$attempt->initial->reads()->value][] = [$attempt, $source, $requests[0][0]->subject(), $requests];
+                // A PDO can host only one snapshot at a time. Different logical read modes on the same
+                // handle must see the same snapshot, while retaining their own state and cache identities.
+                $groups[$session->handleIdentity()][] = [$attempt, $source, $requests[0][0]->subject(), $requests];
             }
         }
         foreach ($groups as $members) {
@@ -302,8 +304,9 @@ final class ReadAttempt
                     // One statement per source and subject type for all observed states, not one per subject.
                     [$entries, $sources] = [[], []];
                     foreach ($members as $n => [$attempt, $source, $subject]) {
-                        $entries[spl_object_id($source)][$n] = [$attempt->initial, $subject];
-                        $sources[spl_object_id($source)] = $source;
+                        $group = spl_object_id($source)."\0".$attempt->initial->reads()->value;
+                        $entries[$group][$n] = [$attempt->initial, $subject];
+                        $sources[$group] = $source;
                     }
                     $states = [];
                     foreach ($entries as $id => $byMember) {
@@ -329,7 +332,7 @@ final class ReadAttempt
 
                         if ($miss) {
                             // Subjects of one source, panel and scope list share their raw reads.
-                            $group = IdentityCodec::digest([spl_object_id($source), $attempt->initial->panel()->id(), $attempt->batchScopes ?? []]);
+                            $group = IdentityCodec::digest([spl_object_id($source), $attempt->initial->panel()->id(), $attempt->initial->reads()->value, $attempt->batchScopes ?? []]);
                             $missing[$group][$n] = $subject;
                         }
                     }
