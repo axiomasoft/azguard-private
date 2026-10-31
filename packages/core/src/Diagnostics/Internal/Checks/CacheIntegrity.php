@@ -9,6 +9,7 @@ use AzGuard\Configuration\Internal\AzGuardConfig;
 use AzGuard\Contracts\Diagnostics\DoctorCheck;
 use AzGuard\Diagnostics\DoctorContext;
 use AzGuard\Diagnostics\DoctorFinding;
+use AzGuard\Kernel\Internal\Narrow;
 use Illuminate\Contracts\Config\Repository;
 use Illuminate\Support\ConfigurationUrlParser;
 use Throwable;
@@ -61,13 +62,22 @@ final readonly class CacheIntegrity implements DoctorCheck
                     : DoctorFinding::warning('cache.signing', $message, $scope);
             }
 
-            $connection = $this->config->get('cache.stores.'.$store.'.connection', 'default');
-            $connectionConfig = (new ConfigurationUrlParser)->parseConfiguration($this->config->get('database.redis.'.$connection, []));
-            $options = array_replace(
-                $connectionConfig,
-                (array) $this->config->get('database.redis.options', []),
-                (array) ($connectionConfig['options'] ?? []),
-            );
+            $connection = Narrow::string($this->config->get('cache.stores.'.$store.'.connection') ?: 'default', 'Redis cache connection');
+            $connectionConfig = $this->config->get('database.redis.'.$connection);
+            $options = (array) $this->config->get('database.redis.options', []);
+
+            // Follow RedisManager's standalone-before-cluster resolution and the connector's option order.
+            if ($connectionConfig === null && $this->config->has('database.redis.clusters.'.$connection)) {
+                $options = array_replace(
+                    $options,
+                    (array) $this->config->get('database.redis.clusters.options', []),
+                    (array) $this->config->get('database.redis.clusters.'.$connection.'.options', []),
+                );
+            } else {
+                $connectionConfig = (new ConfigurationUrlParser)->parseConfiguration(is_string($connectionConfig)
+                    ? $connectionConfig : Narrow::map($connectionConfig ?? [], 'Redis connection configuration'));
+                $options = array_replace($connectionConfig, $options, (array) ($connectionConfig['options'] ?? []));
+            }
 
             if ($this->config->get('database.redis.client', 'phpredis') === 'phpredis'
                 && (($options['serializer'] ?? 0) != 0 || ($options['compression'] ?? 0) != 0)) {

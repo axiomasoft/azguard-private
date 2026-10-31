@@ -82,8 +82,10 @@ it('reports configured unsafe Redis client transforms without opening a connecti
         'azguard.cache.namespace' => 'deployment', 'azguard.cache.signing_key' => str_repeat('k', 32)]);
     config($options);
     securityPanel('shared');
-    expect(DoctorWorld::summary(DoctorWorld::only(DoctorWorld::run(production: true), 'cache.transport')))
-        ->toBe($unsafe ? ['panel:test cache.transport warning'] : []);
+    $findings = DoctorWorld::run(production: true);
+    expect(DoctorWorld::summary(DoctorWorld::only($findings, 'cache.transport')))
+        ->toBe($unsafe ? ['panel:test cache.transport warning'] : [])
+        ->and(DoctorWorld::only($findings, 'cache.integrity.failed'))->toBe([]);
 })->with([
     [['database.redis.options.serializer' => 1], true],
     [['database.redis.offline.compression' => 1], true],
@@ -95,5 +97,15 @@ it('reports configured unsafe Redis client transforms without opening a connecti
     [['database.redis.offline.serializer' => 1, 'database.redis.offline.url' => 'redis://invalid.test?serializer=0'], false],
     [['database.redis.options.serializer' => 1, 'database.redis.offline.url' => 'redis://invalid.test?serializer=0'], true],
     [['database.redis.offline.options.serializer' => 1, 'database.redis.offline.url' => 'redis://invalid.test?options[serializer]=0'], false],
+    [['cache.stores.shared.connection' => null, 'database.redis.default.serializer' => 1], true],
+    [['cache.stores.shared.connection' => '', 'database.redis.default.compression' => 1], true],
+    [['database.redis.offline' => null, 'database.redis.clusters.offline' => [['host' => 'invalid.test']], 'database.redis.clusters.options.serializer' => 1], true],
+    [['database.redis.offline' => null, 'database.redis.clusters.offline' => [['host' => 'invalid.test']], 'database.redis.clusters.options.compression' => 1], true],
+    [['database.redis.offline' => null, 'database.redis.clusters.offline' => [['host' => 'invalid.test']], 'database.redis.options.serializer' => 1, 'database.redis.clusters.options.serializer' => 0], false],
+    [['database.redis.offline' => null, 'database.redis.clusters.offline' => [['host' => 'invalid.test'], 'options' => ['serializer' => 1]]], true],
+    [['database.redis.offline' => null, 'database.redis.clusters.offline' => [['host' => 'invalid.test'], 'options' => ['serializer' => 0]], 'database.redis.clusters.options.serializer' => 1], false],
+    [['database.redis.offline' => null, 'database.redis.clusters.offline' => [['host' => 'invalid.test', 'options' => ['serializer' => 1]]]], false],
+    // Named standalone connections take precedence over clusters with the same name.
+    [['database.redis.clusters.offline' => [['host' => 'invalid.test']], 'database.redis.clusters.options.serializer' => 1], false],
     [[], false],
 ]);

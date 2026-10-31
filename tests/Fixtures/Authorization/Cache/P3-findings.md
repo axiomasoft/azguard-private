@@ -1,8 +1,10 @@
 # P3 finding disposition
 
 Original execution baseline: `91095023977a70dbdefda7f408cf166bf5e13e34`; its fixes were committed as
-`c16fdefa468f4b7c1ad8112327d89061fefdc306`. Re-execution baseline (2026-10-31):
+`c16fdefa468f4b7c1ad8112327d89061fefdc306`. First re-execution baseline (2026-10-31):
 `d944d935c53c2764eb5ff29042696fedfe1eee19`, including the subsequent P1/P2/P4 changes, which are preserved.
+Current re-execution baseline: `0952738dbe12f98e2ba6f1f73875bb040595462f`; this includes the first
+P3 re-execution (`8c25b2a7418187405ad3c5f8b6d2796efd57fc2f`) and later P1/P2/P4 corrections, preserved here.
 Sources are the final result events in
 `plans/2026.10.30-№1-AZGUARD-AUDIT-HARDENING/artifacts/review/grok-phases/P3*.jsonl` and their four preliminary
 triage documents. IDs below number findings in each raw result, in their original order. The original `P3.jsonl`
@@ -23,7 +25,7 @@ The existing Redis instance and other database containers were preserved.
 | S3 | **Rejected for installed dependency.** `vendor/laravel/framework/src/Illuminate/Cache/ArrayStore.php::all($unserialize = true)` supports false. Serialized-array and fresh-instance shared hits pass in `IsolationTest` and `EnvelopeIntegrityTest`. This is not a certification of every supported dependency version. |
 | S4 | **No bypass demonstrated.** `ReadAttempt` qualifies state before forming the contribution key; storage identity, incarnation, epoch, revision and generation participate in that key. State eviction does not promise deletion of unrelated sets. `BoundedMemoTest` now proves state eviction and reread with unchanged revision before separately changing revision and observing revoke. `TransactionGuardTest` and Redis rollback tests now deny in the same scope. |
 | S5 | **Already fixed by P2.** `PermissionSetCache::get()` assigns factory return values and reconstructs identity values. Existing detached-reference regressions for Grant and RoleContribution pass; no duplicate runtime change. |
-| S6 | **Confirmed observability gap, fixed; remaining URL gap fixed in re-execution.** Doctor reports configured PhpRedis serializer/compression as `cache.transport`, without connecting. It now uses Laravel's ConfigurationUrlParser before merging connection, global and nested options in connector order. `CacheSecurityTest` covers array/string URLs, query options, effective overrides to NONE, safe defaults and Predis; four new cases failed before the fix. Runtime rejection remains based on the actual connection. Custom runtime client mutations cannot be certified by a configuration-only doctor. |
+| S6 | **Confirmed observability gap, fixed; URL and connection-resolution gaps fixed in re-executions.** Doctor reports configured PhpRedis serializer/compression as `cache.transport`, without connecting. It uses Laravel's ConfigurationUrlParser and connector option order. The current round also follows RedisManager's default fallback and standalone-before-cluster resolution, including global, cluster and named-cluster option precedence. `CacheSecurityTest` covers URLs, overrides to NONE, safe defaults, Predis, null/empty connection names and clusters. Four new cases failed before each round's fix. Runtime rejection remains based on the actual connection. Custom runtime client mutations cannot be certified by a configuration-only doctor. |
 | S7 | **Rejected as a shared-TTL violation.** The documented 3600-second cap applies to shared entries; local memo is request/job scoped (`AzGuardServiceProvider`). It honors configured TTL and contribution expiry. Worker tests prove lifecycle reset, including after a failing job. No new global local-memo cap was imposed. |
 | S8 | **Partly confirmed fixture robustness gaps, fixed.** Readiness curl now has timeouts and shutdown has a bounded grace period; worker count is explicit in the invocation as well as `rr.yaml`. The claim that the YAML lacked a one-worker pool is false. A free-port discovery/bind race remains possible; functional sample validation prevents treating an unrelated response as a valid series. Queue RSS is now checked independently in memory/soak modes. PR smoke versus scheduled/manual memory is the existing CI policy and was preserved. |
 | S9 | **Intended bounded encoding.** MAX_BYTES bounds the final JSON as well as payload, so base64 overhead reduces usable payload capacity. Oversized authoritative data stays local and is not published; the existing regression passes. No authorization defect established. |
@@ -99,7 +101,70 @@ The existing Redis instance and other database containers were preserved.
 | W12 | **Confirmed CI robustness gap, fixed.** Missing early-failure artifacts now warn, preserving the original failing step instead of adding a second failure. |
 | W13 | **Rejected.** `RedisStoreTest` invokes PoisonWorker through Symfony Process; the claimed missing caller was outside the reviewed fragment. All five modes were executed. |
 
-## Re-execution evidence (2026-10-31)
+## Current HEAD re-execution evidence (2026-10-31)
+
+All 60 dispositions above were reconciled again with the original final-result events and independent triage.
+No additional finding is inferred from the unavailable P3 review: the mAInd gate and unread static-review
+fragments remain coverage limits. This is not a complete independent audit. P5 and other phases were not started.
+
+The remaining reproduced defect belongs to S6: the first re-execution handled Redis URLs but not named clusters
+or null/empty cache connection names. Laravel's installed `RedisManager::connection/resolve/resolveCluster`
+selects `default` for a null/empty name and prefers a standalone connection over a same-name cluster.
+`PhpRedisConnector::connectToCluster` merges global options, cluster-wide options, then named-cluster options;
+options on a cluster seed do not configure the shared client. Doctor now follows those rules without connecting.
+The runtime cache authentication, atomic cleanup, P2 rehydration, worker CLI and workflow policy are preserved.
+
+Actual results in ignored `build/p3-head-recheck/` (separate from both historical rounds below):
+
+- `transport-before.log`: `php -d memory_limit=1G vendor/bin/pest tests/Feature/Diagnostics/CacheSecurityTest.php
+  --filter='reports configured unsafe' --colors=never`, **exit 1**, 17 cases: 13 passed, 4 failed. The failing cases
+  are null/default serialization, empty/default compression, cluster serialization and cluster compression.
+  This was run after adding the negative examples and before changing the diagnostic.
+- `targeted-tests.log`: the eleven explicit PHP files in the evidence matrix below with
+  `php -d memory_limit=1G vendor/bin/pest … --colors=never`, **exit 0, 136 passed, 100676 assertions**, no skips.
+  The final transport dataset has 20 cases, including named-cluster overrides, safe NONE overrides and a
+  same-name standalone connection. Every case also requires absence of `cache.integrity.failed`, so an exception
+  cannot masquerade as a safe configuration. Redis cases used the existing server at port 26379 and owned prefixes.
+- `memory-check.log`, `worker-outcome.log`, `worker-cli.log`: respectively
+  `php tests/Fixtures/Workers/test-memory-check.php`, `php tests/Fixtures/Workers/test-verify.php`,
+  `bash tests/Fixtures/Workers/test-cli.sh`, each **exit 0**. These include the early plateau/peak negatives.
+- `style.log`: targeted Pint `--test` on CacheIntegrity and CacheSecurityTest, **exit 0**.
+  `shell-syntax.log`: `bash -n bin/worker-smoke.sh tests/Fixtures/Workers/test-cli.sh`, **exit 0**.
+- `static-analysis.log`: single-file PHPStan first reported four unnormalized configuration types, **exit 1**.
+  The diagnostic now uses the existing shared `Narrow::string/map` primitives before parsing connection config.
+  `static-analysis-final.log`: the same single-file command
+  `php vendor/bin/phpstan analyse packages/core/src/Diagnostics/Internal/Checks/CacheIntegrity.php
+  --memory-limit=1G --no-progress --error-format=raw`, **exit 0, zero errors**. PHP printed an environment warning
+  because dynamic loading of PHPStan's optional turbo extension is unavailable; the analyzer continued and completed.
+- `diagnostics-final.log`: after that final type normalization, the single `CacheSecurityTest.php` file passed
+  again, **exit 0, 24 tests, 60 assertions**. The 136-test run preceded this diagnostic-only type correction;
+  the other ten files were not repeated. `style-final.log` records the final targeted Pint pass.
+- `worker-self-test.log`: `bash bin/worker-smoke.sh self-test --report=build/p3-head-recheck/worker-report.json`,
+  **exit 0**. A fresh archive consumer ran 10 HTTP and 10 queue lifecycles with separate persistent process IDs
+  4086360 and 4086544. `worker-report.json` links to the retained `build/worker-smoke/self-test.VKPeJTJ9/` series
+  and logs. This ran before the final diagnostic-only type normalization; worker code was not changed.
+  No measured-memory verdict is inferred from this short self-test.
+
+| Finding IDs reconciled | Current repository evidence (methods and assertions retained in these files) |
+| --- | --- |
+| S1, G10-G11, C6-C8 | `PermissionSetCache::readEnvelope/forgetEnvelope/supportsStore`; `tests/Feature/Authorization/Cache/{RedisStore,RedisFailure,EnvelopeIntegrity}Test.php`: atomic replacement, independent command faults, actual GET timeout and no-wakeup assertions. |
+| S2 | `PermissionSetCache::key`; `tests/Feature/Authorization/Cache/{CacheKey,Isolation}Test.php`: distinct physical keys and retained independent entries. |
+| S3, S5, S9, G12, C3-C5, C15 | `PermissionSetCache::get/unwrapEnvelope/decode`; `tests/Feature/Authorization/Cache/{EnvelopeIntegrity,Isolation,SignedEnvelope}Test.php`: fresh-instance hits, detached factory fields, previous-key MAC tamper, unsupported file gadget, invalid signing material, allowed object shape and oversized local-only authority. |
+| S4, G1, G3-G5, G9, C1-C2, C9-C10, C13, C17 | `PermissionSetCache::state/rememberState/forgetState/rememberSet`; `tests/Feature/Authorization/Cache/BoundedMemoTest.php`: independent LRU limits, unchanged-revision reread, Volatile nonretention, successful and failing queue jobs. |
+| S7, G2, C16 | `packages/core/src/AzGuardServiceProvider.php:101`; `ReadAttempt::databaseItems/contributions/confirm/keyAt`; `tests/Feature/Authorization/Cache/{TransactionGuard,RedisStore}Test.php`: same-scope rollback denial and committed Redis reuse. |
+| G8, C11-C12, C18-C19, W3 | `SignedEnvelope::decode`; `tests/Feature/Authorization/Cache/{Expiry,SignedEnvelope,EnvelopeIntegrity,RedisStore}Test.php`: authenticated semantic negatives, boundary hits/misses, previous-key deadline and actual PTTL. |
+| S6, G6, D1-D7 | `packages/core/src/Diagnostics/Internal/Checks/CacheIntegrity.php`; `tests/Feature/Diagnostics/CacheSecurityTest.php`; `tests/Regression/Formats/DoctorSnapshotTest.php`: safe/unsafe transport, signing severity, exact cache findings, nonempty snapshots and restored fixture state. |
+| G7, C14, W7, W13 | `tests/Feature/Authorization/Cache/RedisStoreTest.php`; `tests/Fixtures/Authorization/Cache/PoisonWorker.php`: five real attacker processes, exact poison bytes, unchanged bait and authoritative denial. |
+| S8, W2, W5-W6, W8-W11 | `bin/worker-smoke.sh`; `tests/Fixtures/Workers/{WorkerProvider,WorkerProbe,drive,verify,check-memory,test-memory-check,test-verify}.php`; current self-check logs, archive-consumer evidence noted separately below. |
+| W1, W4, W12 | `.github/workflows/workers.yml`: contents/read permission, PR smoke versus scheduled/manual memory, pinned upload-artifact v7 and warn-on-missing-artifact policy. Hosted upload is unexecuted locally; no actions/write requirement is asserted. |
+
+The full/default memory and soak workloads, full supported-version matrix, live hosted artifact transport,
+external Redis TLS/ACLs and arbitrary runtime client mutations remain unverified. The earlier 5,000-measurement
+memory runs below are historical evidence, not a memory run on this HEAD. The short archive self-test above is
+the current worker execution evidence. Acceptance V1 is withheld and was not run;
+no full acceptance suite was run. No plan source/state/view was edited and no commit was created.
+
+## First re-execution evidence (2026-10-31, historical)
 
 All 60 findings are accounted for above: S1-S9, G1-G12, C1-C19, D1-D7 and W1-W13.
 `P3.jsonl` has no findings because the review did not run; it is not a clean security verdict.
