@@ -11,6 +11,7 @@ use AzGuard\Contracts\Authorization\EvaluationContext;
 use AzGuard\Contracts\Authorization\FiltersAccessQueries;
 use AzGuard\Contracts\Authorization\GrantCondition;
 use AzGuard\Contracts\Sources\ProvidesRoles;
+use AzGuard\Exceptions\InvalidSourceContributionException;
 use AzGuard\Exceptions\VisibilityNotSupportedException;
 use AzGuard\Kernel\Decision\AccessPredicate as P;
 use AzGuard\Kernel\Decision\AccessRequest;
@@ -35,6 +36,7 @@ use AzGuard\Roles\BaseRole;
 use AzGuard\Roles\GrantedAutomatically;
 use AzGuard\Roles\SelectsAutomaticRoleScopes;
 use AzGuard\Scopes\Internal\ScopeEvaluator;
+use AzGuard\Sources\Folder\FolderSource;
 use AzGuard\Sources\Internal\EvaluatesAutomaticRoles;
 use AzGuard\Tenancy\TenantPolicy;
 use AzGuard\Tests\Fixtures\Panels\AdminPanel;
@@ -122,6 +124,10 @@ class MappedParityRole extends BaseRole implements GrantedAutomatically, Selects
             return $scope->context->isGlobal();
         }
 
+        if (self::$behavior === 'mixed-context' && $scope->context->isGlobal()) {
+            return true;
+        }
+
         return $subject->getKey() === 1 && ! $scope->context->isGlobal() && in_array($scope->context->id(), ['1', '3'], true)
             && (self::$behavior === 'global-tenant' ? $scope->tenant->isGlobal() : ! W::$tenanted || $scope->tenant->equals(W::tenant('A')));
     }
@@ -166,6 +172,10 @@ class MappedParityRole extends BaseRole implements GrantedAutomatically, Selects
 
         if (self::$behavior === 'global-context') {
             return [AccessScope::in($context->scope()->tenant)];
+        }
+
+        if (self::$behavior === 'mixed-context') {
+            return [AccessScope::in($context->scope()->tenant), W::scope(1), W::scope(3)];
         }
         $tenant = self::$behavior === 'global-tenant' ? TenantRef::global() : $context->scope()->tenant;
 
@@ -309,19 +319,50 @@ it('honours tenant boundaries and the global role allowlist', function (bool $al
     expect($ids)->toBe($allowed ? [1, 3] : [])->and($visibility->visibleTo($panel, VisibilityProject::query(), W::subject(), 'orders.view', W::scope())->orderBy('id')->pluck('id')->all())->toBe($ids);
 })->with([true, false]);
 
-it('fails closed for invalid, unavailable, throwing or excessive automatic selections', function (string $behavior): void {
+it('preserves each witness scope when an automatic selection mixes global and concrete contexts', function (string $mode, array $expected): void {
+    MappedParityRole::$behavior = 'mixed-context';
+    [$visibility, $panel, $authorizer] = W::compile(configure: fn (PanelBuilder $p) => $p->roles([MappedParityRole::class]), mode: $mode);
+    $ids = [];
+    foreach (VisibilityProject::query()->orderBy('id')->get() as $record) {
+        $decision = $authorizer->decide($panel, AccessRequest::for(W::subject(), PermissionKey::of('admin', 'orders.view'))->on(null, $record));
+        expect($decision->failure())->toBeNull();
+
+        if ($decision->allowed()) {
+            $ids[] = $record->id;
+        }
+    }
+    expect($ids)->toBe($expected)
+        ->and($visibility->visibleTo($panel, VisibilityProject::query(), W::subject(), 'orders.view')->orderBy('id')->pluck('id')->all())->toBe($expected);
+})->with([
+    ['inherit', [1, 2, 3, 4]],
+    ['isolated', [1, 3]],
+    ['required', [1, 2, 3, 4]],
+]);
+
+it('fails closed for invalid, unavailable, throwing or excessive automatic selections', function (string $behavior, string $reason, string $component): void {
     MappedParityRole::$behavior = $behavior;
     [$visibility, $panel] = W::compile(configure: fn (PanelBuilder $p) => $p->roles([MappedParityRole::class]), tenant: $behavior === 'tenant');
-    $query = VisibilityProject::query();
-    $sql = $query->toSql();
+    $query = VisibilityProject::query()->where('id', '>', 0)->where('city', 'Paris');
+    $before = [$query->toSql(), $query->getBindings()];
 
     try {
         $visibility->visibleTo($panel, $query, W::subject(), 'orders.view', $behavior === 'tenant' ? W::scope() : null);
         $this->fail('Unsafe automatic selection must fail.');
     } catch (VisibilityNotSupportedException $e) {
-        expect($e->getMessage())->not->toContain('private adapter secret')->and($e->getPrevious())->toBeNull()->and($query->toSql())->toBe($sql);
+        expect($e->reason)->toBe($reason)->and($e->component)->toBe($component)
+            ->and($e->getMessage())->toBe((new VisibilityNotSupportedException($reason, $component))->getMessage())
+            ->and($e->getPrevious())->toBeNull()->and([$query->toSql(), $query->getBindings()])->toBe($before);
     }
-})->with(['null', 'throws', 'partial', 'bad-list', 'wrong-type', 'forged', 'tenant', 'overflow']);
+})->with([
+    ['null', 'unsupported_selection', FolderSource::class],
+    ['throws', 'source_error', RuntimeException::class],
+    ['partial', 'source_error', RuntimeException::class],
+    ['bad-list', 'source_error', InvalidSourceContributionException::class],
+    ['wrong-type', 'source_error', InvalidSourceContributionException::class],
+    ['forged', 'source_error', InvalidSourceContributionException::class],
+    ['tenant', 'source_error', InvalidSourceContributionException::class],
+    ['overflow', 'selection_budget', FolderSource::class],
+]);
 
 it('retains independent every-context grants when automatic witnesses are present', function (): void {
     MappedParityRole::$behavior = 'global-context';

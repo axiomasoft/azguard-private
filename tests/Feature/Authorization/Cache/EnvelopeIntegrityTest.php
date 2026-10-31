@@ -130,6 +130,13 @@ it('rehydrates signed contributions into detached factory values', function (str
         ->and($cache->get('detached', $panel, Volatility::Stable, true, $now)[0]->fields()['marker'])->toBe('original');
 })->with([Grant::class, RoleContribution::class]);
 
+it('round trips a signed expiry with a non-UTC timezone and microseconds', function (): void {
+    [, $panel] = AuthorizationWorld::compile(new CacheSource, fn (PanelBuilder $panel) => $panel->cache('array', 60));
+    $now = Carbon::now()->setMicrosecond(123456)->toDateTimeImmutable()->setTimezone(new DateTimeZone('Asia/Kolkata'));
+    (new PermissionSetCache(app('cache')))->put('timezone', $panel, Volatility::Stable, true, [AuthorizationWorld::grant()], $now);
+    expect((new PermissionSetCache(app('cache')))->get('timezone', $panel, Volatility::Stable, true, $now))->toHaveCount(1);
+});
+
 it('reloads authoritative denial when an attacker writes an unsigned grant', function (): void {
     $source = new FencedCacheSource;
     $source->reuse = Volatility::Stable;

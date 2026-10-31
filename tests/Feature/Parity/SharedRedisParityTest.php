@@ -6,6 +6,8 @@ use AzGuard\Tests\Fixtures\Visibility\AuditAutomaticRole;
 use AzGuard\Tests\Fixtures\Visibility\ParityGenerator;
 use AzGuard\Tests\Fixtures\Visibility\RedisParity;
 use AzGuard\Tests\Fixtures\Visibility\VisibilityWorld as W;
+use Illuminate\Database\Events\QueryExecuted;
+use PHPUnit\Framework\AssertionFailedError;
 
 require_once __DIR__.'/../../Fixtures/Visibility/VisibilityWorld.php';
 require_once __DIR__.'/../../Fixtures/Visibility/ParityGenerator.php';
@@ -28,6 +30,24 @@ it('checks generated facts independently in cold memo and shared Redis lanes', f
         ParityGenerator::cachedOracle($store);
         expect($client->keys('*'))->not->toBeEmpty();
     });
+})->group('redis', 'stand', 'server-skip');
+
+it('names the Redis reproduction file when an oracle fails with a temporary store name', function (): void {
+    $seed = getenv('AZGUARD_PROPERTY_SEED');
+    putenv('AZGUARD_PROPERTY_SEED=1');
+    app('db')->connection()->listen(static function (QueryExecuted $query): void {
+        if (str_starts_with(strtolower(ltrim($query->sql)), 'select')
+            && preg_match('/azg_(permission|role)_grants["`]/', $query->sql) === 1) {
+            throw new RuntimeException('Intentional oracle source failure.');
+        }
+    });
+
+    try {
+        expect(fn () => RedisParity::run(static fn (string $store) => ParityGenerator::cachedOracle($store)))
+            ->toThrow(AssertionFailedError::class, 'reproduce: AZGUARD_PROPERTY_SEED=1 vendor/bin/pest tests/Feature/Parity/SharedRedisParityTest.php');
+    } finally {
+        putenv($seed === false ? 'AZGUARD_PROPERTY_SEED' : 'AZGUARD_PROPERTY_SEED='.$seed);
+    }
 })->group('redis', 'stand', 'server-skip');
 
 it('restores Redis and cache state and cleans only its namespace after an oracle returns or fails', function (bool $fails): void {

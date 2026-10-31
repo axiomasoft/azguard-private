@@ -130,7 +130,8 @@ final class ParityGenerator
         $this->rows = $rows;
         $contributions = [];
         for ($i = 0; $i < 12; $i++) {
-            $contributions[] = ['role' => (bool) $random->getInt(0, 1), 'scope' => $i < 4 ? null : $random->getInt(1, 200),
+            // Include scoped-only worlds in the default pair, so global witnesses cannot mask lost scopes.
+            $contributions[] = ['role' => (bool) $random->getInt(0, 1), 'scope' => $i < 4 && $seed % 4 !== 2 ? null : $random->getInt(1, 200),
                 'city' => [null, 'Paris', 'Rome'][$random->getInt(0, 2)], 'expired' => (bool) $random->getInt(0, 1),
                 'wildcard' => (bool) $random->getInt(0, 1)];
         }
@@ -188,6 +189,7 @@ final class ParityGenerator
     public static function cachedOracle(string $store): void
     {
         self::configureSignedCache();
+        $testFile = config('cache.stores.'.$store.'.driver') === 'redis' ? 'SharedRedisParityTest.php' : 'AuditParityTest.php';
         app(StorageSchema::class)->create('default');
         $cacheEvents = (object) ['writes' => 0, 'grantReads' => 0, 'sharedChecks' => 0];
         $cacheExpected = false;
@@ -269,7 +271,7 @@ final class ParityGenerator
                             app()->forgetScopedInstances();
                         }
                         $readsBefore = $cacheEvents->grantReads;
-                        $message = "seed=$seed entry=$entry lane=$lane; reproduce: AZGUARD_PROPERTY_SEED=$seed vendor/bin/pest tests/Feature/Parity/".($store === 'parity' ? 'SharedRedisParityTest.php' : 'AuditParityTest.php');
+                        $message = "seed=$seed entry=$entry lane=$lane; reproduce: AZGUARD_PROPERTY_SEED=$seed vendor/bin/pest tests/Feature/Parity/$testFile";
                         $actual = [];
 
                         if ($entry === 'visibility') {
@@ -311,7 +313,7 @@ final class ParityGenerator
                     }
                 }
             } catch (Throwable $error) {
-                fwrite(STDERR, "Parity seed=$seed store=$store; reproduce: AZGUARD_PROPERTY_SEED=$seed vendor/bin/pest tests/Feature/Parity/".($store === 'parity' ? 'SharedRedisParityTest.php' : 'AuditParityTest.php')."\n");
+                fwrite(STDERR, "Parity seed=$seed store=$store; reproduce: AZGUARD_PROPERTY_SEED=$seed vendor/bin/pest tests/Feature/Parity/$testFile\n");
 
                 throw $error;
             }

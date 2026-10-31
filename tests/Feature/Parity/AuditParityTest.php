@@ -181,6 +181,13 @@ it('checks generated facts independently in cold memo and shared array cache lan
     ParityGenerator::cachedOracle('array');
 });
 
+it('includes a scoped-only world with allowed and denied rows in the default seed pair', function (): void {
+    $facts = new ParityGenerator(2);
+    expect(array_filter($facts->contributions, static fn (array $fact): bool => $fact['scope'] === null))->toBe([]);
+    $allowed = array_filter($facts->rows, $facts->allows(...));
+    expect($allowed)->not->toBeEmpty()->and(count($allowed))->toBeLessThan(count($facts->rows));
+});
+
 it('validates and selects inclusive reproducible seed ranges', function (): void {
     $original = [];
     foreach (['AZGUARD_PROPERTY_SEED', 'AZGUARD_PARITY_SEEDS', 'AZGUARD_FULL_SEEDS'] as $name) {
