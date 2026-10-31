@@ -53,6 +53,11 @@ class PolicyTests(unittest.TestCase):
         self.check_bad(BASE.replace('echo safe', "echo ${{ github['event'].pull_request.title }}"))
         self.check_bad(BASE.replace('echo safe', "echo ${{ inputs['value'] }}"))
         self.check_bad(BASE.replace('pull_request', 'pull_request_target'))
+        for expression in ("format('{0}', github.event.pull_request.title)",
+                           "fromJSON('{\"a\":1}') && github.event.pull_request.title",
+                           'toJSON(env)', 'env.TITLE'):
+            with self.subTest(expression=expression):
+                self.check_bad(BASE.replace('echo safe', 'echo ${{ ' + expression + ' }}'))
 
     def test_untrusted_shell_and_action_script(self):
         expression = '${{ github.event.pull_request.title }}'
@@ -69,9 +74,30 @@ class PolicyTests(unittest.TestCase):
         self.check_bad(template.replace('echo VALUE', 'eval "$TITLE"'))
         self.check_bad(template.replace('echo VALUE', 'bash -c "$TITLE"'))
         self.check_bad(template.replace('echo VALUE', '. "$TITLE"'))
+        for run in ('python3 -c "$TITLE"', '"$TITLE"', 'env "$TITLE"',
+                    'bash "$TITLE"', 'printf "%s" "$TITLE" | bash',
+                    'echo "$TITLE"; python3 -c "$TITLE"'):
+            with self.subTest(run=run):
+                self.check_bad(template.replace('echo VALUE', run))
         self.assertEqual([], pins.check_workflow(template.replace('echo VALUE', 'git diff "$TITLE" -- . ":!plans"'), 'test.yml'))
         self.check_bad(template.replace('TITLE:', 'BASH_ENV:').replace('VALUE', 'safe'))
         self.check_bad(BASE.replace('    steps:', f'    env: {{TITLE: "{expression}"}}\n    steps:').replace('echo safe', 'echo $TITLE'))
+
+    def test_env_context_cannot_be_injected_into_action_script(self):
+        for expression in ('env.TITLE', 'toJSON(env)'):
+            text = BASE.replace('      - run: echo safe',
+                '      - uses: actions/github-script@' + 'a' * 40 +
+                '\n        with:\n          script: ${{ ' + expression + ' }}')
+            self.check_bad(text)
+
+    def test_reviewed_scripts_stay_accepted_and_changes_require_review(self):
+        for filename in ('compatibility.yml', 'release.yml', 'bench.yml', 'workers.yml',
+                         'dependabot-auto-merge.yml', 'mutation.yml'):
+            with self.subTest(filename=filename):
+                text = (pins.ROOT / '.github/workflows' / filename).read_text()
+                self.assertEqual([], pins.check_workflow(text, filename))
+        text = (pins.ROOT / '.github/workflows/compatibility.yml').read_text()
+        self.assertTrue(pins.check_workflow(text.replace('HEAD "$LABELS"', 'HEAD "$LABELS"; bash "$LABELS"'), 'compatibility.yml'))
 
     def test_release_prerelease_input(self):
         text = BASE.replace('      - run: echo safe', '      - uses: softprops/action-gh-release@' + 'a' * 40 + '\n        with:\n          prerelease: ${{ contains(github.ref_name, \'-\') }}')
