@@ -10,6 +10,7 @@ use AzGuard\Kernel\Decision\DecisionReason;
 use AzGuard\Panels\PanelBuilder;
 use AzGuard\Sources\Database\DatabaseSource;
 use AzGuard\Sources\Relation\RelationSource;
+use AzGuard\Storage\Internal\StorageMutation;
 use AzGuard\Storage\Schema\StorageSchema;
 use AzGuard\Tests\Fixtures\Authorization\AuthorizationWorld;
 use AzGuard\Tests\Fixtures\Authorization\Cache\CacheSource;
@@ -22,6 +23,42 @@ use AzGuard\Tests\Fixtures\Sources\Relation\RelationWorld;
 beforeEach(function (): void {
     app(StorageSchema::class)->create('default');
     DatabaseWorld::insert('permission', [DatabaseWorld::row('permission')]);
+});
+
+it('never publishes tentative host-transaction authority and preserves rollback and own invalidation', function (): void {
+    $storage = DatabaseWorld::storage();
+    $storage->mutate('admin', function (StorageMutation $m): void {
+        $m->table('permission_grants')->delete();
+        $m->touch('admin');
+    });
+    [$engine, $panel] = CacheWorld::database(DatabaseSource::make());
+    $store = app('cache')->store('array');
+    expect($engine->decide($panel, DatabaseWorld::request())->allowed())->toBeFalse();
+    $before = (new ReflectionProperty($store->getStore(), 'storage'))->getValue($store->getStore());
+    expect(function () use ($engine, $panel, $storage, $store, $before): void {
+        $engine->withinAuthorityTransaction($panel, function () use ($engine, $panel, $storage, $store, $before): void {
+            $storage->mutate('admin', function (StorageMutation $m): void {
+                $m->table('permission_grants')->insert(DatabaseWorld::row('permission'));
+                $m->touch('admin');
+            });
+            expect($engine->decide($panel, DatabaseWorld::request())->allowed())->toBeTrue();
+            expect((new ReflectionProperty($store->getStore(), 'storage'))->getValue($store->getStore()))->toEqual($before);
+
+            throw new RuntimeException('rollback tentative grant');
+        });
+    })->toThrow(RuntimeException::class, 'rollback tentative grant');
+    app()->forgetScopedInstances();
+    expect($engine->decide($panel, DatabaseWorld::request())->allowed())->toBeFalse();
+    $storage->mutate('admin', function (StorageMutation $m): void {
+        $m->table('permission_grants')->insert(DatabaseWorld::row('permission'));
+        $m->touch('admin');
+    });
+    expect($engine->decide($panel, DatabaseWorld::request())->allowed())->toBeTrue();
+    $storage->mutate('admin', function (StorageMutation $m): void {
+        $m->table('permission_grants')->delete();
+        $m->touch('admin');
+    });
+    expect($engine->decide($panel, DatabaseWorld::request())->allowed())->toBeFalse();
 });
 
 it('rejects a consumed DB authority in an unknown transaction even with a warm cache', function (bool $warm): void {
