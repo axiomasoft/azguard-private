@@ -6,6 +6,11 @@ version) are documented here. Format: [Keep a Changelog](https://keepachangelog.
 
 ## [Unreleased]
 
+- Source contract tests offer an optional mutation fixture for checking fenced grant and revoke state, including
+  no-op writes and raw authority, and a finite-universe fixture for scalar, batch and visibility parity. Existing
+  consumers need no new methods; configure the hooks to exercise those capabilities.
+- `RelationSource` now rereads host membership for each check, so membership revoked during a request is not reused.
+  This may increase membership queries compared with request-level reuse.
 - Permission-set cache reads avoid cache-driver object deserialization before signature verification. Shared caching
   now bypasses unsupported stores and Redis connections with client-side serialization or compression enabled;
   use an uncompressed, non-serializing Redis connection for shared caching.

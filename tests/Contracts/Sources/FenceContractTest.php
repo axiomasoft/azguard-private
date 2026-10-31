@@ -1,0 +1,42 @@
+<?php
+
+declare(strict_types=1);
+
+use AzGuard\Contracts\Sources\Source;
+use AzGuard\Panels\Panel;
+use AzGuard\Testing\Contracts\SourceContractTests;
+use AzGuard\Tests\Fixtures\Contracts\Probes\RunsAsAProbe;
+use AzGuard\Tests\Fixtures\Contracts\Probes\SourceProbe;
+use AzGuard\Tests\Fixtures\Sources\BrokenFenceSource;
+use PHPUnit\Framework\AssertionFailedError;
+
+final class BrokenFenceProbe
+{
+    use RunsAsAProbe;
+    use SourceContractTests;
+
+    protected function azguardSource(): Source
+    {
+        return new BrokenFenceSource;
+    }
+
+    protected function azguardFenceMutation(Source $source, Panel $panel): ?callable
+    {
+        return $source->mutate(...);
+    }
+}
+
+it('rejects a stable source whose authority changes without changing its fence', function (): void {
+    expect(fn () => (new BrokenFenceProbe)->run('fencedAuthorityChangesItsStateOnlyOnMutation'))
+        ->toThrow(AssertionFailedError::class, 'A grant changed authority without changing state.');
+});
+
+it('runs a supplied mutation fixture through the ordinary source contract', function (): void {
+    expect(fn () => (new BrokenFenceProbe)->run('describeMatchesWhatTheSourceGives'))
+        ->toThrow(AssertionFailedError::class, 'A grant changed authority without changing state.');
+});
+
+it('rejects different raw authority at the same state even when decision caching masks the drift', function (): void {
+    expect(fn () => (new SourceProbe(static fn () => new BrokenFenceSource(drift: true)))->run('sameVersionGivesTheSameAnswer'))
+        ->toThrow(AssertionFailedError::class, 'The same state returned different raw authority.');
+});

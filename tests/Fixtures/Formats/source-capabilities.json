@@ -115,7 +115,7 @@
                 "AzGuard\\Contracts\\Sources\\DescribesSchema",
                 "AzGuard\\Contracts\\Sources\\FiltersQueries"
             ],
-            "volatility": "request",
+            "volatility": "volatile",
             "matrix": {
                 "scalar": {
                     "status": "supported",

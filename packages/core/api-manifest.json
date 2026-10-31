@@ -31625,6 +31625,33 @@
                     "contracts": []
                 },
                 {
+                    "name": "azguardFenceMutation",
+                    "visibility": "protected",
+                    "static": false,
+                    "abstract": false,
+                    "final": false,
+                    "parameters": [
+                        {
+                            "name": "source",
+                            "type": "AzGuard\\Contracts\\Sources\\Source",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "panel",
+                            "type": "AzGuard\\Panels\\Panel",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "?callable",
+                    "returnsReference": false,
+                    "namedArguments": true,
+                    "contracts": []
+                },
+                {
                     "name": "azguardPermissions",
                     "visibility": "protected",
                     "static": false,
@@ -31636,6 +31663,20 @@
                     "namedArguments": true,
                     "contracts": [
                         "@return list<string|UnitEnum>"
+                    ]
+                },
+                {
+                    "name": "azguardQueryParity",
+                    "visibility": "protected",
+                    "static": false,
+                    "abstract": false,
+                    "final": false,
+                    "parameters": [],
+                    "return": "?array",
+                    "returnsReference": false,
+                    "namedArguments": true,
+                    "contracts": [
+                        "@return array{scalar: callable(): array, batch: callable(): array, visibility: callable(): array, supported: bool}|null"
                     ]
                 },
                 {
@@ -31664,6 +31705,18 @@
                 },
                 {
                     "name": "describeMatchesWhatTheSourceGives",
+                    "visibility": "public",
+                    "static": false,
+                    "abstract": false,
+                    "final": false,
+                    "parameters": [],
+                    "return": "void",
+                    "returnsReference": false,
+                    "namedArguments": true,
+                    "contracts": []
+                },
+                {
+                    "name": "fencedAuthorityChangesItsStateOnlyOnMutation",
                     "visibility": "public",
                     "static": false,
                     "abstract": false,
@@ -31724,6 +31777,18 @@
                 },
                 {
                     "name": "sourceTakesNowFromTheContext",
+                    "visibility": "public",
+                    "static": false,
+                    "abstract": false,
+                    "final": false,
+                    "parameters": [],
+                    "return": "void",
+                    "returnsReference": false,
+                    "namedArguments": true,
+                    "contracts": []
+                },
+                {
+                    "name": "sourceVisibilityMatchesScalarAndBatch",
                     "visibility": "public",
                     "static": false,
                     "abstract": false,

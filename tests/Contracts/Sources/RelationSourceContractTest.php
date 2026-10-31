@@ -4,7 +4,11 @@ declare(strict_types=1);
 
 namespace AzGuard\Tests\Contracts\Sources;
 
+use AzGuard\Authorization\Internal\Authorizer;
 use AzGuard\Contracts\Sources\Source;
+use AzGuard\Kernel\Identity\AccessScope;
+use AzGuard\Kernel\Identity\AssignmentScopeRef;
+use AzGuard\Kernel\Identity\TenantRef;
 use AzGuard\Panels\PanelBuilder;
 use AzGuard\Scopes\ScopesPlugin;
 use AzGuard\Sources\Relation\RelationSource;
@@ -53,5 +57,21 @@ final class RelationSourceContractTest extends TestCase
     protected function azguardSubject(): Model
     {
         return Member::query()->findOrFail(1);
+    }
+
+    public function test_membership_revoke_is_seen_in_the_same_request(): void
+    {
+        $project = RelationWorld::project();
+        RelationWorld::attach($project);
+        $definition = new ProjectDefinition(global: true);
+        EditorRole::$definitions = [$definition];
+        [$panel] = RelationWorld::compile([RelationSource::make($definition, 'members', 'pivot.role')]);
+        $request = RelationWorld::request()->inScope(AccessScope::in(TenantRef::global(), AssignmentScopeRef::of('project', 7)));
+        $authorizer = app(Authorizer::class);
+
+        $first = $authorizer->decide($panel, $request);
+        $this->assertTrue($first->allowed(), $first->reason->value);
+        $project->members()->detach(1);
+        $this->assertFalse($authorizer->decide($panel, $request)->allowed(), 'Revoked host membership must not be cached.');
     }
 }

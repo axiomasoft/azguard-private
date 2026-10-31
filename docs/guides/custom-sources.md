@@ -28,6 +28,30 @@ It does not authorize a subject or certify the other sources, hooks or policies 
 Tenant inheritance still depends on panel tenant policy, membership and scope qualifiers. Filament requires its
 plugin and panel setup; editing grants requires the database writer. Record lists also require exact visibility.
 
+## Testing a mutable fence
+
+Existing `SourceContractTests` consumers need no new methods. For a mutable `FencesReads` source, override the
+optional `azguardFenceMutation(Source $source, Panel $panel): ?callable` hook. Return a callable accepting `grant`
+or `revoke` that changes the suite subject's global-scope authority on the attached source. Both operations must be
+idempotent, and the grant must be visible to the source. The contract checks that real changes advance the token,
+repeated operations leave it unchanged, and identical state yields identical raw contributions. Without a fixture
+the mutation branch is not run; a passing base suite alone does not prove a mutable fence.
+
+For exact query coverage, override `azguardQueryParity(): ?array` with a `supported` boolean and `scalar`, `batch`, and `visibility`
+callbacks. Each returns the same non-empty resource-id to boolean map, including denied resources. The visibility
+callback may throw `VisibilityNotSupportedException` for an unsupported runtime. Use a fixture containing both
+allowed and denied resources; the contract compares results and catches incomplete selections, but cannot infer
+whether a chosen universe exercises all of an application's scopes or adapters. Without this hook the parity branch
+is not run.
+
+Membership and other host data used by a Stable source must also be covered by its token. Otherwise declare the
+source Volatile and test that changes are seen without caching. A source author should exercise tenant and context
+boundaries, expiry, batch and exact-visibility parity using representative grants and the application's adapters;
+the generic mutation fixture cannot infer those cases.
+
+`RelationSource` is Volatile: it reads host membership, which may change without an AzGuard state update, on every
+check. Applications upgrading from request-level reuse should account for the additional membership reads.
+
 ## Doctor before serving requests
 
 Run `php artisan azguard:doctor --json` against the configured panels before serving requests. The existing

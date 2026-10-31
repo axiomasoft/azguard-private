@@ -8,12 +8,14 @@ use AzGuard\Attributes\Spi;
 use AzGuard\Attributes\SpiKind;
 use AzGuard\Catalog\PermissionDefinition;
 use AzGuard\Contracts\Sources\DescribesSchema;
+use AzGuard\Contracts\Sources\FencesReads;
 use AzGuard\Contracts\Sources\ProvidesGrants;
 use AzGuard\Contracts\Sources\ProvidesPermissions;
 use AzGuard\Contracts\Sources\ProvidesRoleGrants;
 use AzGuard\Contracts\Sources\ProvidesRoles;
 use AzGuard\Contracts\Sources\Source;
 use AzGuard\Contracts\Sources\SourceDescription;
+use AzGuard\Exceptions\VisibilityNotSupportedException;
 use AzGuard\Kernel\Decision\DecisionReason;
 use AzGuard\Kernel\Decision\Grant;
 use AzGuard\Kernel\Decision\RoleContribution;
@@ -82,6 +84,103 @@ trait SourceContractTests
         return [ContractPermission::View, ContractPermission::Edit];
     }
 
+    /**
+     * Optional mutation fixture for a fenced source. Return a callable which accepts `grant` or `revoke` and applies
+     * that operation to the suite subject in the global scope. Repeating either operation must be a no-op.
+     * The callable must mutate the authority read by the attached source, not an unrelated copy of it.
+     */
+    protected function azguardFenceMutation(Source $source, Panel $panel): ?callable
+    {
+        return null;
+    }
+
+    /**
+     * Optional finite resource universe: each callback returns resource-id => allowed (including denied resources).
+     * The visibility callback may instead throw VisibilityNotSupportedException for an unsupported runtime.
+     *
+     * @return array{scalar: callable(): array, batch: callable(): array, visibility: callable(): array, supported: bool}|null
+     */
+    protected function azguardQueryParity(): ?array
+    {
+        return null;
+    }
+
+    public function sourceVisibilityMatchesScalarAndBatch(): void
+    {
+        $case = $this->azguardQueryParity();
+
+        if ($case === null) {
+            return;
+        }
+
+        $this->azguardAssertQueryParity($case);
+    }
+
+    /** @param array{scalar: callable(): array, batch: callable(): array, visibility: callable(): array, supported: bool} $case */
+    private function azguardAssertQueryParity(array $case): void
+    {
+        $scalar = ($case['scalar'])();
+        $batch = ($case['batch'])();
+        $this->assertContains(true, $scalar, 'The parity universe must contain an allowed resource.');
+        $this->assertContains(false, $scalar, 'The parity universe must contain a denied resource.');
+        $this->assertEquals($scalar, $batch, 'Batch decisions differ from scalar decisions.');
+
+        try {
+            $visible = ($case['visibility'])();
+        } catch (VisibilityNotSupportedException) {
+            $this->assertFalse($case['supported'], 'A supported visibility case returned unsupported.');
+
+            return;
+        }
+
+        $this->assertTrue($case['supported'], 'An unsupported visibility case returned a result.');
+        $this->assertEquals($scalar, $visible, 'Visibility differs from scalar decisions.');
+    }
+
+    public function fencedAuthorityChangesItsStateOnlyOnMutation(): void
+    {
+        $source = $this->azguardSource();
+
+        if (! $source instanceof FencesReads) {
+            return;
+        }
+        $panel = ContractWorld::panel(fn (PanelBuilder $builder) => $this->azguardAttach($builder, $source));
+        $source = $this->azguardAttached($panel, $source);
+        $mutate = $this->azguardFenceMutation($source, $panel);
+
+        if ($mutate === null) {
+            return;
+        }
+
+        $this->azguardAssertFenceMutation($source, $panel, $mutate);
+    }
+
+    /** @param callable(string): void $mutate */
+    private function azguardAssertFenceMutation(FencesReads $source, Panel $panel, callable $mutate): void
+    {
+        $tenant = TenantRef::global();
+        $ref = SubjectRef::of($this->azguardSubject()->getMorphClass(), ModelKey::of($this->azguardSubject()));
+        $scopes = [AccessScope::in($tenant)];
+        $now = new DateTimeImmutable('2026-01-01T00:00:00Z');
+        $mutate('revoke');
+        $before = $source->state($panel, $tenant);
+        $empty = $this->azguardRead($source, $ref, $panel, $scopes, $now);
+        $mutate('revoke');
+        $this->assertTrue($before->equals($source->state($panel, $tenant)), 'A no-op revoke changed the state.');
+        $mutate('grant');
+        $granted = $source->state($panel, $tenant);
+        $authority = $this->azguardRead($source, $ref, $panel, $scopes, $now);
+        $this->assertNotEquals($empty, $authority, 'The grant fixture did not change the subject authority.');
+        $this->assertFalse($before->equals($granted), 'A grant changed authority without changing state.');
+        $mutate('grant');
+        $this->assertTrue($granted->equals($source->state($panel, $tenant)), 'A no-op grant changed the state.');
+        $this->assertEqualsCanonicalizing($authority, $this->azguardRead($source, $ref, $panel, $scopes, $now), 'The same state returned different raw authority.');
+        $mutate('revoke');
+        $revoked = $source->state($panel, $tenant);
+        $this->assertFalse($granted->equals($revoked), 'A revoke changed authority without changing state.');
+        $this->assertEqualsCanonicalizing($empty, $this->azguardRead($source, $ref, $panel, $scopes, $now), 'Revoke did not restore the original authority.');
+    }
+
     #[Test]
     public function sourceHasAValidStableId(): void
     {
@@ -135,6 +234,24 @@ trait SourceContractTests
             $this->assertSame($first->effect, $second->effect, 'The effect changed on the same version of the state.');
             $this->assertSame($first->reason, $second->reason, 'The reason changed on the same version of the state.');
             $this->assertEquals($first->state, $second->state, 'The state token changed without a change.');
+        }
+
+        $source = $this->azguardAttached($panel, $source);
+
+        if ($source instanceof FencesReads) {
+            $tenant = TenantRef::global();
+            $ref = SubjectRef::of($subject->getMorphClass(), ModelKey::of($subject));
+            $scopes = [AccessScope::in($tenant)];
+            $now = new DateTimeImmutable('2026-01-01T00:00:00Z');
+            $before = $source->state($panel, $tenant);
+            $first = $this->azguardRead($source, $ref, $panel, $scopes, $now);
+            $middle = $source->state($panel, $tenant);
+            $second = $this->azguardRead($source, $ref, $panel, $scopes, $now);
+            $after = $source->state($panel, $tenant);
+
+            if ($before->equals($middle) && $middle->equals($after)) {
+                $this->assertEqualsCanonicalizing($first, $second, 'The same state returned different raw authority.');
+            }
         }
     }
 
@@ -216,6 +333,14 @@ trait SourceContractTests
                 $this->assertInstanceOf(BaseRole::class, $role, 'roles() returns something that is not a BaseRole.');
             }
         }
+
+        if ($source instanceof FencesReads && ($mutate = $this->azguardFenceMutation($source, $panel)) !== null) {
+            $this->azguardAssertFenceMutation($source, $panel, $mutate);
+        }
+
+        if (($case = $this->azguardQueryParity()) !== null) {
+            $this->azguardAssertQueryParity($case);
+        }
     }
 
     /** The instance the panel works with: a panel keeps its own copy of the source it is given. */
@@ -257,13 +382,13 @@ trait SourceContractTests
 
             if ($source instanceof ProvidesGrants) {
                 foreach ($source->grants($ref, [$scope], $context) as $grant) {
-                    $values[] = 'grant|'.$grant->pattern->full().'|'.$grant->source.'|'.$grant->scope->context->key().'|'.($grant->expiresAt?->format('c') ?? '-').'|'.json_encode($grant->fields());
+                    $values[] = serialize($grant);
                 }
             }
 
             if ($source instanceof ProvidesRoleGrants) {
                 foreach ($source->roleGrants($ref, [$scope], $context) as $contribution) {
-                    $values[] = 'role|'.$contribution->role->full().'|'.$contribution->source.'|'.$contribution->scope->context->key().'|'.($contribution->expiresAt?->format('c') ?? '-');
+                    $values[] = serialize($contribution);
                 }
             }
         }

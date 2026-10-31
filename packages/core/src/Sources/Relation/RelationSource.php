@@ -136,7 +136,7 @@ final class RelationSource implements DescribesSchema, FiltersQueries, ProvidesR
 
     public function volatility(): Volatility
     {
-        return Volatility::Request;
+        return Volatility::Volatile;
     }
 
     public function describe(Panel $panel, ?TenantRef $tenant = null): SourceDescription
