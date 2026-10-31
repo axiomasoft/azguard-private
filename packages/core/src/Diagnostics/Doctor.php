@@ -16,6 +16,7 @@ use AzGuard\Diagnostics\Internal\Checks\CatalogCollisions;
 use AzGuard\Diagnostics\Internal\Checks\ConfigValid;
 use AzGuard\Diagnostics\Internal\Checks\ConsistencyReads;
 use AzGuard\Diagnostics\Internal\Checks\DirectWrites;
+use AzGuard\Diagnostics\Internal\Checks\MorphIdentity;
 use AzGuard\Diagnostics\Internal\Checks\PanelsPlugins;
 use AzGuard\Diagnostics\Internal\Checks\PanelsPolicies;
 use AzGuard\Diagnostics\Internal\Checks\PanelsRelations;
@@ -57,7 +58,7 @@ final readonly class Doctor
         ConfigValid::class, StorageSchema::class, StorageMigrated::class, StorageSqlite::class, PanelsValid::class, PanelsPlugins::class,
         PanelsSources::class, PanelsPolicies::class, PoliciesComplete::class, RolesKeys::class, RoutesChecks::class, PanelsRelations::class,
         CatalogCollisions::class, CatalogCached::class, TenantMembershipConfigured::class, ConsistencyReads::class,
-        CacheStore::class, CacheIntegrity::class, DirectWrites::class, CatalogBuildId::class,
+        CacheStore::class, CacheIntegrity::class, DirectWrites::class, CatalogBuildId::class, MorphIdentity::class,
     ];
 
     private const string SECRET_NAME = '/pass(word)?|secret|token|dsn|url|credential|api[_-]?key|private/i';

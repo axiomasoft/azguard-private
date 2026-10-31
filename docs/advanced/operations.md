@@ -17,6 +17,45 @@ php artisan azguard:doctor --production    # also checks the catalog cache and t
 - **CI.** Run `php artisan azguard:doctor` in CI. It exits with `1` on errors and checks the configuration,
   panels, storages, sources, plugins and morph aliases.
 
+## Morph identity and alias changes
+
+Register stable aliases with `Relation::morphMap(['user' => User::class, /* tenant and context models */])`
+in the host before panels are built. AzGuard does not enable Laravel's process-wide `requireMorphMap` flag.
+Doctor checks declared subject, tenant and context models, including custom `getMorphClass()` values and reverse
+resolution. An unmapped class produces `morph.identity` warning in production; set
+`config(['azguard_doctor.strict_morph_identity' => true])` before running Doctor to make that warning an error.
+Existing identity validation can independently reject an FQCN. Alias collisions and aliases that do not resolve to
+the expected model are errors. Explicit tenant and context types also need matching map entries.
+
+Changing an alias changes identity, even if the numeric IDs match. The host owns this migration; Doctor never
+performs it. Rehearse the following on a restored disposable copy using the same database engine and application
+version, and retain the inventory, scripts and verification output with the deployment record:
+
+1. Inventory every configured storage, connection and prefix, host polymorphic table, queued payload, cache and
+   integration that stores a type. For each `subject_type`, `tenant_type`, `context_type` and `actor_type` column,
+   group by exact type and count rows, including grants, permissions, subject revisions and audit history. Inventory
+   derived `tenant_key` and `context_key`, uniqueness constraints and both old and new aliases. Export sorted
+   primary keys and relevant identity columns and hash the export per table. Record the map from each old FQCN or
+   alias to exactly one model and new alias; resolve duplicate aliases and prospective unique-key collisions first.
+2. Decide a separate policy for audit history and actor identities. Preserve historical audit identities by default;
+   do not rewrite them without an approved policy. Include host relations and old queued jobs in the compatibility
+   plan. Take and restore-test a consistent backup of every affected database; record its location and hashes.
+3. Quiesce writers and workers, repeat the inventory and compare counts and hashes with the approved dry run. Abort
+   on drift, ambiguity, missing rows or collisions. In a transaction per database, run a host-written migration
+   against exact old values, covering every applicable type column and subject revision. Recompute derived keys
+   using the same AzGuard identity encoding as the installed version; never replace only the visible type when a
+   derived key also contains it. Verify affected-row counts, uniqueness and sorted identity exports against the
+   predicted transformed inventory before committing. For multiple databases, plan a coordinated recovery: there
+   is no cross-database transaction.
+4. Deploy the map and code together, reset state for every affected panel with `php artisan azguard:state:reset
+   <panel>`, invalidate external caches, restart workers, run Doctor in production mode and verify representative
+   subject, tenant and context access. Recount old and new values and compare hashes to the expected exports before
+   resuming traffic. Retain the unchanged audit inventory and verify it separately.
+5. For rollback, quiesce writers again. Restore the consistent backup and matching old code/map, or use a rehearsed
+   inverse migration only if all post-migration writes can be accounted for without data loss. Verify counts, hashes,
+   uniqueness and audit history against the rollback inventory, reset each panel's state again, invalidate caches,
+   restart workers and check Doctor and representative access before reopening traffic. Stop on any mismatch.
+
 ## Storage schema
 
 Each storage records its schema in `storage_state` (schema 2: the authority tables, `subject_revisions` and the
