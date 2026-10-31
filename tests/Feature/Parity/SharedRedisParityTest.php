@@ -35,20 +35,64 @@ it('checks generated facts independently in cold memo and shared Redis lanes', f
 it('names the Redis reproduction file when an oracle fails with a temporary store name', function (): void {
     $seed = getenv('AZGUARD_PROPERTY_SEED');
     putenv('AZGUARD_PROPERTY_SEED=1');
-    app('db')->connection()->listen(static function (QueryExecuted $query): void {
+    $listener = static function (QueryExecuted $query): void {
         if (str_starts_with(strtolower(ltrim($query->sql)), 'select')
             && preg_match('/azg_(permission|role)_grants["`]/', $query->sql) === 1) {
             throw new RuntimeException('Intentional oracle source failure.');
         }
-    });
+    };
 
     try {
-        expect(fn () => RedisParity::run(static fn (string $store) => ParityGenerator::cachedOracle($store)))
+        expect(fn () => RedisParity::withQueryListener(
+            app('db')->connection(),
+            $listener,
+            static fn () => RedisParity::run(static fn (string $store) => ParityGenerator::cachedOracle($store)),
+        ))
             ->toThrow(AssertionFailedError::class, 'reproduce: AZGUARD_PROPERTY_SEED=1 vendor/bin/pest tests/Feature/Parity/SharedRedisParityTest.php');
     } finally {
         putenv($seed === false ? 'AZGUARD_PROPERTY_SEED' : 'AZGUARD_PROPERTY_SEED='.$seed);
     }
 })->group('redis', 'stand', 'server-skip');
+
+it('restores the original query dispatcher and its listeners after a scoped listener', function (bool $throws): void {
+    $connection = app('db')->connection();
+    $original = $connection->getEventDispatcher();
+    $baseline = clone $original;
+    $connection->setEventDispatcher($baseline);
+    $existingCalls = 0;
+    $scopedCalls = 0;
+    $baseline->listen(QueryExecuted::class, static function () use (&$existingCalls): void {
+        $existingCalls++;
+    });
+
+    try {
+        $execute = function () use ($connection, $throws, &$scopedCalls): mixed {
+            return RedisParity::withQueryListener(
+                $connection,
+                static function () use ($throws, &$scopedCalls): void {
+                    $scopedCalls++;
+
+                    if ($throws) {
+                        throw new RuntimeException('scoped query failure');
+                    }
+                },
+                static fn () => $connection->select('select 1'),
+            );
+        };
+
+        if ($throws) {
+            expect($execute)->toThrow(RuntimeException::class, 'scoped query failure');
+        } else {
+            expect($execute())->toHaveCount(1);
+        }
+
+        expect($connection->getEventDispatcher())->toBe($baseline)->and($existingCalls)->toBe(1)->and($scopedCalls)->toBe(1);
+        $connection->select('select 1');
+        expect($existingCalls)->toBe(2)->and($scopedCalls)->toBe(1);
+    } finally {
+        $connection->setEventDispatcher($original);
+    }
+})->with([true, false]);
 
 it('restores Redis and cache state and cleans only its namespace after an oracle returns or fails', function (bool $fails): void {
     $before = ['database.redis' => config('database.redis'), 'cache.stores' => config('cache.stores'), 'azguard.cache' => config('azguard.cache')];

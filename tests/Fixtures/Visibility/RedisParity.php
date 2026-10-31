@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace AzGuard\Tests\Fixtures\Visibility;
 
 use Closure;
+use Illuminate\Database\Connection;
+use Illuminate\Database\Events\QueryExecuted;
 use Illuminate\Redis\RedisManager;
 use Redis;
 use RuntimeException;
@@ -12,6 +14,26 @@ use RuntimeException;
 /** A private Redis manager and namespace, restored even when setup, an oracle or cleanup fails. */
 final class RedisParity
 {
+    /** @param Closure(QueryExecuted): void $listener */
+    public static function withQueryListener(Connection $connection, Closure $listener, Closure $callback): mixed
+    {
+        $original = $connection->getEventDispatcher();
+
+        if ($original === null) {
+            throw new RuntimeException('Database query dispatcher is unavailable.');
+        }
+
+        $connection->setEventDispatcher(clone $original);
+
+        try {
+            $connection->listen($listener);
+
+            return $callback();
+        } finally {
+            $connection->setEventDispatcher($original);
+        }
+    }
+
     /** @param Closure(string, Redis): void $oracle */
     public static function run(Closure $oracle): void
     {
