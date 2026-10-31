@@ -163,11 +163,16 @@ equivalent mutant. It also runs weekly. It needs a coverage driver (pcov or Xdeb
 - A high or critical security update (Composer, npm, OSV) is triaged within 1 business day; an update forced by an
   advisory is its own commit touching only `composer.lock` / `package-lock.json`.
 - An ordinary Dependabot update is reviewed within a week; superseded Dependabot PRs are closed.
-- Only Dependabot-authored, same-repository patch updates are eligible for auto-merge; the metadata action verifies
-  Dependabot commits and classifies a group by its highest update. Minor, major and mixed groups containing either
-  require review. The workflow only requests GitHub auto-merge and does not establish branch protection.
+- Dependabot auto-merge is disabled until a required eligibility check on the updated PR has been proven. All
+  Dependabot updates require normal review and manual merge. The workflow disables an existing auto-merge request
+  when it handles a same-repository Dependabot PR; it does not establish branch protection. Before relying on this
+  policy, inspect existing open Dependabot PRs for auto-merge requests and have an authorized owner disable them:
+  disabling the workflow's enablement does not itself clear existing requests.
 - Before release, run `php bin/repository-settings-audit.php --live` and verify the active ruleset for the target
-  branch requires the intended tests and security checks, applies to Dependabot and has no bypass for it. Inspect the
+  branch requires the intended tests and security checks, applies to Dependabot and has no bypass for it. Before
+  enabling auto-merge in the future, prove on an updated PR that a required eligibility check runs on its current
+  head and blocks merging until auto-merge has been reconciled. The `pull_request_target` workflow runs against the
+  base branch, so do not assume its job provides that head check. Inspect the
   live required check names and their producing workflows; a successful auto-merge job is not evidence that tests passed.
   Missing, inactive, bypassable or incomplete rules block release until the owner resolves them. This read-only audit
   is part of P8.1; do not change remote settings without owner authorization.

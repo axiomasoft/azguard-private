@@ -29,13 +29,20 @@ UNTRUSTED = re.compile(r'\$\{\{[^}]*(?:\bgithub\b|\binputs\b)', re.I)
 # Deliberately require the complete job: changes to this seam require policy review.
 DEPENDABOT_JOB = {
     'name': 'Auto-merge Dependabot patch', 'runs-on': 'ubuntu-latest',
+    'concurrency': {'group': 'dependabot-auto-merge-${{ github.event.pull_request.number }}', 'cancel-in-progress': False},
     'if': "github.event.pull_request.user.login == 'dependabot[bot]' && github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.base.repo.full_name == github.repository\n",
     'permissions': {'contents': 'write', 'pull-requests': 'write'},
     'steps': [
         {'name': 'Fetch Dependabot metadata', 'id': 'meta', 'uses': 'dependabot/fetch-metadata@25dd0e34f4fe68f24cc83900b1fe3fe149efef98'},
-        {'name': 'Enable auto-merge for patch updates', 'if': "steps.meta.outputs.update-type == 'version-update:semver-patch'",
-         'run': 'gh pr merge --auto --squash "$PR_URL"',
-         'env': {'PR_URL': '${{ github.event.pull_request.html_url }}', 'GH_TOKEN': '${{ secrets.GITHUB_TOKEN }}'}},
+        {'name': 'Disable Dependabot auto-merge', 'if': 'always()',
+         'run': '''enabled=$(gh pr view "$PR_URL" --json autoMergeRequest --jq '.autoMergeRequest != null')
+if [[ "$enabled" == true ]]; then
+  gh pr merge --disable-auto "$PR_URL"
+fi
+[[ "$META_RESULT" == success ]]
+''',
+         'env': {'PR_URL': '${{ github.event.pull_request.html_url }}', 'GH_TOKEN': '${{ secrets.GITHUB_TOKEN }}',
+                 'META_RESULT': '${{ steps.meta.outcome }}'}},
     ],
 }
 

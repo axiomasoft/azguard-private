@@ -63,12 +63,13 @@ def eligible(author='dependabot[bot]', head='owner/repo', base='owner/repo',
         'github.actor': actor,
         'steps.meta.outputs.update-type': update,
     }
-    return evaluate(JOB['if'], values) and evaluate(MERGE['if'], values)
+    return (evaluate(JOB['if'], values) and update == 'version-update:semver-patch'
+            and 'gh pr merge --auto ' in MERGE['run'])
 
 
 class DependabotPolicyTest(unittest.TestCase):
     def test_eligibility_matrix(self):
-        self.assertTrue(eligible())
+        self.assertFalse(eligible())
         for case in (
             {'author': 'human'},
             {'author': 'human', 'actor': 'dependabot[bot]'},
@@ -82,7 +83,7 @@ class DependabotPolicyTest(unittest.TestCase):
         ):
             with self.subTest(case=case):
                 self.assertFalse(eligible(**case))
-        self.assertTrue(eligible(actor='human'))
+        self.assertFalse(eligible(actor='human'))
 
     def test_trusted_metadata_and_permissions(self):
         self.assertEqual(set(WORKFLOW['on']), {'pull_request_target'})
@@ -93,18 +94,37 @@ class DependabotPolicyTest(unittest.TestCase):
         self.assertNotIn('continue-on-error', META)
         self.assertEqual(len(JOB['steps']), 2)  # No PR checkout or untrusted code.
 
-    def test_failing_required_check_cannot_be_bypassed_by_command(self):
-        # A stub models GitHub's required-check gate: --auto requests a merge but
-        # leaves a failing PR open. Assert the actual workflow command is used.
+    def test_reconcile_existing_auto_merge(self):
+        # Exercise the actual shell against an API stub, including API failures.
+        # GitHub's required-check enforcement is verified by the live ruleset audit.
         with tempfile.TemporaryDirectory() as directory:
             gh = pathlib.Path(directory) / 'gh'
-            gh.write_text('#!/bin/sh\n[ "$*" = "pr merge --auto --squash https://example.test/pr/1" ] || exit 1\n'
-                          'echo "required check failed: PR remains open"\n')
+            gh.write_text('#!/bin/bash\n'
+                          'if [[ "$1 $2" == "pr view" ]]; then\n'
+                          '  [[ "$API_FAIL" != true ]] || exit 1\n'
+                          '  printf "%s\\n" "$ENABLED"\n'
+                          'else\n'
+                          '  printf "%s\\n" "$*" >> "$LOG"\n'
+                          'fi\n')
             gh.chmod(0o755)
-            result = subprocess.run(['/bin/bash', '-e', '-c', MERGE['run']], capture_output=True,
-                                    text=True, env={'PATH': directory, 'PR_URL': 'https://example.test/pr/1'})
-        self.assertEqual(result.returncode, 0, result.stderr)
-        self.assertIn('PR remains open', result.stdout)
+            log = pathlib.Path(directory) / 'log'
+            for enabled, update, meta, api_fail, expected, exit_code in (
+                ('false', 'version-update:semver-patch', 'success', 'false', '', 0),
+                ('true', 'version-update:semver-patch', 'success', 'false', 'pr merge --disable-auto', 0),
+                ('true', 'version-update:semver-minor', 'success', 'false', 'pr merge --disable-auto', 0),
+                ('true', 'version-update:semver-major', 'success', 'false', 'pr merge --disable-auto', 0),
+                ('true', '', 'failure', 'false', 'pr merge --disable-auto', 1),
+                ('false', '', 'failure', 'false', '', 1),
+                ('true', 'version-update:semver-patch', 'success', 'true', '', 1),
+            ):
+                with self.subTest(enabled=enabled, update=update, meta=meta, api_fail=api_fail):
+                    log.write_text('')
+                    result = subprocess.run(['/bin/bash', '-e', '-c', MERGE['run']], capture_output=True,
+                                            text=True, env={'PATH': directory, 'PR_URL': 'https://example.test/pr/1',
+                                                            'ENABLED': enabled, 'UPDATE_TYPE': update,
+                                                            'META_RESULT': meta, 'API_FAIL': api_fail, 'LOG': str(log)})
+                    self.assertEqual(result.returncode, exit_code, result.stderr)
+                    self.assertEqual(log.read_text(), expected + ' https://example.test/pr/1\n' if expected else '')
 
 
 if __name__ == '__main__':

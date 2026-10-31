@@ -59,7 +59,10 @@ class PolicyTests(unittest.TestCase):
         self.assertEqual([], pins.check_workflow(text, 'dependabot-auto-merge.yml'))
         for unsafe in (
             text.replace('dependabot/fetch-metadata@', 'actions/checkout@'),
-            text.replace('gh pr merge --auto --squash "$PR_URL"', 'bash ./pr-code.sh'),
+            text.replace('gh pr merge --disable-auto "$PR_URL"', 'gh pr merge --auto --squash "$PR_URL"'),
+            text.replace('gh pr merge --disable-auto "$PR_URL"', 'echo ignored'),
+            text.replace('cancel-in-progress: false', 'cancel-in-progress: true'),
+            text.replace('if: always()', "if: steps.meta.outcome == 'success'"),
             text.replace('    steps:', '    env: {BASH_ENV: /tmp/attacker}\n    steps:'),
             text.replace('permissions:\n  contents: read', 'env: {BASH_ENV: /tmp/attacker}\npermissions:\n  contents: read'),
         ):

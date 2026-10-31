@@ -15,6 +15,9 @@ jobs:
   auto-merge:
     name: Auto-merge Dependabot patch
     runs-on: ubuntu-latest
+    concurrency:
+      group: dependabot-auto-merge-${{ github.event.pull_request.number }}
+      cancel-in-progress: false
     if: >
       github.event.pull_request.user.login == 'dependabot[bot]' &&
       github.event.pull_request.head.repo.full_name == github.repository &&
@@ -28,9 +31,15 @@ jobs:
         id: meta
         uses: dependabot/fetch-metadata@25dd0e34f4fe68f24cc83900b1fe3fe149efef98 # v3.1.0
 
-      - name: Enable auto-merge for patch updates
-        if: steps.meta.outputs.update-type == 'version-update:semver-patch'
-        run: gh pr merge --auto --squash "$PR_URL"
+      - name: Disable Dependabot auto-merge
+        if: always()
+        run: |
+          enabled=$(gh pr view "$PR_URL" --json autoMergeRequest --jq '.autoMergeRequest != null')
+          if [[ "$enabled" == true ]]; then
+            gh pr merge --disable-auto "$PR_URL"
+          fi
+          [[ "$META_RESULT" == success ]]
         env:
           PR_URL: ${{ github.event.pull_request.html_url }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          META_RESULT: ${{ steps.meta.outcome }}
