@@ -163,7 +163,14 @@ equivalent mutant. It also runs weekly. It needs a coverage driver (pcov or Xdeb
 - A high or critical security update (Composer, npm, OSV) is triaged within 1 business day; an update forced by an
   advisory is its own commit touching only `composer.lock` / `package-lock.json`.
 - An ordinary Dependabot update is reviewed within a week; superseded Dependabot PRs are closed.
-- Major updates are never auto-merged.
+- Only Dependabot-authored, same-repository patch updates are eligible for auto-merge; the metadata action verifies
+  Dependabot commits and classifies a group by its highest update. Minor, major and mixed groups containing either
+  require review. The workflow only requests GitHub auto-merge and does not establish branch protection.
+- Before release, run `php bin/repository-settings-audit.php --live` and verify the active ruleset for the target
+  branch requires the intended tests and security checks, applies to Dependabot and has no bypass for it. Inspect the
+  live required check names and their producing workflows; a successful auto-merge job is not evidence that tests passed.
+  Missing, inactive, bypassable or incomplete rules block release until the owner resolves them. This read-only audit
+  is part of P8.1; do not change remote settings without owner authorization.
 - An OSV ignore needs `ignoreUntil` and a reason in `.github/osv-scanner.toml`.
 
 ## Cutting a release
