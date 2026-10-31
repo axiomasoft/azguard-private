@@ -1,0 +1,1 @@
+{"dependencies": {"vendor/a": {"version": "1.0.0", "license": ["MIT"]}, "vendor/b": {"version": "1.0.0", "license": ["GPL-3.0-only", "BSD-3-Clause"]}}}

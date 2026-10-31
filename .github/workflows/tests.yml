@@ -12,6 +12,10 @@ on:
 permissions:
   contents: read
 
+defaults:
+  run:
+    shell: bash
+
 concurrency:
   group: tests-${{ github.ref }}
   cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
@@ -38,10 +42,14 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+          persist-credentials: false
 
       - name: Setup PHP ${{ matrix.php }}
-        uses: shivammathur/setup-php@v2
+        uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # 2.40.0
         with:
           php-version: ${{ matrix.php }}
           extensions: mbstring, pdo, pdo_sqlite, sqlite3
@@ -53,6 +61,7 @@ jobs:
 
       - name: Install dependencies (${{ matrix.stability }})
         run: |
+          set -Eeuo pipefail
           composer require "laravel/framework:${{ matrix.laravel }}" "orchestra/testbench:${{ matrix.testbench }}" --dev --no-interaction --no-update
           composer update --${{ matrix.stability }} --prefer-dist --no-interaction --no-progress
 
@@ -102,13 +111,15 @@ jobs:
       MARIADB_PASSWORD: azguard
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+        with:
+          persist-credentials: false
 
       - name: Start disposable database (${{ matrix.connection }})
         run: docker compose up -d --wait --wait-timeout 120 ${{ matrix.service }}
 
       - name: Setup PHP
-        uses: shivammathur/setup-php@v2
+        uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # 2.40.0
         with:
           php-version: '8.4'
           extensions: mbstring, pdo, pdo_pgsql, pdo_mysql
@@ -120,16 +131,17 @@ jobs:
         run: echo "dir=$(composer config cache-files-dir)" >> "$GITHUB_OUTPUT"
 
       - name: Cache Composer downloads
-        uses: actions/cache@v4
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
         with:
           path: ${{ steps.composer-cache.outputs.dir }}
-          key: ${{ runner.os }}-composer-db-matrix-${{ hashFiles('**/composer.json', '**/composer.lock') }}
+          key: ${{ runner.os }}-composer-db-matrix-${{ hashFiles('composer.lock', '**/composer.json') }}
           restore-keys: |
             ${{ runner.os }}-composer-db-matrix-
             ${{ runner.os }}-composer-
 
       - name: Install dependencies (Laravel ${{ matrix.laravel }})
         run: |
+          set -Eeuo pipefail
           composer require "laravel/framework:${{ matrix.laravel }}" "orchestra/testbench:${{ matrix.testbench }}" --dev --no-interaction --no-update
           composer update --prefer-dist --no-interaction --no-progress
 
@@ -152,10 +164,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+        with:
+          persist-credentials: false
 
       - name: Setup PHP
-        uses: shivammathur/setup-php@v2
+        uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # 2.40.0
         with:
           php-version: '8.4'
           extensions: mbstring, pdo, pdo_pgsql
@@ -163,7 +177,7 @@ jobs:
           tools: composer:v2
 
       - name: Install dependencies
-        run: composer update --prefer-dist --no-interaction --no-progress
+        run: composer install --prefer-dist --no-interaction --no-progress
 
       - name: Start isolated primary and streaming replica
         run: docker compose --profile authority-replica up -d --wait authority-primary authority-replica
@@ -184,7 +198,7 @@ jobs:
     runs-on: ubuntu-latest
     services:
       redis:
-        image: redis:7-alpine
+        image: redis:7-alpine@sha256:858f009f9709ce576febc734aa78b8f6d624b82571f9ddb6bda4377c833b3499
         ports:
           - 6379:6379
         options: >-
@@ -194,10 +208,12 @@ jobs:
           --health-retries 10
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+        with:
+          persist-credentials: false
 
       - name: Setup PHP
-        uses: shivammathur/setup-php@v2
+        uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # 2.40.0
         with:
           php-version: '8.4'
           extensions: mbstring, pdo, pdo_sqlite, sqlite3, redis
@@ -205,7 +221,7 @@ jobs:
           tools: composer:v2
 
       - name: Install dependencies
-        run: composer update --prefer-dist --no-interaction --no-progress
+        run: composer install --prefer-dist --no-interaction --no-progress
 
       - name: Run Redis qualification suite
         run: composer test:redis
@@ -220,10 +236,14 @@ jobs:
       contents: read
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+          persist-credentials: false
 
       - name: Setup PHP
-        uses: shivammathur/setup-php@v2
+        uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # 2.40.0
         with:
           php-version: '8.4'
           extensions: mbstring, pdo, pdo_sqlite, sqlite3
@@ -231,7 +251,7 @@ jobs:
           tools: composer:v2
 
       - name: Install dependencies
-        run: composer update --prefer-dist --no-interaction --no-progress
+        run: composer install --prefer-dist --no-interaction --no-progress
 
       - name: Run tests with coverage
         run: vendor/bin/pest --ci --fail-on-skipped --exclude-group=engines --exclude-group=redis --exclude-group=replica --exclude-group=extended --coverage --min=85 --coverage-clover=coverage.xml
@@ -241,7 +261,7 @@ jobs:
           XDEBUG_MODE: coverage
 
       - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v5
+        uses: codecov/codecov-action@0fb7174895f61a3b6b78fc075e0cd60383518dac # v5.5.5
         continue-on-error: true
         with:
           files: coverage.xml
@@ -249,30 +269,53 @@ jobs:
           token: ${{ secrets.CODECOV_TOKEN }}
 
   consumer-fixture:
-    name: Consumer fixture · built archives
+    name: Consumer fixture · built archives · L${{ matrix.laravel }}
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        laravel: [12, 13]
+    env:
+      LARAVEL: ${{ matrix.laravel }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+        with:
+          persist-credentials: false
 
       - name: Setup PHP
-        uses: shivammathur/setup-php@v2
+        uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # 2.40.0
         with:
           php-version: '8.4'
           extensions: mbstring, pdo, pdo_sqlite, sqlite3, zip
           coverage: none
           tools: composer:v2
 
-      - name: Core archive in a clean Laravel 13 app
-        run: bash bin/consumer-fixture.sh --laravel=13
+      - name: Core archive in a clean Laravel app
+        run: bash bin/consumer-fixture.sh --laravel="$LARAVEL"
 
-      - name: Core and Filament archives in a clean Laravel 13 app
-        run: bash bin/consumer-fixture.sh --laravel=13 --with-filament
+      - name: Core and Filament archives in a clean Laravel app
+        run: bash bin/consumer-fixture.sh --laravel="$LARAVEL" --with-filament
 
       # Blocking: the core archive without modules/ boots, migrates, passes the doctor, grants and checks (I13, I19).
-      - name: Core archive without module roots in a clean Laravel 13 app
-        run: bash bin/consumer-fixture.sh core-only --laravel=13
+      - name: Core archive without module roots in a clean Laravel app
+        run: bash bin/consumer-fixture.sh core-only --laravel="$LARAVEL"
 
       # Blocking: Audit moved to its own archive keeps FQCNs, commands, migration basename and journal rows (I19).
-      - name: Audit module relocation rehearsal in a clean Laravel 13 app
-        run: bash bin/consumer-fixture.sh relocated-audit --laravel=13
+      - name: Audit module relocation rehearsal in a clean Laravel app
+        run: bash bin/consumer-fixture.sh relocated-audit --laravel="$LARAVEL"
+
+  all:
+    name: Tests · all lanes
+    if: always()
+    needs: [test, test-db-matrix, test-replica, test-redis, coverage, consumer-fixture]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Fail unless every required job succeeded
+        env:
+          RESULTS: ${{ join(needs.*.result, ' ') }}
+        run: |
+          set -Eeuo pipefail
+          for result in $RESULTS; do
+            [[ "$result" == success ]] || { echo "::error::a required job ended with $result"; exit 1; }
+          done

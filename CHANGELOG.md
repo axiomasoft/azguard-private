@@ -55,6 +55,9 @@ The release SHA will be selected after the remaining code and qualification work
 ### Changed
 
 - Qualification preflight emits the versioned `azguard.qualification.preflight.v1` JSON baseline, verifies SQLite migrations in memory, and checks owned test stands and server migration state. Redis namespace remains a separate runtime gate; retain the report alongside qualification evidence.
+
+- **core:** `azguard:doctor` reports a missing `catalog.build_id` in production as an error (not a warning) when the
+  catalog cache file exists or a panel uses a persistent cache store; the check key and finding id are unchanged.
 - **core, filament:** Laravel 11 is no longer supported; the packages require Laravel 12 or 13 (`illuminate/*` `^12.0|^13.0`).
   The Laravel 11 fallbacks of the contract kit and the optimize registration are removed.
 - **core:** `StorageDescriptor::$connection` is the name of the connection the storage resolved to (`string`, no longer
@@ -99,7 +102,7 @@ The release SHA will be selected after the remaining code and qualification work
 
 ## [1.0.0] - 2026-10-14
 
-The first public release of `axiomasoft/azguard` and `axiomasoft/azguard-filament`. Requires PHP 8.3–8.5 and Laravel 11–13; the Filament package requires Filament 5.
+The first public release of `axiomasoft/azguard` and `axiomasoft/azguard-filament`. Requires PHP 8.3–8.5 and Laravel 12–13; the Filament package requires Filament 5.
 
 ### Stability
 

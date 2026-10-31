@@ -73,6 +73,17 @@ per scenario (30 for the slow ones).
   machine change them. Compare a change against `main` on the same machine.
 - **Other databases.** `DB_CONNECTION=pgsql composer bench` uses the test databases of the suite.
 
+## Sizing caveats
+
+- The table above is one run on one host: SQLite in memory, OPcache off, one process. A real database server adds the
+  network round trip to every query, and the SQL count per operation is the number to plan with.
+- Writes to one panel are serialized through its `panel_state` row. Plan bulk imports away from interactive edits, or run
+  them in batches (see [Consistency](/advanced/consistency)).
+- `visibleTo()` runs a fixed number of queries but the database still evaluates the grant witnesses per row: measure it on
+  your table sizes with `composer bench:load`, and note the rules that make a list unsupported
+  ([Checking access](/guides/checking-access#filtering-lists)).
+- A cold cache costs the full set of queries once per request; the first request after a deploy or a `touch` pays it.
+
 ## Load bench
 
 `composer bench:load` runs `bench/`: forked workers call the API at the same time against one database, with tiers

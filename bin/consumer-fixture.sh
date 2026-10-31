@@ -4,7 +4,12 @@
 # then install its schema and test real HTTP requests and RefreshDatabase grants/cache.
 #
 #   bash bin/consumer-fixture.sh [core-only|relocated-audit] [--laravel=13] [--version=1.0.0] [--with-filament] [--keep]
-#                                [--report=FILE]
+#                                [--report=FILE] [--source=archive|packagist]
+#
+# `--source=packagist --version=V` installs the published packages from Packagist instead of the archives built from this
+# checkout (default `--source=archive`): the same scenarios on a clean application, for the post-release verification.
+# It needs `--version`, does not build or consume build/dist, and does not combine with core-only or relocated-audit,
+# which repackage the archive.
 #
 # `core-only` builds the core archive WITHOUT its modules/ directory (providers and PSR-4 reduced to core), installs it
 # and proves that the application boots, migrates, passes the doctor, grants a role and answers a check with no module.
@@ -27,16 +32,19 @@ with_filament=0
 keep=0
 mode="full"
 report=""
+source="archive"
+version_given=0
 
 usage() {
-    echo "usage: consumer-fixture.sh [core-only|relocated-audit] [--laravel=N] [--version=V] [--with-filament] [--keep] [--report=FILE]" >&2
+    echo "usage: consumer-fixture.sh [core-only|relocated-audit] [--laravel=N] [--version=V] [--with-filament] [--keep] [--report=FILE] [--source=archive|packagist]" >&2
     exit 2
 }
 
 for arg in "$@"; do
     case "${arg}" in
         --laravel=*) laravel="${arg#*=}" ;;
-        --version=*) version="${arg#*=}" ;;
+        --version=*) version="${arg#*=}"; version_given=1 ;;
+        --source=archive | --source=packagist) source="${arg#*=}" ;;
         --with-filament) with_filament=1 ;;
         --keep) keep=1 ;;
         --report=?*) report="${arg#*=}" ;;
@@ -49,6 +57,17 @@ done
 if [[ "${mode}" != "full" ]] && ((with_filament)); then
     echo "error: ${mode} installs the core archive alone; --with-filament does not combine with it" >&2
     exit 2
+fi
+
+if [[ "${source}" == "packagist" ]]; then
+    if ((version_given == 0)); then
+        echo "error: --source=packagist needs --version=<released version>" >&2
+        exit 2
+    fi
+    if [[ "${mode}" != "full" ]]; then
+        echo "error: ${mode} rehearses a repackaged archive; it does not combine with --source=packagist" >&2
+        exit 2
+    fi
 fi
 
 if [[ -n "${report}" && "${mode}" != "relocated-audit" ]]; then
@@ -132,6 +151,14 @@ install_archives() {
     fi
 
     cd "${work}/app"
+    if [[ "${source}" == "packagist" ]]; then
+        # A pre-release resolves only when the stability allows it; the dev stability keeps prefer-stable for the rest.
+        composer config minimum-stability dev
+        composer config prefer-stable true
+        log "requiring from Packagist: ${packages[*]}"
+        composer require "${packages[@]}" --no-interaction --no-progress
+        return
+    fi
     composer config minimum-stability dev
     composer config prefer-stable true
     composer config repositories.azguard artifact "${dist}"
@@ -531,7 +558,9 @@ filament_step() {
 }
 
 check_network
-build_archives
+if [[ "${source}" == "archive" ]]; then
+    build_archives
+fi
 create_app
 install_archives
 smoke

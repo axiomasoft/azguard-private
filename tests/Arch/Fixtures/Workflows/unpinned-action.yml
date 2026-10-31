@@ -1,0 +1,22 @@
+# Negative fixture for rule unpinned-action: valid except for this one rule. Not under .github/, so GitHub never runs it.
+name: Fixture
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+defaults:
+  run:
+    shell: bash
+
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false

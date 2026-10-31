@@ -81,7 +81,7 @@ contract.
 | `audit.table` | error | The audit plugin has no storing source, or its `audit_log` table is missing or differs from the audit schema |
 | `cache.store` | error | A panel specifies a store without a TTL; details no longer include the store name |
 | `cache.integrity` | error or warning | Finding IDs `cache.signing` (error in production, warning otherwise), `cache.memory` (error), `cache.ttl`, `cache.transport` and `cache.redis` (warnings) describe signing, limits, transport and external Redis verification |
-| `catalog.build_id` | warning | `catalog.build_id` is not set |
+| `catalog.build_id` | warning, error | `catalog.build_id` is not set (production); error for a cached catalog or persistent panel cache |
 | `catalog.cached` | warning | There is no catalog cache, or it does not hold the current catalog |
 | `catalog.collisions` | error | Permissions created at run time collide with the permissions of the catalog |
 | `config.valid` | error | The AzGuard configuration does not load, or names a storage connection that does not exist |

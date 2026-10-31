@@ -1,0 +1,18 @@
+rules:
+  - id: azguard.dynamic-code
+    languages: [php]
+    severity: ERROR
+    message: >-
+      Dynamic code execution or a process call. The package computes decisions from data only: replace it with a
+      declarative table, a closure or a typed contract; a process call has no place in the runtime.
+    pattern-either:
+      - pattern: eval(...)
+      - pattern: assert("...")
+      - pattern: assert($A . $B)
+      - pattern: create_function(...)
+      - pattern: exec(...)
+      - pattern: shell_exec(...)
+      - pattern: system(...)
+      - pattern: passthru(...)
+      - pattern: proc_open(...)
+      - pattern: popen(...)

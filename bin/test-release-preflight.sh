@@ -67,6 +67,29 @@ git -C "$fixture" commit --quiet -m 'fixture: prerelease heading'
 expect_pass 1.0.0-rc.1
 expect_fail 1.0.0
 
+# A pre-release falls back to the stable heading when it has none of its own.
+cat > "$fixture/CHANGELOG.md" <<'EOF'
+# Changelog
+
+## [1.0.0] - 2026-09-23
+EOF
+git -C "$fixture" add CHANGELOG.md
+git -C "$fixture" commit --quiet -m 'fixture: stable heading only'
+expect_pass 1.0.0-rc.1
+expect_pass 1.0.0-rc.2
+expect_pass 1.0.0
+expect_fail 1.0.1-rc.1
+
+# A pre-release with neither its own heading nor the stable one fails.
+cat > "$fixture/CHANGELOG.md" <<'EOF'
+# Changelog
+
+## [0.9.0] - 2026-09-01
+EOF
+git -C "$fixture" add CHANGELOG.md
+git -C "$fixture" commit --quiet -m 'fixture: neither heading'
+expect_fail 1.0.0-rc.1
+
 git -C "$fixture" rm --quiet CHANGELOG.md
 git -C "$fixture" commit --quiet -m 'fixture: missing changelog'
 expect_fail 1.0.0

@@ -9,8 +9,7 @@ vendor/
 .php-cs-fixer.cache
 .phpunit.result.cache
 .pestphp-laravel-unit-test-result-cache
-composer.lock
-!/composer.lock
+packages/*/composer.lock
 
 # Инструменты качества
 .rector_cache/
@@ -55,4 +54,7 @@ AGENTS.md
 # Raw samples and the SQLite file of the load bench
 /bench/.runs/
 .phpunit.mutation.*.xml
+# Pinned security tools (bin/security-tools.sh)
+var/tools/
+
 plans/*/artifacts/**/*.jsonl

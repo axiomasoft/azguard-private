@@ -135,6 +135,7 @@ final readonly class GrantInspection
             $query = $this->partition($kind, $tenant, $origin);
             $this->state($query, $kind, $tenant, $origin, GrantFilter::ORPHANED, $now);
 
+            // nosemgrep: azguard.raw-sql-interpolation -- $kind comes from the literal list ['role', 'permission'] of the enclosing foreach, never from input
             foreach ($query->selectRaw($kind.' as name, count(*) as aggregate')->groupBy($kind)->orderBy($kind)->get() as $row) {
                 $found[$kind][Narrow::string($row->name, $kind)] = Narrow::int($row->aggregate, 'aggregate');
             }

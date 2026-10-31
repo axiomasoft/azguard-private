@@ -135,6 +135,10 @@ FILAMENT_KEEP_INTERNAL = {'Resources\\PermissionGrantResource\\Pages\\ListPermis
                           'Resources\\RoleResource\\Pages\\ViewRole'}
 
 NEW = [
+    ('core', 'AzGuard\\Diagnostics\\Internal\\Checks\\CacheIntegrity', 'class', INTERNAL, 'P3', 'cache integrity doctor check'),
+    ('filament', 'AzGuard\\Filament\\Internal\\Authorization\\RefusesSurfaceCalls', 'class', INTERNAL, 'P4', 'surface authorization guard'),
+    ('filament', 'AzGuard\\Filament\\Internal\\Exports\\ChecksPrepareCsvExport', 'class', INTERNAL, 'P4', 'export preparation guard'),
+    ('filament', 'AzGuard\\Filament\\Internal\\Exports\\RefusesUnverifiableDownload', 'class', INTERNAL, 'P4', 'download authorization guard'),
     # (owner, fqcn, kind, marker, phase, reason)
     ('core', 'AzGuard\\Roles\\SelectsAutomaticRoleScopes', 'interface', IMPL, 'P2', 'optional exact selection capability for automatic roles (PLAN2 P2.1)'),
     ('core', 'AzGuard\\Authorization\\Internal\\ContributionQualifier', 'class', INTERNAL, 'P2', 'shared role contribution qualification (PLAN2 P2.1)'),

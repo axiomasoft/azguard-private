@@ -1,0 +1,28 @@
+rules:
+  - id: azguard.grant-table-outside-storage
+    languages: [php]
+    severity: ERROR
+    paths:
+      include:
+        - packages/filament/src/
+        - packages/core/src/Laravel/
+        - packages/core/src/Http/
+        - packages/core/src/Concerns/
+        - packages/core/src/Facades/
+        - .semgrep/tests/grant-table-outside-storage.php
+    message: >-
+      The grant tables and the `Storage\Internal` classes belong to the storage layer. Read and write grants through
+      the public API (`AzGuard`, the change pipeline, the directories), never by table name or internal class.
+    pattern-either:
+      - patterns:
+          - pattern-either:
+              - pattern: DB::table($T, ...)
+              - pattern: $Q->table($T, ...)
+              - pattern: $Q->from($T, ...)
+              - pattern: Schema::$M($T, ...)
+          - metavariable-regex:
+              metavariable: $T
+              regex: '.*(role_grants|permission_grants|panel_state)'
+      - pattern-regex: '(?m)^[ \t]*use[ \t]+\\?AzGuard\\Storage\\Internal\\'
+      - pattern-regex: '\\AzGuard\\Storage\\Internal\\\w+(::|\()'
+      - pattern-regex: '\bnew\s+\\?AzGuard\\Storage\\Internal\\'

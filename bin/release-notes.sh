@@ -6,11 +6,19 @@ set -euo pipefail
 version="${1:?usage: release-notes.sh VERSION GIT_REF}"
 ref="${2:?usage: release-notes.sh VERSION GIT_REF}"
 
-notes="$(git show "${ref}:CHANGELOG.md" | awk -v heading="## [${version}]" '
-    /^[[:space:]]*(```|~~~)/ { fenced = !fenced }
-    !fenced && /^## \[/ { if (inside) exit; if (index($0, heading) == 1) { inside = 1; next } }
-    inside { print }
-')"
+section() {
+    git show "${ref}:CHANGELOG.md" | awk -v heading="$1" '
+        /^[[:space:]]*(```|~~~)/ { fenced = !fenced }
+        !fenced && /^## \[/ { if (inside) exit; if (index($0, heading) == 1) { inside = 1; next } }
+        inside { print }
+    '
+}
+
+# A pre-release X.Y.Z-<pre> takes its own section, else the section of the stable version X.Y.Z.
+notes="$(section "## [${version}]")"
+if [[ -z "${notes//[[:space:]]/}" && "${version}" == *-* ]]; then
+    notes="$(section "## [${version%%-*}]")"
+fi
 
 if [[ -z "${notes//[[:space:]]/}" ]]; then
     echo "error: ${ref}:CHANGELOG.md has an empty or missing section ${version}" >&2

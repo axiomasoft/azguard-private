@@ -162,7 +162,7 @@ Paths are relative to the repository root. Method names identify enforcement, no
 - **Enforcement:** `ChangePipeline::operate()` and
   `packages/core/src/Changes/Internal/ChangeValidator.php::finalize()` protect mutation structure and target
   validity. `packages/core/src/Changes/Internal/ActingActor.php::resolve()` supplies attribution. Neither
-  constitutes a universal actor authorization gate. The [executable host service](../../tests/Fixtures/Changes/AuthorizedRoleAssignments.php)
+  constitutes a universal actor authorization gate. The executable host service `tests/Fixtures/Changes/AuthorizedRoleAssignments.php`
   illustrates the D8 boundary; low-level APIs remain trusted backend primitives. See the
   [assignment authorization guide](../guides/managing-grants.md) for its policy and integration duties.
 - **Bypass and interference:** exposing `grantRole()` or managers directly, trusting an HTTP actor field,
@@ -206,3 +206,23 @@ Paths are relative to the repository root. Method names identify enforcement, no
 When adding a source, writer or host entry point, identify the invariant it could bypass and the competing
 operation it must coordinate with. Missing or skipped engine/Redis/replica evidence leaves that obligation
 unqualified; a passing documentation build does not establish application security.
+
+## Incident response
+
+1. Acknowledge the report within 2 business days and open a private advisory draft.
+2. Reproduce, classify the severity and triage critical and high reports within 3 business days.
+3. Fix in a private branch; add a failing test first.
+4. Release a patch on every supported line, then publish the advisory.
+5. Rotate any credential that could have been exposed; never rewrite a published tag.
+
+## Emergency release
+
+Use this checklist when a fix must ship outside the normal cadence.
+
+1. Confirm the vulnerable range and the supported lines it touches.
+2. Prepare the fix on a private branch attached to the advisory; keep the change minimal.
+3. Run the full qualification on the exact commit that will be tagged.
+4. Tag the patch release from the protected branch; the release workflow publishes the split repositories.
+5. Verify the Packagist versions and a clean install on supported Laravel versions.
+6. Publish the advisory, update `CHANGELOG.md`, and mark the vulnerable releases as superseded.
+7. If the release itself is faulty, supersede it with a new patch release; never move or delete a tag.

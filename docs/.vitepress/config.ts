@@ -55,6 +55,7 @@ const sidebar = [
       { text: 'Exceptions', link: '/reference/exceptions' },
       { text: 'Machine formats', link: '/reference/formats' },
       { text: 'Compatibility', link: '/reference/compatibility' },
+      { text: 'Release evidence', link: '/reference/release-evidence' },
     ],
   },
   {
@@ -64,8 +65,9 @@ const sidebar = [
       { text: 'Hooks and plugins', link: '/advanced/hooks-and-plugins' },
       { text: 'Performance', link: '/advanced/performance' },
       { text: 'Consistency', link: '/advanced/consistency' },
-      { text: 'Security and trust model', link: '/advanced/security' },
+      { text: 'Production', link: '/advanced/production' },
       { text: 'Operations', link: '/advanced/operations' },
+      { text: 'Security', link: '/advanced/security' },
     ],
   },
   {

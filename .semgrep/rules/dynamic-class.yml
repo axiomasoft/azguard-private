@@ -1,0 +1,41 @@
+rules:
+  - id: azguard.dynamic-class
+    languages: [php]
+    severity: ERROR
+    message: >-
+      A class name from `config()`, `request()` or an HTTP request input reaches `new $class` or `$class::method()` without a
+      guard. Check it with `is_a($class, Expected::class, true)`, `is_subclass_of()` or `class_exists()` in the same function.
+    patterns:
+      - pattern-either:
+          - pattern: new $C(...)
+          - pattern: new $C
+          - pattern: $C::$M(...)
+      - metavariable-regex:
+          metavariable: $C
+          regex: '^\$\w+$'
+      - pattern-either:
+          - pattern-inside: |
+              $C = config(...);
+              ...
+          - pattern-inside: |
+              $C = request(...);
+              ...
+          - patterns:
+              - pattern-inside: |
+                  $C = $REQUEST->$METHOD(...);
+                  ...
+              - metavariable-regex:
+                  metavariable: $REQUEST
+                  regex: '^\$request$'
+              - metavariable-regex:
+                  metavariable: $METHOD
+                  regex: '^(input|query|post|get|string|str|all|only|json|header|cookie|collect|validated|safe)$'
+      - pattern-not-inside: |
+          if (<... is_a($C, ...) ...>) { ... }
+          ...
+      - pattern-not-inside: |
+          if (<... is_subclass_of($C, ...) ...>) { ... }
+          ...
+      - pattern-not-inside: |
+          if (<... class_exists($C, ...) ...>) { ... }
+          ...

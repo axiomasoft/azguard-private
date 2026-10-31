@@ -74,6 +74,7 @@
         "mutate": "bash bin/mutation-gate.sh",
         "mutate:core": "bash bin/mutation-gate.sh core",
         "mutate:filament": "bash bin/mutation-gate.sh filament",
+        "mutate:critical": "bash bin/mutation-gate.sh critical",
         "bench": "php -d memory_limit=2G tests/Benchmarks/Suite.php --markdown",
         "bench:load": [
             "Composer\\Config::disableProcessTimeout",
@@ -110,7 +111,8 @@
     "scripts-descriptions": {
         "check": "Run required local gates: style, static analysis, Rector, API manifest and compatibility, type coverage, tests and line coverage. Mutation is optional. Fails on a skipped test or a missing coverage driver (opt out only with AZGUARD_ALLOW_NO_COVERAGE=1).",
         "fix": "Auto-fix code style (Pint) and apply Rector refactorings.",
-        "mutate": "Run per-package native Pest mutation testing against fresh coverage (all packages, or pass core|filament).",
+        "mutate": "Run per-package native Pest mutation testing against fresh coverage (all packages, or pass core|filament|critical).",
+        "mutate:critical": "Release-blocking mutation testing of the decision kernel and its guards (every covered mutant killed).",
         "check:coverage": "Line coverage gate (--min=85) with an unlimited memory limit.",
         "bench": "Reproducible micro-benchmarks; prints a Markdown table (AZGUARD_BENCH_SAMPLES, default 300).",
         "bench:load": "Load bench (bench/README.md)",

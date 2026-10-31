@@ -33,6 +33,7 @@ use AzGuard\Sources\SourceManager;
 use AzGuard\Storage\Internal\StorageRegistry;
 use AzGuard\Storage\StorageDescriptor;
 use AzGuard\Support\ModelKey;
+// nosemgrep: azguard.testing-fake-in-runtime -- AzGuard::fake() is the documented test entry point; the fake is built only when a test calls it
 use AzGuard\Testing\AzGuardFake;
 use Closure;
 use Illuminate\Auth\Access\AuthorizationException;

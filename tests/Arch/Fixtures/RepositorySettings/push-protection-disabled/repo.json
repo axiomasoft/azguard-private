@@ -1,0 +1,11 @@
+{
+  "full_name": "axiomasoft/azguard-private",
+  "security_and_analysis": {
+    "secret_scanning": {
+      "status": "enabled"
+    },
+    "secret_scanning_push_protection": {
+      "status": "disabled"
+    }
+  }
+}

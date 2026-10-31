@@ -1,0 +1,13 @@
+# Owner of every path; the sensitive paths are listed again so that a later broader pattern cannot drop them.
+*                                   @academici
+/.github/                           @academici
+/compatibility.json                 @academici
+/bin/api-*                          @academici
+/bin/release-*                      @academici
+/RELEASING.md                       @academici
+/SECURITY.md                        @academici
+/packages/core/database/            @academici
+/packages/core/src/Authorization/   @academici
+/packages/core/src/Changes/         @academici
+/packages/core/src/Storage/         @academici
+/packages/filament/src/             @academici

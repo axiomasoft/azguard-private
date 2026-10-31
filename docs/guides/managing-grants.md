@@ -4,8 +4,8 @@ Grant and revoke methods are trusted backend writes. They validate the change, b
 the caller may manage another user's roles. Authenticate and authorize on the server for **each** operation,
 including direct HTTP, Livewire and Filament calls. Hiding an action in the UI is not authorization.
 
-The executable [host service example](../../tests/Fixtures/Changes/AuthorizedRoleAssignments.php) and its
-[tests](../../tests/Feature/Changes/AuthorizedAssignmentsExampleTest.php) use the CRM fixture's policy:
+The executable host service example `tests/Fixtures/Changes/AuthorizedRoleAssignments.php` and its
+tests in `tests/Feature/Changes/AuthorizedAssignmentsExampleTest.php` use the CRM fixture's policy:
 an authenticated project tenant-admin may grant or revoke only `analyst`, only for another member of the
 same tenant, and only in an active project the actor manages. The service reloads the actor, target, tenant
 and project, checks membership, the exact role and project, and the actor's current authority before calling
