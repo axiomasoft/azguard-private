@@ -98,7 +98,9 @@ trait SourceContractTests
      * Optional finite resource universe: each callback returns resource-id => allowed (including denied resources).
      * The visibility callback may instead throw VisibilityNotSupportedException for an unsupported runtime.
      *
-     * @return array{scalar: callable(): array, batch: callable(): array, visibility: callable(): array, supported: bool}|null
+     * `expected` optionally supplies an independent resource-id => boolean oracle, including tenant/context denials.
+     *
+     * @return array{scalar: callable(): array, batch: callable(): array, visibility: callable(): array, supported: bool, expected?: array}|null
      */
     protected function azguardQueryParity(): ?array
     {
@@ -116,14 +118,33 @@ trait SourceContractTests
         $this->azguardAssertQueryParity($case);
     }
 
-    /** @param array{scalar: callable(): array, batch: callable(): array, visibility: callable(): array, supported: bool} $case */
+    /** @param array{scalar: callable(): array, batch: callable(): array, visibility: callable(): array, supported: bool, expected?: array} $case */
     private function azguardAssertQueryParity(array $case): void
     {
         $scalar = ($case['scalar'])();
         $batch = ($case['batch'])();
+        foreach ($scalar as $allowed) {
+            $this->assertIsBool($allowed, 'Scalar parity results must be booleans.');
+        }
+        foreach ($batch as $allowed) {
+            $this->assertIsBool($allowed, 'Batch parity results must be booleans.');
+        }
+
+        if (isset($case['expected'])) {
+            $this->assertSameSize($case['expected'], $scalar, 'Scalar decisions differ from the expected authority.');
+            foreach ($case['expected'] as $id => $allowed) {
+                $this->assertIsBool($allowed, 'Expected parity results must be booleans.');
+                $this->assertArrayHasKey($id, $scalar, 'Scalar decisions differ from the expected authority.');
+                $this->assertSame($allowed, $scalar[$id], 'Scalar decisions differ from the expected authority.');
+            }
+        }
         $this->assertContains(true, $scalar, 'The parity universe must contain an allowed resource.');
         $this->assertContains(false, $scalar, 'The parity universe must contain a denied resource.');
-        $this->assertEquals($scalar, $batch, 'Batch decisions differ from scalar decisions.');
+        $this->assertSameSize($scalar, $batch, 'Batch decisions differ from scalar decisions.');
+        foreach ($scalar as $id => $allowed) {
+            $this->assertArrayHasKey($id, $batch, 'Batch decisions differ from scalar decisions.');
+            $this->assertSame($allowed, $batch[$id], 'Batch decisions differ from scalar decisions.');
+        }
 
         try {
             $visible = ($case['visibility'])();
@@ -134,7 +155,11 @@ trait SourceContractTests
         }
 
         $this->assertTrue($case['supported'], 'An unsupported visibility case returned a result.');
-        $this->assertEquals($scalar, $visible, 'Visibility differs from scalar decisions.');
+        $this->assertSameSize($scalar, $visible, 'Visibility differs from scalar decisions.');
+        foreach ($scalar as $id => $allowed) {
+            $this->assertArrayHasKey($id, $visible, 'Visibility differs from scalar decisions.');
+            $this->assertSame($allowed, $visible[$id], 'Visibility differs from scalar decisions.');
+        }
     }
 
     public function fencedAuthorityChangesItsStateOnlyOnMutation(): void

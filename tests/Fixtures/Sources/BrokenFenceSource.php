@@ -20,7 +20,11 @@ final class BrokenFenceSource implements FencesReads, ProvidesGrants
 {
     private bool $granted = false;
 
-    public function __construct(private readonly bool $drift = false) {}
+    public int $stateCalls = 0;
+
+    public int $grantCalls = 0;
+
+    public function __construct(private readonly bool $drift = false, private readonly ?string $changing = null) {}
 
     public function id(): string
     {
@@ -34,7 +38,10 @@ final class BrokenFenceSource implements FencesReads, ProvidesGrants
 
     public function state(Panel $panel, TenantRef $tenant): StateToken
     {
-        return StateToken::of('broken', $panel->id(), 'root', 0, 0, 'code');
+        $step = ++$this->stateCalls;
+
+        return StateToken::of('broken', $panel->id(), $this->changing === 'incarnation' ? 'root-'.$step : 'root', 0, 0, 'code',
+            epoch: $this->changing === 'epoch' ? $step : 0);
     }
 
     public function mutate(string $operation): void
@@ -44,6 +51,8 @@ final class BrokenFenceSource implements FencesReads, ProvidesGrants
 
     public function grants(SubjectRef $subject, array $scopes, EvaluationContext $context): iterable
     {
+        $this->grantCalls++;
+
         if ($this->drift) {
             $this->granted = ! $this->granted;
         }

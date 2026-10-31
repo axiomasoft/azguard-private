@@ -42,7 +42,8 @@ callbacks. Each returns the same non-empty resource-id to boolean map, including
 callback may throw `VisibilityNotSupportedException` for an unsupported runtime. Use a fixture containing both
 allowed and denied resources; the contract compares results and catches incomplete selections, but cannot infer
 whether a chosen universe exercises all of an application's scopes or adapters. Without this hook the parity branch
-is not run.
+is not run. Supply an independent `expected` resource-id to boolean map to catch cases where scalar, batch and
+visibility agree on the same wrong answer, including tenant and context leaks. All results must be actual booleans.
 
 Membership and other host data used by a Stable source must also be covered by its token. Otherwise declare the
 source Volatile and test that changes are seen without caching. A source author should exercise tenant and context

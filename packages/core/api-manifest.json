@@ -31676,7 +31676,7 @@
                     "returnsReference": false,
                     "namedArguments": true,
                     "contracts": [
-                        "@return array{scalar: callable(): array, batch: callable(): array, visibility: callable(): array, supported: bool}|null"
+                        "@return array{scalar: callable(): array, batch: callable(): array, visibility: callable(): array, supported: bool, expected?: array}|null"
                     ]
                 },
                 {
