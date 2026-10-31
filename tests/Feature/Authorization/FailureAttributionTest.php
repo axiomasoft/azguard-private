@@ -78,6 +78,15 @@ it('attributes a later contribution failure to its source', function (): void {
     expect($decision->reason)->toBe(DecisionReason::SourceError)->and($decision->component)->toBe(AttributionBrokenSource::class);
 });
 
+it('attributes an invalid earlier contribution to its own source after all sources are read', function (): void {
+    [$engine, $panel, $request] = AuthorizationWorld::compile(
+        new AttributionBrokenSource(name: 'broken', direct: [AuthorizationWorld::grant(panel: 'other')]),
+        extra: [new GeneratedSource(direct: [AuthorizationWorld::grant()])],
+    );
+    $decision = $engine->decide($panel, $request);
+    expect($decision->reason)->toBe(DecisionReason::SourceError)->and($decision->component)->toBe(AttributionBrokenSource::class);
+});
+
 it('attributes a condition failure on the second contribution', function (): void {
     $condition = new class implements GrantCondition
     {

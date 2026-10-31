@@ -115,7 +115,11 @@ final class DatabaseSource implements ChecksHealth, DescribesSchema, FencesReads
 
     private function bindContext(EvaluationContext $context): void
     {
-        $panel = $context->panel();
+        $this->bindPanelServices($context->panel());
+    }
+
+    private function bindPanelServices(Panel $panel): void
+    {
         $this->bindPanel($panel->id());
         $this->services ??= $panel->sourceContainer();
     }
@@ -305,7 +309,7 @@ final class DatabaseSource implements ChecksHealth, DescribesSchema, FencesReads
      */
     public function dynamicTenants(Panel $panel): array
     {
-        $this->bindPanel($panel->id());
+        $this->bindPanelServices($panel);
         $found = [];
         foreach ($this->resolvedStorage()->table('permissions')->where('panel', $panel->id())
             ->select('tenant_key', 'tenant_type', 'tenant_id')->distinct()->orderBy('tenant_key')->get() as $row) {
@@ -333,7 +337,7 @@ final class DatabaseSource implements ChecksHealth, DescribesSchema, FencesReads
      */
     public function orphanedGrants(Panel $panel, DateTimeImmutable $now): array
     {
-        $this->bindPanel($panel->id());
+        $this->bindPanelServices($panel);
         $storage = $this->resolvedStorage();
         $partitions = [];
         foreach (['role_grants', 'permission_grants'] as $table) {
@@ -366,7 +370,7 @@ final class DatabaseSource implements ChecksHealth, DescribesSchema, FencesReads
      */
     public function unacceptedSubjects(Panel $panel): array
     {
-        $this->bindPanel($panel->id());
+        $this->bindPanelServices($panel);
         $accepted = array_map(static fn (string $model): string => (new $model)->getMorphClass(), $panel->subjectModels());
         $found = [];
 
@@ -455,7 +459,7 @@ final class DatabaseSource implements ChecksHealth, DescribesSchema, FencesReads
 
     public function describe(Panel $panel, ?TenantRef $tenant = null): SourceDescription
     {
-        $this->bindPanel($panel->id());
+        $this->bindPanelServices($panel);
 
         return new SourceDescription(
             $this->id(),
@@ -502,7 +506,7 @@ final class DatabaseSource implements ChecksHealth, DescribesSchema, FencesReads
             throw new DefinitionException('Dynamic permissions require an explicit tenant.');
         }
 
-        $this->bindPanel($panel->id());
+        $this->bindPanelServices($panel);
         $session = $this->resolvedStorage()->readSession($panel->settings()->reads());
         $fingerprint = $this->services()->make(PanelRegistry::class)->fingerprint($panel->id());
         [, $rows] = $this->consistently($session, $panel, $fingerprint, fn (): array => $this->permissionRows($session, $panel, $tenant));
@@ -598,7 +602,7 @@ final class DatabaseSource implements ChecksHealth, DescribesSchema, FencesReads
      */
     public function withinAuthorityTransaction(Panel $panel, Closure $callback): mixed
     {
-        $this->bindPanel($panel->id());
+        $this->bindPanelServices($panel);
 
         return $this->resolvedStorage()->withinAuthorityTransaction($panel->id(), $callback);
     }
@@ -663,7 +667,7 @@ final class DatabaseSource implements ChecksHealth, DescribesSchema, FencesReads
      */
     public function afterCommit(Panel $panel, Closure $callback): void
     {
-        $this->bindPanel($panel->id());
+        $this->bindPanelServices($panel);
         $this->resolvedStorage()->mutation($panel->id())->afterCommit($callback);
     }
 
@@ -692,7 +696,7 @@ final class DatabaseSource implements ChecksHealth, DescribesSchema, FencesReads
      */
     public function mutation(Panel $panel): StorageMutation
     {
-        $this->bindPanel($panel->id());
+        $this->bindPanelServices($panel);
 
         return $this->resolvedStorage()->mutation($panel->id());
     }
@@ -715,7 +719,7 @@ final class DatabaseSource implements ChecksHealth, DescribesSchema, FencesReads
      */
     public function tenantsWithExpired(Panel $panel, ?TenantRef $tenant, DateTimeImmutable $now): array
     {
-        $this->bindPanel($panel->id());
+        $this->bindPanelServices($panel);
         $storage = $this->resolvedStorage();
         $found = [];
         foreach (['role_grants', 'permission_grants'] as $table) {
@@ -741,7 +745,7 @@ final class DatabaseSource implements ChecksHealth, DescribesSchema, FencesReads
      */
     public function tenantsHolding(Panel $panel, string $role): array
     {
-        $this->bindPanel($panel->id());
+        $this->bindPanelServices($panel);
         $found = [];
         foreach ($this->resolvedStorage()->table('role_grants')->where('panel', $panel->id())->where('role', $role)
             ->select('tenant_key', 'tenant_type', 'tenant_id')->distinct()->orderBy('tenant_key')->get() as $row) {
@@ -757,7 +761,7 @@ final class DatabaseSource implements ChecksHealth, DescribesSchema, FencesReads
      */
     public function countExpired(Panel $panel, ?TenantRef $tenant, DateTimeImmutable $now): int
     {
-        $this->bindPanel($panel->id());
+        $this->bindPanelServices($panel);
         $count = 0;
         foreach (['role_grants', 'permission_grants'] as $table) {
             $query = $this->resolvedStorage()->table($table)->where('panel', $panel->id())->whereNotNull('expires_at')
@@ -780,7 +784,7 @@ final class DatabaseSource implements ChecksHealth, DescribesSchema, FencesReads
      */
     public function holderCounts(Panel $panel, TenantRef $tenant, DateTimeImmutable $now): array
     {
-        $this->bindPanel($panel->id());
+        $this->bindPanelServices($panel);
         $storage = $this->resolvedStorage();
         $holders = $storage->table('role_grants')->where('panel', $panel->id())->where('tenant_key', $tenant->key())
             ->where(static fn (Builder $query): Builder => $query->whereNull('expires_at')
@@ -802,7 +806,7 @@ final class DatabaseSource implements ChecksHealth, DescribesSchema, FencesReads
      */
     public function grantOrigins(Panel $panel, TenantRef $tenant, SubjectRef $subject): array
     {
-        $this->bindPanel($panel->id());
+        $this->bindPanelServices($panel);
         $storage = $this->resolvedStorage();
         $origins = [];
         foreach (['role_grants', 'permission_grants'] as $table) {
@@ -864,7 +868,7 @@ final class DatabaseSource implements ChecksHealth, DescribesSchema, FencesReads
      */
     private function inspecting(Panel $panel, TenantRef $tenant, Closure $read): mixed
     {
-        $this->bindPanel($panel->id());
+        $this->bindPanelServices($panel);
         $storage = $this->resolvedStorage();
         $session = $storage->readSession(Reads::Primary);
         $registry = $this->services()->make(PanelRegistry::class);
@@ -890,7 +894,7 @@ final class DatabaseSource implements ChecksHealth, DescribesSchema, FencesReads
      */
     public function lockedReads(Panel $panel): LockedReads
     {
-        $this->bindPanel($panel->id());
+        $this->bindPanelServices($panel);
         $storage = $this->resolvedStorage();
 
         return new LockedReads($storage, $storage->mutation($panel->id()), $panel, $this->services()->make(PanelRegistry::class), $this->selectedModels, $this->dynamic);
@@ -915,7 +919,7 @@ final class DatabaseSource implements ChecksHealth, DescribesSchema, FencesReads
 
     public function state(Panel $panel, TenantRef $tenant): StateToken
     {
-        $this->bindPanel($panel->id());
+        $this->bindPanelServices($panel);
         $session = $this->resolvedStorage()->readSession($panel->settings()->reads());
 
         return $this->token($session, $panel, $this->services()->make(PanelRegistry::class)->fingerprint($panel->id()));
@@ -975,7 +979,7 @@ final class DatabaseSource implements ChecksHealth, DescribesSchema, FencesReads
     /** @internal Checks the models and fields of both assignment kinds before any read. */
     public function prepareAssignments(StorageReadSession $session, EvaluationContext $context): void
     {
-        $this->bindPanel($context->panel()->id());
+        $this->bindContext($context);
 
         if (! $this->onlyRoles) {
             $this->hydrator($session, 'permission_grant', $context);
@@ -992,7 +996,7 @@ final class DatabaseSource implements ChecksHealth, DescribesSchema, FencesReads
      */
     public function assignmentRows(StorageReadSession $session, EvaluationContext $context, SubjectRef $subject, array $scopes): array
     {
-        $this->bindPanel($context->panel()->id());
+        $this->bindContext($context);
         $rows = ['permission_grant' => [], 'role_grant' => []];
         foreach (['permission_grant', 'role_grant'] as $kind) {
             if ($kind === 'permission_grant' && $this->onlyRoles) {
@@ -1023,7 +1027,7 @@ final class DatabaseSource implements ChecksHealth, DescribesSchema, FencesReads
      */
     public function assignmentRowsMany(StorageReadSession $session, EvaluationContext $context, array $subjects, array $scopes): array
     {
-        $this->bindPanel($context->panel()->id());
+        $this->bindContext($context);
         $scopes = self::validatedScopes($scopes);
         $hostKeys = $this->resolvedStorage()->hostKeys();
         [$result, $byType] = [[], []];
@@ -1098,7 +1102,7 @@ final class DatabaseSource implements ChecksHealth, DescribesSchema, FencesReads
             throw new InvalidSourceContributionException('Selection permission belongs to another panel.');
         }
 
-        $this->bindPanel($context->panel()->id());
+        $this->bindContext($context);
 
         return $this->materializeSelection($this->resolvedStorage()->readSession($context instanceof EvaluationFrame ? $context->reads() : $context->panel()->settings()->reads()), $subject, $key, $contextType, $context)[1];
     }
@@ -1190,7 +1194,7 @@ final class DatabaseSource implements ChecksHealth, DescribesSchema, FencesReads
      */
     public function readConsistently(StorageReadSession $session, EvaluationContext $context, Closure $rows, ?StateToken $before = null, ?SubjectRef $subject = null): array
     {
-        $this->bindPanel($context->panel()->id());
+        $this->bindContext($context);
 
         return $this->consistently($session, $context->panel(), $context->state()->fingerprint(), $rows, $before, $subject);
     }
@@ -1201,7 +1205,7 @@ final class DatabaseSource implements ChecksHealth, DescribesSchema, FencesReads
      */
     public function readObserved(StorageReadSession $session, EvaluationContext $context, SubjectRef $subject): StateToken
     {
-        $this->bindPanel($context->panel()->id());
+        $this->bindContext($context);
 
         return $this->token($session, $context->panel(), $context->state()->fingerprint(), $subject);
     }
@@ -1217,7 +1221,7 @@ final class DatabaseSource implements ChecksHealth, DescribesSchema, FencesReads
     {
         $ids = [];
         foreach ($entries as $n => [$context, $subject]) {
-            $this->bindPanel($context->panel()->id());
+            $this->bindContext($context);
             $ids[$subject->type()][$n] = HostKeyColumns::canonical($this->resolvedStorage()->hostKeys(), $subject->id());
         }
         $tokens = [];

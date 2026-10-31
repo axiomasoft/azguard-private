@@ -87,3 +87,26 @@ it('uses panel services for an independently configured factory source with an e
         app(StorageSchema::class)->drop('default');
     }
 });
+
+it('binds independent sources through panel arguments for state and description', function (): void {
+    app(StorageSchema::class)->create('default');
+
+    try {
+        [$panel, $frame] = DatabaseWorld::compile(new class implements Source
+        {
+            public function id(): string
+            {
+                return 'read-only';
+            }
+        });
+        $stateSource = DatabaseSource::make();
+        $descriptionSource = DatabaseSource::make();
+        expect($stateSource->state($panel, $frame->scope()->tenant))->not->toBeNull()
+            ->and($descriptionSource->describe($panel)->id)->toBe($descriptionSource->id());
+        $other = new Panel('other', 'Other', false, $panel->settings(), [], []);
+        expect(fn () => $stateSource->state($other, $frame->scope()->tenant))->toThrow(DefinitionException::class)
+            ->and(fn () => $descriptionSource->describe($other))->toThrow(DefinitionException::class);
+    } finally {
+        app(StorageSchema::class)->drop('default');
+    }
+});

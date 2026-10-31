@@ -167,7 +167,13 @@ final readonly class AuthorityStage
         $component = 'sources';
 
         try {
-            $contributions = $frame->readAttempt?->contributions($request, $frame, $trace);
+            try {
+                $contributions = $frame->readAttempt?->contributions($request, $frame, $trace);
+            } catch (Throwable $error) {
+                $component = $frame->readAttempt?->currentSource() ?? 'sources';
+
+                throw $error;
+            }
 
             if ($frame->readAttempt !== null) {
                 $frame = $frame->readAttempt->consumedFrame($frame);
@@ -184,6 +190,7 @@ final readonly class AuthorityStage
                     }
                 }
             }
+            $component = 'sources';
             foreach ($contributions as [$source, $item]) {
                 $component = $source::class;
 
@@ -196,7 +203,6 @@ final readonly class AuthorityStage
                 }
             }
         } catch (Throwable $error) {
-            $component = $frame->readAttempt?->currentSource() ?? $component;
             $reason = $error instanceof ConsistencyException ? DecisionReason::ConsistencyError : DecisionReason::SourceError;
             $trace->error('sources', $reason->value, $component, $error);
 
