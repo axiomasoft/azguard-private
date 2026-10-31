@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace AzGuard\Authorization\Internal\Cache;
 
+use AzGuard\Configuration\Internal\CacheSigningConfig;
 use DateTimeImmutable;
 use DateTimeZone;
 use Illuminate\Contracts\Config\Repository;
-use Throwable;
 
 /** @internal Authenticates bounded, versioned raw contribution payloads before object construction. */
 final readonly class SignedEnvelope
@@ -21,53 +21,9 @@ final readonly class SignedEnvelope
 
     public static function fromConfig(Repository $config): ?self
     {
-        $namespace = $config->get('azguard.cache.namespace');
-        $active = $config->get('azguard.cache.key_id', 'active');
-        $secret = $config->get('azguard.cache.signing_key');
+        $signing = CacheSigningConfig::fromConfig($config);
 
-        if ($secret === null || $secret === '') {
-            $secret = $config->get('app.key');
-        }
-
-        if (! is_string($namespace) || $namespace === '' || strlen($namespace) > 255 || preg_match('//u', $namespace) !== 1 || ! is_string($active)
-            || preg_match('/\A[a-zA-Z0-9_.-]{1,64}\z/', $active) !== 1 || ! is_string($secret)) {
-            return null;
-        }
-        $key = self::key($secret);
-
-        if ($key === null) {
-            return null;
-        }
-        $keys = [$active => ['key' => $key, 'until' => null]];
-        $previous = $config->get('azguard.cache.previous_keys', []);
-
-        if (! is_array($previous)) {
-            return null;
-        }
-        foreach ($previous as $id => $entry) {
-            if (! is_string($id) || $id === $active || preg_match('/\A[a-zA-Z0-9_.-]{1,64}\z/', $id) !== 1
-                || ! is_array($entry) || ! is_string($entry['key'] ?? null) || ! is_string($entry['valid_until'] ?? null)) {
-                return null;
-            }
-            $oldKey = self::key($entry['key']);
-            $until = self::parseTime($entry['valid_until']);
-
-            if ($oldKey === null || $until === null) {
-                return null;
-            }
-            $keys[$id] = ['key' => $oldKey, 'until' => $until];
-        }
-
-        return new self($namespace, $active, $keys);
-    }
-
-    private static function key(string $secret): ?string
-    {
-        if (str_starts_with($secret, 'base64:')) {
-            $secret = base64_decode(substr($secret, 7), true);
-        }
-
-        return is_string($secret) && strlen($secret) >= 32 ? $secret : null;
+        return $signing === null ? null : new self($signing['namespace'], $signing['active'], $signing['keys']);
     }
 
     public function encode(string $key, string $payload, DateTimeImmutable $now, DateTimeImmutable $until): ?string
@@ -103,8 +59,8 @@ final readonly class SignedEnvelope
             return null;
         }
         $kid = $data['kid'];
-        $issued = self::parseTime($data['issuedAtUTC']);
-        $until = self::parseTime($data['validUntilUTC']);
+        $issued = CacheSigningConfig::parseTime($data['issuedAtUTC']);
+        $until = CacheSigningConfig::parseTime($data['validUntilUTC']);
 
         if (! isset($this->keys[$kid]) || $data['namespace'] !== $this->namespace
             || ! hash_equals(hash('sha256', $key), $data['keyDigest']) || $issued === null || $until === null
@@ -138,16 +94,5 @@ final readonly class SignedEnvelope
     private static function time(DateTimeImmutable $time): string
     {
         return $time->setTimezone(new DateTimeZone('UTC'))->format('Y-m-d\TH:i:s.u\Z');
-    }
-
-    private static function parseTime(string $value): ?DateTimeImmutable
-    {
-        try {
-            $date = DateTimeImmutable::createFromFormat('!Y-m-d\TH:i:s.u\Z', $value, new DateTimeZone('UTC'));
-
-            return $date !== false && self::time($date) === $value ? $date : null;
-        } catch (Throwable) {
-            return null;
-        }
     }
 }

@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace AzGuard\Sources\Database;
 
 use AzGuard\Attributes\Api;
-use AzGuard\Authorization\Internal\EvaluationFrame;
 use AzGuard\Catalog\Internal\PanelCatalog;
 use AzGuard\Catalog\PermissionDefinition;
 use AzGuard\Changes\Change;
@@ -49,6 +48,7 @@ use AzGuard\Kernel\Identity\PermissionPattern;
 use AzGuard\Kernel\Identity\SubjectRef;
 use AzGuard\Kernel\Identity\TenantRef;
 use AzGuard\Kernel\Internal\Narrow;
+use AzGuard\Kernel\Internal\PrimaryReadContext;
 use AzGuard\Panels\Internal\PanelRegistry;
 use AzGuard\Panels\Panel;
 use AzGuard\Panels\Reads;
@@ -519,7 +519,14 @@ final class DatabaseSource implements ChecksHealth, DescribesSchema, FencesReads
     {
         $this->bindContext($context);
 
-        return $this->resolvedStorage()->readSession($context instanceof EvaluationFrame ? $context->reads() : $context->panel()->settings()->reads());
+        return $this->resolvedStorage()->readSession($this->reads($context));
+    }
+
+    private function reads(EvaluationContext $context): Reads
+    {
+        return $context instanceof PrimaryReadContext && $context->requiresPrimary()
+            ? Reads::Primary
+            : $context->panel()->settings()->reads();
     }
 
     /** @internal Read both edges on the same attempt handle. */
@@ -956,7 +963,7 @@ final class DatabaseSource implements ChecksHealth, DescribesSchema, FencesReads
     public function readContributions(SubjectRef $subject, array $scopes, EvaluationContext $context): array
     {
         $this->bindContext($context);
-        [$state, $items] = $this->materializeAssignments($this->resolvedStorage()->readSession($context instanceof EvaluationFrame ? $context->reads() : $context->panel()->settings()->reads()), $context, $subject, $scopes);
+        [$state, $items] = $this->materializeAssignments($this->resolvedStorage()->readSession($this->reads($context)), $context, $subject, $scopes);
 
         return ['state' => $state, ...$items];
     }
@@ -1104,7 +1111,7 @@ final class DatabaseSource implements ChecksHealth, DescribesSchema, FencesReads
 
         $this->bindContext($context);
 
-        return $this->materializeSelection($this->resolvedStorage()->readSession($context instanceof EvaluationFrame ? $context->reads() : $context->panel()->settings()->reads()), $subject, $key, $contextType, $context)[1];
+        return $this->materializeSelection($this->resolvedStorage()->readSession($this->reads($context)), $subject, $key, $contextType, $context)[1];
     }
 
     /**

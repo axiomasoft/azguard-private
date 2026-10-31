@@ -19,6 +19,7 @@ use AzGuard\Kernel\Identity\ActorRef;
 use AzGuard\Kernel\Identity\AssignmentScopeRef;
 use AzGuard\Kernel\Identity\SubjectRef;
 use AzGuard\Kernel\Identity\TenantRef;
+use AzGuard\Kernel\Internal\PrimaryReadContext;
 use AzGuard\Panels\Panel;
 use AzGuard\Panels\Reads;
 use AzGuard\Roles\BaseRole;
@@ -27,7 +28,7 @@ use DateTimeImmutable;
 use Illuminate\Database\Eloquent\Model;
 
 /** Immutable operation inputs; a contribution receives its own frame. */
-final readonly class EvaluationFrame implements EvaluationContext
+final readonly class EvaluationFrame implements EvaluationContext, PrimaryReadContext
 {
     /** @param ?list<Grant> $matching `null` while a query is compiled: the set depends on the row, so it is not available
      * @param  array<string, StateToken>  $sourceStates
@@ -67,6 +68,11 @@ final readonly class EvaluationFrame implements EvaluationContext
     public function reads(): Reads
     {
         return $this->primaryRequested ? Reads::Primary : $this->selectedPanel->settings()->reads();
+    }
+
+    public function requiresPrimary(): bool
+    {
+        return $this->primaryRequested;
     }
 
     public function panel(): Panel

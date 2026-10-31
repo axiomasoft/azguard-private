@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use AzGuard\Authorization\Internal\Cache\SignedEnvelope;
+use AzGuard\Configuration\Internal\AzGuardConfig;
 use Illuminate\Config\Repository;
 
 function envelopeConfig(array $overrides = []): Repository
@@ -68,4 +69,20 @@ it('requires an explicit valid verification deadline for previous keys', functio
     [['key' => str_repeat('o', 32)]],
     [['key' => str_repeat('o', 32), 'valid_until' => 'invalid']],
     [['key' => str_repeat('o', 31), 'valid_until' => '2026-10-31T12:00:00.000000Z']],
+]);
+
+it('uses the same signing configuration for availability and envelope verification', function (array $overrides, bool $available): void {
+    $config = envelopeConfig($overrides);
+    $config->set('app.key', 'base64:'.base64_encode(str_repeat('a', 32)));
+
+    expect(AzGuardConfig::fromRepository($config)->cacheSigningAvailable())->toBe($available)
+        ->and(SignedEnvelope::fromConfig($config) !== null)->toBe($available);
+})->with([
+    'valid' => [[], true],
+    'app key fallback' => [['signing_key' => null], true],
+    'short key' => [['signing_key' => 'short'], false],
+    'invalid namespace' => [['namespace' => ''], false],
+    'invalid key id' => [['key_id' => 'bad id'], false],
+    'valid rotation' => [['previous_keys' => ['old' => ['key' => str_repeat('o', 32), 'valid_until' => '2026-10-31T12:00:00.000000Z']]], true],
+    'invalid rotation' => [['previous_keys' => ['old' => ['key' => str_repeat('o', 32), 'valid_until' => '2026-10-31T12:00:00Z']]], false],
 ]);

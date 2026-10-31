@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace AzGuard\Configuration\Internal;
 
-use AzGuard\Authorization\Internal\Cache\SignedEnvelope;
 use AzGuard\Configuration\ConfigSections;
 use AzGuard\Exceptions\InvalidConfigurationException;
 use Cron\CronExpression;
@@ -151,7 +150,7 @@ final readonly class AzGuardConfig
             self::flag('schedule.enabled', $schedule['enabled'] ?? true),
             self::frequencyFrom(array_key_exists('prune_expired', $schedule) ? $schedule['prune_expired'] : 'daily'),
             self::maxSetSubjectsFrom($sets['max_subjects'] ?? self::DEFAULT_MAX_SET_SUBJECTS),
-            SignedEnvelope::fromConfig($config) !== null,
+            CacheSigningConfig::fromConfig($config) !== null,
         );
     }
 
