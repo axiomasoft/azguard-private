@@ -290,7 +290,7 @@ final class ReadAttempt
 
                     continue;
                 }
-                $groups[$session->handleIdentity()][] = [$attempt, $source, $requests[0][0]->subject(), $requests];
+                $groups[$session->handleIdentity()."\0".$attempt->initial->reads()->value][] = [$attempt, $source, $requests[0][0]->subject(), $requests];
             }
         }
         foreach ($groups as $members) {
@@ -636,7 +636,7 @@ final class ReadAttempt
 
         if ($source instanceof DatabaseSource) {
             $this->sessions[$source->id()] = $this->shared === null ? $source->openReadSession($this->initial)
-                : $this->shared->get($source, $this->initial->panel(), fn (): StorageReadSession => $source->openReadSession($this->initial));
+                : $this->shared->get($source, $this->initial->panel(), $this->initial->reads(), fn (): StorageReadSession => $source->openReadSession($this->initial));
             $this->transaction ??= $this->sessions[$source->id()]->transaction();
         }
         $authority = $source instanceof DatabaseSource
@@ -646,7 +646,7 @@ final class ReadAttempt
         $partition = $source instanceof DatabaseSource ? null : $this->initial->scope()->tenant;
         $key = IdentityCodec::digest([$this->initial->panel()->id(), $this->initial->state()->fingerprint(),
             $this->initial->panel()->settings()->cacheGeneration(), $partition, $source::class, $source->id(),
-            $this->initial->panel()->settings()->reads()->value, $authority]);
+            $this->initial->reads()->value, $authority]);
         $this->stateKeys[$source->id()] = $key;
 
         if ($source instanceof DatabaseSource) {
@@ -704,7 +704,7 @@ final class ReadAttempt
         $authority ??= $source instanceof DatabaseSource ? $this->sessions[$source->id()]->authorityIdentity() : $source::class;
 
         return PermissionSetCache::key($state, $request->subject(), $frame->scope()->tenant, $frame->sourceScopes(),
-            $source::class.':'.$source->id(), $frame->panel()->settings()->reads()->value, $authority, $frame->panel()->settings()->cacheGeneration());
+            $source::class.':'.$source->id(), $frame->reads()->value, $authority, $frame->panel()->settings()->cacheGeneration());
     }
 
     /**

@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use AzGuard\Concerns\SubjectAccess;
 use AzGuard\Kernel\Decision\DecisionReason;
 use AzGuard\Panels\Reads;
 use AzGuard\Panels\StateRefresh;
@@ -12,7 +13,7 @@ use AzGuard\Tests\Fixtures\Authorization\Cache\CacheWorld;
 use AzGuard\Tests\Fixtures\Sources\Database\DatabaseWorld;
 use Illuminate\Database\Events\QueryExecuted;
 
-it('V46 R52 proves real paused-replay Default window and fresh Primary deny until catch-up LSN', function (): void {
+it('V46 R52 proves real paused-replay Default window and fresh Primary deny until catch-up LSN', function (StateRefresh $refresh): void {
     if (! getenv('AUTHORITY_REPLICA_TEST')) {
         $this->markTestSkipped('Run bash tests/Engines/Support/replica-fixture.sh against the authority-replica profile.');
     }
@@ -25,7 +26,7 @@ it('V46 R52 proves real paused-replay Default window and fresh Primary deny unti
         ReplicaStand::catchUp($replica, $primary->query('select pg_current_wal_flush_lsn()')->fetchColumn());
         $connection = DatabaseWorld::storage()->connection();
         $connection->setReadPdo($replica)->setRecordModificationState(true)->useWriteConnectionWhenReading();
-        [$engine, $panel] = CacheWorld::database(DatabaseSource::make(), StateRefresh::Check, reads: Reads::Default);
+        [$engine, $panel] = CacheWorld::database(DatabaseSource::make(), $refresh, reads: Reads::Default);
         $before = $engine->decide($panel, DatabaseWorld::request());
         expect($before->allowed())->toBeTrue();
         $replica->query('select pg_wal_replay_pause()');
@@ -53,9 +54,45 @@ it('V46 R52 proves real paused-replay Default window and fresh Primary deny unti
         expect($stale->allowed())->toBeTrue()->and($stale->state->equals($before->state))->toBeTrue()
             ->and($tables)->toContain('panel_state', 'permission_grants', 'role_grants');
         $connection->getEventDispatcher()->forget(QueryExecuted::class);
-        [$strict, $strictPanel] = CacheWorld::database(DatabaseSource::make(), StateRefresh::Check, reads: Reads::Primary);
-        $fresh = $strict->decide($strictPanel, DatabaseWorld::request());
+        $primaryPdo = $connection->getPdo();
+        expect($primaryPdo)->not->toBe($replica);
+        expect((bool) $primaryPdo->query('select pg_is_in_recovery()')->fetchColumn())->toBeFalse()
+            ->and((bool) $replica->query('select pg_is_in_recovery()')->fetchColumn())->toBeTrue();
+        $primaryTables = [];
+        $connection->listen(function (QueryExecuted $query) use (&$primaryTables, $primaryPdo): void {
+            if (preg_match('/azg_(panel_state|permission_grants|role_grants)["`]/', $query->sql, $m) && str_starts_with(strtolower(ltrim($query->sql)), 'select')) {
+                expect($query->connection->getPdo())->toBe($primaryPdo);
+                $primaryTables[] = $m[1];
+            }
+        });
+        $fresh = $engine->decide($panel, DatabaseWorld::request()->onPrimary());
         expect($fresh->reason)->toBe(DecisionReason::NotGranted)->and($fresh->state->version())->toBeGreaterThan($stale->state->version());
+        expect($primaryTables)->toContain('panel_state', 'permission_grants', 'role_grants');
+        $connection->getEventDispatcher()->forget(QueryExecuted::class);
+        $subject = new SubjectAccess($panel, DatabaseWorld::request()->subject());
+        expect($subject->hasPermission('documents.view'))->toBeTrue()
+            ->and($subject->onPrimary()->hasPermission('documents.view'))->toBeFalse()
+            ->and($subject->onPrimary()->abilities(['documents.view']))->toBe(['documents.view' => false])
+            ->and($subject->onPrimary()->permissionSet()->patterns())->toBeEmpty();
+        foreach ([false, true] as $primaryFirst) {
+            app()->forgetScopedInstances();
+            app('cache')->store('array')->clear();
+            $routes = [];
+            $connection->listen(function (QueryExecuted $query) use (&$routes, $primaryPdo, $replica): void {
+                if (preg_match('/azg_(panel_state|permission_grants)["`]/', $query->sql, $matches) && str_starts_with(strtolower(ltrim($query->sql)), 'select')) {
+                    $pdo = $query->connection->getPdo();
+                    expect(in_array($pdo, [$primaryPdo, $replica], true))->toBeTrue();
+                    $routes[$pdo === $primaryPdo ? 'primary' : 'replica'][] = $matches[1];
+                }
+            });
+            $request = DatabaseWorld::request();
+            $mixed = $engine->decideMany($primaryFirst ? [$request->onPrimary(), $request] : [$request, $request->onPrimary()]);
+            // Different revisions for the same panel cannot form one DecisionSet; both fail closed.
+            expect($mixed->get(0)->allowed())->toBeFalse()->and($mixed->get(1)->allowed())->toBeFalse()
+                ->and($routes['primary'] ?? [])->toContain('panel_state', 'permission_grants')
+                ->and($routes['replica'] ?? [])->toContain('panel_state', 'permission_grants');
+            $connection->getEventDispatcher()->forget(QueryExecuted::class);
+        }
         $replica->query('select pg_wal_replay_resume()');
         $paused = false;
         ReplicaStand::catchUp($replica, $lsn);
@@ -74,4 +111,4 @@ it('V46 R52 proves real paused-replay Default window and fresh Primary deny unti
         }
         CacheEngineWorld::clean();
     }
-})->group('replica', 'server-skip');
+})->with(['check refresh' => StateRefresh::Check, 'request refresh' => StateRefresh::Request])->group('replica', 'server-skip');

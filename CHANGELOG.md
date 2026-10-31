@@ -24,6 +24,8 @@ The release SHA will be selected after the remaining code and qualification work
 
 ### Upgrading to 2.0
 
+- Use `SubjectAccess::onPrimary()` or `AccessRequest::onPrimary()` for sensitive authority reads on replica-default panels. Reload host records from primary and keep `StateRefresh::Check`; coordinate concurrent revokes and host effects when atomicity is required.
+
 - Enforcing Filament panels require `consistency.reads: primary` for writes and exports. The shared export download
   route is refused, including for legacy exports and other panels, because it cannot reconstruct row authorization;
   applications replacing it must reauthorize the actor, original context and every exported record before download.

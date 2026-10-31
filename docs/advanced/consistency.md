@@ -76,6 +76,21 @@ Sensitive writes and exports must load host records **and** authority from prima
 `StateRefresh::Check`. Configuring primary authority reads alone does not refresh a host model loaded from
 a replica, and `StateRefresh::Request` can retain authority observed before a revoke in the same request.
 
+For a sensitive update, delete, role administration, export or download, select primary authority for each
+concrete check even when the panel defaults to replica reads:
+
+```php
+$record = Order::onWriteConnection()->findOrFail($id);
+$allowed = $access->onPrimary()->hasPermission('orders.update', $record);
+// Or pass $request->onPrimary() to the decision engine.
+```
+
+`onPrimary()` returns a new wrapper or request; it does not alter the panel or refresh a model already held by the
+caller. It selects the write PDO for the database source's state and grants and isolates its cache and request memo.
+Keep `StateRefresh::Check` for immediate revocation visibility even across repeated primary checks. Custom external
+sources provide their own transport and consistency contract; this override cannot force them onto a primary.
+Mixed-mode batches whose panel states differ fail closed under the DecisionSet consistency contract.
+
 ### Choosing primary or replica reads
 
 1. Does a user act on a grant or revoke they just made, or must a revoke take effect at once? Use

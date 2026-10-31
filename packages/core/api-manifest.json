@@ -4047,6 +4047,14 @@
                             "variadic": false,
                             "hasDefault": true,
                             "default": "'manual'"
+                        },
+                        {
+                            "name": "primaryRequested",
+                            "type": "bool",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "false"
                         }
                     ],
                     "return": null,
@@ -4498,6 +4506,18 @@
                         }
                     ],
                     "return": "bool",
+                    "returnsReference": false,
+                    "namedArguments": true,
+                    "contracts": []
+                },
+                {
+                    "name": "onPrimary",
+                    "visibility": "public",
+                    "static": false,
+                    "abstract": false,
+                    "final": false,
+                    "parameters": [],
+                    "return": "self",
                     "returnsReference": false,
                     "namedArguments": true,
                     "contracts": []
@@ -15974,6 +15994,18 @@
                     "contracts": []
                 },
                 {
+                    "name": "onPrimary",
+                    "visibility": "public",
+                    "static": false,
+                    "abstract": false,
+                    "final": false,
+                    "parameters": [],
+                    "return": "self",
+                    "returnsReference": false,
+                    "namedArguments": true,
+                    "contracts": []
+                },
+                {
                     "name": "permission",
                     "visibility": "public",
                     "static": false,
@@ -15981,6 +16013,18 @@
                     "final": false,
                     "parameters": [],
                     "return": "AzGuard\\Kernel\\Identity\\PermissionKey",
+                    "returnsReference": false,
+                    "namedArguments": true,
+                    "contracts": []
+                },
+                {
+                    "name": "requiresPrimary",
+                    "visibility": "public",
+                    "static": false,
+                    "abstract": false,
+                    "final": false,
+                    "parameters": [],
+                    "return": "bool",
                     "returnsReference": false,
                     "namedArguments": true,
                     "contracts": []

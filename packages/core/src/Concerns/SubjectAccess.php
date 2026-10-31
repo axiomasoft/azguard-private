@@ -78,6 +78,7 @@ final readonly class SubjectAccess
         private Model|SubjectRef $subject,
         private ?TenantRef $tenant = null,
         private string $origin = IdentityCodec::DEFAULT_ORIGIN,
+        private bool $primaryRequested = false,
     ) {
         if (! $panel->accepts($subject)) {
             throw new SubjectNotAcceptedException('The subject is not a subject of panel "'.$panel->id().'".');
@@ -98,13 +99,20 @@ final readonly class SubjectAccess
     /** The same subject, panel and tenant with changes and stored-grant lists in another origin. */
     public function fromOrigin(string $origin): self
     {
-        return new self($this->panel, $this->subject, $this->tenant, $origin);
+        return new self($this->panel, $this->subject, $this->tenant, $origin, $this->primaryRequested);
+    }
+
+    /** Read database authority from primary for this wrapper's checks. */
+    #[Api(since: '2.0')]
+    public function onPrimary(): self
+    {
+        return new self($this->panel, $this->subject, $this->tenant, $this->origin, true);
     }
 
     /** The same subject and panel in another tenant; this wrapper keeps its own tenant. */
     public function inTenant(Model|TenantRef $tenant): self
     {
-        return new self($this->panel, $this->subject, $tenant instanceof TenantRef ? $tenant : $this->tenantOf($tenant), $this->origin);
+        return new self($this->panel, $this->subject, $tenant instanceof TenantRef ? $tenant : $this->tenantOf($tenant), $this->origin, $this->primaryRequested);
     }
 
     /**
@@ -169,7 +177,7 @@ final readonly class SubjectAccess
     {
         $this->select([], [], $guard);
 
-        return $this->authorizer()->permissionSet($this->panel, $this->ref, $this->readScope($on), $this->heldModel());
+        return $this->authorizer()->permissionSet($this->panel, $this->ref, $this->readScope($on), $this->heldModel(), $this->primaryRequested);
     }
 
     /**
@@ -217,7 +225,7 @@ final readonly class SubjectAccess
     {
         $this->select([], [], $guard);
 
-        return collect(array_map(static fn (RoleKey $role): string => $role->key(), $this->authorizer()->roles($this->panel, $this->ref, $this->readScope($on), $this->heldModel())));
+        return collect(array_map(static fn (RoleKey $role): string => $role->key(), $this->authorizer()->roles($this->panel, $this->ref, $this->readScope($on), $this->heldModel(), $this->primaryRequested)));
     }
 
     /** @throws TenantRequiredException */
@@ -225,7 +233,7 @@ final readonly class SubjectAccess
     {
         $this->select([], [], $guard);
 
-        return $this->authorizer()->isSuperAdmin($this->panel, $this->ref, $this->readScope($on), $this->heldModel());
+        return $this->authorizer()->isSuperAdmin($this->panel, $this->ref, $this->readScope($on), $this->heldModel(), $this->primaryRequested);
     }
 
     // Changes
@@ -363,6 +371,7 @@ final readonly class SubjectAccess
         $this->select([$permission], [], $guard);
         [, $key] = $this->authorizer()->resolve($this->subject, $permission, $this->panel->id());
         $request = AccessRequest::for($this->ref, $key);
+        $request = $this->primaryRequested ? $request->onPrimary() : $request;
 
         if ($this->subject instanceof Model) {
             $request = $request->withSubjectModel($this->subject);
@@ -421,7 +430,7 @@ final readonly class SubjectAccess
         if ($wanted === []) {
             return [];
         }
-        $held = array_map(static fn (RoleKey $role): string => $role->key(), $this->authorizer()->roles($this->panel, $this->ref, $this->readScope($on), $this->heldModel()));
+        $held = array_map(static fn (RoleKey $role): string => $role->key(), $this->authorizer()->roles($this->panel, $this->ref, $this->readScope($on), $this->heldModel(), $this->primaryRequested));
 
         return array_map(static fn (string $key): bool => in_array($key, $held, true), $wanted);
     }
