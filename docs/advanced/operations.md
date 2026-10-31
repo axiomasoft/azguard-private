@@ -30,6 +30,12 @@ the expected model are errors. Explicit tenant and context types also need match
 Doctor validates the configured models and aliases; it does not scan stored identities, derived keys or historical
 actor types. A clean `morph.identity` result after changing the map is not evidence that stored rows were migrated.
 
+As a read-only starting point for the inventory below, run a grouped count for each existing identity column in
+each affected table, for example `SELECT subject_type, COUNT(*) FROM role_grants GROUP BY subject_type`. Repeat it
+for the applicable `tenant_type`, `context_type` and `actor_type` columns, including host tables and audit tables;
+record null values too. Use the actual table names and connection for each storage. These counts identify values to
+investigate but do not replace the sorted row exports and hashes needed to detect changes with unchanged counts.
+
 Changing an alias changes identity, even if the numeric IDs match. The host owns this migration; Doctor never
 performs it. Rehearse the following on a restored disposable copy using the same database engine and application
 version, and retain the inventory, scripts and verification output with the deployment record:

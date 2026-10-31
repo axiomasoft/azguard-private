@@ -25,6 +25,7 @@ use Illuminate\Support\Facades\DB;
 
 class MorphProbeOne extends Model {}
 class MorphProbeTwo extends Model {}
+class MorphProbeInvalid extends Model {}
 class MorphProbeCustom extends Model
 {
     public function getMorphClass(): string
@@ -125,8 +126,21 @@ it('does not change the global strict flag or unrelated host polymorphic relatio
         ->and(Relation::morphMap())->toBe($before)
         ->and($host->owner()->getRelated())->toBeInstanceOf(MorphProbeTwo::class);
     Relation::requireMorphMap();
-    morphProbe([MorphProbeOne::class]);
-    expect(Relation::requiresMorphMap())->toBeTrue();
+    $findings = morphProbe([MorphProbeOne::class]);
+    expect($findings)->toHaveCount(1)
+        ->and($findings[0]->severity->value)->toBe('warning')
+        ->and(Relation::requiresMorphMap())->toBeTrue()
+        ->and(Relation::morphMap())->toBe($before);
+});
+
+it('rejects an invalid custom morph identity even when the map resolves it', function (): void {
+    Relation::morphMap(['invalid alias' => MorphProbeInvalid::class], false);
+
+    $findings = morphProbe([MorphProbeInvalid::class]);
+
+    expect($findings)->toHaveCount(1)
+        ->and($findings[0]->severity->value)->toBe('error')
+        ->and($findings[0]->details['alias'])->toBe('invalid alias');
 });
 
 it('runs through Doctor without database writes or global enforcement', function (): void {
