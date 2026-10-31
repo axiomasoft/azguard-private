@@ -24,6 +24,48 @@ WRITE_PERMISSIONS = {
 }
 EXTERNAL = re.compile(r'^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+(?:/[A-Za-z0-9_.-]+)*@[0-9a-f]{40}$')
 UNTRUSTED = re.compile(r'\$\{\{[^}]*(?:\bgithub\b|\binputs\b)', re.I)
+# Only these action inputs are known to consume the value as data, not script.
+DATA_INPUTS = {
+    ('softprops/action-gh-release', 'name'),
+    ('softprops/action-gh-release', 'prerelease'),
+    ('actions/upload-artifact', 'name'),
+    ('symplify/monorepo-split-github-action', 'tag'),
+}
+SHELL_ENV = {'BASH_ENV', 'ENV', 'SHELLOPTS', 'BASHOPTS', 'CDPATH', 'GLOBIGNORE', 'IFS'}
+
+
+def untrusted(value):
+    return isinstance(value, str) and UNTRUSTED.search(value)
+
+
+def check_shell_defaults(defaults, errors, where):
+    if isinstance(defaults, dict) and isinstance(defaults.get('run'), dict):
+        if untrusted(defaults['run'].get('shell')):
+            errors.append(f'{where}: untrusted expression in shell')
+
+
+def check_env(env, errors, where):
+    if not isinstance(env, dict):
+        return set()
+    names = {str(name) for name, value in env.items() if untrusted(value)}
+    for name in names & SHELL_ENV:
+        errors.append(f'{where}: untrusted shell control environment {name}')
+    return names
+
+
+def unquoted_env_reference(run, name):
+    # Accept ordinary double-quoted data expansions only. Other shell constructs
+    # (including indirect and parameter-operator expansions) fail closed.
+    variable = re.escape(name)
+    safe = re.compile(r'"[^"\n]*\$(?:' + variable + r'\b|\{' + variable + r'\})[^"\n]*"')
+    remainder = safe.sub('', run)
+    return re.search(r'\$(?:' + variable + r'\b|\{[^}]*\b' + variable + r'\b[^}]*\}|!)', remainder) is not None
+
+
+def executes_env_as_script(run, names):
+    # Quoting does not help when a value is explicitly handed to a shell.
+    sink = re.search(r'\b(?:eval|source)\b|(?:^|[\n;&|])\s*\.\s|\b(?:ba|da|z|k)?sh\s+-[^\n]*c\b', run)
+    return bool(sink and any(re.search(r'\$(?:' + re.escape(name) + r'\b|\{[^}]*\b' + re.escape(name) + r'\b)', run) for name in names))
 
 # This privileged trigger must never check out or execute PR-controlled code.
 # Deliberately require the complete job: changes to this seam require policy review.
@@ -76,6 +118,8 @@ def check_workflow(text, filename):
         if not isinstance(jobs, dict):
             raise ValueError('jobs must be a mapping')
         events = workflow.get('on', workflow.get(True))
+        check_shell_defaults(workflow.get('defaults'), errors, 'workflow')
+        workflow_env = check_env(workflow.get('env'), errors, 'workflow')
         if events == 'pull_request_target' or isinstance(events, (dict, list)) and 'pull_request_target' in events:
             if not (filename == 'dependabot-auto-merge.yml'
                     and events == {'pull_request_target': {'types': ['opened', 'synchronize', 'reopened']}}
@@ -87,6 +131,8 @@ def check_workflow(text, filename):
             if not isinstance(job, dict):
                 raise ValueError(f'{job_id}: job must be a mapping')
             permissions = job.get('permissions', {'contents': 'read'})
+            check_shell_defaults(job.get('defaults'), errors, job_id)
+            job_env = workflow_env | check_env(job.get('env'), errors, job_id)
             if not isinstance(permissions, dict):
                 errors.append(f'{job_id}: permissions must be a mapping')
             else:
@@ -105,9 +151,22 @@ def check_workflow(text, filename):
                     if isinstance(ref, str) and ref.lower().startswith('actions/checkout@'):
                         if not isinstance(node.get('with'), dict) or node['with'].get('persist-credentials') is not False:
                             errors.append(f'{job_id}: checkout must disable persisted credentials')
+                    inputs = node.get('with', {})
+                    if isinstance(inputs, dict):
+                        action = ref.split('@')[0].lower() if isinstance(ref, str) else ''
+                        for key, value in inputs.items():
+                            if untrusted(value) and (action, key) not in DATA_INPUTS:
+                                errors.append(f'{job_id}: untrusted expression in action input {key}')
+                if untrusted(node.get('shell')):
+                    errors.append(f'{job_id}: untrusted expression in shell')
+                env_names = job_env | check_env(node.get('env'), errors, job_id)
                 run = node.get('run', '')
                 if not isinstance(run, str) or UNTRUSTED.search(run):
                     errors.append(f'{job_id}: untrusted expression in run')
+                elif any(unquoted_env_reference(run, name) for name in env_names):
+                    errors.append(f'{job_id}: unquoted untrusted environment in run')
+                elif executes_env_as_script(run, env_names):
+                    errors.append(f'{job_id}: untrusted environment passed to shell execution')
     except (yaml.YAMLError, ValueError, TypeError) as exc:
         errors.append(f'invalid workflow: {exc}')
     return errors

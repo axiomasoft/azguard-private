@@ -54,6 +54,32 @@ class PolicyTests(unittest.TestCase):
         self.check_bad(BASE.replace('echo safe', "echo ${{ inputs['value'] }}"))
         self.check_bad(BASE.replace('pull_request', 'pull_request_target'))
 
+    def test_untrusted_shell_and_action_script(self):
+        expression = '${{ github.event.pull_request.title }}'
+        self.check_bad(BASE.replace('    steps:', f'    defaults:\n      run:\n        shell: "{expression}"\n    steps:'))
+        self.check_bad(BASE.replace('      - run: echo safe', f'      - shell: "{expression}"\n        run: echo safe'))
+        self.check_bad(BASE.replace('      - run: echo safe', f'      - uses: actions/github-script@' + 'a' * 40 + f'\n        with:\n          script: "{expression}"'))
+
+    def test_untrusted_env_as_data_and_shell_control(self):
+        expression = '${{ github.event.pull_request.title }}'
+        template = BASE.replace('      - run: echo safe', f'      - env:\n          TITLE: "{expression}"\n        run: echo VALUE')
+        self.check_bad(template.replace('VALUE', '$TITLE'))
+        self.check_bad(template.replace('VALUE', '${TITLE:-default}'))
+        self.assertEqual([], pins.check_workflow(template.replace('VALUE', '"$TITLE"'), 'test.yml'))
+        self.check_bad(template.replace('echo VALUE', 'eval "$TITLE"'))
+        self.check_bad(template.replace('echo VALUE', 'bash -c "$TITLE"'))
+        self.check_bad(template.replace('echo VALUE', '. "$TITLE"'))
+        self.assertEqual([], pins.check_workflow(template.replace('echo VALUE', 'git diff "$TITLE" -- . ":!plans"'), 'test.yml'))
+        self.check_bad(template.replace('TITLE:', 'BASH_ENV:').replace('VALUE', 'safe'))
+        self.check_bad(BASE.replace('    steps:', f'    env: {{TITLE: "{expression}"}}\n    steps:').replace('echo safe', 'echo $TITLE'))
+
+    def test_release_prerelease_input(self):
+        text = BASE.replace('      - run: echo safe', '      - uses: softprops/action-gh-release@' + 'a' * 40 + '\n        with:\n          prerelease: ${{ contains(github.ref_name, \'-\') }}')
+        self.assertEqual([], pins.check_workflow(text, 'test.yml'))
+        self.check_bad(text.replace('prerelease:', 'script:'))
+        release = (pins.ROOT / '.github/workflows/release.yml').read_text()
+        self.assertEqual([], pins.check_workflow(release, 'release.yml'))
+
     def test_dependabot_target_only_with_fixed_safe_job(self):
         text = (pins.ROOT / '.github/workflows/dependabot-auto-merge.yml').read_text()
         self.assertEqual([], pins.check_workflow(text, 'dependabot-auto-merge.yml'))
