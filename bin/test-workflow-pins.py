@@ -2,6 +2,9 @@
 """Negative examples for the workflow policy."""
 
 import importlib.util
+import subprocess
+import sys
+import tempfile
 from pathlib import Path
 import unittest
 
@@ -47,7 +50,31 @@ class PolicyTests(unittest.TestCase):
 
     def test_untrusted_inline_and_privileged_trigger(self):
         self.check_bad(BASE.replace('echo safe', 'echo ${{ github.event.pull_request.title }}'))
+        self.check_bad(BASE.replace('echo safe', "echo ${{ github['event'].pull_request.title }}"))
+        self.check_bad(BASE.replace('echo safe', "echo ${{ inputs['value'] }}"))
         self.check_bad(BASE.replace('pull_request', 'pull_request_target'))
+
+    def test_dependabot_target_only_with_fixed_safe_job(self):
+        text = (pins.ROOT / '.github/workflows/dependabot-auto-merge.yml').read_text()
+        self.assertEqual([], pins.check_workflow(text, 'dependabot-auto-merge.yml'))
+        for unsafe in (
+            text.replace('dependabot/fetch-metadata@', 'actions/checkout@'),
+            text.replace('gh pr merge --auto --squash "$PR_URL"', 'bash ./pr-code.sh'),
+            text.replace('    steps:', '    env: {BASH_ENV: /tmp/attacker}\n    steps:'),
+            text.replace('permissions:\n  contents: read', 'env: {BASH_ENV: /tmp/attacker}\npermissions:\n  contents: read'),
+        ):
+            with self.subTest(unsafe=unsafe):
+                self.assertTrue(pins.check_workflow(unsafe, 'dependabot-auto-merge.yml'))
+        self.assertTrue(pins.check_workflow(text, 'other.yml'))
+
+    def test_directory_argument_is_used(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / 'unsafe.yml'
+            path.write_text(BASE.replace('echo safe', 'echo ${{ github.event.issue.title }}'))
+            result = subprocess.run([sys.executable, str(pins.ROOT / 'bin/check-workflow-pins.py'), directory],
+                                    capture_output=True, text=True)
+            self.assertNotEqual(0, result.returncode)
+            self.assertIn('unsafe.yml', result.stderr)
 
     def test_duplicate_keys(self):
         self.check_bad(BASE.replace('permissions: {contents: read}', 'permissions: {contents: read}\npermissions: write-all'))

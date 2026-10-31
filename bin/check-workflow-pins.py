@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
-"""Fail closed on unsafe workflow references and permissions (requires system PyYAML)."""
+"""Fail closed on unsafe workflow references and permissions."""
 
 import pathlib
+import argparse
 import re
 import sys
 
@@ -22,7 +23,21 @@ WRITE_PERMISSIONS = {
     ('dependabot-auto-merge.yml', 'auto-merge'): {'contents', 'pull-requests'},
 }
 EXTERNAL = re.compile(r'^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+(?:/[A-Za-z0-9_.-]+)*@[0-9a-f]{40}$')
-UNTRUSTED = re.compile(r'\$\{\{[^}]*(?:github\.event\.|github\.head_ref|github\.ref_name|inputs\.)', re.I)
+UNTRUSTED = re.compile(r'\$\{\{[^}]*(?:\bgithub\b|\binputs\b)', re.I)
+
+# This privileged trigger must never check out or execute PR-controlled code.
+# Deliberately require the complete job: changes to this seam require policy review.
+DEPENDABOT_JOB = {
+    'name': 'Auto-merge Dependabot patch', 'runs-on': 'ubuntu-latest',
+    'if': "github.event.pull_request.user.login == 'dependabot[bot]' && github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.base.repo.full_name == github.repository\n",
+    'permissions': {'contents': 'write', 'pull-requests': 'write'},
+    'steps': [
+        {'name': 'Fetch Dependabot metadata', 'id': 'meta', 'uses': 'dependabot/fetch-metadata@25dd0e34f4fe68f24cc83900b1fe3fe149efef98'},
+        {'name': 'Enable auto-merge for patch updates', 'if': "steps.meta.outputs.update-type == 'version-update:semver-patch'",
+         'run': 'gh pr merge --auto --squash "$PR_URL"',
+         'env': {'PR_URL': '${{ github.event.pull_request.html_url }}', 'GH_TOKEN': '${{ secrets.GITHUB_TOKEN }}'}},
+    ],
+}
 
 
 class Loader(yaml.SafeLoader):
@@ -55,7 +70,12 @@ def check_workflow(text, filename):
             raise ValueError('jobs must be a mapping')
         events = workflow.get('on', workflow.get(True))
         if events == 'pull_request_target' or isinstance(events, (dict, list)) and 'pull_request_target' in events:
-            errors.append('pull_request_target is not permitted')
+            if not (filename == 'dependabot-auto-merge.yml'
+                    and events == {'pull_request_target': {'types': ['opened', 'synchronize', 'reopened']}}
+                    and jobs == {'auto-merge': DEPENDABOT_JOB}
+                    and set(workflow) <= {'name', 'on', True, 'permissions', 'defaults', 'jobs'}
+                    and workflow.get('defaults') == {'run': {'shell': 'bash'}}):
+                errors.append('pull_request_target is only permitted for the fixed Dependabot job')
         for job_id, job in jobs.items():
             if not isinstance(job, dict):
                 raise ValueError(f'{job_id}: job must be a mapping')
@@ -87,13 +107,16 @@ def check_workflow(text, filename):
 
 
 def main():
-    paths = sorted((ROOT / '.github/workflows').glob('*.yml')) + sorted((ROOT / '.github/workflows').glob('*.yaml'))
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('directory', nargs='?', type=pathlib.Path, default=ROOT / '.github/workflows')
+    directory = parser.parse_args().directory
+    paths = sorted(directory.glob('*.yml')) + sorted(directory.glob('*.yaml'))
     if not paths:
         print('No workflows found', file=sys.stderr)
         return 1
     errors = [(path, error) for path in paths for error in check_workflow(path.read_text(), path.name)]
     for path, error in errors:
-        print(f'{path.relative_to(ROOT)}: {error}', file=sys.stderr)
+        print(f'{path}: {error}', file=sys.stderr)
     if not errors:
         print(f'Checked {len(paths)} workflows')
     return bool(errors)

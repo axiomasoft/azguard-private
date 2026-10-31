@@ -32,7 +32,16 @@ jobs:
         with:
           persist-credentials: false
       - name: Check workflows and policy fixtures
-        run: /usr/bin/python3 bin/check-workflow-pins.py && /usr/bin/python3 bin/test-workflow-pins.py
+        run: |
+          set -Eeuo pipefail
+          tmp="$(mktemp -d)"
+          trap 'rm -rf "$tmp"' EXIT
+          curl -fsSL --retry 3 https://files.pythonhosted.org/packages/54/ed/79a089b6be93607fa5cdaedf301d7dfb23af5f25c398d5ead2525b063e17/pyyaml-6.0.2.tar.gz -o "$tmp/pyyaml.tar.gz"
+          echo 'd584d9ec91ad65861cc08d42e834324ef890a082e591037abe114850ff7bbc3e  '"$tmp/pyyaml.tar.gz" | sha256sum -c -
+          tar -xzf "$tmp/pyyaml.tar.gz" -C "$tmp"
+          export PYTHONPATH="$tmp/pyyaml-6.0.2/lib" PYTHONDONTWRITEBYTECODE=1
+          /usr/bin/python3 bin/check-workflow-pins.py
+          /usr/bin/python3 bin/test-workflow-pins.py
 
   composer-audit:
     name: Composer audit
