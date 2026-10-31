@@ -1,5 +1,7 @@
 # Filament security
 
+Filament authorization failures retain the generic 403 behavior and notifications should remain generic. Observe failures separately using the bounded after-hook adapter in [Decision observability](/advanced/observability). An application that explicitly wants 503 or 500 for an API must invoke `DecisionResponder` in its own response path; installing Filament does not enable that mapping. Do not put decision explanations, identities or grant fields into Livewire responses or notifications.
+
 Visibility is not authorization. Direct Livewire calls on guarded pages and widgets are checked again on the server. A page or widget method that changes a record must also authorize that concrete record in its host implementation. Native Filament bulk actions may skip records they refuse; custom bulk callbacks are refused before execution when any explicit selected key cannot be resolved in the table or fails its individual check. Packaged grant revocations check the whole selection before writing.
 
 Custom bulk callbacks are also refused if select-all mode is combined with explicit selected keys. Filament clears those keys when entering select-all mode; accepting both would let a callback consume keys that the select-all query never checked.
