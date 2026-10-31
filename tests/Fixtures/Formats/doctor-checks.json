@@ -12,11 +12,23 @@
                 "uses_key": true
             }
         },
+        "AzGuard\\Diagnostics\\Internal\\Checks\\CacheIntegrity": {
+            "key": "cache.integrity",
+            "finding_ids": {
+                "literal": [
+                    "cache.memory",
+                    "cache.redis",
+                    "cache.signing",
+                    "cache.transport",
+                    "cache.ttl"
+                ],
+                "uses_key": false
+            }
+        },
         "AzGuard\\Diagnostics\\Internal\\Checks\\CacheStore": {
             "key": "cache.store",
             "finding_ids": {
                 "literal": [
-                    "cache.signing",
                     "cache.store"
                 ],
                 "uses_key": false

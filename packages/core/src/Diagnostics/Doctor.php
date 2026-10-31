@@ -8,6 +8,7 @@ use AzGuard\Attributes\Api;
 use AzGuard\Configuration\Internal\AzGuardConfig;
 use AzGuard\Contracts\Diagnostics\DoctorCheck;
 use AzGuard\Contracts\Sources\ChecksHealth;
+use AzGuard\Diagnostics\Internal\Checks\CacheIntegrity;
 use AzGuard\Diagnostics\Internal\Checks\CacheStore;
 use AzGuard\Diagnostics\Internal\Checks\CatalogBuildId;
 use AzGuard\Diagnostics\Internal\Checks\CatalogCached;
@@ -56,7 +57,7 @@ final readonly class Doctor
         ConfigValid::class, StorageSchema::class, StorageMigrated::class, StorageSqlite::class, PanelsValid::class, PanelsPlugins::class,
         PanelsSources::class, PanelsPolicies::class, PoliciesComplete::class, RolesKeys::class, RoutesChecks::class, PanelsRelations::class,
         CatalogCollisions::class, CatalogCached::class, TenantMembershipConfigured::class, ConsistencyReads::class,
-        CacheStore::class, DirectWrites::class, CatalogBuildId::class,
+        CacheStore::class, CacheIntegrity::class, DirectWrites::class, CatalogBuildId::class,
     ];
 
     private const string SECRET_NAME = '/pass(word)?|secret|token|dsn|url|credential|api[_-]?key|private/i';
@@ -258,6 +259,26 @@ final readonly class Doctor
         $repository = $this->container->make(Repository::class);
         $connections = $repository->get('database.connections', []);
         $secrets = self::secretValues(is_array($connections) ? $connections : []);
+        foreach (['database.redis', 'cache.stores', 'azguard.cache'] as $path) {
+            $values = $repository->get($path, []);
+            $secrets = [...$secrets, ...self::secretValues(is_array($values) ? $values : [])];
+        }
+        foreach (['app.key', 'azguard.cache.signing_key'] as $path) {
+            $value = $repository->get($path);
+
+            if (is_string($value) && $value !== '') {
+                $secrets[] = $value;
+            }
+        }
+        $previous = $repository->get('azguard.cache.previous_keys', []);
+
+        if (is_array($previous)) {
+            foreach ($previous as $entry) {
+                if (is_array($entry) && is_string($entry['key'] ?? null) && $entry['key'] !== '') {
+                    $secrets[] = $entry['key'];
+                }
+            }
+        }
 
         try {
             $secrets = [...$secrets, ...self::secretValues(AzGuardConfig::fromRepository($repository)->sources())];

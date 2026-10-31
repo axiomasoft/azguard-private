@@ -26,9 +26,6 @@ final readonly class CacheStore implements DoctorCheck
         foreach ($context->panels() as $panel) {
             yield from self::check($panel);
 
-            if ($panel->settings()->cacheStore() !== null && ! $context->config()->cacheSigningAvailable()) {
-                yield DoctorFinding::error('cache.signing', 'Panel '.$panel->id().' has a shared cache without a valid signing key and explicit namespace; shared caching is disabled.', 'panel:'.$panel->id());
-            }
         }
     }
 
@@ -41,8 +38,7 @@ final readonly class CacheStore implements DoctorCheck
             return [];
         }
 
-        return [DoctorFinding::error('cache.store', 'Panel '.$panel->id().' keeps permission sets in the store "'.$settings->cacheStore()
-            .'" without a ttl: a persistent store needs cache.ttl.', 'panel:'.$panel->id(),
-            ['store' => $settings->cacheStore(), 'origin' => $settings->origin('cache.ttl')])];
+        return [DoctorFinding::error('cache.store', 'Panel '.$panel->id().' keeps permission sets in a store without a ttl: set cache.ttl.', 'panel:'.$panel->id(),
+            ['origin' => $settings->origin('cache.ttl')])];
     }
 }

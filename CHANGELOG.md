@@ -17,6 +17,8 @@ The release SHA will be selected after the remaining code and qualification work
 
 ### Upgrading to 2.0
 
+- Doctor JSON consumers should accept the new `cache.integrity` finding IDs and the changed `cache.signing` severity;
+  `cache.store` no longer exposes the store name in its details. Redis isolation requires external verification.
 - Permission-set TTL now defaults to 300 seconds; shared entries are capped at 3600 seconds and the nearest expiry.
   Request/job memo maps each retain at most 1024 entries, configurable downwards via `cache.max_memo_entries` and
   `cache.max_state_entries`. See [caching](docs/advanced/caching.md) for targeted cleanup of older entries.

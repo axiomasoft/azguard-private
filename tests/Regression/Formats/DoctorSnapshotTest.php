@@ -4,8 +4,14 @@ declare(strict_types=1);
 
 use AzGuard\Contracts\Diagnostics\DoctorCheck;
 use AzGuard\Diagnostics\Severity;
+use AzGuard\Panels\PanelBuilder;
+use AzGuard\Sources\Database\DatabaseSource;
 use AzGuard\Tests\Fixtures\Crm\CrmWorld;
+use AzGuard\Tests\Fixtures\Diagnostics\DoctorWorld;
 use AzGuard\Tests\Fixtures\Formats\FormatSnapshot;
+use AzGuard\Tests\Fixtures\Panels\OrderPermission;
+use AzGuard\Tests\Fixtures\Panels\TestPanel;
+use AzGuard\Tests\Fixtures\Panels\User;
 use Illuminate\Support\Facades\Artisan;
 
 /*
@@ -107,3 +113,16 @@ it('keeps the doctor JSON document of a healthy and a broken CRM stand on SQLite
 
     expect($actual)->toBe($stored);
 })->group('sqlite', 'server-skip'); // the storage checks of the stand differ by driver (storage.sqlite, consistency.reads)
+
+it('pins the production cache security findings in the doctor format', function (): void {
+    config(['cache.stores.shared.driver' => 'redis', 'azguard.cache.namespace' => null,
+        'azguard.cache.signing_key' => null, 'app.key' => null]);
+    DoctorWorld::migrate();
+    DoctorWorld::panels([TestPanel::class => static fn (PanelBuilder $panel) => $panel->for(User::class)
+        ->permissions([OrderPermission::class, DatabaseSource::make()])->cache(store: 'shared', ttl: 4000)]);
+    $exit = Artisan::call('azguard:doctor', ['--production' => true, '--json' => true]);
+    $findings = json_decode(Artisan::output(), true, flags: JSON_THROW_ON_ERROR);
+    $findings = array_values(array_filter($findings, static fn (array $finding): bool => str_starts_with($finding['key'], 'cache.')));
+    [$actual, $stored] = FormatSnapshot::compare('doctor-cache-v2', baselineDoctorDocument($exit, $findings));
+    expect($actual)->toBe($stored);
+});
