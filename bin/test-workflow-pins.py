@@ -122,10 +122,40 @@ class PolicyTests(unittest.TestCase):
 
     def test_release_prerelease_input(self):
         text = BASE.replace('      - run: echo safe', '      - uses: softprops/action-gh-release@' + 'a' * 40 + '\n        with:\n          prerelease: ${{ contains(github.ref_name, \'-\') }}')
-        self.assertEqual([], pins.check_workflow(text, 'test.yml'))
+        self.check_bad(text)
         self.check_bad(text.replace('prerelease:', 'script:'))
         release = (pins.ROOT / '.github/workflows/release.yml').read_text()
         self.assertEqual([], pins.check_workflow(release, 'release.yml'))
+
+    def test_release_replacement_and_unreviewed_privileges_are_rejected(self):
+        replacement = '''
+on: {push: {tags: ['v*']}}
+permissions: {contents: read}
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions: {contents: write}
+    steps:
+      - uses: softprops/action-gh-release@efb35369e0ad2afab669f228072c1b0d510eae64
+'''
+        self.assertTrue(pins.check_workflow(replacement, 'release.yml'))
+        self.assertTrue(pins.check_workflow(replacement, 'new.yml'))
+        # Even a harmless replacement at an existing path needs review.
+        self.assertTrue(pins.check_workflow(BASE, 'release.yml'))
+        # Matching a privileged filename/job never grants write to an unreviewed snapshot.
+        benign = replacement.replace('      - uses: softprops/action-gh-release@efb35369e0ad2afab669f228072c1b0d510eae64', '      - run: echo safe')
+        self.assertTrue(any('forbidden permission' in e for e in pins.check_workflow(benign, 'release.yml')))
+        self.assertTrue(pins.check_workflow(replacement.replace('contents: write', 'contents: read'), 'new.yml'))
+
+    def test_unreviewed_data_example_cannot_print_secrets(self):
+        template = BASE.replace('      - run: echo safe', '      - env:\n          TITLE: "VALUE"\n        run: echo "$TITLE"')
+        for value in ('${{ toJSON(secrets) }}', '${{ secrets.GITHUB_TOKEN }}',
+                      '${{ github.event.pull_request.title }}${{ toJSON(secrets) }}'):
+            with self.subTest(value=value):
+                self.check_bad(template.replace('VALUE', value))
+        for value in ('safe text', '${{ github.event.pull_request.title }}'):
+            with self.subTest(value=value):
+                self.assertEqual([], pins.check_workflow(template.replace('VALUE', value), 'new.yml'))
 
     def test_dependabot_target_only_with_fixed_safe_job(self):
         text = (pins.ROOT / '.github/workflows/dependabot-auto-merge.yml').read_text()
@@ -155,6 +185,14 @@ class PolicyTests(unittest.TestCase):
                                     capture_output=True, text=True)
             self.assertNotEqual(0, result.returncode)
             self.assertIn('unsafe.yml', result.stderr)
+
+    def test_missing_reviewed_release_is_rejected(self):
+        with tempfile.TemporaryDirectory() as directory:
+            (Path(directory) / 'safe.yml').write_text(BASE)
+            result = subprocess.run([sys.executable, str(pins.ROOT / 'bin/check-workflow-pins.py'), directory],
+                                    capture_output=True, text=True)
+            self.assertNotEqual(0, result.returncode)
+            self.assertIn('release.yml: reviewed workflow missing', result.stderr)
 
     def test_duplicate_keys(self):
         self.check_bad(BASE.replace('permissions: {contents: read}', 'permissions: {contents: read}\npermissions: write-all'))

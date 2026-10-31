@@ -27,7 +27,9 @@ WRITE_PERMISSIONS = {
 EXTERNAL = re.compile(r'^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+(?:/[A-Za-z0-9_.-]+)*@[0-9a-f]{40}$')
 # Exact workflow snapshots are the review boundary, not a shell-safety proof.
 # Any change to a snapshot requires reviewing the complete workflow and updating
-# its digest. Pin and permissions checks still apply to every snapshot.
+# its digest. Changes to this checker or its digests themselves require trusted
+# review enforced outside this checker (for example, repository rules/CODEOWNERS).
+# Pin and permissions checks still apply to every snapshot.
 REVIEWED_WORKFLOWS = {
     'bench.yml': '7c74b235f4378986e824240728c964dc86ffe667a8f665e001156181c5107f9d',
     'code-style.yml': '47fc04265aa785339ee1f6e024feb4179268f5b50e69038894803d200ce0d51d',
@@ -190,15 +192,18 @@ def check_unreviewed(workflow, jobs, errors):
             env = step.get('env', {})
             if not isinstance(env, dict) or set(env) - {'TITLE'}:
                 errors.append(f'{job_id}: unreviewed environment')
+            elif 'TITLE' in env and (not isinstance(env['TITLE'], str) or
+                                     ('${{' in env['TITLE'] and env['TITLE'] != '${{ github.event.pull_request.title }}')):
+                errors.append(f'{job_id}: unreviewed TITLE value')
             if 'run' in step and step['run'] not in ('echo safe', 'echo "$TITLE"'):
                 errors.append(f'{job_id}: unreviewed script')
             if 'uses' in step:
                 ref = step['uses']
                 action = ref.split('@')[0].lower() if isinstance(ref, str) else ''
-                if action != 'actions/checkout' and ref not in LOCAL_WORKFLOWS and action != 'softprops/action-gh-release':
+                if action != 'actions/checkout' and ref not in LOCAL_WORKFLOWS:
                     errors.append(f'{job_id}: unreviewed action')
                 inputs = step.get('with', {})
-                permitted = {'persist-credentials'} if action == 'actions/checkout' or ref in LOCAL_WORKFLOWS else {'name', 'prerelease'}
+                permitted = {'persist-credentials'}
                 if not isinstance(inputs, dict) or set(inputs) - permitted:
                     errors.append(f'{job_id}: unreviewed action inputs')
                 if env:
@@ -216,7 +221,10 @@ def check_workflow(text, filename):
         jobs = workflow.get('jobs')
         if not isinstance(jobs, dict):
             raise ValueError('jobs must be a mapping')
-        if hashlib.sha256(text.encode()).hexdigest() != REVIEWED_WORKFLOWS.get(filename):
+        reviewed = hashlib.sha256(text.encode()).hexdigest() == REVIEWED_WORKFLOWS.get(filename)
+        if not reviewed and filename in REVIEWED_WORKFLOWS:
+            errors.append('reviewed workflow changed: full review and digest update required')
+        if not reviewed:
             check_unreviewed(workflow, jobs, errors)
         events = workflow.get('on', workflow.get(True))
         check_shell_defaults(workflow.get('defaults'), errors, 'workflow')
@@ -237,7 +245,7 @@ def check_workflow(text, filename):
             if not isinstance(permissions, dict):
                 errors.append(f'{job_id}: permissions must be a mapping')
             else:
-                allowed = WRITE_PERMISSIONS.get((filename, job_id), set())
+                allowed = WRITE_PERMISSIONS.get((filename, job_id), set()) if reviewed else set()
                 for permission, level in permissions.items():
                     if level not in ('read', 'write', 'none') or (level == 'write' and permission not in allowed):
                         errors.append(f'{job_id}: forbidden permission {permission}: {level}')
@@ -282,6 +290,10 @@ def main():
         print('No workflows found', file=sys.stderr)
         return 1
     errors = [(path, error) for path in paths for error in check_workflow(path.read_text(), path.name)]
+    # Missing snapshots can remove a gate just as effectively as modifying one.
+    present = {path.name for path in paths}
+    errors.extend((directory / name, 'reviewed workflow missing')
+                  for name in sorted(REVIEWED_WORKFLOWS.keys() - present))
     for path, error in errors:
         print(f'{path}: {error}', file=sys.stderr)
     if not errors:
