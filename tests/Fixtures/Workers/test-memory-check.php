@@ -11,7 +11,8 @@ if ($path === false) {
 try {
     $run = static function (string $case) use ($path): int {
         $stream = fopen($path, 'wb');
-        for ($i = 1; $i <= 5200; $i++) {
+        $measured = in_array($case, ['early-plateau', 'early-peak'], true) ? 10000 : 5000;
+        for ($i = 1; $i <= 200 + $measured; $i++) {
             $sample = ['request' => $i, 'pid' => 123, 'rss' => 100 * 1024 * 1024,
                 'counts' => ['memo' => 0, 'states' => 0, 'panels' => 0]];
 
@@ -24,15 +25,19 @@ try {
                     default => null,
                 };
             }
+
+            if (($case === 'early-plateau' && $i > 200) || ($case === 'early-peak' && $i === 201)) {
+                $sample['rss'] += 11 * 1024 * 1024;
+            }
             fwrite($stream, json_encode($sample, JSON_THROW_ON_ERROR)."\n");
         }
         fclose($stream);
-        $command = escapeshellarg(PHP_BINARY).' '.escapeshellarg(__DIR__.'/check-memory.php').' '.escapeshellarg($path).' 5000';
+        $command = escapeshellarg(PHP_BINARY).' '.escapeshellarg(__DIR__.'/check-memory.php').' '.escapeshellarg($path).' '.$measured;
         exec($command.' 2>&1', $output, $exit);
 
         return $exit;
     };
-    foreach (['valid' => 0, 'pid' => 1, 'state' => 1, 'rss' => 1, 'sequence' => 1] as $case => $expected) {
+    foreach (['valid' => 0, 'pid' => 1, 'state' => 1, 'rss' => 1, 'sequence' => 1, 'early-plateau' => 1, 'early-peak' => 1] as $case => $expected) {
         if ($run($case) !== $expected) {
             throw new RuntimeException("Unexpected result for {$case}");
         }

@@ -17,6 +17,8 @@ use AzGuard\Tests\Fixtures\Authorization\AuthorizationWorld;
 use AzGuard\Tests\Fixtures\Authorization\Cache\CacheWorld;
 use AzGuard\Tests\Fixtures\Authorization\Cache\FencedCacheSource;
 use AzGuard\Tests\Fixtures\Sources\Database\DatabaseWorld;
+use Illuminate\Cache\RedisStore;
+use Illuminate\Redis\Connections\PhpRedisConnection;
 use Illuminate\Support\Carbon;
 use Symfony\Component\Process\Process;
 
@@ -111,8 +113,27 @@ it('rejects cross-process Redis envelope forgery and reloads the authoritative d
     $process = new Process([PHP_BINARY, dirname(__DIR__, 3).'/Fixtures/Authorization/Cache/PoisonWorker.php',
         (string) (getenv('REDIS_PORT') ?: 26379), $this->redisPrefix, $target, $bait, $attack]);
     $process->mustRun();
+    $forged = $store->get(substr($target, strlen($this->redisPrefix.'sets:')));
+    $original = json_decode($raw, true, flags: JSON_THROW_ON_ERROR);
+    $baitRaw = $store->get('attacker-bait');
+    $baitEntry = json_decode($baitRaw, true, flags: JSON_THROW_ON_ERROR);
+
+    if ($attack === 'unsigned') {
+        expect($forged)->toBe(base64_decode($baitEntry['payloadBase64'], true));
+    } else {
+        $expected = $original;
+        match ($attack) {
+            'payload' => $expected['payloadBase64'] = $baitEntry['payloadBase64'],
+            'key' => $expected = $baitEntry,
+            'time' => $expected['validUntilUTC'] = (new DateTimeImmutable($original['validUntilUTC']))->modify('-1 second')->format('Y-m-d\TH:i:s.u\Z'),
+            'namespace' => $expected['namespace'] = 'attacker',
+        };
+        expect(json_decode($forged, true, flags: JSON_THROW_ON_ERROR))->toBe($expected);
+    }
     app()->forgetScopedInstances();
-    expect($engine->decide($panel, $request)->allowed())->toBeFalse()->and($source->grantReads)->toBe(2);
+    expect($engine->decide($panel, $request)->allowed())->toBeFalse()->and($source->grantReads)->toBe(2)
+        ->and($store->get('attacker-bait'))->toBe($baitRaw)
+        ->and((new PermissionSetCache(app('cache')))->get('attacker-bait', $panel, Volatility::Stable, true, Carbon::now()->toDateTimeImmutable()))->toHaveCount(1);
 })->with(['payload', 'key', 'time', 'namespace', 'unsigned'])->group('redis', 'stand', 'server-skip');
 
 it('bounds the actual Redis PTTL by the nearest grant expiry', function (): void {
@@ -126,7 +147,7 @@ it('bounds the actual Redis PTTL by the nearest grant expiry', function (): void
     $keys = $this->redis->client()->keys('*');
     expect($keys)->toHaveCount(1);
     $ttl = $this->redis->client()->pttl(substr($keys[0], strlen($this->redisPrefix)));
-    expect($ttl)->toBeGreaterThan(0)->toBeLessThanOrEqual(20000);
+    expect($ttl)->toBeGreaterThan(15000)->toBeLessThanOrEqual(20000);
 })->group('redis', 'stand', 'server-skip');
 
 it('rejects an old Redis envelope copied to the post-revoke key', function (string $change): void {
@@ -195,8 +216,71 @@ it('does not publish a tentative host transaction grant to Redis', function (): 
     })->toThrow(RuntimeException::class, 'rollback tentative grant');
     expect($client->keys('*'))->toBe($keys)
         ->and($client->get(substr($keys[0], strlen($this->redisPrefix))))->toBe($raw);
-    app()->forgetScopedInstances();
     expect($engine->decide($panel, DatabaseWorld::request())->reason)->toBe(DecisionReason::NotGranted);
+})->group('redis', 'stand', 'server-skip');
+
+it('preserves a concurrent Redis replacement when rejecting stale bytes', function (string $initial): void {
+    [, $panel] = AuthorizationWorld::compile(new FencedCacheSource, fn (PanelBuilder $p) => $p->cache('qualification', 60));
+    $now = Carbon::now()->toDateTimeImmutable();
+    $store = app('cache')->store('qualification');
+    (new PermissionSetCache(app('cache')))->put('race', $panel, Volatility::Stable, true, [AuthorizationWorld::grant()], $now);
+    $replacement = $this->redis->get('sets:race');
+
+    if ($initial === 'missing') {
+        $this->redis->del('sets:race');
+    } else {
+        $this->redis->setex('sets:race', 60, $initial === 'malformed' ? 'broken' : serialize('unsigned'));
+    }
+    $connection = Mockery::mock(PhpRedisConnection::class, [$this->redis->client()])->makePartial();
+    $connection->shouldReceive('get')->once()->with('sets:race')->andReturnUsing(function () use ($replacement) {
+        $observed = $this->redis->get('sets:race');
+        $this->redis->setex('sets:race', 60, $replacement);
+
+        return $observed;
+    });
+    $backend = new class(app('redis'), $connection) extends RedisStore
+    {
+        public function __construct($redis, private readonly PhpRedisConnection $racingConnection)
+        {
+            parent::__construct($redis, 'sets:', 'qualification');
+        }
+
+        public function connection()
+        {
+            return $this->racingConnection;
+        }
+    };
+    app('cache')->extend('race-test', fn () => app('cache')->repository($backend));
+    config(['cache.stores.race' => ['driver' => 'race-test']]);
+    [, $racingPanel] = AuthorizationWorld::compile(new FencedCacheSource, fn (PanelBuilder $p) => $p->cache('race', 60));
+    expect((new PermissionSetCache(app('cache')))->get('race', $racingPanel, Volatility::Stable, true, $now))->toBeNull()
+        ->and($this->redis->get('sets:race'))->toBe($replacement)
+        ->and((new PermissionSetCache(app('cache')))->get('race', $panel, Volatility::Stable, true, $now))->toHaveCount(1);
+})->with(['missing', 'malformed', 'unsigned'])->group('redis', 'stand', 'server-skip');
+
+it('publishes committed Redis authority and reuses it in a fresh scope', function (): void {
+    $storage = DatabaseWorld::storage();
+    $storage->mutate('admin', static function (StorageMutation $m): void {
+        $m->table('permission_grants')->delete();
+        $m->touch('admin');
+    });
+    [$engine, $panel] = CacheWorld::database(DatabaseSource::make(), configure: fn (PanelBuilder $p) => $p->cache('qualification', 60));
+    expect($engine->decide($panel, DatabaseWorld::request())->allowed())->toBeFalse();
+    $before = $this->redis->client()->keys('*');
+    $engine->withinAuthorityTransaction($panel, function () use ($engine, $panel, $storage): void {
+        $storage->mutate('admin', static function (StorageMutation $m): void {
+            $m->table('permission_grants')->insert(DatabaseWorld::row('permission'));
+            $m->touch('admin');
+        });
+        expect($engine->decide($panel, DatabaseWorld::request())->allowed())->toBeTrue();
+    });
+    expect($engine->decide($panel, DatabaseWorld::request())->allowed())->toBeTrue()
+        ->and(array_diff($this->redis->client()->keys('*'), $before))->toHaveCount(1);
+    app()->forgetScopedInstances();
+    $budget = CacheWorld::emptyBudget();
+    CacheWorld::listen($budget);
+    expect($engine->decide($panel, DatabaseWorld::request())->allowed())->toBeTrue()
+        ->and($budget['grants'])->toBe(0);
 })->group('redis', 'stand', 'server-skip');
 
 it('real Redis rejects absolute expiry in request memo and a new incarnation after restore', function (): void {

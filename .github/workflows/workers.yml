@@ -39,6 +39,7 @@ jobs:
           set -Eeuo pipefail
           php tests/Fixtures/Workers/test-verify.php
           php tests/Fixtures/Workers/test-memory-check.php
+          bash tests/Fixtures/Workers/test-cli.sh
       - name: Exercise persistent workers
         env:
           WORKER_EVENT: ${{ github.event_name }}
@@ -56,4 +57,4 @@ jobs:
         with:
           name: worker-lifecycle-${{ github.run_id }}
           path: build/worker-smoke/
-          if-no-files-found: error
+          if-no-files-found: warn

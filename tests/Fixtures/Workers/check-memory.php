@@ -35,9 +35,10 @@ try {
         }
     }
     $warmed = $samples[199]['rss'];
+    $measuredPeak = max(array_column(array_slice($samples, 200), 'rss'));
     $start = count($samples) - 5001;
     $lastWindow = array_column(array_slice($samples, $start + 1), 'rss');
-    $growth = max($lastWindow) - $samples[$start]['rss'];
+    $growth = max($measuredPeak - $warmed, max($lastWindow) - $samples[$start]['rss']);
     $limit = max(8 * 1024 * 1024, (int) ceil($warmed * 0.10));
 
     if ($growth > $limit) {

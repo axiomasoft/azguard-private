@@ -46,6 +46,14 @@ it('distinguishes local, unsupported and redis stores without duplicating cache.
     expect(DoctorWorld::only(DoctorWorld::run(production: true), 'cache.signing'))->toBe([]);
 });
 
+it('raises missing signing material from a development warning to a production error', function (): void {
+    config(['cache.stores.shared.driver' => 'redis', 'azguard.cache.namespace' => null,
+        'azguard.cache.signing_key' => null, 'app.key' => null]);
+    securityPanel('shared');
+    expect(DoctorWorld::summary(DoctorWorld::only(DoctorWorld::run(production: false), 'cache.signing')))->toBe(['panel:test cache.signing warning'])
+        ->and(DoctorWorld::summary(DoctorWorld::only(DoctorWorld::run(production: true), 'cache.signing')))->toBe(['panel:test cache.signing error']);
+});
+
 it('retains the null ttl error and detects invalid memory limits', function (): void {
     $settings = new PanelSettings(null, 'redis', null, 1, Reads::Primary, StateRefresh::Request, false, array_fill_keys(array_keys(PanelSettings::DEFAULTS), 'configure'));
     $panel = new Panel(id: 'test', label: 'test', default: false, settings: $settings, subjectModels: [User::class], pluginIds: [], tenantPolicy: null);
@@ -67,3 +75,20 @@ it('redacts cache credentials in both command formats and reports production err
             ->not->toContain($key, $dsn, 'secret-pass', 'application-secret-key');
     }
 });
+
+it('reports configured unsafe Redis client transforms without opening a connection', function (array $options, bool $unsafe): void {
+    config(['cache.stores.shared' => ['driver' => 'redis', 'connection' => 'offline'],
+        'database.redis.client' => 'phpredis', 'database.redis.offline' => ['host' => 'invalid.test'],
+        'azguard.cache.namespace' => 'deployment', 'azguard.cache.signing_key' => str_repeat('k', 32)]);
+    config($options);
+    securityPanel('shared');
+    expect(DoctorWorld::summary(DoctorWorld::only(DoctorWorld::run(production: true), 'cache.transport')))
+        ->toBe($unsafe ? ['panel:test cache.transport warning'] : []);
+})->with([
+    [['database.redis.options.serializer' => 1], true],
+    [['database.redis.offline.compression' => 1], true],
+    [['database.redis.offline.options.serializer' => 1], true],
+    [['database.redis.options.serializer' => 1, 'database.redis.offline.options.serializer' => 0], false],
+    [['database.redis.options.serializer' => 1, 'database.redis.client' => 'predis'], false],
+    [[], false],
+]);

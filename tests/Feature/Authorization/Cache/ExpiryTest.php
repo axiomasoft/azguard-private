@@ -76,5 +76,8 @@ it('caps the shared lifetime even when a longer ttl is requested', function (): 
     $envelope = json_decode(app('cache')->store('array')->get('hard-cap'), true);
     $stored = unserialize(base64_decode($envelope['payloadBase64'], true));
     expect($stored['validUntil'])->toEqual($now->modify('+3600 seconds'));
+    $raw = app('cache')->store('array')->getStore()->all(false)['hard-cap'];
+    expect($raw['expiresAt'])->toEqual((float) $now->modify('+3600 seconds')->format('U.u'))
+        ->and((new PermissionSetCache(app('cache')))->get('hard-cap', $panel, Volatility::Stable, true, $now->modify('+3599 seconds')))->toHaveCount(1);
     expect((new PermissionSetCache(app('cache')))->get('hard-cap', $panel, Volatility::Stable, true, $now->modify('+3600 seconds')))->toBeNull();
 });

@@ -80,7 +80,7 @@ final class PermissionSetCache
             default => ['code', $state->panel(), $state->buildId(), $state->fingerprint()],
         };
 
-        return 'azguard:sets:v2:'.IdentityCodec::digest([$revision, $generation, $subject, $tenant, array_values(array_unique($contexts)), $source, $readMode, $authority]);
+        return 'azguard:sets:v2:'.IdentityCodec::digest([config('azguard.cache.namespace'), $revision, $generation, $subject, $tenant, array_values(array_unique($contexts)), $source, $readMode, $authority]);
     }
 
     /** @return list<Grant|RoleContribution>|null */
@@ -100,7 +100,7 @@ final class PermissionSetCache
             try {
                 $repository = $this->stores->store($store);
                 $raw = $this->readEnvelope($repository->getStore(), $key);
-                $envelope = $signer->decode($raw, $key, $now);
+                $envelope = $signer->decode($this->unwrapEnvelope($raw), $key, $now);
                 $stored = $envelope === null ? null : $this->decode($envelope['payload']);
 
                 if ($stored !== null && count($stored) === 2 && isset($stored['items'], $stored['validUntil']) && is_array($stored['items'])
@@ -134,7 +134,7 @@ final class PermissionSetCache
                 }
 
                 if ($raw !== null && $entry === null) {
-                    $repository->forget($key);
+                    $this->forgetEnvelope($repository->getStore(), $key, $raw);
                 }
             } catch (Throwable) {
                 // A cache failure is a miss; the authoritative source still decides the outcome.
@@ -142,7 +142,7 @@ final class PermissionSetCache
 
                 if ($raw !== null) {
                     try {
-                        $this->stores->store($store)->forget($key);
+                        $this->forgetEnvelope($this->stores->store($store)->getStore(), $key, $raw);
                     } catch (Throwable) {
                         // Best effort only.
                     }
@@ -233,19 +233,34 @@ final class PermissionSetCache
 
                 return null;
             }
-            $raw = $item['value'];
 
-            if (is_string($raw) && str_starts_with($raw, '{')) {
-                return $raw;
-            }
+            return $item['value'];
         } elseif ($store instanceof RedisStore) {
-            $raw = $store->connection()->get($store->getPrefix().$key);
+            return $store->connection()->get($store->getPrefix().$key);
         } else {
             return null;
         }
+    }
 
-        if ($raw === null) {
-            return null;
+    /** Remove only the rejected bytes, never a concurrent writer's replacement. */
+    private function forgetEnvelope(mixed $store, string $key, mixed $raw): void
+    {
+        if ($store instanceof ArrayStore) {
+            if (($store->all(false)[$key]['value'] ?? null) === $raw) {
+                $store->forget($key);
+            }
+        } elseif ($store instanceof RedisStore && is_string($raw) && $this->supportsStore($store)) {
+            $store->connection()->eval(
+                "if redis.call('get', KEYS[1]) == ARGV[1] then return redis.call('del', KEYS[1]) else return 0 end",
+                1, $store->getPrefix().$key, $raw,
+            );
+        }
+    }
+
+    private function unwrapEnvelope(mixed $raw): mixed
+    {
+        if ($raw === null || (is_string($raw) && str_starts_with($raw, '{'))) {
+            return $raw;
         }
 
         // Laravel wraps strings with PHP serialization. Parse only that exact primitive, never unserialize it.

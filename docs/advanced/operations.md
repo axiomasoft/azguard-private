@@ -95,11 +95,12 @@ is used concurrently.
   record who made them.
 
 The repository's disposable archive consumer exercises one Octane/RoadRunner worker and one queue worker:
-`bash bin/worker-smoke.sh smoke` sends 1,000 requests and 1,000 jobs. `memory` runs 200 warmup requests followed
-by 10,000 measured requests; `soak` runs 100,000 measured requests. The nightly and release lanes run `memory`.
+`bash bin/worker-smoke.sh smoke` sends 1,000 requests and 1,000 jobs. `memory` runs 200 warmup requests and jobs followed
+by 10,000 measured requests and jobs; `soak` runs 100,000 of each. The nightly and release lanes run `memory`.
 Each run writes its versions, archive hash, logs and per-request PID, RSS and memo counts under
 `build/worker-smoke/`. The check fails if the worker changes, lifecycle counts do not return to zero, or peak RSS
-growth over the final 5,000 requests exceeds the larger of 8 MiB and 10% of warmed RSS. Investigate a failure
+growth from the warmup baseline or over the final 5,000 samples exceeds the larger of 8 MiB and 10% of warmed RSS.
+HTTP and queue series are checked separately. Investigate a failure
 using the retained series; do not retry it as a substitute for investigation. The workload uses a temporary SQLite
 `worker_test.sqlite` database and does not require Redis.
 

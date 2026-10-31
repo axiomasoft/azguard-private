@@ -8,6 +8,7 @@ use AzGuard\Kernel\Decision\AccessRequest;
 use AzGuard\Kernel\Decision\CodeStateToken;
 use AzGuard\Kernel\Decision\DecisionReason;
 use AzGuard\Kernel\Identity\SubjectRef;
+use AzGuard\Kernel\Identity\TenantRef;
 use AzGuard\Panels\PanelBuilder;
 use AzGuard\Sources\Database\DatabaseSource;
 use AzGuard\Storage\Internal\Storage;
@@ -128,4 +129,24 @@ it('hits a shared store that unserializes without classes, as Laravel 13 does by
     $fresh = new PermissionSetCache(app('cache'));
 
     expect($fresh->get('plain-shape', $panel, Volatility::Stable, true, $now))->toEqual([$grant]);
+});
+
+it('preserves separate namespaces sharing the same cache store and signing secret', function (): void {
+    [, $panel] = AuthorizationWorld::compile(new CacheSource, fn (PanelBuilder $p) => $p->cache('array', 60));
+    $tuple = [CodeStateToken::of('admin', 'build', 'fp'), SubjectRef::of('user', 1),
+        TenantRef::global(), [], 'source', 'primary', 'authority', 1];
+    $now = Carbon::now()->toDateTimeImmutable();
+    config(['azguard.cache.namespace' => 'application-a']);
+    $keyA = PermissionSetCache::key(...$tuple);
+    (new PermissionSetCache(app('cache')))->put($keyA, $panel, Volatility::Stable, true, [AuthorizationWorld::grant()], $now);
+    $original = app('cache')->store('array')->get($keyA);
+    config(['azguard.cache.namespace' => 'application-b']);
+    $keyB = PermissionSetCache::key(...$tuple);
+    expect((new PermissionSetCache(app('cache')))->get($keyB, $panel, Volatility::Stable, true, $now))->toBeNull()
+        ->and(app('cache')->store('array')->get($keyA))->toBe($original);
+    (new PermissionSetCache(app('cache')))->put($keyB, $panel, Volatility::Stable, true, [], $now);
+    config(['azguard.cache.namespace' => 'application-a']);
+    expect((new PermissionSetCache(app('cache')))->get($keyA, $panel, Volatility::Stable, true, $now))->toHaveCount(1);
+    config(['azguard.cache.namespace' => 'application-b']);
+    expect((new PermissionSetCache(app('cache')))->get($keyB, $panel, Volatility::Stable, true, $now))->toBe([]);
 });

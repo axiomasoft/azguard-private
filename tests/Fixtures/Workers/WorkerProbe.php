@@ -44,6 +44,10 @@ final class WorkerProbe
         if ($job && request()->headers->has('X-Worker-Marker')) {
             throw new RuntimeException('job retained a previous request');
         }
+
+        if (! $job && request()->header('X-Worker-Marker') !== (string) $number) {
+            throw new RuntimeException('HTTP request marker was not replaced');
+        }
         $case = $number % 5;
         $subject = [1, 1, 2, 3, 4][$case];
         $tenant = $case === 1 ? 'B' : 'A';
@@ -77,7 +81,7 @@ final class WorkerProbe
                 return app(Authorizer::class)->decide($panel, $request);
             })));
 
-        if ($current->get() !== null || $contexts->get($panel) !== null || $actors->current($panel)?->id !== null) {
+        if ($current->get() !== null || $current->rejected() !== null || $contexts->get($panel) !== null || $actors->current($panel)?->id !== null) {
             throw new RuntimeException('finally cleanup failed');
         }
         $memoEntries = count((new ReflectionProperty($memo, 'sets'))->getValue($memo));

@@ -56,7 +56,6 @@ it('never publishes tentative host-transaction authority and preserves rollback 
         });
     })->toThrow(RuntimeException::class, 'rollback tentative grant');
     expect((new ReflectionProperty($store->getStore(), 'storage'))->getValue($store->getStore()))->toEqual($before);
-    app()->forgetScopedInstances();
     expect($engine->decide($panel, DatabaseWorld::request())->allowed())->toBeFalse();
     $storage->mutate('admin', function (StorageMutation $m): void {
         $m->table('permission_grants')->insert(DatabaseWorld::row('permission'));

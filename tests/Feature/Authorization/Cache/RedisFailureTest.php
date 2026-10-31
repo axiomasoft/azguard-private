@@ -11,6 +11,8 @@ use AzGuard\Storage\Schema\StorageSchema;
 use AzGuard\Tests\Fixtures\Authorization\Cache\CacheWorld;
 use AzGuard\Tests\Fixtures\Sources\Database\DatabaseWorld;
 use Illuminate\Cache\RedisStore;
+use Illuminate\Redis\Connections\PhpRedisConnection;
+use Symfony\Component\Process\Process;
 
 beforeEach(function (): void {
     $this->prefix = 'azguard-qualification-'.bin2hex(random_bytes(12)).':';
@@ -65,14 +67,15 @@ it('reads authoritative grants after a Redis operation fails', function (string 
         ->and($this->faultStore->failures)->toBeGreaterThan(0)->and($budget['grants'])->toBeGreaterThan(0);
 })->with(['get', 'put', 'forget'])->group('redis', 'stand', 'server-skip');
 
-it('fails closed when Redis and the authoritative database are both unavailable', function (): void {
+it('fails closed before consulting a warm cache when authoritative state is unavailable', function (): void {
     [$engine, $panel] = CacheWorld::database(DatabaseSource::make(), configure: fn (PanelBuilder $p) => $p->cache('failure', 60));
     expect($engine->decide($panel, DatabaseWorld::request())->allowed())->toBeTrue();
     app()->forgetScopedInstances();
     $this->faultStore->fail = 'get';
     app(StorageSchema::class)->drop('default');
     $decision = $engine->decide($panel, DatabaseWorld::request());
-    expect($decision->allowed())->toBeFalse()->and($decision->reason)->toBe(DecisionReason::SourceError);
+    expect($decision->allowed())->toBeFalse()->and($decision->reason)->toBe(DecisionReason::SourceError)
+        ->and($this->faultStore->failures)->toBe(0);
 })->group('redis', 'stand', 'server-skip');
 
 it('does not reuse a warm allow after a confirmed revoke during a Redis disconnect', function (): void {
@@ -90,27 +93,34 @@ it('does not reuse a warm allow after a confirmed revoke during a Redis disconne
 })->group('redis', 'stand', 'server-skip');
 
 it('falls back to the database on a real Redis read timeout', function (): void {
-    $socket = stream_socket_server('tcp://127.0.0.1:0', $error, $message);
-    expect($socket)->not->toBeFalse();
-    $address = stream_socket_get_name($socket, false);
-    $port = (int) substr(strrchr($address, ':'), 1);
-    config(['database.redis.timeout-test' => ['host' => '127.0.0.1', 'port' => $port, 'database' => 15,
-        'timeout' => 0.1, 'read_timeout' => 0.1, 'retry_interval' => 0],
-        'cache.stores.timeout-test' => ['driver' => 'redis', 'connection' => 'timeout-test', 'prefix' => 'sets:']]);
-    app()->forgetInstance('redis');
+    config(['cache.stores.timeout-test' => ['driver' => 'redis', 'connection' => 'failure', 'prefix' => 'sets:']]);
+    [$engine, $panel] = CacheWorld::database(DatabaseSource::make(), configure: fn (PanelBuilder $p) => $p->cache('timeout-test', 60));
+    expect($engine->decide($panel, DatabaseWorld::request())->allowed())->toBeTrue();
+    DatabaseWorld::storage()->mutate('admin', static function (StorageMutation $m): void {
+        $m->table('permission_grants')->delete();
+        $m->touch('admin');
+    });
+    $server = new Process([PHP_BINARY, dirname(__DIR__, 3).'/Fixtures/Authorization/Cache/RedisTimeoutServer.php']);
+    $server->start();
 
     try {
-        expect(fn () => app('cache')->store('timeout-test')->get('probe'))->toThrow(RedisException::class);
-        [$engine, $panel] = CacheWorld::database(DatabaseSource::make(), configure: fn (PanelBuilder $p) => $p->cache('timeout-test', 60));
+        expect($server->waitUntil(static fn (string $type, string $output): bool => $type === Process::OUT && str_contains($output, "\n")))->toBeTrue();
+        $port = (int) strtok($server->getOutput(), "\n");
+        expect($port)->toBeGreaterThan(0);
+        config(['database.redis.timeout-test' => ['host' => '127.0.0.1', 'port' => $port, 'database' => 15,
+            'timeout' => 0.1, 'read_timeout' => 0.1, 'retry_interval' => 0],
+            'cache.stores.timeout-test.connection' => 'timeout-test']);
+        app()->forgetInstance('redis');
+        app('cache')->purge('timeout-test');
+        app()->forgetScopedInstances();
         $budget = CacheWorld::emptyBudget();
         CacheWorld::listen($budget);
-        expect($engine->decide($panel, DatabaseWorld::request())->allowed())->toBeTrue()
-            ->and($budget['grants'])->toBeGreaterThan(0);
-        $connection = stream_socket_accept($socket, 0);
-        expect($connection)->not->toBeFalse();
-        fclose($connection);
+        $decision = $engine->decide($panel, DatabaseWorld::request());
+        expect($decision->reason)->toBe(DecisionReason::NotGranted)
+            ->and($budget['grants'])->toBeGreaterThan(0)
+            ->and($server->getOutput())->toContain('"command":"GET"', 'azguard:sets:v2:');
     } finally {
-        fclose($socket);
+        $server->stop(0.1);
     }
 })->group('redis', 'stand', 'server-skip');
 
@@ -120,6 +130,8 @@ final class QualificationFaultStore extends RedisStore
     public string $fail = '';
 
     public int $failures = 0;
+
+    private ?PhpRedisConnection $faultConnection = null;
 
     private function fault(string $operation): void
     {
@@ -132,9 +144,27 @@ final class QualificationFaultStore extends RedisStore
 
     public function connection()
     {
-        $this->fault('get');
+        return $this->faultConnection ??= new class(parent::connection()->client(), fn (string $operation) => $this->fault($operation)) extends PhpRedisConnection
+        {
+            public function __construct($client, private readonly Closure $fault)
+            {
+                parent::__construct($client);
+            }
 
-        return parent::connection();
+            public function get($key)
+            {
+                ($this->fault)('get');
+
+                return parent::get($key);
+            }
+
+            public function eval($script, $numberOfKeys, ...$arguments)
+            {
+                ($this->fault)('forget');
+
+                return parent::eval($script, $numberOfKeys, ...$arguments);
+            }
+        };
     }
 
     public function put($key, $value, $seconds)

@@ -6,6 +6,10 @@ version) are documented here. Format: [Keep a Changelog](https://keepachangelog.
 
 ## [Unreleased]
 
+- Shared permission-set keys now include the signing namespace. Invalid entries are removed only when their
+  bytes still match the rejected value, preserving concurrent Redis replacements and separate applications.
+- Doctor reports configured Redis client serialization and compression that disable shared permission sets.
+- Worker memory qualification checks early RSS growth and queue jobs as well as the final HTTP window.
 - Exact visibility for resources without a scope mapping ignores concrete assignments, including the `global`
   scope alias, while retaining tenant-wide grants and the usual validation for mapped resources.
 - Shared permission-set reads now retain reconstructed factory values, detaching serialized decision-field

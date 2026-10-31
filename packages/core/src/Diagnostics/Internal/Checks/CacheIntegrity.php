@@ -60,6 +60,18 @@ final readonly class CacheIntegrity implements DoctorCheck
                     : DoctorFinding::warning('cache.signing', $message, $scope);
             }
 
+            $connection = $this->config->get('cache.stores.'.$store.'.connection', 'default');
+            $options = array_replace(
+                (array) $this->config->get('database.redis.'.$connection, []),
+                (array) $this->config->get('database.redis.options', []),
+                (array) $this->config->get('database.redis.'.$connection.'.options', []),
+            );
+
+            if ($this->config->get('database.redis.client', 'phpredis') === 'phpredis'
+                && (($options['serializer'] ?? 0) != 0 || ($options['compression'] ?? 0) != 0)) {
+                yield DoctorFinding::warning('cache.transport', 'Configured Redis client serialization or compression disables shared permission sets; use a dedicated connection with both options disabled.', $scope);
+            }
+
             if (($panel->settings()->cacheTtl() ?? 0) > SignedEnvelope::MAX_TTL) {
                 yield DoctorFinding::warning('cache.ttl', 'Shared permission-set TTL is capped at 3600 seconds; set cache.ttl accordingly.', $scope);
             }

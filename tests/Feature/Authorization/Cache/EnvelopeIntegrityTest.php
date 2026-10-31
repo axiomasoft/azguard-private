@@ -18,6 +18,7 @@ use AzGuard\Tests\Fixtures\Authorization\AuthorizationWorld;
 use AzGuard\Tests\Fixtures\Authorization\Cache\CacheSource;
 use AzGuard\Tests\Fixtures\Authorization\Cache\FencedCacheSource;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\File;
 
 beforeEach(function (): void {
     config(['azguard.cache.namespace' => 'test-app', 'azguard.cache.signing_key' => str_repeat('a', 32), 'azguard.cache.key_id' => 'old', 'azguard.cache.previous_keys' => []]);
@@ -59,26 +60,43 @@ it('rotates keys only within the explicitly bounded verification window', functi
     $raw = app('cache')->store('array')->get('rotation');
     config(['azguard.cache.key_id' => 'new', 'azguard.cache.signing_key' => str_repeat('b', 32), 'azguard.cache.previous_keys' => ['old' => ['key' => str_repeat('a', 32), 'valid_until' => $now->modify('+30 seconds')->format('Y-m-d\TH:i:s.u\Z')]]]);
     expect((new PermissionSetCache(app('cache')))->get('rotation', $panel, Volatility::Stable, true, $now))->toHaveCount(1)
+        ->and((new PermissionSetCache(app('cache')))->get('rotation', $panel, Volatility::Stable, true, $now->modify('+29 seconds')))->toHaveCount(1)
         ->and((new PermissionSetCache(app('cache')))->get('rotation', $panel, Volatility::Stable, true, $now->modify('+30 seconds')))->toBeNull();
+    $forged = json_decode($raw, true, flags: JSON_THROW_ON_ERROR);
+    $forged['payloadBase64'] = base64_encode(serialize(new EnvelopeWakeupSentinel));
+    app('cache')->store('array')->put('rotation', json_encode($forged, JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR), 60);
+    EnvelopeWakeupSentinel::$woken = false;
+    expect((new PermissionSetCache(app('cache')))->get('rotation', $panel, Volatility::Stable, true, $now))->toBeNull()
+        ->and(EnvelopeWakeupSentinel::$woken)->toBeFalse();
     app('cache')->store('array')->put('rotation', $raw, 60);
     config(['azguard.cache.previous_keys' => []]);
     expect((new PermissionSetCache(app('cache')))->get('rotation', $panel, Volatility::Stable, true, $now))->toBeNull();
 });
 
-it('bypasses the shared store when signing configuration is missing', function (): void {
+it('bypasses the shared store when signing configuration is missing', function (array $invalid): void {
     [, $panel] = AuthorizationWorld::compile(new CacheSource, fn (PanelBuilder $panel) => $panel->cache('array', 60));
-    config(['azguard.cache.namespace' => null]);
+    config($invalid);
     $now = Carbon::now()->toDateTimeImmutable();
     $cache = new PermissionSetCache(app('cache'));
     $cache->put('unsigned', $panel, Volatility::Stable, true, [AuthorizationWorld::grant()], $now);
     expect(app('cache')->store('array')->get('unsigned'))->toBeNull()
         ->and($cache->get('unsigned', $panel, Volatility::Stable, true, $now))->toHaveCount(1)
         ->and((new PermissionSetCache(app('cache')))->get('unsigned', $panel, Volatility::Stable, true, $now))->toBeNull();
+    app('cache')->store('array')->put('unsigned', serialize(new EnvelopeWakeupSentinel), 60);
+    EnvelopeWakeupSentinel::$woken = false;
+    expect((new PermissionSetCache(app('cache')))->get('unsigned', $panel, Volatility::Stable, true, $now))->toBeNull()
+        ->and(EnvelopeWakeupSentinel::$woken)->toBeFalse();
     // Array storage is local; the signing diagnostic applies to a configured shared Redis transport.
     [, $sharedPanel] = AuthorizationWorld::compile(new CacheSource, fn (PanelBuilder $panel) => $panel->cache('redis', 60));
     $context = new DoctorContext([$sharedPanel], [], true, AzGuardConfig::fromRepository(app('config')));
     expect(array_map(static fn ($finding) => $finding->key, iterator_to_array((new CacheIntegrity(app('config')))->run($context))))->toContain('cache.signing');
-});
+})->with([
+    [['azguard.cache.namespace' => null]],
+    [['azguard.cache.signing_key' => null, 'app.key' => null]],
+    [['azguard.cache.signing_key' => '', 'app.key' => '']],
+    [['azguard.cache.signing_key' => str_repeat('s', 31)]],
+    [['azguard.cache.signing_key' => 'base64:invalid']],
+]);
 
 it('rehydrates signed contributions into detached factory values', function (string $class): void {
     [, $panel] = AuthorizationWorld::compile(new CacheSource, fn (PanelBuilder $panel) => $panel->cache('array', 60));
@@ -156,7 +174,8 @@ it('does not deserialize a forged outer value in a serialized array store', func
 });
 
 it('bypasses stores whose read transport cannot be inspected safely', function (): void {
-    config(['cache.stores.envelope_file' => ['driver' => 'file', 'path' => sys_get_temp_dir().'/azguard-unsupported-cache']]);
+    $path = storage_path('framework/cache/envelope-'.bin2hex(random_bytes(12)));
+    config(['cache.stores.envelope_file' => ['driver' => 'file', 'path' => $path], 'cache.serializable_classes' => null]);
     [, $panel] = AuthorizationWorld::compile(new CacheSource, fn (PanelBuilder $panel) => $panel->cache('envelope_file', 60));
     $now = Carbon::now()->toDateTimeImmutable();
     $cache = new PermissionSetCache(app('cache'));
@@ -164,18 +183,30 @@ it('bypasses stores whose read transport cannot be inspected safely', function (
     expect($cache->get('unsupported', $panel, Volatility::Stable, true, $now))->toHaveCount(1)
         ->and((new PermissionSetCache(app('cache')))->get('unsupported', $panel, Volatility::Stable, true, $now))->toBeNull()
         ->and(app('cache')->store('envelope_file')->get('unsupported'))->toBeNull();
+
+    try {
+        app('cache')->store('envelope_file')->put('gadget', new EnvelopeWakeupSentinel, 60);
+        EnvelopeWakeupSentinel::$woken = false;
+        expect((new PermissionSetCache(app('cache')))->get('gadget', $panel, Volatility::Stable, true, $now))->toBeNull()
+            ->and(EnvelopeWakeupSentinel::$woken)->toBeFalse();
+    } finally {
+        File::deleteDirectory($path);
+    }
 });
 
 it('verifies Redis bytes before any outer object deserialization', function (): void {
     $prefix = 'azguard-envelope-'.bin2hex(random_bytes(12)).':';
-    config(['database.redis.envelope_integrity' => ['host' => '127.0.0.1', 'port' => getenv('REDIS_PORT') ?: 26379, 'database' => 15],
+    config(['database.redis.client' => 'phpredis', 'database.redis.options.prefix' => '',
+        'database.redis.envelope_integrity' => ['host' => '127.0.0.1', 'port' => getenv('REDIS_PORT') ?: 26379, 'database' => 15],
         'cache.stores.envelope_redis' => ['driver' => 'redis', 'connection' => 'envelope_integrity', 'prefix' => $prefix],
         'cache.serializable_classes' => null]);
     $store = app('cache')->store('envelope_redis');
     $connection = $store->getStore()->connection();
     $client = $connection->client();
+    $serializer = $client->getOption(Redis::OPT_SERIALIZER);
     expect($client->getOption(Redis::OPT_SERIALIZER))->toBe(Redis::SERIALIZER_NONE)
-        ->and($connection->get($prefix.'outer'))->toBeNull();
+        ->and($client->getOption(Redis::OPT_PREFIX) ?: '')->toBe('')
+        ->and($connection->keys($prefix.'*'))->toBe([]);
     [, $panel] = AuthorizationWorld::compile(new CacheSource, fn (PanelBuilder $panel) => $panel->cache('envelope_redis', 60));
     $now = Carbon::now()->toDateTimeImmutable();
     $authorityKey = null;
@@ -214,13 +245,31 @@ it('verifies Redis bytes before any outer object deserialization', function (): 
             ->and($source->grantReads)->toBe(2)->and(EnvelopeWakeupSentinel::$woken)->toBeFalse();
     } finally {
         $client->setOption(Redis::OPT_SERIALIZER, Redis::SERIALIZER_NONE);
-        $connection->del($prefix.'outer');
-
-        if ($authorityKey !== null) {
-            $connection->del($authorityKey);
+        $keys = $connection->keys($prefix.'*');
+        foreach ($keys as $key) {
+            if (! str_starts_with($key, $prefix)) {
+                throw new RuntimeException('Redis cleanup refused: key outside disposable prefix.');
+            }
         }
+        foreach ($keys as $key) {
+            $connection->del($key);
+        }
+        $client->setOption(Redis::OPT_SERIALIZER, $serializer);
     }
 })->group('redis');
+
+it('rejects signed object-valued decision fields outside the factory plain-data contract', function (object $value): void {
+    [, $panel] = AuthorizationWorld::compile(new CacheSource, fn (PanelBuilder $p) => $p->cache('array', 60));
+    $now = Carbon::now()->toDateTimeImmutable();
+    $until = $now->modify('+60 seconds');
+    $payload = serialize(['items' => [AuthorizationWorld::grant(fields: ['marker' => 'safe'])], 'validUntil' => $until]);
+    $payload = str_replace(serialize('safe'), serialize($value), $payload);
+    $raw = SignedEnvelope::fromConfig(app('config'))->encode('object-field', $payload, $now, $until);
+    app('cache')->store('array')->put('object-field', $raw, 60);
+    EnvelopeWakeupSentinel::$woken = false;
+    expect((new PermissionSetCache(app('cache')))->get('object-field', $panel, Volatility::Stable, true, $now))->toBeNull()
+        ->and(EnvelopeWakeupSentinel::$woken)->toBeFalse();
+})->with([new stdClass, new DateTimeImmutable('2026-10-31T12:00:00Z'), new EnvelopeWakeupSentinel]);
 
 final class EnvelopeWakeupSentinel
 {

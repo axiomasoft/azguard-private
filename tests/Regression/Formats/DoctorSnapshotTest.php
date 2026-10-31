@@ -7,11 +7,13 @@ use AzGuard\Diagnostics\Severity;
 use AzGuard\Panels\PanelBuilder;
 use AzGuard\Sources\Database\DatabaseSource;
 use AzGuard\Tests\Fixtures\Crm\CrmWorld;
+use AzGuard\Tests\Fixtures\Crm\Models\Project;
 use AzGuard\Tests\Fixtures\Diagnostics\DoctorWorld;
 use AzGuard\Tests\Fixtures\Formats\FormatSnapshot;
 use AzGuard\Tests\Fixtures\Panels\OrderPermission;
 use AzGuard\Tests\Fixtures\Panels\TestPanel;
 use AzGuard\Tests\Fixtures\Panels\User;
+use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Support\Facades\Artisan;
 
 /*
@@ -97,21 +99,29 @@ it('keeps every doctor check class, its key and the finding ids it emits', funct
 });
 
 it('keeps the doctor JSON document of a healthy and a broken CRM stand on SQLite', function (): void {
-    CrmWorld::seed();
-    CrmWorld::compile();
-    $healthy = Artisan::call('azguard:doctor', ['--json' => true]);
-    $healthyFindings = json_decode(Artisan::output(), true, flags: JSON_THROW_ON_ERROR);
-    CrmWorld::storage()->connection()->getSchemaBuilder()->drop('azg_panel_state');
-    $broken = Artisan::call('azguard:doctor', ['--json' => true]);
-    $brokenFindings = json_decode(Artisan::output(), true, flags: JSON_THROW_ON_ERROR);
+    $previousMorphMap = Relation::morphMap();
 
-    [$actual, $stored] = FormatSnapshot::compare('doctor', [
-        'healthy' => baselineDoctorDocument($healthy, $healthyFindings),
-        'broken' => baselineDoctorDocument($broken, $brokenFindings),
-        'unknown_panel_exit' => Artisan::call('azguard:doctor', ['--json' => true, '--panel' => ['ghost']]),
-    ]);
+    try {
+        CrmWorld::seed();
+        Relation::morphMap(['crm.project' => Project::class]);
+        CrmWorld::compile();
+        $healthy = Artisan::call('azguard:doctor', ['--json' => true]);
+        $healthyFindings = json_decode(Artisan::output(), true, flags: JSON_THROW_ON_ERROR);
+        CrmWorld::storage()->connection()->getSchemaBuilder()->drop('azg_panel_state');
+        $broken = Artisan::call('azguard:doctor', ['--json' => true]);
+        $brokenFindings = json_decode(Artisan::output(), true, flags: JSON_THROW_ON_ERROR);
+        expect($healthy)->toBe(0)->and($broken)->toBe(1);
 
-    expect($actual)->toBe($stored);
+        [$actual, $stored] = FormatSnapshot::compare('doctor', [
+            'healthy' => baselineDoctorDocument($healthy, $healthyFindings),
+            'broken' => baselineDoctorDocument($broken, $brokenFindings),
+            'unknown_panel_exit' => Artisan::call('azguard:doctor', ['--json' => true, '--panel' => ['ghost']]),
+        ]);
+
+        expect($actual)->toBe($stored);
+    } finally {
+        Relation::morphMap($previousMorphMap, false);
+    }
 })->group('sqlite', 'server-skip'); // the storage checks of the stand differ by driver (storage.sqlite, consistency.reads)
 
 it('pins the production cache security findings in the doctor format', function (): void {
@@ -123,6 +133,9 @@ it('pins the production cache security findings in the doctor format', function 
     $exit = Artisan::call('azguard:doctor', ['--production' => true, '--json' => true]);
     $findings = json_decode(Artisan::output(), true, flags: JSON_THROW_ON_ERROR);
     $findings = array_values(array_filter($findings, static fn (array $finding): bool => str_starts_with($finding['key'], 'cache.')));
+    expect($exit)->toBe(1)->and(array_column($findings, 'key'))->toBe(['cache.redis', 'cache.signing', 'cache.ttl']);
+    $signing = array_values(array_filter($findings, static fn (array $finding): bool => $finding['key'] === 'cache.signing'));
+    expect($signing[0]['severity'])->toBe('error');
     [$actual, $stored] = FormatSnapshot::compare('doctor-cache-v2', baselineDoctorDocument($exit, $findings));
     expect($actual)->toBe($stored);
 });

@@ -19,7 +19,7 @@ try {
     $pid = null;
     for ($number = 1; $number <= (int) $argv[3]; $number++) {
         $line = $input === null ? file_get_contents($argv[2].'/worker-probe/'.$number, false,
-            stream_context_create(['http' => ['timeout' => 15, 'header' => "X-Worker-Marker: previous-request\r\n"]])) : fgets($input);
+            stream_context_create(['http' => ['timeout' => 15, 'header' => "X-Worker-Marker: {$number}\r\n"]])) : fgets($input);
 
         if ($line === false) {
             throw new RuntimeException("request {$number}: missing response");

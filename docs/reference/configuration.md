@@ -79,8 +79,12 @@ constructing objects in a cache driver before the signature can be checked.
 Shared permission sets use signed, finite-lived envelopes; without valid signing material and a namespace, the shared
 path is disabled and doctor reports `cache.signing`. To rotate, deploy the new key and id together, allow the old id
 and secret with a finite UTC `valid_until`, and remove it after the rollout. Keep keys secret and use a distinct
-namespace per application and environment. Old unsigned entries are ignored. Revision and epoch fencing still control
+namespace per application and environment; the namespace also separates physical permission-set keys within a shared
+Laravel cache prefix. Changing it causes cold cache reads. Old unsigned entries are ignored. Revision and epoch fencing still control
 freshness; a valid same-key entry can be replayed until expiry while its source revision remains unchanged.
+
+Invalid Redis entries are removed with an atomic compare-and-delete script (`EVAL`), preserving concurrent replacements.
+If the Redis ACL denies scripting, cleanup is best effort and the authoritative source still handles the cache miss.
 
 ## Panel settings (`PanelBuilder`)
 

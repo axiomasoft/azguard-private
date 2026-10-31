@@ -10,6 +10,7 @@ use AzGuard\Kernel\Decision\StateToken;
 use AzGuard\Kernel\Identity\AccessScope;
 use AzGuard\Kernel\Identity\SubjectRef;
 use AzGuard\Kernel\Identity\TenantRef;
+use AzGuard\Panels\PanelBuilder;
 use AzGuard\Tests\Fixtures\Authorization\AuthorizationWorld;
 use AzGuard\Tests\Fixtures\Authorization\Cache\CacheSource;
 use AzGuard\Tests\Fixtures\Authorization\Cache\FencedCacheSource;
@@ -61,7 +62,8 @@ it('promotes hits and evicts only the least recently used set and state', functi
         ->and($cache->get('a', $panel, Volatility::Request, false, $now))->toHaveCount(1)
         ->and($cache->state('a'))->toBe($state);
     $cache->forgetState('a');
-    expect($cache->get('a', $panel, Volatility::Request, false, $now))->toHaveCount(1);
+    expect($cache->state('a'))->toBeNull()
+        ->and($cache->get('a', $panel, Volatility::Request, false, $now))->toHaveCount(1);
 });
 
 it('recomputes an evicted state and observes a revoke without discarding unrelated sets', function (): void {
@@ -72,6 +74,15 @@ it('recomputes an evicted state and observes a revoke without discarding unrelat
     $cache = app(PermissionSetCache::class);
     $now = Carbon::now()->toDateTimeImmutable();
     $cache->put('unrelated', $panel, Volatility::Request, false, [AuthorizationWorld::grant()], $now);
+    $states = (new ReflectionProperty($cache, 'states'))->getValue($cache);
+    expect($states)->toHaveCount(1);
+    $authorityKey = array_key_first($states);
+    $reads = $source->stateReads;
+    $cache->rememberState('evict', StateToken::of('store', 'admin', 'inc', 1, 1, 'fingerprint'));
+    expect($cache->state($authorityKey))->toBeNull()
+        ->and((new ReflectionProperty($cache, 'states'))->getValue($cache))->toHaveCount(1)
+        ->and($engine->decide($panel, $request)->allowed())->toBeTrue()
+        ->and($source->stateReads)->toBeGreaterThan($reads);
     $source->direct = [];
     $source->revision++;
     $cache->rememberState('evict', StateToken::of('store', 'admin', 'inc', 1, 1, 'fingerprint'));
@@ -82,19 +93,43 @@ it('recomputes an evicted state and observes a revoke without discarding unrelat
 it('rejects invalid memo limits during configuration validation', function (string $key, mixed $value): void {
     expect(fn () => AzGuardConfig::fromRepository(new Repository(['azguard' => ['cache' => [$key => $value]]])))
         ->toThrow(InvalidConfigurationException::class, 'cache.'.$key);
-})->with([
-    ['max_memo_entries', 0], ['max_state_entries', 1025], ['max_state_entries', null], ['max_memo_entries', 1.5],
-]);
+})->with((static function (): array {
+    $cases = [];
+    foreach (['max_memo_entries', 'max_state_entries'] as $key) {
+        foreach ([0, -1, 1025, null, 1.5, '0', '1025', 'invalid', true] as $value) {
+            $cases[] = [$key, $value];
+        }
+    }
 
-it('does not retain volatile entries', function (): void {
+    return $cases;
+})());
+
+it('keeps independent valid memo limits', function (): void {
+    config(['azguard.cache.max_memo_entries' => 1, 'azguard.cache.max_state_entries' => 2]);
     [, $panel] = AuthorizationWorld::compile(new CacheSource);
     $cache = new PermissionSetCache(app('cache'));
     $now = Carbon::now()->toDateTimeImmutable();
-    $cache->put('volatile', $panel, Volatility::Volatile, true, [AuthorizationWorld::grant()], $now);
-    expect($cache->get('volatile', $panel, Volatility::Request, true, $now))->toBeNull();
+    foreach (['a', 'b'] as $key) {
+        $cache->put($key, $panel, Volatility::Request, false, [AuthorizationWorld::grant()], $now);
+        $cache->rememberState($key, StateToken::of('store', 'admin', 'inc', 1, 1, 'fp'));
+    }
+    expect($cache->get('a', $panel, Volatility::Request, false, $now))->toBeNull()
+        ->and($cache->state('a'))->not->toBeNull()->and($cache->state('b'))->not->toBeNull();
 });
 
-it('bounds memo in a queue worker and flushes it for the next job', function (): void {
+it('does not retain volatile entries', function (): void {
+    config(['azguard.cache.namespace' => 'volatile-test', 'azguard.cache.signing_key' => str_repeat('v', 32)]);
+    [, $panel] = AuthorizationWorld::compile(new CacheSource, fn (PanelBuilder $p) => $p->cache('array', 60));
+    $cache = new PermissionSetCache(app('cache'));
+    $now = Carbon::now()->toDateTimeImmutable();
+    $cache->put('volatile', $panel, Volatility::Volatile, true, [AuthorizationWorld::grant()], $now);
+    expect($cache->get('volatile', $panel, Volatility::Volatile, true, $now))->toBeNull()
+        ->and((new ReflectionProperty($cache, 'sets'))->getValue($cache))->toBe([])
+        ->and((new ReflectionProperty($cache, 'panels'))->getValue($cache))->toBe([])
+        ->and(app('cache')->store('array')->get('volatile'))->toBeNull();
+});
+
+it('bounds memo in a queue worker and flushes it for the next job', function (bool $throw): void {
     [, $panel] = AuthorizationWorld::compile(new CacheSource);
     $now = Carbon::now()->toDateTimeImmutable();
     $observed = [];
@@ -106,16 +141,25 @@ it('bounds memo in a queue worker and flushes it for the next job', function ():
         $job->shouldReceive('payload')->andReturn([]);
         $job->shouldReceive('isDeleted', 'isReleased', 'hasFailed')->andReturn(false);
         $job->shouldReceive('fail', 'release')->byDefault();
-        $job->shouldReceive('fire')->once()->andReturnUsing(function () use ($panel, $now, &$observed): void {
+        $job->shouldReceive('fire')->once()->andReturnUsing(function () use ($panel, $now, &$observed, $jobIndex, $throw): void {
             $cache = app(PermissionSetCache::class);
             $observed[] = $cache->get('previous-job', $panel, Volatility::Request, false, $now);
             $baseline = memory_get_usage(true);
             for ($i = 0; $i < 10000; $i++) {
                 $cache->rememberState('state-'.$i, StateToken::of('store', 'admin', 'inc', $i, 1, 'fp', 0, $i));
-                $cache->put('set-'.$i, $panel, Volatility::Request, false, [], $now);
+                $cache->put('set-'.$i, $panel, Volatility::Request, false, [AuthorizationWorld::grant()], $now);
             }
+            $sets = (new ReflectionProperty($cache, 'sets'))->getValue($cache);
+            $panels = (new ReflectionProperty($cache, 'panels'))->getValue($cache);
+            expect($sets)->toHaveCount(1024)
+                ->and((new ReflectionProperty($cache, 'states'))->getValue($cache))->toHaveCount(1024)
+                ->and(array_keys($sets))->toBe(array_keys($panels));
             $observed[] = memory_get_usage(true) - $baseline;
             $cache->put('previous-job', $panel, Volatility::Request, false, [AuthorizationWorld::grant()], $now);
+
+            if ($throw && $jobIndex === 0) {
+                throw new RuntimeException('job failed after memo population');
+            }
         });
         $jobs[] = $job;
     }
@@ -137,7 +181,7 @@ it('bounds memo in a queue worker and flushes it for the next job', function ():
         }
     };
     $status = $worker->daemon('test', 'default', new WorkerOptions(memory: 512, maxJobs: 2));
-    expect($errors)->toBe([])->and($status)->toBe(0)->and($observed)->toHaveCount(4)
+    expect($errors)->toBe($throw ? ['job failed after memo population'] : [])->and($status)->toBe(0)->and($observed)->toHaveCount(4)
         ->and($observed[0])->toBeNull()->and($observed[2])->toBeNull()
         ->and($observed[1])->toBeLessThan(16 * 1024 * 1024)->and($observed[3])->toBeLessThan(16 * 1024 * 1024);
-});
+})->with([false, true]);
