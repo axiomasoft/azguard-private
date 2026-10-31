@@ -84,6 +84,8 @@ class DependabotPolicyTest(unittest.TestCase):
 
     def test_trusted_metadata_and_permissions(self):
         self.assertEqual(set(WORKFLOW['on']), {'pull_request_target', 'workflow_dispatch', 'schedule'})
+        self.assertEqual(WORKFLOW['on']['pull_request_target']['types'],
+                         ['opened', 'synchronize', 'reopened', 'auto_merge_enabled'])
         self.assertEqual(JOB['permissions'], {'pull-requests': 'write'})
         self.assertEqual(META['uses'],
                          'dependabot/fetch-metadata@25dd0e34f4fe68f24cc83900b1fe3fe149efef98')

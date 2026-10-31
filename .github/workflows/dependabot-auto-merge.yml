@@ -1,8 +1,9 @@
 name: Disable Dependabot auto-merge
 
 on:
+  # zizmor: ignore[dangerous-triggers] -- Base-branch workflow only; no PR checkout or execution. The pin checker locks the complete privileged job.
   pull_request_target:
-    types: [opened, synchronize, reopened]
+    types: [opened, synchronize, reopened, auto_merge_enabled]
   workflow_dispatch:
   schedule:
     - cron: '*/15 * * * *'

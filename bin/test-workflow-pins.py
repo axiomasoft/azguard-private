@@ -114,6 +114,7 @@ class PolicyTests(unittest.TestCase):
             text.replace('gh pr merge --disable-auto "$PR_URL"', 'gh pr merge --auto --squash "$PR_URL"'),
             text.replace('gh pr merge --disable-auto "$PR_URL"', 'echo ignored'),
             text.replace('cancel-in-progress: false', 'cancel-in-progress: true'),
+            text.replace(', auto_merge_enabled', ''),
             text.replace("cron: '*/15 * * * *'", "cron: '0 0 * * *'"),
             text.replace('gh pr merge --disable-auto "$number" --repo "$REPOSITORY"', 'echo ignored'),
             text.replace('      pull-requests: write', '      contents: write\n      pull-requests: write', 1),

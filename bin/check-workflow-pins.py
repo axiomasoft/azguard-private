@@ -163,7 +163,7 @@ def check_workflow(text, filename):
         workflow_env = check_env(workflow.get('env'), errors, 'workflow')
         if events == 'pull_request_target' or isinstance(events, (dict, list)) and 'pull_request_target' in events:
             if not (filename == 'dependabot-auto-merge.yml'
-                    and events == {'pull_request_target': {'types': ['opened', 'synchronize', 'reopened']}, 'workflow_dispatch': None, 'schedule': [{'cron': '*/15 * * * *'}]}
+                    and events == {'pull_request_target': {'types': ['opened', 'synchronize', 'reopened', 'auto_merge_enabled']}, 'workflow_dispatch': None, 'schedule': [{'cron': '*/15 * * * *'}]}
                     and jobs == {'auto-merge': DEPENDABOT_JOB, 'sweep': DEPENDABOT_SWEEP}
                     and set(workflow) <= {'name', 'on', True, 'permissions', 'defaults', 'jobs'}
                     and workflow.get('defaults') == {'run': {'shell': 'bash'}}):

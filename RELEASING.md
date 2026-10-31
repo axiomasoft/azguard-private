@@ -165,9 +165,9 @@ equivalent mutant. It also runs weekly. It needs a coverage driver (pcov or Xdeb
 - An ordinary Dependabot update is reviewed within a week; superseded Dependabot PRs are closed.
 - Dependabot auto-merge is disabled until a required eligibility check on the updated PR has been proven. All
   Dependabot updates require normal review and manual merge. The workflow disables an existing auto-merge request
-  when it handles a same-repository Dependabot PR. A scheduled and manually dispatched sweep also attempts to disable
+  when it handles a same-repository Dependabot PR, including an auto-merge-enabled event. A scheduled and manually dispatched sweep also attempts to disable
   existing requests on open Dependabot PRs, including forks. Neither establishes branch protection. Scheduled runs can
-  be delayed, fail, or never run before an already armed PR merges; API failure leaves requests armed. Before deployment
+  be delayed, fail, or never run before an already armed PR merges; the event-driven job can also lose that race, and API failure leaves requests armed. Before deployment
   and release, inspect all open Dependabot PRs and have an authorized owner disable any existing requests immediately.
   Monitor both reconciliation jobs and resolve failures; a green run does not prove that a concurrent request is absent.
 - Before release, run `php bin/repository-settings-audit.php --live` and verify the active ruleset for the target
