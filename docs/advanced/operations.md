@@ -147,14 +147,27 @@ recorded for changes; set the actor explicitly when needed.
 ## Manual database changes and restores
 
 Cached permission sets are keyed by the panel's incarnation, epoch and each subject's revision. Writes through
-AzGuard raise them (see [Consistency](/advanced/consistency)). After you edit the grant tables by hand or restore a
-backup, start a new state (new incarnation, new epoch) so that no cache serves old answers:
+AzGuard raise them (see [Consistency](/advanced/consistency)). Restoring a database can restore an old token while
+external cache entries and source state remain newer. A later write can even recreate a previously used token.
+After a restore or manual grant-table change, **reset every affected panel before reopening traffic**:
 
 ```bash
-php artisan azguard:state:reset admin
+php artisan azguard:state:reset admin --force  # repeat for each affected panel in production
 ```
 
-To drop every cached permission set at once, raise `cache.generation`.
+Quiesce requests, writers and workers first. Restore the consistent database backup together with its compatible
+code and dependency lock, and restore or reset external authorization sources according to their own contracts.
+Run the command against the primary for every affected panel; it starts a new incarnation and raises the epoch.
+Invalidate external caches and restart long-running workers, then run Doctor and check representative allow and deny
+decisions before reopening traffic. Verify the restored audit history against the backup and account for the new
+`panel.touched` reset event; changes made after the backup are not recovered by the restore. A failed reset or
+verification keeps traffic closed. A major downgrade is a restoration of a compatible code, lock and backup pair,
+not a reverse 2.0-to-1.x migration.
+
+To drop every cached permission set at once, raise `cache.generation`. During key rotation, coordinate signing keys
+across instances and follow the bounded previous-key verification procedure in [cache configuration](../reference/configuration.md).
+Invalidate the affected cache namespace, restart workers and verify decisions before traffic resumes; rehearse the
+compatible signing configuration and generation for the rollback pair without exposing signing material.
 
 ## Dedicated connection
 
