@@ -23,6 +23,18 @@ while (($line = fgets(STDIN)) !== false) {
 
             continue;
         }
+        if ($command['mode'] === 'disconnect') {
+            $id = (int) $command['connection_id'];
+            if ($storage->connection()->getDriverName() === 'pgsql') {
+                $storage->connection()->selectOne('select pg_terminate_backend(?) as terminated', [$id]);
+            } else {
+                $storage->connection()->statement('KILL CONNECTION '.$id);
+            }
+            echo json_encode(['disconnected' => true], JSON_THROW_ON_ERROR)."\n";
+            fflush(STDOUT);
+
+            continue;
+        }
         $storage->mutate('admin', static function (StorageMutation $mutation) use ($command): void {
             $mutation->table('permission_grants')->where('panel', 'admin')->delete();
             $mutation->table('role_grants')->where('panel', 'admin')->delete();

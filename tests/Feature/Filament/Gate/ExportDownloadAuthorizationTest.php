@@ -334,7 +334,8 @@ it('checks export preflight and preparation with unbuffered MySQL reads', functi
     } else {
         expect(Export::query()->count())->toBe($revoked ? 0 : 1);
     }
-})->with([false, true])->with([false, true])->group('engines', 'stand');
+})->with([false, true])->with([false, true])
+    ->group('stand', in_array(env('DB_CONNECTION', 'sqlite'), ['mysql', 'mariadb'], true) ? 'engines' : 'mysql-engines');
 
 it('refuses a serialized query for a different model even when its key matches an authorized record', function (): void {
     $user = GateWorld::grant(['orders.view_any', 'orders.view']);

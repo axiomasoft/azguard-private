@@ -14,6 +14,7 @@ use AzGuard\Tests\Engines\Support\AuthorityProcess;
 use AzGuard\Tests\Engines\Support\BatchEngineWorld;
 use AzGuard\Tests\Engines\Support\CacheEngineWorld;
 use AzGuard\Tests\Fixtures\Sources\Database\DatabaseWorld;
+use Illuminate\Database\Events\QueryExecuted;
 
 beforeEach(fn () => CacheEngineWorld::seed());
 afterEach(fn () => CacheEngineWorld::clean());
@@ -31,6 +32,13 @@ it('reads a deduplicated context union in bounded chunks inside one snapshot', f
     $requests = BatchEngineWorld::requests();
     $requests = [...$requests, $requests[0], $requests[100]];
     $reads = [];
+    $handles = [];
+    DatabaseWorld::storage()->connection()->listen(static function (QueryExecuted $query) use (&$handles): void {
+        if (str_starts_with(strtolower(ltrim($query->sql)), 'select')
+            && preg_match('/azg_(panel_state|permission_grants|role_grants)["`]/', $query->sql)) {
+            $handles[] = spl_object_id($query->connection->getPdo());
+        }
+    });
     BatchEngineWorld::listen($reads);
 
     $set = $engine->decideMany($requests);
@@ -40,7 +48,9 @@ it('reads a deduplicated context union in bounded chunks inside one snapshot', f
         ->and(array_column($reads['admin'], 'table'))->toHaveCount(5)
         ->and($reads['admin'][0]['table'])->toBe('panel_state')
         ->and($reads['admin'][1]['table'])->toBe('permission_grants')
-        ->and($reads['admin'][4]['table'])->toBe('role_grants');
+        ->and($reads['admin'][4]['table'])->toBe('role_grants')
+        ->and($handles)->toHaveCount(5)
+        ->and(array_unique($handles))->toHaveCount(1);
     foreach (['permission_grants', 'role_grants'] as $table) {
         $chunks = array_values(array_filter($reads['admin'], static fn (array $read): bool => $read['table'] === $table));
         $contexts = array_merge(...array_column($chunks, 'contexts'));
@@ -120,3 +130,31 @@ it('keeps every chunk in the snapshot when another process revokes between chunk
         $worker->close();
     }
 })->with(['one revoke between chunks' => [false], 'a write at every odd chunk' => [true]])->group('engines');
+
+it('fails the entire batch closed when its pinned source connection is terminated between chunks', function (): void {
+    $engine = BatchEngineWorld::compile();
+    $worker = new AuthorityProcess;
+    $terminated = false;
+    $connection = DatabaseWorld::storage()->connection();
+
+    try {
+        $connection->listen(static function (QueryExecuted $query) use ($worker, &$terminated): void {
+            if ($terminated || ! preg_match('/azg_permission_grants["`]/', $query->sql)
+                || ! str_starts_with(strtolower(ltrim($query->sql)), 'select')) {
+                return;
+            }
+            $terminated = true;
+            $pdo = $query->connection->getPdo();
+            $sql = $query->connection->getDriverName() === 'pgsql' ? 'select pg_backend_pid()' : 'select connection_id()';
+            expect($worker->command(['mode' => 'disconnect', 'connection_id' => (int) $pdo->query($sql)->fetchColumn()])['disconnected'])->toBeTrue();
+        });
+        $set = $engine->decideMany(BatchEngineWorld::requests());
+        expect($terminated)->toBeTrue()->and($set)->toHaveCount(101);
+        foreach ($set as $decision) {
+            expect($decision->allowed())->toBeFalse()->and($decision->reason)->toBe(DecisionReason::SourceError);
+        }
+    } finally {
+        $worker->close();
+        $connection->disconnect();
+    }
+})->group('engines');

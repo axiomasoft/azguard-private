@@ -17,6 +17,15 @@ declare(strict_types=1);
 
 const DRIVERS = ['pgsql', 'mysql', 'mariadb'];
 
+require dirname(__DIR__).'/vendor/autoload.php';
+
+// Local disposable stand endpoints may be shared by the coordinator and worker processes without shell exports.
+// Explicit environment variables still win; this file cannot change the test target host or credentials.
+$currentEnvironment = getenv();
+foreach (\AzGuard\Tests\Support\DatabaseLaneEnvironment::read(dirname(__DIR__).'/tests/temp/database-lane.env', $currentEnvironment) as $name => $value) {
+    putenv("{$name}={$value}");
+}
+
 $driver = null;
 $workers = 0;
 $full = false;

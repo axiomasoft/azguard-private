@@ -177,7 +177,8 @@ it('checks every selected record with unbuffered MySQL reads before a bulk callb
     }
 
     expect(Order::query()->whereKey($selected)->count())->toBe($locked ? count($selected) : 0);
-})->with([false, true])->group('engines', 'stand');
+})->with([false, true])
+    ->group('stand', in_array(env('DB_CONNECTION', 'sqlite'), ['mysql', 'mariadb'], true) ? 'engines' : 'mysql-engines');
 
 final class SoftDeletedOrderForGate extends Model
 {
