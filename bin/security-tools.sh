@@ -42,6 +42,24 @@ verify() {
     [ "$actual" = "$sha256" ] || fail "sha256 mismatch for $name $version: expected $sha256, got $actual"
 }
 
+# Gitleaks also reads source/.gitleaksignore, even with an explicit ignore path.
+# Require an explicit final source so the check covers the directory actually scanned.
+check_gitleaks_source() {
+    [ "$name" = gitleaks ] || return 0
+    [ "$#" -ge 2 ] || fail "gitleaks requires dir or git and an explicit final source directory"
+    case "$1" in dir|git) ;; *) fail "gitleaks requires dir or git" ;; esac
+    local arg source="${!#}"
+    for arg in "$@"; do
+        case "$arg" in
+            -s|-s?*|--source|--source=*) fail "gitleaks source must be the final positional argument" ;;
+        esac
+    done
+    [ -d "$source" ] || fail "gitleaks source must be an existing directory"
+    if [ -e "$source/.gitleaksignore" ] || [ -L "$source/.gitleaksignore" ]; then
+        fail "gitleaks source contains a forbidden .gitleaksignore"
+    fi
+}
+
 dest="$tools_dir/$name-$version"
 tmp="$(mktemp -d)"
 trap 'rm -rf "$tmp"' EXIT
@@ -61,6 +79,7 @@ case "$kind" in
             rm -rf "$dest"
             mv "$tmp/out" "$dest"
         fi
+        check_gitleaks_source "$@"
         "$dest/$bin" "$@"
         ;;
     wheel)
