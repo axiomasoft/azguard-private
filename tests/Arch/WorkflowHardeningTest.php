@@ -57,6 +57,21 @@ it('rejects an unsafe package workflow and a package omitted from the scanner', 
     }
 });
 
+it('runs CodeQL on the same push branches as the test workflow', function (): void {
+    $root = dirname(__DIR__, 2);
+    $codeql = Yaml::parseFile($root.'/.github/workflows/codeql.yml');
+    $tests = Yaml::parseFile($root.'/.github/workflows/tests.yml');
+    $branches = $codeql['on']['push']['branches'];
+    $required = $tests['on']['push']['branches'];
+    $covers = static fn (array $actual): bool => array_diff($required, $actual) === [];
+
+    expect($covers($branches))->toBeTrue()
+        ->and(array_key_exists('workflow_call', $codeql['on']))->toBeTrue();
+    foreach (['fix/**', 'hotfix/**'] as $branch) {
+        expect($covers(array_values(array_diff($branches, [$branch]))))->toBeFalse();
+    }
+});
+
 it('isolates tag security runs from cancellation and pending-run replacement', function (): void {
     $workflow = Yaml::parseFile(dirname(__DIR__, 2).'/.github/workflows/security.yml');
     $concurrency = $workflow['concurrency'];
