@@ -1,0 +1,6 @@
+{
+  "invalid_patterns": ["", "*", "**", ".a", "a.", "a..b", "a:b.c", "a.*.b", "a.**.b", "a.***", "a.(b|c)", "a.b*", "a.\u0000", "a.é"],
+  "invalid_ids": ["", "a b", "a\u0000b", "é", "\n"],
+  "invalid_aliases": ["", "User", "a:b", "App\\User", "_user", "é"],
+  "invalid_labels": ["", ":source", "Source", "a b", "é"]
+}
