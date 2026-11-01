@@ -21,6 +21,43 @@ fi
 
 echo "test-security-gates: synthetic key detected (exit 1)"
 
+# The short-lived Bedrock rule must detect its token pattern, but not the
+# equivalent regular expression that defines the rule in our configuration.
+mkdir "$tmp/bedrock-positive" "$tmp/bedrock-negative"
+python3 - "$root/.gitleaks.toml" "$tmp" <<'PY'
+from pathlib import Path
+import sys
+
+config, tmp = Path(sys.argv[1]), Path(sys.argv[2])
+lines = config.read_text().splitlines()
+index = lines.index('id = "aws-amazon-bedrock-api-key-short-lived"')
+regex = next(line for line in lines[index:] if line.startswith('regex = '))
+(tmp / 'bedrock-negative' / 'rule.txt').write_text(regex + '\n')
+(tmp / 'bedrock-positive' / 'token.txt').write_text(
+    'bedrock-api-key-' + 'YmVkcm9jay5hbWF6b25hd3MuY29t' + '\n'
+)
+PY
+status=0
+(cd "$root" && bash bin/security-tools.sh gitleaks -- dir --no-banner --redact --ignore-gitleaks-allow --gitleaks-ignore-path="$tmp" --config="$root/.gitleaks.toml" --report-format=json --report-path="$tmp/bedrock-positive.json" "$tmp/bedrock-positive" >/dev/null 2>&1) || status=$?
+if [ "$status" -ne 1 ]; then
+    echo "test-security-gates: expected Bedrock token finding, got $status" >&2
+    exit 1
+fi
+python3 - "$tmp/bedrock-positive.json" <<'PY'
+import json, sys
+with open(sys.argv[1]) as report:
+    findings = json.load(report)
+if not any(item.get('RuleID') == 'aws-amazon-bedrock-api-key-short-lived' for item in findings):
+    raise SystemExit('test-security-gates: Bedrock rule omitted the token')
+PY
+status=0
+(cd "$root" && bash bin/security-tools.sh gitleaks -- dir --no-banner --redact --ignore-gitleaks-allow --gitleaks-ignore-path="$tmp" --config="$root/.gitleaks.toml" "$tmp/bedrock-negative" >/dev/null 2>&1) || status=$?
+if [ "$status" -ne 0 ]; then
+    echo "test-security-gates: Bedrock rule source should not be a finding, got $status" >&2
+    exit 1
+fi
+echo "test-security-gates: Bedrock token detected and rule source clean"
+
 # Exercise the actual release config, including upstream-excluded paths and a
 # secret introduced only in a merge commit, without retaining the test key.
 repo="$tmp/repository"

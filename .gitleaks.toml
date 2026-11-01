@@ -180,7 +180,8 @@ keywords = ["absk"]
 [[rules]]
 id = "aws-amazon-bedrock-api-key-short-lived"
 description = "Identified a pattern that may indicate short-lived Amazon Bedrock API keys, risking unauthorized Amazon Bedrock usage"
-regex = '''bedrock-api-key-YmVkcm9jay5hbWF6b25hd3MuY29t'''
+# The character class preserves the upstream pattern without matching this regex's source text.
+regex = '''bedrock-api-key-YmVkcm9j[a]y5hbWF6b25hd3MuY29t'''
 entropy = 3
 keywords = ["bedrock-api-key-"]
 
