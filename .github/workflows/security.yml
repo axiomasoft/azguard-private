@@ -158,7 +158,12 @@ jobs:
           persist-credentials: false
 
       - name: Scan the full history
-        run: bash bin/security-tools.sh gitleaks -- git --log-opts=--all --redact --config=.gitleaks.toml .
+        run: |
+          set -Eeuo pipefail
+          test "$(git rev-parse --is-shallow-repository)" = false
+          ignore_dir="$(mktemp -d "$RUNNER_TEMP/gitleaks-ignore.XXXXXX")"
+          trap 'rm -rf "$ignore_dir"' EXIT
+          bash bin/security-tools.sh gitleaks -- git --no-banner --redact --ignore-gitleaks-allow --gitleaks-ignore-path="$ignore_dir" --timeout 600 --config=.gitleaks.toml --log-opts="--all --full-history --diff-merges=first-parent" .
 
       - name: Prove the gate detects a synthetic secret
         run: bash bin/test-security-gates.sh

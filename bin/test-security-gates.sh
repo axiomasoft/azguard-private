@@ -99,6 +99,65 @@ if not any(item.get('File') == 'package-lock.json' for item in findings):
 PY
 echo "test-security-gates: merge-history fixture detected in upstream-excluded path"
 
+# Run the exact secondary workflow step against isolated histories. Each case
+# contains only one secret so another finding cannot conceal a coverage gap.
+secondary_step="$(python3 - "$root/.github/workflows/security.yml" <<'PY'
+import pathlib, re, sys
+workflow = pathlib.Path(sys.argv[1]).read_text()
+match = re.search(r'(?m)^      - name: Scan the full history\n        run: \|\n((?:          .*\n)+)', workflow)
+if not match:
+    raise SystemExit('test-security-gates: secondary scan step missing or ambiguous')
+print('\n'.join(line[10:] for line in match.group(1).splitlines()))
+PY
+)"
+for scenario in clean inline merge other-ref; do
+    fixture="$tmp/secondary-$scenario"
+    mkdir -p "$fixture/bin" "$fixture/.github"
+    cp "$root/bin/security-tools.sh" "$fixture/bin/"
+    cp "$root/.github/security-tools.lock" "$fixture/.github/"
+    cp "$root/.gitleaks.toml" "$fixture/"
+    git -C "$fixture" init -q
+    git -C "$fixture" config user.name 'Security fixture'
+    git -C "$fixture" config user.email 'fixture@example.invalid'
+    printf 'base\n' > "$fixture/base"
+    git -C "$fixture" add base
+    git -C "$fixture" commit -qm base
+    case "$scenario" in
+        inline)
+            printf 'aws_access_key_id = AKIA%s # gitleaks:allow\n' "$suffix" > "$fixture/credentials"
+            git -C "$fixture" add credentials
+            git -C "$fixture" commit -qm inline
+            ;;
+        merge)
+            git -C "$fixture" checkout -qb branch
+            printf 'branch\n' > "$fixture/branch"
+            git -C "$fixture" add branch
+            git -C "$fixture" commit -qm branch
+            git -C "$fixture" checkout -q -
+            printf 'main\n' > "$fixture/main"
+            git -C "$fixture" add main
+            git -C "$fixture" commit -qm main
+            git -C "$fixture" merge --no-commit --no-ff branch >/dev/null 2>&1
+            printf 'aws_access_key_id = AKIA%s\n' "$suffix" > "$fixture/credentials"
+            git -C "$fixture" add credentials
+            git -C "$fixture" commit -qm merge
+            ;;
+        other-ref)
+            git -C "$fixture" checkout -qb other
+            printf 'aws_access_key_id = AKIA%s\n' "$suffix" > "$fixture/credentials"
+            git -C "$fixture" add credentials
+            git -C "$fixture" commit -qm other
+            git -C "$fixture" checkout -q -
+            ;;
+    esac
+    status=0
+    (cd "$fixture" && RUNNER_TEMP="$tmp" AZGUARD_TOOLS_DIR="${AZGUARD_TOOLS_DIR:-$root/var/tools}" bash -c "$secondary_step" >/dev/null 2>&1) || status=$?
+    expected=1
+    [ "$scenario" != clean ] || expected=0
+    [ "$status" -eq "$expected" ] || { echo "test-security-gates: secondary $scenario expected exit $expected, got $status" >&2; exit 1; }
+done
+echo "test-security-gates: secondary workflow detects inline, merge-only and other-ref secrets"
+
 # Prove the source-root ignore bypass in the pinned scanner itself, then verify
 # the production runner rejects regular files and both kinds of symlink in each mode.
 ignore_repo="$tmp/ignore-repository"

@@ -44,7 +44,7 @@ REVIEWED_WORKFLOWS = {
     'pr-check.yml': 'b72cad5c81a8fe3d9692fd65af390ace4a63c705f7219dc6f8b5f929fd0bb493',
     'release.yml': '5583f04692309b8faa76bc650fba150699538c7b7d4fb2138a7fa99da431e7a7',
     'secret-scan.yml': 'f290709551ac446e93dc2350348fe5f11dfa7a21d36638d7082abdf0a5918ae7',
-    'security.yml': '8783771def06dce7fa95053b5fbbb1ddc2de46760749009ceda34a8da3aeb8a6',
+    'security.yml': '3c4974e434f88bf2350d8083e89744b8e1d9d62d17d404dcd2d3441539a746bc',
     'split.yml': '44098f68ec5a8db29afba6ccab2ca91b2539dbc0d9622ba6da59051b1a912d11',
     'static-analysis.yml': '75cfd1b9002f8fd952cf48a51dd07ab94a3836385ba3c6b9351ed79b677d1b05',
     'tests-nightly.yml': 'f8a9a70f743fd556b8907537fa45c959d6f55b187d98d0f3d87bd9152a98021c',
