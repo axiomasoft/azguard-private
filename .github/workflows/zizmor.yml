@@ -30,6 +30,7 @@ jobs:
       - name: Audit workflows
         id: scan
         run: |
+          set -Eeuo pipefail
           mkdir -p "$RUNNER_TEMP/zizmor-results"
           bash bin/security-tools.sh zizmor -- --strict-collection --format=sarif --persona=pedantic --min-severity=medium --config=.github/zizmor.yml .github/workflows/ > "$RUNNER_TEMP/zizmor-results/zizmor.sarif"
         env:
@@ -45,6 +46,6 @@ jobs:
         if: always()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
-          name: zizmor-${{ github.sha }}
+          name: zizmor-${{ github.sha }}-${{ github.run_attempt }}
           path: ${{ runner.temp }}/zizmor-results/
           if-no-files-found: error

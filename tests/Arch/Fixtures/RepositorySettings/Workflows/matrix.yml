@@ -1,0 +1,19 @@
+jobs:
+  analyze:
+    name: Analyze (${{ matrix.language }})
+    strategy:
+      matrix:
+        language: [actions, javascript-typescript]
+  excluded:
+    name: excluded (${{ matrix.language }})
+    strategy:
+      matrix:
+        language: [actions]
+        exclude: [{language: actions}]
+  literal:
+    name: Dollar (${{ matrix.value }})
+    strategy:
+      matrix:
+        value: ['$1']
+  dynamic:
+    name: dynamic (${{ github.ref }})

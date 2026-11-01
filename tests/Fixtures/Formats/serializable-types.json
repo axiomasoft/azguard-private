@@ -469,6 +469,12 @@
             ]
         },
         {
+            "fqcn": "AzGuard\\Filament\\Internal\\Exports\\ChecksPrepareCsvExport",
+            "kinds": [
+                "__serialize"
+            ]
+        },
+        {
             "fqcn": "AzGuard\\Kernel\\Decision\\AccessPredicate",
             "kinds": [
                 "kernel_value"

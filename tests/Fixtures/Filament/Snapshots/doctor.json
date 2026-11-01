@@ -14,5 +14,33 @@
         "scope": "panel:admin",
         "message": "A slow thing.",
         "details": []
+    },
+    {
+        "key": "panels.sources.visibility",
+        "severity": "warning",
+        "scope": "panel:backoffice",
+        "message": "Automatic folder roles lack exact scope selection; scalar and batch checks remain available.",
+        "details": {
+            "capability": "exact_visibility",
+            "reason": "automatic_roles",
+            "roles": [
+                "AzGuard\\Tests\\Fixtures\\Filament\\Guards\\BackofficeMemberRole"
+            ],
+            "source": "folder"
+        }
+    },
+    {
+        "key": "panels.sources.visibility",
+        "severity": "warning",
+        "scope": "panel:seller",
+        "message": "Automatic folder roles lack exact scope selection; scalar and batch checks remain available.",
+        "details": {
+            "capability": "exact_visibility",
+            "reason": "automatic_roles",
+            "roles": [
+                "AzGuard\\Tests\\Fixtures\\Filament\\Guards\\SellerMemberRole"
+            ],
+            "source": "folder"
+        }
     }
 ]

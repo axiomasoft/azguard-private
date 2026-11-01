@@ -80,6 +80,20 @@ jobs:
           DB_CONNECTION: sqlite
           DB_DATABASE: ':memory:'
 
+      - name: Record successful matrix row
+        run: |
+          set -Eeuo pipefail
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          mkdir -p "$RUNNER_TEMP/matrix-row"
+          cp composer.lock "$RUNNER_TEMP/matrix-row/composer.lock"
+          jq -n --arg sha "$GITHUB_SHA" --arg run_id "$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT" --arg name 'php${{ matrix.php }}-laravel${{ matrix.laravel_major }}-${{ matrix.stability }}' '{sha:$sha,run_id:$run_id,name:$name,result:"success"}' > "$RUNNER_TEMP/matrix-row/row.json"
+      - name: Upload successful matrix row
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: release-row-${{ github.run_attempt }}-php${{ matrix.php }}-laravel${{ matrix.laravel_major }}-${{ matrix.stability }}
+          path: ${{ runner.temp }}/matrix-row/
+          if-no-files-found: error
+
   # The tests whose result depends on the engine (group `database`, tests/zones.json) on each server and on the two
   # newest Laravel majors; everything else runs once on SQLite above. The engine tests (races, replication of one
   # database) run sequentially after them. Parity runs seeds 1 and 2 here, all of them in tests-nightly.yml.
@@ -168,6 +182,20 @@ jobs:
 
       - name: Engine qualification without skips (${{ matrix.connection }})
         run: composer test:db -- ${{ matrix.connection }} --engines
+
+      - name: Record successful database row
+        run: |
+          set -Eeuo pipefail
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          mkdir -p "$RUNNER_TEMP/matrix-row"
+          cp composer.lock "$RUNNER_TEMP/matrix-row/composer.lock"
+          jq -n --arg sha "$GITHUB_SHA" --arg run_id "$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT" --arg name 'db-${{ matrix.connection }}-laravel${{ matrix.laravel_major }}' '{sha:$sha,run_id:$run_id,name:$name,result:"success"}' > "$RUNNER_TEMP/matrix-row/row.json"
+      - name: Upload successful database row
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: release-row-${{ github.run_attempt }}-db-${{ matrix.connection }}-laravel${{ matrix.laravel_major }}
+          path: ${{ runner.temp }}/matrix-row/
+          if-no-files-found: error
 
       - name: Capture database service logs
         if: always()

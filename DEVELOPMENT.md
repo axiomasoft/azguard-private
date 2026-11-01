@@ -115,7 +115,6 @@ upgrading the report format.
 | `composer analyse` | PHPStan / Larastan | Static analysis (level 9, no baseline) |
 | `composer lint` / `lint:check` | Pint | Fix / check code style |
 | `composer refactor` / `refactor:check` | Rector | Apply / preview refactorings |
-| `composer mutate` | Pest mutate | Optional per-package mutation testing (`composer mutate:core` or `composer mutate:filament`) |
 | `composer check:coverage` | Pest / pcov or Xdebug | Line-coverage gate (`--min=85`) |
 | `composer bench` | — | Benchmarks of the public API, see `docs/advanced/performance.md` |
 | `composer bench:load` | — | Load bench with concurrent workers, see `bench/README.md` |
@@ -130,31 +129,6 @@ Feature tests use an in-memory SQLite database, so the `pdo_sqlite` /
 `composer test:parallel` keeps Pest's random execution order and passes the
 same 1G memory limit to every ParaTest worker. Tests are routed by zone and by
 lane; [tests/README.md](tests/README.md) has the zone map and the lane rules.
-
-## Optional mutation testing
-
-The historical 1.0 decision deferred mutation testing. For the current release,
-`composer mutate:critical` is release-blocking and runs through the reusable release
-workflow, weekly and on demand; see [RELEASING.md](RELEASING.md#critical-mutation).
-The full per-package `composer mutate`, `composer mutate:core` and
-`composer mutate:filament` runs remain optional, excluded from `composer check`,
-and available manually with their existing thresholds and failure handling.
-
-### Mutation-ratchet policy
-
-Pest's native mutator reports one covered mutation score per package. Raise a
-per-package threshold only from a fresh, successful Xdebug measurement: each new
-threshold is `floor(measured score) - 2` and must never be below the previous
-threshold. Do not lower a threshold to make a red gate pass. Exclusions live
-next to the package settings in `bin/mutation-gate.sh`, carry an inline
-rationale, and are reviewed as code.
-
-The first native Pest measurement was 100.00% for every package, and an Xdebug run on
-2026-09-24 confirmed it, so the native Pest gates enforce 99%.
-Line coverage on that run was 87.1%, so `composer check:coverage` and the CI
-coverage job enforce `--min=85` (`floor(87.1) - 2`). Local runs use PATH `php`,
-then `php8.4`, and fail when neither binary has pcov/Xdebug. `AZGUARD_ALLOW_NO_COVERAGE=1`
-is the only opt-out; it prints `NOT VERIFIED`. CI supplies Xdebug.
 
 ## Local database matrix
 

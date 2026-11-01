@@ -190,7 +190,9 @@ Paths are relative to the repository root. Method names identify enforcement, no
   reason, component, identity or grant fields under source and contract failures. Telemetry, if enabled,
   must use bounded failure labels rather than subject, tenant or grant identifiers.
 
-## Residual risks and host duties
+## Limitations
+
+### Residual risks and host duties
 
 - A valid snapshot can become stale immediately after reading. Neither a state token nor an HMAC is a
   lease, revocation barrier or lock on a future host operation. Follow [time-of-use guidance](./consistency.md#visibleto-and-time-of-check).

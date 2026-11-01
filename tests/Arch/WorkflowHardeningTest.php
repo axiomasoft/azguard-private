@@ -69,7 +69,9 @@ it('accepts a version comment with or without the v prefix and rejects a missing
         ->and($check("uses: actions/checkout@$sha # v6.1.0"))->toBe([])
         ->and($check("uses: actions/checkout@$sha"))->toBe(['unpinned-action'])
         ->and($check('uses: actions/checkout@'.substr($sha, 0, 39).' # v6'))->toBe(['unpinned-action'])
-        ->and($check('uses: ./.github/actions/local'))->toBe([]);
+        ->and($check('uses: ./.github/actions/local'))->toBe([])
+        ->and($check('uses: $/.github/workflows/docs.yml'))->toBe([])
+        ->and($check('uses: $/owner/repo@main'))->toBe(['unpinned-action']);
 });
 
 it('allows only the listed continue-on-error step and the listed write permissions', function (): void {
@@ -82,6 +84,8 @@ it('allows only the listed continue-on-error step and the listed write permissio
         ->and($coverage('tests.yml', 'test', 'Upload coverage to Codecov'))->toBe(['continue-on-error'])
         ->and($write('release.yml', 'release', ['contents' => 'write']))->toBe([])
         ->and($write('release.yml', 'release', ['packages' => 'write']))->toBe(['write-permission'])
+        ->and($write('release.yml', 'provenance', ['id-token' => 'write', 'attestations' => 'write']))->toBe([])
+        ->and($write('release.yml', 'artifacts', ['id-token' => 'write']))->toBe(['write-permission'])
         ->and($write('release.yml', 'other', ['contents' => 'write']))->toBe(['write-permission'])
         ->and($write('release.yml', 'release', ['contents' => 'read']))->toBe([]);
 });
@@ -90,7 +94,7 @@ it('requires an owner, a reason and a future expiry within 180 days on every ziz
     $today = new DateTimeImmutable('2026-10-17');
     $entry = fn (string $comment): string => "rules:\n  template-injection:\n    ignore:\n$comment      - \"tests.yml:10\"\n";
 
-    expect(zizmorAllowlistViolations((string) file_get_contents(dirname(__DIR__, 2).'/.github/zizmor.yml'), $today))->toBe([])
+    expect(zizmorAllowlistViolations((string) file_get_contents(dirname(__DIR__, 2).'/.github/zizmor.yml'), new DateTimeImmutable('today', new DateTimeZone('UTC'))))->toBe([])
         ->and(zizmorAllowlistViolations($entry("      # owner: @academici; reason: upstream bug; expires: 2026-12-01\n"), $today))->toBe([])
         ->and(zizmorAllowlistViolations($entry("      # owner: @academici; reason: upstream bug; expires: 2026-10-01\n"), $today))->toBe(['allowlist-expired line 5'])
         ->and(zizmorAllowlistViolations($entry("      # owner: @academici; reason: upstream bug; expires: 2027-12-01\n"), $today))->toBe(['allowlist-too-long line 5'])
@@ -98,4 +102,10 @@ it('requires an owner, a reason and a future expiry within 180 days on every ziz
         ->and(zizmorAllowlistViolations($entry("      # reason: upstream bug\n"), $today))->toBe(['allowlist-unannotated line 5'])
         ->and(zizmorAllowlistViolations("rules:\n  template-injection:\n    disable: true\n", $today))->toBe(['allowlist-disabled-rule line 3'])
         ->and(zizmorAllowlistViolations("rules:\n  template-injection:\n    ignore:\n      # owner: @academici; reason: x; expires: 2026-12-01\n      - \"tests.yml\"\n", $today))->toBe(['allowlist-wholesale line 5']);
+});
+
+it('rejects a modified privileged dependabot workflow', function (): void {
+    $raw = (string) file_get_contents(dirname(__DIR__, 2).'/.github/workflows/dependabot-auto-merge.yml');
+    $unsafe = str_replace('Disable Dependabot auto-merge', 'Disable Dependabot auto-merge changed', $raw);
+    expect(workflowRuleIds(workflowHardeningViolations('dependabot-auto-merge.yml', $unsafe, Yaml::parse($unsafe))))->toContain('dangerous-trigger');
 });

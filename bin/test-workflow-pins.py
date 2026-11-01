@@ -8,6 +8,7 @@ import sys
 import tempfile
 from pathlib import Path
 import unittest
+from unittest import mock
 
 spec = importlib.util.spec_from_file_location('workflow_pins', Path(__file__).with_name('check-workflow-pins.py'))
 pins = importlib.util.module_from_spec(spec)
@@ -131,7 +132,7 @@ jobs:
 
     def test_reviewed_scripts_stay_accepted_and_changes_require_review(self):
         for filename in ('compatibility.yml', 'release.yml', 'bench.yml', 'workers.yml',
-                         'dependabot-auto-merge.yml', 'mutation.yml'):
+                         'dependabot-auto-merge.yml'):
             with self.subTest(filename=filename):
                 text = (pins.ROOT / '.github/workflows' / filename).read_text()
                 self.assertEqual([], pins.check_workflow(text, filename))
@@ -144,6 +145,25 @@ jobs:
         self.check_bad(text.replace('prerelease:', 'script:'))
         release = (pins.ROOT / '.github/workflows/release.yml').read_text()
         self.assertEqual([], pins.check_workflow(release, 'release.yml'))
+
+    def test_checkout_only_accepts_exact_candidate_expression(self):
+        checkout = BASE.replace('with: {persist-credentials: false}',
+                                'with: {persist-credentials: false, ref: "${{ github.sha }}"}')
+        self.assertFalse(any('untrusted expression in action input ref' in error
+                             for error in pins.check_workflow(checkout, 'test.yml')))
+        unsafe = checkout.replace('${{ github.sha }}', '${{ github.event.pull_request.head.ref }}')
+        self.assertTrue(any('untrusted expression in action input ref' in error
+                            for error in pins.check_workflow(unsafe, 'test.yml')))
+
+    def test_release_artifact_input_only_accepts_exact_run_attempt(self):
+        action = 'actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333'
+        text = BASE.replace('      - run: echo safe',
+                            '      - uses: ' + action + '\n        with:\n          name: release-artifacts-${{ github.run_attempt }}')
+        self.assertFalse(any('untrusted expression in action input name' in error
+                             for error in pins.check_workflow(text, 'test.yml')))
+        unsafe = text.replace('github.run_attempt', 'github.event.pull_request.title')
+        self.assertTrue(any('untrusted expression in action input name' in error
+                            for error in pins.check_workflow(unsafe, 'test.yml')))
 
     def test_release_replacement_and_unreviewed_privileges_are_rejected(self):
         replacement = '''
@@ -211,6 +231,82 @@ jobs:
                                     capture_output=True, text=True)
             self.assertNotEqual(0, result.returncode)
             self.assertIn('release.yml: reviewed workflow missing', result.stderr)
+
+    def test_package_workflows_require_each_reviewed_snapshot(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            names = list(pins.REVIEWED_PACKAGE_WORKFLOWS)
+            digests = {name: hashlib.sha256(BASE.encode()).hexdigest() for name in names}
+            for name in names:
+                path = root / name
+                path.parent.mkdir(parents=True, exist_ok=True)
+                path.write_text(BASE)
+            with mock.patch.object(pins, 'REVIEWED_PACKAGE_WORKFLOWS', digests):
+                self.assertEqual([], pins.check_package_workflows(root))
+                for name in names:
+                    with self.subTest(name=name):
+                        path = root / name
+                        path.write_text(BASE + '\n# changed after review\n')
+                        self.assertTrue(any(p == path and 'independent review' in error
+                                            for p, error in pins.check_package_workflows(root)))
+                        path.unlink()
+                        self.assertTrue(any(p == path and 'missing or invalid' in error
+                                            for p, error in pins.check_package_workflows(root)))
+                        path.write_text(BASE)
+            with mock.patch.object(pins, 'REVIEWED_PACKAGE_WORKFLOWS', dict.fromkeys(names)):
+                self.assertEqual(len(names), len(pins.check_package_workflows(root)))
+
+    def test_package_workflows_check_pins_even_for_matching_snapshots(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            names = list(pins.REVIEWED_PACKAGE_WORKFLOWS)
+            for name in names:
+                path = root / name
+                path.parent.mkdir(parents=True, exist_ok=True)
+                path.write_text(BASE)
+            for name in names:
+                path = root / name
+                for unsafe, expected in (
+                    (BASE.replace('@d23441a48e516b6c34aea4fa41551a30e30af803', '@v6'), 'forbidden uses'),
+                    (BASE.replace('persist-credentials: false', 'persist-credentials: true'), 'persisted credentials'),
+                    (BASE.replace('runs-on: ubuntu-latest', 'runs-on: ubuntu-latest\n    permissions: {contents: write}'), 'forbidden permissions'),
+                ):
+                    with self.subTest(name=name, expected=expected):
+                        path.write_text(unsafe)
+                        digests = {other: hashlib.sha256((root / other).read_bytes()).hexdigest() for other in names}
+                        with mock.patch.object(pins, 'REVIEWED_PACKAGE_WORKFLOWS', digests):
+                            self.assertTrue(any(p == path and expected in error
+                                                for p, error in pins.check_package_workflows(root)))
+                        path.write_text(BASE)
+
+    def test_unknown_package_workflows_are_rejected(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            names = list(pins.REVIEWED_PACKAGE_WORKFLOWS)
+            digests = {name: hashlib.sha256(BASE.encode()).hexdigest() for name in names}
+            for name in names:
+                path = root / name
+                path.parent.mkdir(parents=True, exist_ok=True)
+                path.write_text(BASE)
+            with mock.patch.object(pins, 'REVIEWED_PACKAGE_WORKFLOWS', digests):
+                self.assertEqual([], pins.check_package_workflows(root))
+                for name in ('packages/core/.github/workflows/extra.yml',
+                             'packages/filament/.github/workflows/extra.yaml',
+                             'packages/another/.github/workflows/extra.yml'):
+                    with self.subTest(name=name):
+                        path = root / name
+                        path.parent.mkdir(parents=True, exist_ok=True)
+                        path.write_text(BASE)
+                        self.assertTrue(any(p == path and 'unknown package workflow' in error
+                                            for p, error in pins.check_package_workflows(root)))
+                        path.unlink()
+
+    def test_current_package_workflows_meet_pin_and_permission_rules(self):
+        # Simulate approved snapshots only for this test; production policy stays fail-closed.
+        digests = {name: hashlib.sha256((pins.ROOT / name).read_bytes()).hexdigest()
+                   for name in pins.REVIEWED_PACKAGE_WORKFLOWS}
+        with mock.patch.object(pins, 'REVIEWED_PACKAGE_WORKFLOWS', digests):
+            self.assertEqual([], pins.check_package_workflows(pins.ROOT))
 
     def test_duplicate_keys(self):
         self.check_bad(BASE.replace('permissions: {contents: read}', 'permissions: {contents: read}\npermissions: write-all'))

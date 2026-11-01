@@ -18,6 +18,8 @@ use RuntimeException;
 
 class TestCase extends Orchestra
 {
+    private ?string $testCacheNamespace = null;
+
     /**
      * Every test starts from an empty database, as it does on SQLite :memory:. On PostgreSQL, MySQL and MariaDB the
      * schema of the previous test would otherwise survive and the next `Schema::create()` fails with "already exists".
@@ -87,11 +89,23 @@ class TestCase extends Orchestra
         ];
     }
 
+    protected function resolveApplicationConfiguration($app): void
+    {
+        parent::resolveApplicationConfiguration($app);
+
+        // Register the default before defineEnvironment(), so an explicit null remains testable.
+        $this->testCacheNamespace ??= 'azguard-test-'.bin2hex(random_bytes(16));
+        $app->registered(function ($app): void {
+            if ($app['config']->get('azguard.cache.namespace') === null) {
+                $app['config']->set('azguard.cache.namespace', $this->testCacheNamespace);
+            }
+        });
+    }
+
     protected function getEnvironmentSetUp($app): void
     {
         $app['config']->set('app.key', 'base64:'.base64_encode(random_bytes(32)));
         $app['config']->set('app.debug', true);
-
         $app['config']->set('database.default', 'testbench');
         $connection = $this->databaseConnectionConfig();
 

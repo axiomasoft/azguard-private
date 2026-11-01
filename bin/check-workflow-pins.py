@@ -13,7 +13,7 @@ ROOT = pathlib.Path(__file__).resolve().parent.parent
 LOCAL_WORKFLOWS = {
     './.github/workflows/' + name + '.yml' for name in (
         'tests', 'static-analysis', 'code-style', 'docs', 'tests-nightly',
-        'compatibility', 'workers', 'security', 'mutation', 'split',
+        'compatibility', 'workers', 'security', 'split',
         'codeql', 'zizmor', 'secret-scan',
     )
 }
@@ -22,7 +22,7 @@ WRITE_PERMISSIONS = {
     ('codeql.yml', 'analyze'): {'security-events'},
     ('release.yml', 'codeql'): {'security-events'},
     ('docs-deploy.yml', 'deploy'): {'pages', 'id-token'},
-    ('release.yml', 'artifacts'): {'id-token', 'attestations'},
+    ('release.yml', 'provenance'): {'id-token', 'attestations'},
     ('release.yml', 'release'): {'contents'},
     ('dependabot-auto-merge.yml', 'auto-merge'): {'pull-requests'},
     ('dependabot-auto-merge.yml', 'sweep'): {'pull-requests'},
@@ -36,22 +36,27 @@ EXTERNAL = re.compile(r'^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+(?:/[A-Za-z0-9_.-]+)*@[0
 REVIEWED_WORKFLOWS = {
     'bench.yml': '7c74b235f4378986e824240728c964dc86ffe667a8f665e001156181c5107f9d',
     'code-style.yml': '47fc04265aa785339ee1f6e024feb4179268f5b50e69038894803d200ce0d51d',
-    'codeql.yml': 'a99f13a2a0fdb46414cc68ae5ca68d2703aa2cafbdd3edf83ab9228557702b0a',
+    'codeql.yml': 'd4bab2b8a665e79f66cc7e5a1815b49f9eadc495d480a6eff08720e199f273aa',
     'compatibility.yml': '9265ea0c66f1083dde332e7f7de35c55aecf928f21ae92a012e90bf30f4acf71',
-    'dependabot-auto-merge.yml': '4b7d7bab17b16cfa72142d8f94e6d11d4a4f89f8c34c85a0c2bbac58320044c1',
+    'dependabot-auto-merge.yml': '37976e5af8911e7ba507395c74cf5d453f9ddbafc3b627ba87118e6eab8f0a54',
     'docs-deploy.yml': '15efe0198116c95ea5205fc336f8eef90139efc68e157b00d1259c1dece6d5bf',
     'docs.yml': '4ae6826bdb0d02c9df13a82b4865c85bc21811b0f296412c8f02018422ba22d6',
-    'mutation.yml': '519e1a2b6e93bf13149da5337d65b3fcf7bc76e5e803579833106f893bebe435',
     'pr-check.yml': 'b72cad5c81a8fe3d9692fd65af390ace4a63c705f7219dc6f8b5f929fd0bb493',
-    'release.yml': '3db06c462cca5da842df6b00e71a1037898beaa04f091561747e57bac5336239',
-    'secret-scan.yml': '723c8c713216a2dd7cfec29640c6c0a566eee060a3f624a07b4000be77ea30d7',
+    'release.yml': '9923c27a10da64f97dbbac3a3cdcfc034a93645fb4da21c8d4cf4eaad119bcce',
+    'secret-scan.yml': '0e9241797abe685283591264dd6d1f7333e4ed18923b16c907ee5651ad608475',
     'security.yml': '8c897b09e7a97184f686c135055e7b4d89f083c339890290730ebde3cafb89bd',
-    'split.yml': '1271598a4c9f76f1472d6ff06fae36394bdb7a7084f52d050adb7ebbe2285127',
+    'split.yml': '2493466b3d4964b59befe7eb171e30466ecde3f6f34d7a5526c0d99ad168b578',
     'static-analysis.yml': '75cfd1b9002f8fd952cf48a51dd07ab94a3836385ba3c6b9351ed79b677d1b05',
     'tests-nightly.yml': 'f8a9a70f743fd556b8907537fa45c959d6f55b187d98d0f3d87bd9152a98021c',
-    'tests.yml': 'de667c8dbf99c03001f45d15278fef5fee7c8dbecb02e9aba7cd5d0f97b2b7ee',
+    'tests.yml': 'd5b965c0edee3bcef896765ccb619fad7ad6e3a51fb4569d049351e301452be0',
     'workers.yml': 'a0d14c246f8bb936af5fac18326cfc84c795304bf93f31869b5ff5a1522ac546',
-    'zizmor.yml': '990d076e22403ff6b33bcc7d00056f882912e21f4007935f7a3188bfea9d3913',
+    'zizmor.yml': 'd5bf6299059cb222f7928ea541df8ef33f5e69b7362b04f0e68a809cb43b7d86',
+}
+# Set each digest only after independent review of the exact package workflow.
+# Until then these required workflows deliberately fail closed.
+REVIEWED_PACKAGE_WORKFLOWS = {
+    'packages/core/.github/workflows/provenance.yml': '9f932cef4b7b1067b6beaf7ea9789dce78810c8b4e61065576b9527a305eaf71',
+    'packages/filament/.github/workflows/provenance.yml': '9f932cef4b7b1067b6beaf7ea9789dce78810c8b4e61065576b9527a305eaf71',
 }
 UNTRUSTED = re.compile(r'\$\{\{.*?(?:\bgithub\b|\binputs\b|\benv\b)', re.I | re.S)
 # Only these action inputs are known to consume the value as data, not script.
@@ -67,14 +72,13 @@ SHELL_ENV = {'BASH_ENV', 'ENV', 'SHELLOPTS', 'BASHOPTS', 'CDPATH', 'GLOBIGNORE',
 # this is deliberately not a general-purpose shell or data-flow analyzer.
 REVIEWED_RUNS = {
     ('compatibility.yml', 'compare', '103f19fdbdfbff709f6df45dc4acdb2f71d6fa98a3b848c891d5ca1ea8e10f5a'): {'LABELS'},
-    ('release.yml', 'validate', '620032731aed9ecef31e35e2d754ad5f148775f0feaadcb13cdabb2269883bcf'): {'TAG'},
+    ('release.yml', 'validate', '11304bf0fcbccfddb7306b4af5beaa5f8d1d0e2130781ad755a5f4792be09680'): {'TAG', 'TAGGED_SHA'},
     ('release.yml', 'validate', 'b630d6f8922cfa92d2d800e473ba4b233a18d2f895e99d275b9e06680fe5d80c'): {'TAGGED_SHA'},
     ('release.yml', 'validate', '5913c5f5011094899d980d03e64ee6179f91653ab30c3da98f9bd3bba0af9421'): {'TAG', 'TAGGED_SHA'},
     ('bench.yml', 'bench', '836383ae1fbf4b725d9c7b0375601884902fff4f1a9510872b199caf77a795e9'): {'TIER'},
     ('workers.yml', 'worker', '78051647250c4c30636dfc866d1c0eec6ce72adc9879cac59d60df1acab4dd95'): {'WORKER_EVENT', 'WORKER_MEMORY'},
-    ('dependabot-auto-merge.yml', 'auto-merge', 'a1996f6ff55c6ec165cf9699aa29e7434813bc3b760053e455047f24bc7ded31'): {'PR_URL'},
-    ('dependabot-auto-merge.yml', 'sweep', 'efb3836c583ad12421fd8e6974531ffd1ee65bd8b649e352fb950aeddbad8c9a'): {'REPOSITORY'},
-    ('mutation.yml', 'mutation', '7a68d1219cba17e2e2089503810493d74de90b114b124c467009395f9585fe00'): {'PACKAGE'},
+    ('dependabot-auto-merge.yml', 'auto-merge', 'ed305084cd8b31a50d22da4295e95763771a6146013ddb30f2bee050fa36b167'): {'PR_URL'},
+    ('dependabot-auto-merge.yml', 'sweep', 'dde5b3086abe897f595e157606e8b1583c12877e935c6b1211eda3ae722e3027'): {'REPOSITORY'},
 }
 
 
@@ -129,7 +133,8 @@ DEPENDABOT_JOB = {
     'steps': [
         {'name': 'Fetch Dependabot metadata', 'id': 'meta', 'uses': 'dependabot/fetch-metadata@25dd0e34f4fe68f24cc83900b1fe3fe149efef98'},
         {'name': 'Disable Dependabot auto-merge', 'if': 'always()',
-         'run': '''enabled=$(gh pr view "$PR_URL" --json autoMergeRequest --jq '.autoMergeRequest != null')
+         'run': '''set -Eeuo pipefail
+enabled=$(gh pr view "$PR_URL" --json autoMergeRequest --jq '.autoMergeRequest != null')
 if [[ "$enabled" == true ]]; then
   gh pr merge --disable-auto "$PR_URL"
 fi
@@ -145,7 +150,8 @@ DEPENDABOT_SWEEP = {
     'runs-on': 'ubuntu-latest',
     'permissions': {'pull-requests': 'write'},
     'steps': [{'name': 'Reconcile open Dependabot PRs',
-               'run': '''numbers=$(gh api --paginate "repos/$REPOSITORY/pulls?state=open&per_page=100" --jq '.[] | select(.user.login == "dependabot[bot]") | .number')
+               'run': '''set -Eeuo pipefail
+numbers=$(gh api --paginate "repos/$REPOSITORY/pulls?state=open&per_page=100" --jq '.[] | select(.user.login == "dependabot[bot]") | .number')
 for number in $numbers; do
   [[ "$number" =~ ^[0-9]+$ ]]
   enabled=$(gh pr view "$number" --repo "$REPOSITORY" --json autoMergeRequest --jq '.autoMergeRequest != null')
@@ -269,7 +275,11 @@ def check_workflow(text, filename):
                     if isinstance(inputs, dict):
                         action = ref.split('@')[0].lower() if isinstance(ref, str) else ''
                         for key, value in inputs.items():
-                            if untrusted(value) and (action, key) not in DATA_INPUTS:
+                            candidate_checkout = (action == 'actions/checkout' and key == 'ref'
+                                                  and value == '${{ github.sha }}')
+                            release_artifact = (action == 'actions/download-artifact' and key == 'name'
+                                                and value == 'release-artifacts-${{ github.run_attempt }}')
+                            if untrusted(value) and (action, key) not in DATA_INPUTS and not candidate_checkout and not release_artifact:
                                 errors.append(f'{job_id}: untrusted expression in action input {key}')
                 if untrusted(node.get('shell')):
                     errors.append(f'{job_id}: untrusted expression in shell')
@@ -286,6 +296,49 @@ def check_workflow(text, filename):
     return errors
 
 
+def check_package_workflows(root):
+    errors = []
+    present = set(root.glob('packages/*/.github/workflows/*.yml')) | set(root.glob('packages/*/.github/workflows/*.yaml'))
+    expected = {root / name for name in REVIEWED_PACKAGE_WORKFLOWS}
+    errors.extend((path, 'unknown package workflow requires independent review')
+                  for path in sorted(present - expected))
+    for name, digest in REVIEWED_PACKAGE_WORKFLOWS.items():
+        path = root / name
+        try:
+            text = path.read_text()
+            workflow = yaml.load(text, Loader=Loader)
+            if not isinstance(workflow, dict) or not isinstance(workflow.get('jobs'), dict):
+                raise ValueError('workflow and jobs must be mappings')
+            if digest is None or hashlib.sha256(text.encode()).hexdigest() != digest:
+                errors.append((path, 'package workflow requires independent review and digest update'))
+            if workflow.get('permissions') != {'contents': 'read'}:
+                errors.append((path, 'root permissions must be contents: read'))
+            for job_id, job in workflow['jobs'].items():
+                if not isinstance(job, dict):
+                    raise ValueError(f'{job_id}: job must be a mapping')
+                permissions = job.get('permissions', {'contents': 'read'})
+                if not isinstance(permissions, dict) or any(
+                    level not in ('read', 'none') and not (permission in {'id-token', 'attestations'} and level == 'write')
+                    for permission, level in permissions.items()
+                ):
+                    errors.append((path, f'{job_id}: forbidden permissions'))
+                steps = job.get('steps', [])
+                if not isinstance(steps, list):
+                    raise ValueError(f'{job_id}: steps must be a list')
+                for node in [job, *steps]:
+                    if not isinstance(node, dict):
+                        raise ValueError(f'{job_id}: step must be a mapping')
+                    ref = node.get('uses')
+                    if ref is not None and (not isinstance(ref, str) or not EXTERNAL.fullmatch(ref)):
+                        errors.append((path, f'{job_id}: forbidden uses: {ref}'))
+                    if isinstance(ref, str) and ref.lower().startswith('actions/checkout@'):
+                        if not isinstance(node.get('with'), dict) or node['with'].get('persist-credentials') is not False:
+                            errors.append((path, f'{job_id}: checkout must disable persisted credentials'))
+        except (OSError, UnicodeError, yaml.YAMLError, ValueError, TypeError) as exc:
+            errors.append((path, f'missing or invalid package workflow: {exc}'))
+    return errors
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('directory', nargs='?', type=pathlib.Path, default=ROOT / '.github/workflows')
@@ -299,6 +352,7 @@ def main():
     present = {path.name for path in paths}
     errors.extend((directory / name, 'reviewed workflow missing')
                   for name in sorted(REVIEWED_WORKFLOWS.keys() - present))
+    errors.extend(check_package_workflows(ROOT))
     for path, error in errors:
         print(f'{path}: {error}', file=sys.stderr)
     if not errors:

@@ -6,6 +6,9 @@ version) are documented here. Format: [Keep a Changelog](https://keepachangelog.
 
 ## [Unreleased]
 
+- Release ZIPs use canonical container metadata so the public split workflow can attest the exact archive digest.
+- Remove mutation testing workflows, commands and release gate by maintainer decision.
+
 - Development instructions identify the planned 2.0 release line and distinguish historical 1.0 notes from publication evidence.
 - Filament bulk and export preflight checks finish bounded record queries before nested authorization queries,
   so authorized operations also work with unbuffered MySQL and MariaDB connections.

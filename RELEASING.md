@@ -140,23 +140,27 @@ document is exit `3` or `1`, never green; retry later. `bash bin/test-split-veri
 
 The `artifacts` job of `release.yml` runs `bin/release-artifacts.sh <version> <outdir>`: the two package archives
 (`azguard-core-<v>.zip`, `azguard-filament-<v>.zip`), a CycloneDX SBOM of each package's production dependencies
-(`sbom-core.cdx.json`, `sbom-filament.cdx.json`, made with the pinned `syft`) and `SHA256SUMS`. The job attests the build
-provenance of the four files and the release attaches all five to the GitHub Release. Verify a download:
+(`sbom-core.cdx.json`, `sbom-filament.cdx.json`, made with the pinned `syft`) and `SHA256SUMS`. After the split, the
+provenance job compares each public split tree to the candidate and rebuilds the archive to compare its contents. It
+also verifies a public attestation of each exact ZIP against the split repository, workflow identity, tag and split
+commit. The package trees carry the public tag-triggered producers, and the release builder and producers normalize
+ZIP metadata identically. After mapping succeeds, the core split workflow retrieves the exact artifact from the private
+release run using a read-only `PRIVATE_RELEASE_READ_TOKEN` configured in the public core repository. The release dispatch
+uses `MONOREPO_SPLIT_TOKEN`, which must also be permitted to dispatch that workflow. The public workflow checks the
+private run identity, candidate SHA, tag, attempt, and manifest before attesting the actual SBOM and manifest digests.
+Its custom predicate describes a relay of files from the private run; it does not claim that the public workflow built
+them. The private job verifies those subjects against the public workflow identity and split commit before publication.
+The public workflow must already exist on the split repository default branch for GitHub workflow dispatch. Provisioning
+these permissions and secrets, and qualifying the flow in a real run, require separately authorized setup. No private
+attestation entitlement is assumed. Verify downloads with a `gh` version supporting attestations:
 
 ```bash
 sha256sum -c SHA256SUMS
-gh attestation verify azguard-core-<v>.zip --repo axiomasoft/azguard-private
+gh attestation verify azguard-core-<v>.zip --repo axiomasoft/azguard --signer-workflow axiomasoft/azguard/.github/workflows/provenance.yml --signer-digest <split-commit> --source-digest <split-commit> --source-ref refs/tags/v<version>
+gh attestation verify sbom-core.cdx.json --repo axiomasoft/azguard --signer-workflow axiomasoft/azguard/.github/workflows/provenance.yml --signer-digest <split-commit> --source-digest <split-commit> --source-ref refs/tags/v<version> --predicate-type https://axiomasoft.github.io/azguard/attestations/release-artifact-relay/v1
 ```
 
 The same script builds the files locally (`bash bin/release-artifacts.sh 2.0.0-rc.1 /tmp/out`).
-
-## Critical mutation
-
-`composer mutate:critical` (`bin/mutation-gate.sh critical`) mutates the decision kernel, the authorization pipeline,
-the query witnesses, the cache and state tokens, the change transaction and the Filament guards, and requires every
-covered mutant to be killed. It is release-blocking: `release.yml` calls `mutation.yml` with `package: critical`, and
-`split` and `release` need it. A survivor is fixed by a test or marked `// @pest-mutate-ignore -- <reason>` as a proven
-equivalent mutant. It also runs weekly. It needs a coverage driver (pcov or Xdebug).
 
 ## Dependency updates
 
@@ -181,6 +185,9 @@ equivalent mutant. It also runs weekly. It needs a coverage driver (pcov or Xdeb
 - An OSV ignore needs `ignoreUntil` and a reason in `.github/osv-scanner.toml`.
 
 ## Cutting a release
+
+The release evidence collection, split-tree mapping and final provenance path require qualification in a real workflow
+run and independent review before publication. A successful local fixture or build is not release qualification.
 
 1. Ensure the declared PHP/Laravel/Testbench matrix and the dedicated SQLite,
    PostgreSQL, MySQL, and Redis CI lanes are green for the candidate commit.

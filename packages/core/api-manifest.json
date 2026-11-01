@@ -31720,7 +31720,7 @@
                     "returnsReference": false,
                     "namedArguments": true,
                     "contracts": [
-                        "@return array{scalar: callable(): array, batch: callable(): array, visibility: callable(): array, supported: bool, expected?: array}|null"
+                        "@return array{scalar: callable(): array<int|string, mixed>, batch: callable(): array<int|string, mixed>, visibility: callable(): array<int|string, mixed>, supported: bool, expected?: array<int|string, mixed>}|null"
                     ]
                 },
                 {

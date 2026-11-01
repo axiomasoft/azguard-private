@@ -47,6 +47,7 @@ build_archive() {
     zip="$(find "${built}" -maxdepth 1 -type f -name '*.zip' | head -n 1)"
     [[ -n "${zip}" ]] || { echo "error: composer archive produced no zip for ${package}" >&2; exit 1; }
     cp "${zip}" "${out}/azguard-${package}-${version}.zip"
+    python3 "${root}/packages/core/.github/canonicalize-release-zip.py" "${out}/azguard-${package}-${version}.zip"
     cp "${zip}" "${work}/archives/$(basename "${zip}")"
 }
 

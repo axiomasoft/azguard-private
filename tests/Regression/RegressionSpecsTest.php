@@ -68,7 +68,7 @@ it('keeps every required field filled and consistent for probe', function (strin
 })->with(regressionProbes());
 
 it('references scenario ids that exist in the verification matrix for probe', function (string $probe): void {
-    $verification = (string) file_get_contents(regressionRoot().'/audits/2026-09-29-audit/opus/14-verification.md');
+    $verification = (string) file_get_contents(regressionRoot().'/tests/Fixtures/Regression/Audit/14-verification.md');
     $scenarios = array_map('trim', explode(',', regressionSpecFields($probe)['Scenarios']));
 
     expect($scenarios)->not->toBeEmpty();
@@ -82,9 +82,10 @@ it('references scenario ids that exist in the verification matrix for probe', fu
 it('points the defect description at an existing original probe test for probe', function (string $probe): void {
     $defect = regressionSpecFields($probe)['Original defect'];
 
-    expect(preg_match('#`(audits/[^`]+/evidence/probes/[A-Za-z]+\.php)`#', $defect, $file))->toBe(1);
-    expect(regressionRoot().'/'.$file[1])->toBeFile();
-    expect((string) file_get_contents(regressionRoot().'/'.$file[1]))->toContain("it('{$probe}:");
+    expect(preg_match('#`audits/2026-09-29-audit/opus/evidence/probes/([A-Za-z]+\.php)`#', $defect, $file))->toBe(1);
+    $fixture = regressionRoot().'/tests/Fixtures/Regression/Audit/probes/'.$file[1];
+    expect($fixture)->toBeFile();
+    expect((string) file_get_contents($fixture))->toContain("it('{$probe}:");
 })->with(regressionProbes());
 
 it('accepts only pending or an existing covering test as status for probe', function (string $probe): void {

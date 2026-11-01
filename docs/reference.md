@@ -66,9 +66,6 @@ qualification has passed. Exact framework and tool behavior must also match the 
 - [CodeQL languages and availability](https://docs.github.com/en/code-security/concepts/code-scanning/codeql/codeql-code-scanning):
   CodeQL covers Actions and supported source languages, including JavaScript, rather than PHP.
   Private repository eligibility must be checked.
-- [Pest mutation testing](https://pestphp.com/docs/mutation-testing): a configured mutation score
-  and covered-only scope are separate from line coverage. PLAN2 retains the repository's 99%
-  mutation target; current online options must be checked against locked Pest 4.
 - [Artifact attestations](https://docs.github.com/en/actions/concepts/security/artifact-attestations),
   [attestation action](https://github.com/actions/attest) and
   [verification CLI](https://cli.github.com/manual/gh_attestation_verify): verify archive digests,
