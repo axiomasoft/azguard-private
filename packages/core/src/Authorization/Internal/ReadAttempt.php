@@ -576,6 +576,10 @@ final class ReadAttempt
                     }
                     $refs[$ref->key()] = true;
                     $allRefs[$ref->key()] = true;
+
+                    if (count($allRefs) > 1000) {
+                        throw new VisibilityNotSupportedException('selection_budget', $source::class);
+                    }
                 }
 
                 // A materialized selection never joins host rows with assignment tables.
@@ -583,6 +587,10 @@ final class ReadAttempt
                     throw new VisibilityNotSupportedException('selection_budget', $source::class);
                 }
                 foreach ($selection->contributions() as $item) {
+                    if (count($result) >= 1000) {
+                        throw new VisibilityNotSupportedException('selection_budget', $source::class);
+                    }
+
                     $ref = $item->scope->context;
 
                     if ($type === null && ! $ref->isGlobal()) {

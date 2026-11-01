@@ -191,6 +191,15 @@ during a decision. The store belongs to the host; monitor it and set `cache.ttl`
 `visibleTo()` builds a query from the grants it read. The rows are loaded later, when the query runs. A grant
 revoked between building the query and loading the rows can still show a row once. Query construction is
 not a reservation of authority for a later write, bulk action or export.
+The same applies to an already-created cursor and to eager-loaded relations: neither re-reads authority for
+each row. Build a new visibility query after an authority change; pagination totals and ordering describe the
+authority captured by that query, not a live stream of later revocations.
+
+Exact visibility allows at most 1,000 distinct selected contexts and 1,000 contribution witnesses across
+sources, including repeated witnesses for one context. Exceeding either bound raises
+`VisibilityNotSupportedException` (`selection_budget`) before changing the host Builder. It does not filter a
+page after pagination. Sources materialize their selections before this check and must themselves bound their
+own work. Database expression-depth and parameter limits can be lower than these logical bounds on a given engine.
 
 For sensitive use, reload each concrete record from primary and check it again with `check()` or
 `authorize()` using primary authority and `StateRefresh::Check`. Revalidate its panel, tenant and assignment
