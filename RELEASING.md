@@ -35,9 +35,9 @@ Retain a copy with the release evidence supplied for approval; a fresh clone doe
 The root `composer.lock` is the development and release lock: qualification jobs `composer install` from it,
 packages never ship it, and version-range jobs re-resolve with `composer update`.
 
-Both packages share **one version**. A release tags the monorepo and
-splits the same tag into every package repo, so `azguard` and
-`azguard-filament` always advance together.
+Both packages share **one version**. A successful release tags the monorepo and
+publishes the same version tag in both package repositories. Publication is sequential,
+so a failed release can temporarily leave only one package at that version; see recovery below.
 
 Consequences:
 
@@ -153,10 +153,22 @@ Its custom predicate describes a relay of files from the private run; it does no
 them. The private job verifies those subjects against the public workflow identity and split commit before publication.
 Each production SBOM resolution and each test matrix lock is also scanned by OSV before it can qualify the release.
 The two repositories cannot be updated atomically: a failed second tag push can leave one package published even though
-the release job fails. A retry runs the complete gate and provenance again, accepts an existing tag only when it is
-exactly the verified split commit, and rejects any conflicting tag. After both tags are verified, the workflow deletes
-the staging branches using commit-specific leases. A failed run can leave staging branches; inspect and remove those
-only after preserving any required evidence and confirming their run and commit, with the required separate authorization.
+the release job fails. Packagist may pick up that package before the other tag exists. Do not describe this state as a
+successful release, delete or overwrite a public tag, or assume the first push was rolled back.
+
+For a partial publication, preserve the failed run and attempt, candidate SHA, verified split SHAs and logs. Inspect
+both public tag targets with `git ls-remote --refs --tags https://github.com/axiomasoft/<repo>.git refs/tags/<tag>`
+for `<repo>` equal to `azguard` and `azguard-filament`, and compare each existing target with the corresponding
+verified split SHA from the failed run. Investigate any conflicting target with the owner; the workflow rejects it.
+After the cause is resolved and the required authorization is in place, rerun **all jobs** for the same release run,
+not just the failed job: each attempt must produce its own complete gate and provenance evidence. The publication
+job accepts an existing tag only when it exactly matches the newly verified split commit, then pushes any missing tag.
+A retry can fail again; it does not make the two remote updates atomic. Check both tag targets and the final release
+job after the retry.
+
+After both tags are verified, the workflow deletes the staging branches using commit-specific leases. A failed run can
+leave staging branches; inspect and remove those only after preserving any required evidence and confirming their run
+and commit, with the required separate authorization.
 The public workflow must already exist on the split repository default branch for GitHub workflow dispatch. Provisioning
 these permissions and secrets, and qualifying the flow in a real run, require separately authorized setup. No private
 attestation entitlement is assumed. Verify downloads with a `gh` version supporting attestations:
