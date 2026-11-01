@@ -46,13 +46,16 @@ def validate_sarif(data, scanner):
         for invocation in invocations:
             if not isinstance(invocation, dict) or invocation.get('executionSuccessful') is not True:
                 raise ValueError('SARIF invocation failed or incomplete')
+            # executionSuccessful alone must not conceal a contradictory exit status.
+            if 'exitCode' in invocation and (type(invocation['exitCode']) is not int or invocation['exitCode'] != 0):
+                raise ValueError('SARIF invocation has a nonzero or invalid exit code')
             for key in ('toolExecutionNotifications', 'toolConfigurationNotifications'):
                 notifications = invocation.get(key, [])
                 if not isinstance(notifications, list) or any(
-                    not isinstance(item, dict) or item.get('level', 'warning') == 'error'
+                    not isinstance(item, dict) or item.get('level', 'warning') not in ('none', 'note', 'warning')
                     for item in notifications
                 ):
-                    raise ValueError('SARIF contains an error notification')
+                    raise ValueError('SARIF contains an error or invalid notification')
 
 
 def check(scanner, outcome, sha, report_dir, metadata):

@@ -184,17 +184,38 @@ foreach (['/language:actions', '/language:php/', '/language:javascript-typescrip
 $bad = $evidence;
 $bad['scanners'][0]['report'] = 'advisory finding';
 $expect($bad, 'report digest mismatch');
-foreach ([null, [], [['executionSuccessful' => false]], [['executionSuccessful' => true, 'toolExecutionNotifications' => [['level' => 'error']]]]] as $invocations) {
-    $bad = $evidence;
-    $report = json_decode($bad['scanners'][0]['report'], true, 512, JSON_THROW_ON_ERROR);
-    if ($invocations === null) {
-        unset($report['runs'][0]['invocations']);
-    } else {
-        $report['runs'][0]['invocations'] = $invocations;
+foreach ([0, 2] as $index) {
+    foreach ([null, [], [['executionSuccessful' => false]], [['executionSuccessful' => true, 'exitCode' => 1]], [['executionSuccessful' => true, 'exitCode' => -1]], [['executionSuccessful' => true, 'exitCode' => true]], [['executionSuccessful' => true, 'exitCode' => '0']], [['executionSuccessful' => true, 'exitCode' => null]]] as $invocations) {
+        $bad = $evidence;
+        $report = json_decode($bad['scanners'][$index]['report'], true, 512, JSON_THROW_ON_ERROR);
+        if ($invocations === null) {
+            unset($report['runs'][0]['invocations']);
+        } else {
+            $report['runs'][0]['invocations'] = $invocations;
+        }
+        $bad['scanners'][$index]['report'] = json_encode($report, JSON_THROW_ON_ERROR);
+        $bad['scanners'][$index]['report_sha256'] = hash('sha256', $bad['scanners'][$index]['report']);
+        $expect($bad, 'scanner '.$bad['scanners'][$index]['scanner']);
     }
-    $bad['scanners'][0]['report'] = json_encode($report, JSON_THROW_ON_ERROR);
-    $bad['scanners'][0]['report_sha256'] = hash('sha256', $bad['scanners'][0]['report']);
-    $expect($bad, 'scanner codeql-actions');
+    foreach (['toolExecutionNotifications', 'toolConfigurationNotifications'] as $key) {
+        foreach ([[['level' => 'error']], [['level' => 'fatal']], [['level' => null]], [[]], null, new stdClass] as $notifications) {
+            $bad = $evidence;
+            $report = json_decode($bad['scanners'][$index]['report'], true, 512, JSON_THROW_ON_ERROR);
+            $report['runs'][0]['invocations'][0][$key] = $notifications;
+            $bad['scanners'][$index]['report'] = json_encode($report, JSON_THROW_ON_ERROR);
+            $bad['scanners'][$index]['report_sha256'] = hash('sha256', $bad['scanners'][$index]['report']);
+            $expect($bad, 'scanner '.$bad['scanners'][$index]['scanner']);
+        }
+    }
+}
+foreach ([0, 2] as $index) {
+    $clean = $evidence;
+    $report = json_decode($clean['scanners'][$index]['report'], true, 512, JSON_THROW_ON_ERROR);
+    $report['runs'][0]['invocations'][0]['exitCode'] = 0;
+    $report['runs'][0]['invocations'][0]['toolConfigurationNotifications'] = [['level' => 'warning']];
+    $clean['scanners'][$index]['report'] = json_encode($report, JSON_THROW_ON_ERROR);
+    $clean['scanners'][$index]['report_sha256'] = hash('sha256', $clean['scanners'][$index]['report']);
+    $expect($clean, null);
 }
 $bad = $evidence;
 $report = json_decode($bad['scanners'][0]['report'], false, 512, JSON_THROW_ON_ERROR);

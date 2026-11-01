@@ -200,6 +200,9 @@ function releaseGateErrors(array $data): array
 
                             continue;
                         }
+                        if (array_key_exists('exitCode', $invocation) && (! is_int($invocation['exitCode']) || $invocation['exitCode'] !== 0)) {
+                            $errors[] = "scanner {$name} has invalid invocation exit code";
+                        }
                         foreach (['toolExecutionNotifications', 'toolConfigurationNotifications'] as $key) {
                             $notifications = $invocation[$key] ?? [];
 
@@ -208,8 +211,8 @@ function releaseGateErrors(array $data): array
 
                                 continue;
                             }
-                            foreach ($notifications as $notification) {
-                                if (! is_array($notification) || ($notification['level'] ?? 'warning') === 'error') {
+                            foreach ($notifications as $notificationIndex => $notification) {
+                                if (! is_object($runShape->invocations[$invocationIndex]->{$key}[$notificationIndex]) || ! is_array($notification) || ! in_array(array_key_exists('level', $notification) ? $notification['level'] : 'warning', ['none', 'note', 'warning'], true)) {
                                     $errors[] = "scanner {$name} has error notification";
                                 }
                             }

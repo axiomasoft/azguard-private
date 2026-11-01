@@ -94,6 +94,27 @@ class ResultTests(unittest.TestCase):
                     self.write(self.sarif)
                     self.assertTrue(self.check(scanner=scanner))
 
+    def test_contradictory_exit_and_invalid_notification_fail(self):
+        for scanner, name in [('codeql-actions', 'CodeQL'), ('zizmor', 'zizmor')]:
+            self.sarif['runs'][0]['tool']['driver']['name'] = name
+            invocation = self.sarif['runs'][0]['invocations'][0]
+            for exit_code in (1, -1, True, '0', None):
+                with self.subTest(scanner=scanner, exit_code=exit_code):
+                    invocation['exitCode'] = exit_code
+                    self.write(self.sarif)
+                    self.assertTrue(self.check(scanner=scanner))
+            invocation['exitCode'] = 0
+            for key in ('toolExecutionNotifications', 'toolConfigurationNotifications'):
+                for notifications in ([{'level': 'error'}], [{'level': 'fatal'}], [{'level': None}], [[]], None, {}):
+                    with self.subTest(scanner=scanner, key=key, notifications=notifications):
+                        invocation[key] = notifications
+                        self.write(self.sarif)
+                        self.assertTrue(self.check(scanner=scanner))
+                invocation[key] = [{}, {'level': 'warning'}]
+                self.write(self.sarif)
+                self.assertFalse(self.check(scanner=scanner))
+                del invocation[key]
+
     def test_sha_mismatch_fails(self):
         self.assertTrue(self.check(sha='0' * 40))
         self.assertTrue(self.check(sha='bad'))
