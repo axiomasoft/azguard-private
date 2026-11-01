@@ -274,6 +274,7 @@ function releaseViolations(array $workflows): array
     // Five verifications can each sleep 19 * 30 seconds (47.5 minutes total).
     // Preserve the configured 75-minute budget for network and setup; live sufficiency is not established here.
     $provenanceTimeout = $provenance['timeout-minutes'] ?? null;
+
     if (! is_int($provenanceTimeout) || $provenanceTimeout < 75) {
         $violations[] = 'release.yml: provenance timeout must preserve the 75-minute budget for waits and overhead';
     }

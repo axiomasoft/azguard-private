@@ -3,14 +3,20 @@
 declare(strict_types=1);
 
 use AnourValar\EloquentSerialize\Facades\EloquentSerializeFacade;
+use AzGuard\Contracts\Plugins\Plugin;
+use AzGuard\Contracts\Scopes\ResourceScopeResolver;
 use AzGuard\Filament\Authorization\FilamentGate;
 use AzGuard\Filament\Exports\AuthorizedExportCsv;
 use AzGuard\Filament\Exports\AuthorizedPrepareCsvExport;
 use AzGuard\Filament\Internal\Exports\ChecksPrepareCsvExport;
+use AzGuard\Kernel\Identity\AccessScope;
+use AzGuard\Kernel\Identity\TenantRef;
 use AzGuard\Panels\Internal\CurrentPanel;
 use AzGuard\Panels\Internal\PanelRegistry;
+use AzGuard\Panels\PanelBuilder;
 use AzGuard\Panels\Reads;
 use AzGuard\Permissions\RequiresGrant;
+use AzGuard\Plugins\PluginContext;
 use AzGuard\Tests\Fixtures\Filament\Exports\OrderExporter;
 use AzGuard\Tests\Fixtures\Filament\FilamentFixture;
 use AzGuard\Tests\Fixtures\Filament\GateWorld;
@@ -341,6 +347,50 @@ it('refuses a serialized query for a different model even when its key matches a
     $job->handle();
 
     Storage::disk('local')->assertMissing($export->getFileDirectory().'/0000000000000001.csv');
+});
+
+it('applies a configured ResourceScopeResolver when authorizing exports through FilamentGate and export jobs', function (): void {
+    FilamentFixture::$adminPlugins = [new class implements Plugin
+    {
+        public function id(): string
+        {
+            return 'test/order-resource-scope';
+        }
+
+        public function register(PanelBuilder $panel, PluginContext $context): void
+        {
+            $panel->resourceScopes([
+                Order::class => new class implements ResourceScopeResolver
+                {
+                    public function resolve(object $resource, ?AccessScope $selected = null): AccessScope
+                    {
+                        return AccessScope::in(TenantRef::of('team', 7));
+                    }
+                },
+            ]);
+        }
+    }];
+    $this->bootFilament();
+    GateWorld::seed();
+    app()->bind(Authenticatable::class, User::class);
+    Storage::fake('local');
+    $user = GateWorld::grant(['orders.view_any', 'orders.view']);
+    GateWorld::serve($user);
+    $order = Order::query()->findOrFail(1);
+
+    expect(FilamentGate::resource(OrderResource::class, 'view', $order)->denied())->toBeTrue();
+
+    $export = authorizationExport($user);
+    $job = new ChecksPrepareCsvExport($export, EloquentSerializeFacade::serialize(Order::query()), ['number' => 'Number'], [AuthorizedExportCsv::OPTION => [
+        'panel' => 'admin', 'permission' => 'orders.view', 'tenant' => null, 'model' => Order::class,
+    ]], records: [1]);
+    [, $batch] = $job->withFakeBatch();
+    app(CurrentPanel::class)->set(app(PanelRegistry::class)->get('admin'));
+
+    $job->handle();
+
+    Storage::disk('local')->assertMissing($export->getFileDirectory().'/headers.csv');
+    expect($batch->added)->toBe([]);
 });
 
 final class UncheckedAuthorizationPrepare extends AuthorizedPrepareCsvExport {}

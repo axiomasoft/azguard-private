@@ -13,6 +13,7 @@
         "Arch/TestOwnershipTest.php": ["Audit", "DevTools", "Scopes"],
         "Arch/ZonesArchTest.php": ["Audit", "DevTools", "Scopes"],
         "Contracts/NegativeFixturesTest.php": ["Scopes"],
+        "Contracts/Sources/CapabilityMatrixCoverageTest.php": ["Scopes"],
         "Contracts/Sources/FilamentSourceContractTest.php": ["Scopes"],
         "Contracts/Sources/FolderTenantContractTest.php": ["Scopes"],
         "Contracts/Sources/GateSourceContractTest.php": ["Scopes"],

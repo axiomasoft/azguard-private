@@ -1,6 +1,10 @@
 <?php
 
 declare(strict_types=1);
+use AzGuard\Audit\AuditServiceProvider;
+use AzGuard\AzGuardServiceProvider;
+use AzGuard\Tests\TestCase;
+use Illuminate\Database\Migrations\Migration;
 
 // This probe never accepts a database target. Bootstrap and all connections are
 // constrained to an isolated in-memory SQLite database, irrespective of the shell.
@@ -33,10 +37,11 @@ try {
 
     require $root.'/vendor/autoload.php';
 
-    $case = new class('qualification-sqlite-migrations') extends \AzGuard\Tests\TestCase {
+    $case = new class('qualification-sqlite-migrations') extends TestCase
+    {
         protected function getPackageProviders($app): array
         {
-            return [\AzGuard\AzGuardServiceProvider::class, \AzGuard\Audit\AuditServiceProvider::class];
+            return [AzGuardServiceProvider::class, AuditServiceProvider::class];
         }
 
         protected function getEnvironmentSetUp($app): void
@@ -50,6 +55,7 @@ try {
     };
     $app = $case->createApplication();
     $config = $app['config'];
+
     if ($config->get('database.default') !== 'preflight'
         || $config->get('database.connections') !== ['preflight' => [
             'driver' => 'sqlite', 'database' => ':memory:', 'prefix' => '', 'foreign_key_constraints' => true,
@@ -58,18 +64,21 @@ try {
         throw new RuntimeException('Database configuration is not isolated');
     }
     $connection = $app['db']->connection('preflight');
+
     if ($connection->getDriverName() !== 'sqlite' || $connection->getDatabaseName() !== ':memory:') {
         throw new RuntimeException('Resolved database is not SQLite :memory:');
     }
     $pdo = $connection->getPdo();
     $databaseList = $pdo->query('PRAGMA database_list')->fetchAll(PDO::FETCH_ASSOC);
+
     if (count($databaseList) !== 1 || $databaseList[0]['name'] !== 'main' || $databaseList[0]['file'] !== '') {
         throw new RuntimeException('SQLite resolved to a file or attached database');
     }
 
     foreach ($expected as $path) {
         $migration = require $path;
-        if (! $migration instanceof \Illuminate\Database\Migrations\Migration) {
+
+        if (! $migration instanceof Migration) {
             throw new RuntimeException('File did not return a Laravel migration: '.$path);
         }
         $migration->up();

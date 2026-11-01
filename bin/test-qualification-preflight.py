@@ -226,6 +226,16 @@ class PreflightTest(unittest.TestCase):
     def test_zero_replica_switch_is_off_like_php(self):
         self.assertEqual(self.execute(AUTHORITY_REPLICA_TEST='0')[0], 0)
 
+    def test_zero_redis_switch_is_off_like_php(self):
+        code, report = self.execute(QUALIFICATION_REDIS='0')
+        self.assertEqual(code, 0)
+        self.assertEqual(report['checks']['database.target']['status'], 'passed')
+        self.assertEqual(report['checks']['redis.readiness']['status'], 'passed')
+        self.assertEqual(report['checks']['redis.readiness']['detail']['reason'], 'external Redis target not requested')
+        self.assertEqual(report['checks']['redis.isolation']['status'], 'passed')
+        self.assertEqual(report['checks']['redis.isolation']['detail']['reason'], 'external Redis target not requested')
+        self.assertFalse(any(a[0] == 'php' and len(a) > 2 and 'new Redis()' in a[2] for a in self.calls))
+
     def test_pcov_off_is_not_coverage(self):
         self.pcov = 'Off'
         self.assertNotEqual(self.execute()[0], 0)

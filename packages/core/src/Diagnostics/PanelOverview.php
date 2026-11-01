@@ -7,6 +7,7 @@ namespace AzGuard\Diagnostics;
 use AzGuard\Attributes\Api;
 use AzGuard\AzGuard;
 use AzGuard\Contracts\Sources\SourceDescription;
+use AzGuard\Diagnostics\Internal\Checks\PanelsSources;
 use AzGuard\Kernel\Identity\TenantRef;
 use AzGuard\Panels\Internal\PanelRecipe;
 use AzGuard\Panels\Internal\PanelRegistry;
@@ -111,6 +112,8 @@ final readonly class PanelOverview
             }
         }
 
+        $automaticRoles = PanelsSources::unqueryableAutomaticRoles($this->registry, $panel->id());
+
         return [
             'sources' => array_map(static fn (SourceDescription $source): array => [
                 'id' => $source->id,
@@ -119,7 +122,7 @@ final readonly class PanelOverview
                 'capabilities' => array_map(class_basename(...), $source->capabilities),
                 'dynamic' => $source->dynamic,
                 'volatility' => $source->volatility?->value,
-                'matrix' => $source->matrix,
+                'matrix' => PanelsSources::matrixFor($source, $automaticRoles),
             ], $panel->sources()),
             'named' => $named,
             'plugins' => $panel->pluginIds(),

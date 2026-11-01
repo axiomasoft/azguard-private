@@ -143,6 +143,29 @@ class ResultTests(unittest.TestCase):
         self.write([{'RuleID': 'synthetic'}])
         self.assertTrue(self.check(scanner='gitleaks-history'))
 
+    def test_gitleaks_policy_enforces_digest_product_paths_and_no_ignore_file(self):
+        self.report.unlink()
+        self.report = self.directory / 'scan.json'
+        self.write([])
+        config_text = (checker.ROOT / '.gitleaks.toml').read_text()
+        (self.directory / '.gitleaks.toml').write_text(config_text)
+        self.assertFalse(checker.check('gitleaks-history', 'success', self.sha, self.directory, self.metadata, root=self.directory))
+
+        (self.directory / '.gitleaksignore').write_text('')
+        self.assertTrue(checker.check('gitleaks-history', 'success', self.sha, self.directory, self.metadata, root=self.directory))
+        (self.directory / '.gitleaksignore').unlink()
+
+        (self.directory / '.gitleaks.toml').write_text(config_text + '\n# modified\n')
+        self.assertTrue(checker.check('gitleaks-history', 'success', self.sha, self.directory, self.metadata, root=self.directory))
+
+        for forbidden in ("'''^packages/'''", "'''^src/'''", "'''^config/'''", "'''^\\.github/workflows/'''"):
+            with self.subTest(forbidden=forbidden):
+                bad_config = config_text.replace("'''^plans/'''", f"'''^plans/''',\n    {forbidden}")
+                bad_sha = checker.hashlib.sha256(bad_config.encode('utf-8')).hexdigest()
+                (self.directory / '.gitleaks.toml').write_text(bad_config)
+                with self.assertRaises(ValueError):
+                    checker.validate_gitleaks_policy(self.directory, expected_sha256=bad_sha)
+
 
 if __name__ == '__main__':
     unittest.main()

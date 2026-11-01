@@ -48,19 +48,22 @@ final readonly class MorphIdentity implements DoctorCheck
                     continue;
                 }
 
+                $morphViolation = false;
+
                 try {
                     $alias = (new $class)->getMorphClass();
                 } catch (ClassMorphViolationException) {
                     $alias = $class;
+                    $morphViolation = true;
                 }
-                foreach (array_unique(array_filter([$alias, $declared], 'is_string')) as $type) {
+                foreach (array_unique(array_filter([$alias, $declared], is_string(...))) as $type) {
                     $scope = 'panel:'.$panel->id();
                     $details = ['model' => $class, 'alias' => $type];
 
                     if ($type === $class) {
-                        if ($context->isProduction()) {
+                        if ($morphViolation || $context->isProduction()) {
                             $message = 'Model '.$class.' uses its class name as morph identity; register a stable alias and migrate existing identities.';
-                            yield $this->config->get('azguard_doctor.strict_morph_identity') === true
+                            yield $morphViolation || $this->config->get('azguard_doctor.strict_morph_identity') === true
                                 ? DoctorFinding::error($this->key(), $message, $scope, $details)
                                 : DoctorFinding::warning($this->key(), $message, $scope, $details);
                         }
@@ -79,8 +82,9 @@ final readonly class MorphIdentity implements DoctorCheck
 
                     if (($seen[$type] ?? $class) !== $class || $resolved !== $class) {
                         yield DoctorFinding::error($this->key(), 'Identity alias '.$type.' of '.$class.' collides or does not resolve back to that model.', $scope, $details);
+                    } else {
+                        $seen[$type] = $class;
                     }
-                    $seen[$type] = $class;
                 }
             }
         }

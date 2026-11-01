@@ -34,7 +34,7 @@ EXTERNAL = re.compile(r'^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+(?:/[A-Za-z0-9_.-]+)*@[0
 # Pin and permissions checks still apply to every snapshot.
 REVIEWED_WORKFLOWS = {
     'bench.yml': '7c74b235f4378986e824240728c964dc86ffe667a8f665e001156181c5107f9d',
-    'code-style.yml': '47fc04265aa785339ee1f6e024feb4179268f5b50e69038894803d200ce0d51d',
+    'code-style.yml': '160805e973fa68615fc313f2ffefbd1abceb806b0f6ccd0915ed7c659ecba5d8',
     'codeql.yml': 'd407745bb38fc13e8261bec697da0d7f679f23b8faa3b3170f89cb2dc595ecfb',
     'compatibility.yml': '3d3728c0af2f0f3cb5ebf591ebd85f8ff3ec29f748844ac235de19862ee44212',
     'dependabot-auto-merge.yml': '37976e5af8911e7ba507395c74cf5d453f9ddbafc3b627ba87118e6eab8f0a54',
@@ -42,14 +42,14 @@ REVIEWED_WORKFLOWS = {
     'docs.yml': '4ae6826bdb0d02c9df13a82b4865c85bc21811b0f296412c8f02018422ba22d6',
     'pr-check.yml': 'b72cad5c81a8fe3d9692fd65af390ace4a63c705f7219dc6f8b5f929fd0bb493',
     'release.yml': '5583f04692309b8faa76bc650fba150699538c7b7d4fb2138a7fa99da431e7a7',
-    'secret-scan.yml': 'f290709551ac446e93dc2350348fe5f11dfa7a21d36638d7082abdf0a5918ae7',
-    'security.yml': '3c4974e434f88bf2350d8083e89744b8e1d9d62d17d404dcd2d3441539a746bc',
+    'secret-scan.yml': '405d61d500751cb018bdb433d19fda6ef804ebce4f01e4052c1975646fd0c2b3',
+    'security.yml': '9e08a93af21e23b6c11e04331eb9aeb7d41965e20bc5cf932ab9ad8a68fa77d4',
     'split.yml': '44098f68ec5a8db29afba6ccab2ca91b2539dbc0d9622ba6da59051b1a912d11',
-    'static-analysis.yml': '75cfd1b9002f8fd952cf48a51dd07ab94a3836385ba3c6b9351ed79b677d1b05',
+    'static-analysis.yml': '7bd5d7f4f93e78db32103a1615c0bd0bc364070077c7547d225e3e3f0f762fe4',
     'tests-nightly.yml': 'f8a9a70f743fd556b8907537fa45c959d6f55b187d98d0f3d87bd9152a98021c',
-    'tests.yml': '7917d7d2da679fa6318914499a48f31ed0843fc05d5d55cc2de2e0fd3bccc9ec',
-    'workers.yml': 'a0d14c246f8bb936af5fac18326cfc84c795304bf93f31869b5ff5a1522ac546',
-    'zizmor.yml': 'd7338cef329eff163bb36db65998823d8ff92839c1b100f29eb481575ae95581',
+    'tests.yml': '4cb5fd74142231f2710791ef5e8f4b5adfe9c3a5328843093e4288fc4eb08840',
+    'workers.yml': '634ddc2c89a314f7843468b795965adc671640d0555acde3dce52ea9be82d3fc',
+    'zizmor.yml': '61d9b94bd9361c929268dd58d7572afbfeb52729c37e8c3b93c676c37e837047',
 }
 # Set each digest only after independent review of the exact package workflow.
 # Until then these required workflows deliberately fail closed.

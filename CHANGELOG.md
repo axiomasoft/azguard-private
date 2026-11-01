@@ -42,8 +42,8 @@ version) are documented here. Format: [Keep a Changelog](https://keepachangelog.
 
 Target: **2.0.0-rc.1**, followed by **2.0.0** for both packages. The 1.0.0 entry below is a historical
 release claim; publication and consumption are not established by that claim alone. Treat 1.0 as potentially
-consumed. The timestamped local inventory is `build/release/publication-inventory.json`;
-retain a copy with the release evidence as described in [RELEASING.md](RELEASING.md).
+consumed. A timestamped inventory of repository tags, releases and package publication state was recorded;
+retain the inventory snapshot with the release evidence as described in [RELEASING.md](RELEASING.md).
 The release SHA will be selected after the remaining code and qualification work.
 
 ### Upgrading to 2.0

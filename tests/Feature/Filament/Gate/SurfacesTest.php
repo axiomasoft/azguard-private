@@ -22,6 +22,7 @@ use AzGuard\Tests\Fixtures\Filament\Resources\Pages\ListOrders;
 use Filament\Actions\Action;
 use Filament\Actions\BulkAction;
 use Filament\Actions\DeleteAction;
+use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\ExportAction;
 use Filament\Actions\Exports\Enums\ExportFormat;
 use Filament\Actions\Exports\Jobs\ExportCompletion;
@@ -400,6 +401,28 @@ it('runs a permitted preconfigured native action in the selected panel', functio
     Livewire::test(ListOrders::class)->callAction(TestAction::make('delete')->table(1));
 
     expect(Order::query()->find(1))->toBeNull()->and(Order::query()->find(4))->not->toBeNull();
+});
+
+it('authorizes a preconfigured DeleteBulkAction lazily when the serving panel enforces', function (): void {
+    Filament::setCurrentPanel(null);
+    FilamentFixture::$toolbarActions = [DeleteBulkAction::make()];
+    GateWorld::serve(GateWorld::grant(['orders.view_any', 'orders.view', 'orders.delete']));
+
+    Livewire::test(ListOrders::class)
+        ->selectTableRecords([1, 2])
+        ->assertActionHidden(TestAction::make('delete')->table()->bulk());
+    expect(Order::query()->count())->toBe(4);
+
+    Filament::setCurrentPanel(null);
+    FilamentFixture::$toolbarActions = [DeleteBulkAction::make()];
+    GateWorld::serve(GateWorld::grant(['orders.view_any', 'orders.view', 'orders.delete_any', 'orders.delete']));
+
+    Livewire::test(ListOrders::class)
+        ->selectTableRecords([1, 4])
+        ->callAction(TestAction::make('delete')->table()->bulk())
+        ->assertNotified();
+
+    expect(Order::query()->pluck('id')->sort()->values()->all())->toBe([2, 3, 4]);
 });
 
 it('refuses exposed editable-column methods even on a disabled editor', function (array $params): void {

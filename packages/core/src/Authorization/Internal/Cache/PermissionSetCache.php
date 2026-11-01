@@ -31,6 +31,8 @@ use Throwable;
 /** @internal Request/job memo and revision-keyed store of raw authority; never a decision cache. */
 final class PermissionSetCache
 {
+    private const int DEFAULT_SHARED_TTL = 300;
+
     /** @var array<string, array{items: list<Grant|RoleContribution>, validUntil: DateTimeImmutable}> */
     private array $sets = [];
 
@@ -130,7 +132,7 @@ final class PermissionSetCache
                         }
                         $items[] = $item;
                     }
-                    $entry = $items === null ? null : ['items' => $items, 'validUntil' => $stored['validUntil']];
+                    $entry = $items === null ? null : ['items' => $items, 'validUntil' => $envelope['validUntil']];
                 }
 
                 if ($raw !== null && $entry === null) {
@@ -166,8 +168,8 @@ final class PermissionSetCache
         if ($volatility === Volatility::Volatile) {
             return;
         }
-        $ttl = $panel->settings()->cacheTtl();
-        $validUntil = $ttl === null ? new DateTimeImmutable('9999-12-31T23:59:59Z') : $now->modify('+'.$ttl.' seconds');
+        $effectiveTtl = min(max(1, $panel->settings()->cacheTtl() ?? self::DEFAULT_SHARED_TTL), SignedEnvelope::MAX_TTL);
+        $validUntil = $now->modify('+'.$effectiveTtl.' seconds');
         $items = array_values(array_filter($items, static fn (Grant|RoleContribution $item): bool => $item->activeAt($now)));
         foreach ($items as $item) {
             if ($item->expiresAt !== null && $item->expiresAt < $validUntil) {
@@ -181,16 +183,15 @@ final class PermissionSetCache
         $signer = SignedEnvelope::fromConfig(app('config'));
 
         if ($volatility === Volatility::Stable && $fenced && $store !== null && $signer !== null) {
-            $sharedUntil = min($validUntil, $now->modify('+'.min($ttl ?? 300, SignedEnvelope::MAX_TTL).' seconds'));
-            $sharedEntry = ['items' => $items, 'validUntil' => $sharedUntil];
-            $envelope = $signer->encode($key, serialize($sharedEntry), $now, $sharedUntil);
+            $sharedEntry = ['items' => $items, 'validUntil' => $validUntil];
+            $envelope = $signer->encode($key, serialize($sharedEntry), $now, $validUntil);
 
             if ($envelope !== null) {
                 try {
                     $repository = $this->stores->store($store);
 
                     if ($this->supportsStore($repository->getStore())) {
-                        $repository->put($key, $envelope, $sharedUntil);
+                        $repository->put($key, $envelope, $validUntil);
                     }
                 } catch (Throwable) {
                     // Shared storage is optional; the local entry remains valid.
@@ -235,11 +236,28 @@ final class PermissionSetCache
             }
 
             return $item['value'];
-        } elseif ($store instanceof RedisStore) {
-            return $store->connection()->get($store->getPrefix().$key);
-        } else {
-            return null;
         }
+
+        if ($store instanceof RedisStore) {
+            $connection = $store->connection();
+            $redisKey = $store->getPrefix().$key;
+            $maxBytes = SignedEnvelope::MAX_BYTES + 32;
+            $script = "if redis.call('STRLEN', KEYS[1]) <= tonumber(ARGV[1]) then return redis.call('GET', KEYS[1]) end redis.call('DEL', KEYS[1]) return false";
+
+            if ($connection::class === PhpRedisConnection::class) {
+                $value = $connection->eval($script, 1, $redisKey, $maxBytes);
+
+                return $value === true ? $connection->get($redisKey) : $value;
+            }
+
+            if ($connection instanceof PredisConnection) {
+                return $connection->command('eval', [$script, 1, $redisKey, $maxBytes]);
+            }
+
+            return $connection->get($redisKey);
+        }
+
+        return null;
     }
 
     /** Remove only the rejected bytes, never a concurrent writer's replacement. */
@@ -276,7 +294,7 @@ final class PermissionSetCache
         $length = (int) $match[1];
 
         if ($length > SignedEnvelope::MAX_BYTES || strlen($raw) !== $offset + $length + 2
-            || substr($raw, -2) !== '";') {
+            || ! str_ends_with($raw, '";')) {
             return false;
         }
 

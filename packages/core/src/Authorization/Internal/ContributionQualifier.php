@@ -15,6 +15,7 @@ use AzGuard\Roles\GrantedAutomatically;
 use AzGuard\Sources\Internal\EvaluatesAutomaticRoles;
 use DateTimeImmutable;
 use Illuminate\Support\Facades\Log;
+use Throwable;
 
 /** @phpstan-import-type CompiledRole from RoleCompiler */
 final class ContributionQualifier
@@ -40,7 +41,11 @@ final class ContributionQualifier
                 }
             }
             $reason = $current !== null ? 'former_role_key' : ($role === null ? 'unknown_role' : 'not_grantable_role');
-            Log::notice('AzGuard ignored role contribution.', ['component' => $source::class, 'reason' => $reason, 'role' => $item->role->full(), 'current_key' => $current ?? $role['key'] ?? null]);
+
+            try {
+                Log::notice('AzGuard ignored role contribution.', ['component' => $source::class, 'reason' => $reason, 'role' => $item->role->full(), 'current_key' => $current ?? $role['key'] ?? null]);
+            } catch (Throwable) {
+            }
 
             return [null, $reason];
         }

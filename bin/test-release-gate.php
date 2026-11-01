@@ -26,13 +26,13 @@ foreach (['8.3', '8.4', '8.5'] as $php) {
             continue;
         }
         foreach (['prefer-lowest', 'prefer-stable'] as $stability) {
-            $evidence['matrix'][] = ['name' => "php{$php}-laravel{$laravel}-{$stability}", 'sha' => $sha, 'run_id' => '123-1', 'result' => 'success', 'lock' => $lock, 'lock_sha256' => hash('sha256', $lock)];
+            $evidence['matrix'][] = ['name' => "php{$php}-laravel{$laravel}-{$stability}", 'sha' => $sha, 'run_id' => '123-1', 'result' => 'success', 'dependency_audit_passed' => true, 'lock' => $lock, 'lock_sha256' => hash('sha256', $lock)];
         }
     }
 }
 foreach (['pgsql', 'mysql', 'mariadb'] as $db) {
     foreach (['12', '13'] as $laravel) {
-        $evidence['matrix'][] = ['name' => "db-{$db}-laravel{$laravel}", 'sha' => $sha, 'run_id' => '123-1', 'result' => 'success', 'lock' => $lock, 'lock_sha256' => hash('sha256', $lock)];
+        $evidence['matrix'][] = ['name' => "db-{$db}-laravel{$laravel}", 'sha' => $sha, 'run_id' => '123-1', 'result' => 'success', 'dependency_audit_passed' => true, 'lock' => $lock, 'lock_sha256' => hash('sha256', $lock)];
     }
 }
 $scopes = [
@@ -79,7 +79,7 @@ try {
         $dir = $root.'/release-row-1-'.$row['name'];
         mkdir($dir);
         file_put_contents($dir.'/composer.lock', $row['lock']);
-        unset($row['lock'], $row['lock_sha256']);
+        unset($row['lock']);
         file_put_contents($dir.'/row.json', json_encode($row, JSON_THROW_ON_ERROR));
     }
     foreach ($evidence['scanners'] as $row) {
@@ -147,7 +147,16 @@ $bad = $evidence;
 $bad['matrix'][] = $bad['matrix'][0];
 $expect($bad, 'duplicate matrix row');
 $bad = $evidence;
+unset($bad['matrix'][0]['dependency_audit_passed']);
+$expect($bad, 'missing dependency audit');
+$bad = $evidence;
+$bad['matrix'][0]['dependency_audit_passed'] = false;
+$expect($bad, 'missing dependency audit');
+$bad = $evidence;
 unset($bad['matrix'][0]['lock_sha256']);
+$expect($bad, 'missing lock hash');
+$bad = $evidence;
+$bad['matrix'][0]['lock_sha256'] = 'invalid-lock-hash';
 $expect($bad, 'missing lock hash');
 $bad = $evidence;
 $bad['matrix'][0]['lock'] = '{}';
@@ -188,6 +197,7 @@ foreach ([0, 2] as $index) {
     foreach ([null, [], [['executionSuccessful' => false]], [['executionSuccessful' => true, 'exitCode' => 1]], [['executionSuccessful' => true, 'exitCode' => -1]], [['executionSuccessful' => true, 'exitCode' => true]], [['executionSuccessful' => true, 'exitCode' => '0']], [['executionSuccessful' => true, 'exitCode' => null]]] as $invocations) {
         $bad = $evidence;
         $report = json_decode($bad['scanners'][$index]['report'], true, 512, JSON_THROW_ON_ERROR);
+
         if ($invocations === null) {
             unset($report['runs'][0]['invocations']);
         } else {
@@ -266,5 +276,36 @@ $expect($bad, 'tag does not resolve');
 $bad = $evidence;
 $bad['split_prerequisites']['sboms'] = false;
 $expect($bad, 'missing split prerequisites');
+$policyRoot = sys_get_temp_dir().'/azguard-gitleaks-policy-'.bin2hex(random_bytes(8));
+mkdir($policyRoot);
+
+try {
+    $configText = (string) file_get_contents(dirname(__DIR__).'/.gitleaks.toml');
+    file_put_contents($policyRoot.'/.gitleaks.toml', $configText);
+    $withRoot = $evidence;
+    $withRoot['root'] = $policyRoot;
+    $expect($withRoot, null);
+
+    file_put_contents($policyRoot.'/.gitleaksignore', '');
+    $expect($withRoot, 'forbidden .gitleaksignore present');
+    unlink($policyRoot.'/.gitleaksignore');
+
+    file_put_contents($policyRoot.'/.gitleaks.toml', $configText."\n# modified\n");
+    $expect($withRoot, 'unexpected .gitleaks.toml digest');
+
+    foreach (["'''^packages/'''", "'''^src/'''", "'''^config/'''", "'''^\\.github/workflows/'''"] as $forbidden) {
+        $badConfig = str_replace("'''^plans/'''", "'''^plans/''',\n    {$forbidden}", $configText);
+        file_put_contents($policyRoot.'/.gitleaks.toml', $badConfig);
+
+        if (! in_array('gitleaks allowlist excludes product code', gitleaksPolicyErrors($policyRoot, hash('sha256', $badConfig)), true)) {
+            fwrite(STDERR, "failed to reject product path in gitleaks allowlist: {$forbidden}\n");
+            exit(1);
+        }
+    }
+} finally {
+    @unlink($policyRoot.'/.gitleaksignore');
+    @unlink($policyRoot.'/.gitleaks.toml');
+    @rmdir($policyRoot);
+}
 $expect([], 'invalid candidate SHA');
 fwrite(STDOUT, "release gate fixtures passed\n");

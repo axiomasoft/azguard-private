@@ -11,7 +11,7 @@ use AzGuard\Kernel\Decision\Decision;
 use Illuminate\Support\Facades\Log;
 
 ->after(function (AccessRequest $request, EvaluationContext $context, Decision $decision): void {
-    $sources = [App\Authorization\DatabaseSource::class => 'database']; // fixed at deployment
+    $sources = [AzGuard\Sources\Database\DatabaseSource::class => 'database']; // fixed at deployment
     $outcome = $decision->failure()?->value ?? ($decision->allowed() ? 'allow' : 'deny');
     $labels = [
         'outcome' => $outcome,

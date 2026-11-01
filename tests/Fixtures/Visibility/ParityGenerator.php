@@ -95,6 +95,47 @@ final class AuditGlobalAutomaticRole extends AuditAutomaticRole
     }
 }
 
+final readonly class ParityScenario
+{
+    /**
+     * @param  list<mixed>  $records
+     * @param  list<mixed>  $sources
+     * @param  list<mixed>  $contributions
+     * @param  list<mixed>  $roles
+     */
+    public function __construct(
+        public int $seed,
+        public array $records = [],
+        public array $sources = [],
+        public array $contributions = [],
+        public array $roles = [],
+    ) {}
+
+    /** @param list<mixed> $records */
+    public function withRecords(array $records): self
+    {
+        return new self($this->seed, array_values($records), $this->sources, $this->contributions, $this->roles);
+    }
+
+    /** @param list<mixed> $sources */
+    public function withSources(array $sources): self
+    {
+        return new self($this->seed, $this->records, array_values($sources), $this->contributions, $this->roles);
+    }
+
+    /** @param list<mixed> $contributions */
+    public function withContributions(array $contributions): self
+    {
+        return new self($this->seed, $this->records, $this->sources, array_values($contributions), $this->roles);
+    }
+
+    /** @param list<mixed> $roles */
+    public function withRoles(array $roles): self
+    {
+        return new self($this->seed, $this->records, $this->sources, $this->contributions, array_values($roles));
+    }
+}
+
 /** Facts and reference semantics, deliberately independent of the authorization engine. */
 final class ParityGenerator
 {
@@ -185,6 +226,74 @@ final class ParityGenerator
         }
 
         return range(1, $enabled ? 50 : 2);
+    }
+
+    /**
+     * Deterministically minimizes a failing parity scenario across records, sources, contributions and roles.
+     *
+     * @param  callable(ParityScenario): bool  $fails
+     */
+    public static function shrink(ParityScenario $scenario, callable $fails): ParityScenario
+    {
+        $current = $scenario;
+        $dimensions = [
+            static fn (ParityScenario $s): array => $s->records,
+            static fn (ParityScenario $s): array => $s->sources,
+            static fn (ParityScenario $s): array => $s->contributions,
+            static fn (ParityScenario $s): array => $s->roles,
+        ];
+        $updaters = [
+            static fn (ParityScenario $s, array $items): ParityScenario => $s->withRecords($items),
+            static fn (ParityScenario $s, array $items): ParityScenario => $s->withSources($items),
+            static fn (ParityScenario $s, array $items): ParityScenario => $s->withContributions($items),
+            static fn (ParityScenario $s, array $items): ParityScenario => $s->withRoles($items),
+        ];
+
+        foreach ($dimensions as $index => $extract) {
+            $update = $updaters[$index];
+            $items = array_values($extract($current));
+            $chunkSize = intdiv(count($items), 2);
+
+            while ($chunkSize >= 2) {
+                $offset = 0;
+
+                while ($offset < count($items)) {
+                    $candidateItems = [
+                        ...array_slice($items, 0, $offset),
+                        ...array_slice($items, $offset + $chunkSize),
+                    ];
+                    $candidate = $update($current, $candidateItems);
+
+                    if ($fails($candidate)) {
+                        $items = $candidateItems;
+                        $current = $candidate;
+                    } else {
+                        $offset += $chunkSize;
+                    }
+                }
+
+                $chunkSize = intdiv($chunkSize, 2);
+            }
+
+            $i = 0;
+
+            while ($i < count($items)) {
+                $candidateItems = [
+                    ...array_slice($items, 0, $i),
+                    ...array_slice($items, $i + 1),
+                ];
+                $candidate = $update($current, $candidateItems);
+
+                if ($fails($candidate)) {
+                    $items = $candidateItems;
+                    $current = $candidate;
+                } else {
+                    $i++;
+                }
+            }
+        }
+
+        return $current;
     }
 
     /** Run the same generated facts through each entry point with cold, request memo and shared-store reads. */

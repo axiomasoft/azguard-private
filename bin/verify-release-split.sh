@@ -3,12 +3,29 @@ set -Eeuo pipefail
 [[ ( $# == 3 || ( $# == 4 && "$4" == --dispatch-final ) ) && "$1" =~ ^[0-9a-f]{40}$ && "$2" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?$ ]] || { echo 'invalid candidate or tag' >&2; exit 2; }
 sha="$1" tag="$2" dist="$(realpath "$3")" version="${2#v}"
 [[ ${GITHUB_RUN_ID:-} =~ ^[0-9]+$ && ${GITHUB_RUN_ATTEMPT:-} =~ ^[0-9]+$ ]] || { echo 'missing release run identity' >&2; exit 2; }
+if ! command -v gh >/dev/null 2>&1 || ! gh attestation verify --help >/dev/null 2>&1; then
+  echo "GitHub CLI with 'gh attestation verify' support is required" >&2
+  exit 1
+fi
 staging="release-candidate/$tag/$GITHUB_RUN_ID/$GITHUB_RUN_ATTEMPT"
+staging_branch="$staging"
+SPLIT_TOKEN="${SPLIT_TOKEN:-${GH_TOKEN:-}}"
+tracked_remotes=()
 [[ "$(git rev-parse HEAD)" == "$sha" ]] || { echo 'checkout does not match candidate SHA' >&2; exit 1; }
 [[ "$(git rev-parse "refs/tags/$tag^{commit}")" == "$sha" ]] || { echo 'tag does not resolve to candidate SHA' >&2; exit 1; }
 (cd "$dist" && sha256sum --check SHA256SUMS)
 tmp="$(mktemp -d)"
-trap 'rm -rf "$tmp"' EXIT
+cleanup_staging() {
+    local status=$?
+    if (( status != 0 )); then
+        for remote in "${tracked_remotes[@]}"; do
+            git push "https://x-access-token:${SPLIT_TOKEN}@github.com/${remote}.git" ":refs/heads/${staging_branch}" >/dev/null 2>&1 || true
+        done
+    fi
+    rm -rf "$tmp"
+}
+trap cleanup_staging EXIT
+tracked_remotes=("axiomasoft/azguard" "axiomasoft/azguard-filament")
 for package in core filament; do
     repo=azguard
     [[ "$package" == filament ]] && repo=azguard-filament

@@ -24,6 +24,8 @@ use AzGuard\Sources\Folder\FolderSource;
  * `panels.sources`: the sources of each panel exist, their ids do not repeat and at most one stores grants. The
  * checks a source brings itself (`ChecksHealth`) run separately for the panel and report under their own keys.
  *
+ * @phpstan-import-type CapabilityCell from SourceDescription
+ *
  * @internal
  */
 final readonly class PanelsSources implements DoctorCheck
@@ -38,14 +40,54 @@ final readonly class PanelsSources implements DoctorCheck
     public function run(DoctorContext $context): iterable
     {
         foreach ($context->panels() as $panel) {
-            $automaticRoles = [];
-            foreach ($this->registry->catalog($panel->id())->roles() as $role) {
-                if (is_subclass_of($role['class'], GrantedAutomatically::class) && ! is_subclass_of($role['class'], SelectsAutomaticRoleScopes::class)) {
-                    $automaticRoles[] = $role['class'];
-                }
-            }
-            yield from self::check($panel->id(), $panel->sources(), $automaticRoles);
+            yield from self::check($panel->id(), $panel->sources(), self::unqueryableAutomaticRoles($this->registry, $panel->id()));
         }
+    }
+
+    /**
+     * @return list<class-string>
+     */
+    public static function unqueryableAutomaticRoles(PanelRegistry $registry, string $panel): array
+    {
+        $automaticRoles = [];
+
+        foreach ($registry->catalog($panel)->roles() as $role) {
+            if (is_subclass_of($role['class'], GrantedAutomatically::class) && ! is_subclass_of($role['class'], SelectsAutomaticRoleScopes::class)) {
+                $automaticRoles[] = $role['class'];
+            }
+        }
+
+        return $automaticRoles;
+    }
+
+    /**
+     * @param  list<class-string>  $automaticRoles
+     */
+    public static function supportsAutomaticRoleVisibility(SourceDescription|Source $source, array $automaticRoles = []): bool
+    {
+        $class = $source instanceof SourceDescription ? $source->class : $source::class;
+
+        return ! is_a($class, FolderSource::class, true) || $automaticRoles === [];
+    }
+
+    /**
+     * @param  list<class-string>  $automaticRoles
+     * @return array<string, CapabilityCell>
+     */
+    public static function matrixFor(SourceDescription $source, array $automaticRoles = []): array
+    {
+        $matrix = $source->matrix;
+
+        if (! self::supportsAutomaticRoleVisibility($source, $automaticRoles)) {
+            $matrix['exact_visibility'] = [
+                'status' => 'unsupported',
+                'basis' => 'static_declaration',
+                'reason' => 'An automatic role without SelectsAutomaticRoleScopes makes exact folder selection unsupported, even if it has a predicate adapter.',
+                'test_reference' => 'tests/Feature/Diagnostics/SourceCapabilitiesTest.php',
+            ];
+        }
+
+        return $matrix;
     }
 
     /**
@@ -82,7 +124,7 @@ final readonly class PanelsSources implements DoctorCheck
                     ['source' => $source->id, 'capability' => 'stable_cache', 'reason' => 'stable_unfenced']);
             }
 
-            if (is_a($source->class, FolderSource::class, true) && $automaticRoles !== []) {
+            if (! self::supportsAutomaticRoleVisibility($source, $automaticRoles)) {
                 $findings[] = DoctorFinding::warning('panels.sources.visibility', 'Automatic folder roles lack exact scope selection; scalar and batch checks remain available.', $scope,
                     ['source' => $source->id, 'capability' => 'exact_visibility', 'reason' => 'automatic_roles', 'roles' => $automaticRoles]);
             }

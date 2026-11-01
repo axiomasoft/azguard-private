@@ -160,9 +160,13 @@ final readonly class AzGuardConfig
     }
 
     /** @internal The raw namespace also partitions keys when signing is unavailable. */
-    public static function cacheNamespace(Repository $config): mixed
+    public static function cacheNamespace(Repository $config): ?string
     {
-        return $config->get('azguard.cache.namespace');
+        $namespace = $config->get('azguard.cache.namespace');
+
+        return is_string($namespace) && $namespace !== '' && strlen($namespace) <= 255 && preg_match('//u', $namespace) === 1
+            ? $namespace
+            : null;
     }
 
     /** @internal @throws InvalidConfigurationException */

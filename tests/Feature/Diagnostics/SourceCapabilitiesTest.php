@@ -141,11 +141,13 @@ function capabilityMatrixDocument(): array
             'matrix' => $description->matrix,
         ];
     }
-    $rows['folder_automatic_role'] = $rows['folder'];
-    $rows['folder_automatic_role']['matrix']['exact_visibility'] = [
-        'status' => 'unsupported', 'basis' => 'static_declaration',
-        'reason' => 'An automatic role without SelectsAutomaticRoleScopes makes exact folder selection unsupported, even if it has a predicate adapter.',
-        'test_reference' => 'tests/Feature/Diagnostics/SourceCapabilitiesTest.php',
+    $folderAutomatic = new SourceDescription('folder_automatic_role', FolderSource::class, PanelSources::capabilities(FolderSource::make()), false,
+        volatility: FolderSource::make()->volatility());
+    $rows['folder_automatic_role'] = [
+        'class' => $folderAutomatic->class,
+        'capabilities' => $folderAutomatic->capabilities,
+        'volatility' => $folderAutomatic->volatility?->value,
+        'matrix' => PanelsSources::matrixFor($folderAutomatic, [CapabilityAutomaticRole::class]),
     ];
 
     return [
@@ -232,8 +234,8 @@ it('warns about declared automatic folder roles without evaluating them', functi
         ->and($findings[0]->details['roles'])->toBe([$role]);
     $sources = app(PanelOverview::class)->panel($panel, sources: true)['sources']['sources'];
     $folder = array_values(array_filter($sources, static fn (array $s): bool => $s['class'] === FolderSource::class))[0];
-    expect($folder['matrix']['exact_visibility']['status'])->toBe('conditional')
-        ->and(capabilityMatrixDocument()['sources']['folder_automatic_role']['matrix']['exact_visibility']['status'])->toBe('unsupported');
+    expect($folder['matrix']['exact_visibility']['status'])->toBe('unsupported')
+        ->and($folder['matrix'])->toBe(capabilityMatrixDocument()['sources']['folder_automatic_role']['matrix']);
     $query = VisibilityProject::query()->where('active', true);
     $sql = $query->toSql();
     $bindings = $query->getBindings();
@@ -245,6 +247,9 @@ it('warns about declared automatic folder roles without evaluating them', functi
 it('treats an automatic selection declaration as conditional rather than a runtime guarantee', function (): void {
     [$visibility, $panel] = W::compile(configure: static fn (PanelBuilder $builder) => $builder->roles([CapabilityQueryableRole::class]));
     expect(capabilityFindings($panel))->toBe([]);
+    $sources = app(PanelOverview::class)->panel($panel, sources: true)['sources']['sources'];
+    $folder = array_values(array_filter($sources, static fn (array $s): bool => $s['class'] === FolderSource::class))[0];
+    expect($folder['matrix']['exact_visibility']['status'])->toBe('conditional');
     $query = VisibilityProject::query()->where('active', true);
     $sql = $query->toSql();
     $bindings = $query->getBindings();

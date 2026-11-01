@@ -2,8 +2,17 @@
 
 declare(strict_types=1);
 
+use AzGuard\Authorization\Internal\Cache\PermissionSetCache;
 use AzGuard\Authorization\Internal\Cache\SignedEnvelope;
 use AzGuard\Configuration\Internal\AzGuardConfig;
+use AzGuard\Kernel\Decision\StateToken;
+use AzGuard\Kernel\Identity\AccessScope;
+use AzGuard\Kernel\Identity\SubjectRef;
+use AzGuard\Kernel\Identity\TenantRef;
+use AzGuard\Sources\Database\DatabaseSource;
+use AzGuard\Storage\Schema\StorageSchema;
+use AzGuard\Tests\Fixtures\Authorization\Cache\CacheWorld;
+use AzGuard\Tests\Fixtures\Sources\Database\DatabaseWorld;
 use Illuminate\Config\Repository;
 
 function envelopeConfig(array $overrides = []): Repository
@@ -86,3 +95,17 @@ it('uses the same signing configuration for availability and envelope verificati
     'valid rotation' => [['previous_keys' => ['old' => ['key' => str_repeat('o', 32), 'valid_until' => '2026-10-31T12:00:00.000000Z']]], true],
     'invalid rotation' => [['previous_keys' => ['old' => ['key' => str_repeat('o', 32), 'valid_until' => '2026-10-31T12:00:00Z']]], false],
 ]);
+
+it('treats an invalid cache namespace type as null without crashing key computation or authorization', function (): void {
+    app(StorageSchema::class)->create('default');
+    DatabaseWorld::insert('permission', [DatabaseWorld::row('permission')]);
+    config(['azguard.cache.namespace' => ['bad' => 'array'], 'azguard.cache.signing_key' => str_repeat('s', 32)]);
+    $state = StateToken::of('default', 'admin', 'inc', 1, 1, 'fp');
+    $key = PermissionSetCache::key($state, SubjectRef::of('user', 1), TenantRef::global(), [AccessScope::in(TenantRef::global())], 'source', 'primary', 'authority', 1);
+
+    expect(AzGuardConfig::cacheNamespace(app('config')))->toBeNull()
+        ->and($key)->toStartWith('azguard:sets:v2:');
+    [$engine, $panel] = CacheWorld::database(DatabaseSource::make());
+    expect($engine->decide($panel, DatabaseWorld::request())->allowed())->toBeTrue()
+        ->and(app('cache')->store('array')->get($key))->toBeNull();
+});

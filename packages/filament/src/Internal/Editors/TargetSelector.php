@@ -131,7 +131,7 @@ final readonly class TargetSelector
         $access = AzGuard::panel($definition->id());
 
         if (! $this->choosesTenant($panel)) {
-            if ($tenant !== null && $tenant !== '' && $tenant !== $this->fixedTenantId($definition)) {
+            if (! in_array($tenant, [null, '', $this->fixedTenantId($definition)], true)) {
                 self::refuse('The tenant of this panel is not chosen here.');
             }
 

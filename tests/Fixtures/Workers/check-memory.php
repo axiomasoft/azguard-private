@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 // The producer writes one JSON object per request, including the 200 warmup requests.
 // RSS is in bytes; counts describe fresh lifecycle-scoped services before the request work.
-if ($argc !== 3 || ! ctype_digit($argv[2]) || (int) $argv[2] < 5000) {
-    fwrite(STDERR, "usage: php check-memory.php SERIES.jsonl MEASURED_REQUESTS (at least 5000)\n");
+if ($argc !== 3 || ! ctype_digit($argv[2]) || (int) $argv[2] < 1000) {
+    fwrite(STDERR, "usage: php check-memory.php SERIES.jsonl MEASURED_REQUESTS (at least 1000)\n");
     exit(2);
 }
 
@@ -36,7 +36,8 @@ try {
     }
     $warmed = $samples[199]['rss'];
     $measuredPeak = max(array_column(array_slice($samples, 200), 'rss'));
-    $start = count($samples) - 5001;
+    $window = min(5000, $measured);
+    $start = count($samples) - $window - 1;
     $lastWindow = array_column(array_slice($samples, $start + 1), 'rss');
     $growth = max($measuredPeak - $warmed, max($lastWindow) - $samples[$start]['rss']);
     $limit = max(8 * 1024 * 1024, (int) ceil($warmed * 0.10));

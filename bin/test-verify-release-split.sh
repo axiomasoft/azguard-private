@@ -9,6 +9,8 @@ git config --global user.name 'Split fixture'
 git config --global user.email 'split-fixture@example.invalid'
 git config --global "url.file://$tmp/remotes/.insteadOf" 'https://github.com/axiomasoft/'
 git config --global --add "url.file://$tmp/remotes/.insteadOf" 'https://x-access-token@github.com/axiomasoft/'
+git config --global --add "url.file://$tmp/remotes/.insteadOf" 'https://x-access-token:@github.com/axiomasoft/'
+git config --global --add "url.file://$tmp/remotes/.insteadOf" 'https://x-access-token:fixture@github.com/axiomasoft/'
 mkdir -p "$tmp/work/packages/core" "$tmp/work/packages/filament" "$tmp/remotes" "$tmp/dist"
 mkdir "$tmp/bin"
 export PATH="$tmp/bin:$PATH" SPLIT_FIXTURE="$tmp"
@@ -51,6 +53,10 @@ if [[ ${RELAY_FIXTURE:-} == 1 ]]; then
         exit 1
     fi
     exit
+fi
+if [[ "$*" == "attestation verify --help" ]]; then
+    [[ ${GH_NO_ATTESTATION:-0} == 0 ]] || exit 1
+    exit 0
 fi
 if [[ "$1" == workflow && "$2" == run ]]; then
     [[ "$*" == "workflow run provenance.yml --repo axiomasoft/azguard --ref release-candidate/v2.0.0-rc.1/123/2 -f candidate=$(git -C "$SPLIT_FIXTURE/work" rev-parse HEAD) -f run_id=123 -f run_attempt=2" ]]
@@ -95,6 +101,8 @@ for package in core filament; do
     name=azguard
     [[ "$package" == filament ]] && name=azguard-filament
     split="$(git -C "$tmp/work" subtree split --prefix="packages/$package" "$sha" 2>/dev/null)"
+    [[ "$package" != core ]] || core_split="$split"
+    [[ "$package" != filament ]] || filament_split="$split"
     git init --bare -q "$tmp/remotes/$name.git"
     git -C "$tmp/work" push -q "$tmp/remotes/$name.git" "$split:refs/heads/release-candidate/v2.0.0-rc.1/123/2"
     cp -a "$tmp/work/packages/$package" "$tmp/package-$package"
@@ -110,6 +118,10 @@ printf 'core sbom\n' > "$tmp/dist/sbom-core.cdx.json"
 printf 'filament sbom\n' > "$tmp/dist/sbom-filament.cdx.json"
 checksums() { (cd "$tmp/dist" && sha256sum azguard-core-2.0.0-rc.1.zip azguard-filament-2.0.0-rc.1.zip sbom-core.cdx.json sbom-filament.cdx.json > SHA256SUMS); }
 checksums
+restore_staging() {
+    git --git-dir="$tmp/remotes/azguard.git" update-ref refs/heads/release-candidate/v2.0.0-rc.1/123/2 "$core_split"
+    git --git-dir="$tmp/remotes/azguard-filament.git" update-ref refs/heads/release-candidate/v2.0.0-rc.1/123/2 "$filament_split"
+}
 verify() { (cd "$tmp/work" && bash "$verifier" "$sha" v2.0.0-rc.1 "$tmp/dist"); }
 reject() {
     local expected="$1"
@@ -121,7 +133,19 @@ reject() {
         python3 -c 'import pathlib,sys; print(pathlib.Path(sys.argv[1]).read_text())' "$tmp/output" >&2
         exit 1
     fi
+    if [[ ${EXPECT_STAGING_CLEANUP:-0} == 1 ]]; then
+        for repo in azguard azguard-filament; do
+            if git --git-dir="$tmp/remotes/$repo.git" show-ref --verify --quiet refs/heads/release-candidate/v2.0.0-rc.1/123/2; then
+                printf 'failed provenance verification did not clean staging branch in %s\n' "$repo" >&2
+                exit 1
+            fi
+        done
+    fi
+    restore_staging
 }
+export GH_NO_ATTESTATION=1
+reject "GitHub CLI with 'gh attestation verify' support is required"
+unset GH_NO_ATTESTATION
 verify >"$tmp/output" 2>&1
 
 for subject in sbom-core.cdx.json sbom-filament.cdx.json SHA256SUMS; do
@@ -134,6 +158,13 @@ for variable in BAD_FINAL_SIGNER BAD_FINAL_COMMIT BAD_FINAL_REF BAD_FINAL_DIGEST
     export "$variable"=1
     if verify_final >"$tmp/output" 2>&1; then echo "final attestation accepted invalid $variable" >&2; exit 1; fi
     python3 -c 'import pathlib,sys; assert "public final artifact attestation verification failed: sbom-core.cdx.json" in pathlib.Path(sys.argv[1]).read_text()' "$tmp/output"
+    for repo in azguard azguard-filament; do
+        if git --git-dir="$tmp/remotes/$repo.git" show-ref --verify --quiet refs/heads/release-candidate/v2.0.0-rc.1/123/2; then
+            echo "failed final provenance left staging branch in $repo" >&2
+            exit 1
+        fi
+    done
+    restore_staging
     unset "$variable"
 done
 for subject in sbom-core.cdx.json sbom-filament.cdx.json; do
@@ -142,23 +173,25 @@ for subject in sbom-core.cdx.json sbom-filament.cdx.json; do
     checksums
     if verify_final >"$tmp/output" 2>&1; then echo "tampered $subject accepted" >&2; exit 1; fi
     python3 -c 'import pathlib,sys; assert "public final artifact attestation verification failed" in pathlib.Path(sys.argv[1]).read_text()' "$tmp/output"
+    restore_staging
     mv "$tmp/original-$subject" "$tmp/dist/$subject"
     checksums
 done
 printf '\n' >> "$tmp/dist/SHA256SUMS"
 if verify_final >"$tmp/output" 2>&1; then echo 'tampered manifest accepted' >&2; exit 1; fi
 python3 -c 'import pathlib,sys; assert "public final artifact attestation verification failed: SHA256SUMS" in pathlib.Path(sys.argv[1]).read_text()' "$tmp/output"
+restore_staging
 checksums
 
-export BAD_SIGNER=-wrong
+export BAD_SIGNER=-wrong EXPECT_STAGING_CLEANUP=1
 reject 'public split attestation verification failed: core'
-unset BAD_SIGNER
-export BAD_COMMIT=0
+unset BAD_SIGNER EXPECT_STAGING_CLEANUP
+export BAD_COMMIT=0 EXPECT_STAGING_CLEANUP=1
 reject 'public split attestation verification failed: core'
-unset BAD_COMMIT
-export BAD_REF=-wrong
+unset BAD_COMMIT EXPECT_STAGING_CLEANUP
+export BAD_REF=-wrong EXPECT_STAGING_CLEANUP=1
 reject 'public split attestation verification failed: core'
-unset BAD_REF
+unset BAD_REF EXPECT_STAGING_CLEANUP
 # Changing ZIP container bytes while retaining the same files and updating the
 # manifest must still fail the attestation subject digest verification.
 python3 - "$tmp/dist/azguard-core-2.0.0-rc.1.zip" <<'PY'

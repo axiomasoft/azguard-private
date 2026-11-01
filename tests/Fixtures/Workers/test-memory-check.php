@@ -11,7 +11,11 @@ if ($path === false) {
 try {
     $run = static function (string $case) use ($path): int {
         $stream = fopen($path, 'wb');
-        $measured = in_array($case, ['early-plateau', 'early-peak'], true) ? 10000 : 5000;
+        $measured = match (true) {
+            in_array($case, ['early-plateau', 'early-peak'], true) => 10000,
+            $case === 'jobs-1000' => 1000,
+            default => 5000,
+        };
         for ($i = 1; $i <= 200 + $measured; $i++) {
             $sample = ['request' => $i, 'pid' => 123, 'rss' => 100 * 1024 * 1024,
                 'counts' => ['memo' => 0, 'states' => 0, 'panels' => 0]];
@@ -37,7 +41,7 @@ try {
 
         return $exit;
     };
-    foreach (['valid' => 0, 'pid' => 1, 'state' => 1, 'rss' => 1, 'sequence' => 1, 'early-plateau' => 1, 'early-peak' => 1] as $case => $expected) {
+    foreach (['valid' => 0, 'jobs-1000' => 0, 'pid' => 1, 'state' => 1, 'rss' => 1, 'sequence' => 1, 'early-plateau' => 1, 'early-peak' => 1] as $case => $expected) {
         if ($run($case) !== $expected) {
             throw new RuntimeException("Unexpected result for {$case}");
         }

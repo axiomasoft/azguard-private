@@ -10,6 +10,8 @@ use AzGuard\Policies\Decides;
 use AzGuard\Policies\PolicyBinding;
 use AzGuard\Scopes\ScopesPlugin;
 use AzGuard\Tests\Fixtures\Authorization\ScenarioGenerator;
+use AzGuard\Tests\Fixtures\Visibility\ParityGenerator;
+use AzGuard\Tests\Fixtures\Visibility\ParityScenario;
 use AzGuard\Tests\Fixtures\Visibility\VisibilityBefore;
 use AzGuard\Tests\Fixtures\Visibility\VisibilityCondition;
 use AzGuard\Tests\Fixtures\Visibility\VisibilityPolicy;
@@ -19,8 +21,10 @@ use AzGuard\Tests\Fixtures\Visibility\VisibilityRestriction;
 use AzGuard\Tests\Fixtures\Visibility\VisibilitySource;
 use AzGuard\Tests\Fixtures\Visibility\VisibilityWorld as W;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Log;
 
 require_once __DIR__.'/../../Fixtures/Visibility/VisibilityWorld.php';
+require_once __DIR__.'/../../Fixtures/Visibility/ParityGenerator.php';
 
 class ParityVetoPolicy extends VisibilityPolicy
 {
@@ -68,19 +72,27 @@ it('P14 matches every scalar allow id and count on 100 reproducible seeds under 
                 $roles[] = W::role($scope, $city, expiry: $expiry);
             }
         }
-        $source = new VisibilitySource(direct: $direct, roles: $roles);
-        [$visibility, $panel, $authorizer] = W::compile($source, function (PanelBuilder $p) use ($seed): void {
-            $p->policies([PolicyBinding::for('orders.view', ParityVetoPolicy::class)])
-                ->grantConditions([VisibilityCondition::class]);
+        $scenario = new ParityScenario($seed, records: $projects->all(), sources: ['generated'], contributions: $direct, roles: $roles);
+        $compileScenario = static function (ParityScenario $candidate) use ($seed): array {
+            $candidateSource = new VisibilitySource(
+                direct: $candidate->sources === [] ? [] : $candidate->contributions,
+                roles: $candidate->sources === [] ? [] : $candidate->roles,
+            );
 
-            if ($seed % 2 === 0) {
-                $p->before([VisibilityBefore::class]);
-            }
+            return W::compile($candidateSource, function (PanelBuilder $p) use ($seed): void {
+                $p->policies([PolicyBinding::for('orders.view', ParityVetoPolicy::class)])
+                    ->grantConditions([VisibilityCondition::class]);
 
-            if ($seed % 3 === 0) {
-                $p->restrictions([VisibilityRestriction::class]);
-            }
-        });
+                if ($seed % 2 === 0) {
+                    $p->before([VisibilityBefore::class]);
+                }
+
+                if ($seed % 3 === 0) {
+                    $p->restrictions([VisibilityRestriction::class]);
+                }
+            });
+        };
+        [$visibility, $panel, $authorizer] = $compileScenario($scenario);
         foreach (['orders.view', 'orders.policy'] as $permission) {
             $ids = [];
             $states = [];
@@ -93,8 +105,40 @@ it('P14 matches every scalar allow id and count on 100 reproducible seeds under 
                 }
             }
             $query = $visibility->visibleTo($panel, VisibilityProject::query(), W::subject(), $permission);
-            $this->assertSame($ids, (clone $query)->orderBy('id')->pluck('id')->all(), "seed=$seed action=$permission");
-            $this->assertSame(count($ids), $query->count(), "count seed=$seed action=$permission");
+            $actualIds = (clone $query)->orderBy('id')->pluck('id')->all();
+            $actualCount = $query->count();
+            $summary = "seed=$seed action=$permission; reproduce: AZGUARD_PROPERTY_SEED=$seed";
+
+            if ($actualIds !== $ids || $actualCount !== count($ids)) {
+                $shrunk = ParityGenerator::shrink($scenario, static function (ParityScenario $candidate) use ($compileScenario, $permission): bool {
+                    [$vis, $pan, $auth] = $compileScenario($candidate);
+                    $expectedIds = [];
+                    $recordIds = [];
+                    foreach ($candidate->records as $rec) {
+                        $recordIds[] = $rec->id;
+
+                        if ($auth->decide($pan, AccessRequest::for(W::subject(), PermissionKey::of('admin', $permission))->on(null, $rec))->allowed()) {
+                            $expectedIds[] = $rec->id;
+                        }
+                    }
+                    $q = $vis->visibleTo($pan, VisibilityProject::query()->whereKey($recordIds), W::subject(), $permission);
+
+                    return (clone $q)->orderBy('id')->pluck('id')->all() !== $expectedIds || $q->count() !== count($expectedIds);
+                });
+                $summary = sprintf(
+                    'seed=%d action=%s shrunk(records=%d,sources=%d,contributions=%d,roles=%d); reproduce: AZGUARD_PROPERTY_SEED=%d',
+                    $seed,
+                    $permission,
+                    count($shrunk->records),
+                    count($shrunk->sources),
+                    count($shrunk->contributions),
+                    count($shrunk->roles),
+                    $seed,
+                );
+            }
+
+            $this->assertSame($ids, $actualIds, $summary);
+            $this->assertSame(count($ids), $actualCount, 'count '.$summary);
             foreach ($states as $state) {
                 expect($state->equals($states[0]))->toBeTrue();
             }
@@ -140,6 +184,7 @@ it('P14 keeps list equal to scalar for a restriction whose appliesTo depends on 
         for ($i = 0; $i < 6; $i++) {
             $direct[] = W::grant($draw(5) ?: null, [[], ['city' => 'Paris'], ['city' => 'Rome']][$draw(3)]);
         }
+        $scenario = new ParityScenario($seed, records: $projects->all(), sources: ['generated'], contributions: $direct, roles: []);
         [$visibility, $panel, $authorizer] = W::compile(new VisibilitySource(direct: $direct), fn (PanelBuilder $p) => $p->grantConditions([VisibilityCondition::class])->restrictions([ParityResourceRestriction::class]));
         $ids = [];
         foreach ($projects as $resource) {
@@ -148,7 +193,94 @@ it('P14 keeps list equal to scalar for a restriction whose appliesTo depends on 
             }
         }
         $query = $visibility->visibleTo($panel, VisibilityProject::query(), W::subject(), 'orders.view');
-        $this->assertSame($ids, (clone $query)->orderBy('id')->pluck('id')->all(), "seed=$seed");
-        $this->assertSame(count($ids), $query->count(), "count seed=$seed");
+        $actualIds = (clone $query)->orderBy('id')->pluck('id')->all();
+        $actualCount = $query->count();
+        $summary = "seed=$seed; reproduce: AZGUARD_PROPERTY_SEED=$seed";
+
+        if ($actualIds !== $ids || $actualCount !== count($ids)) {
+            $shrunk = ParityGenerator::shrink($scenario, static function (ParityScenario $candidate): bool {
+                [$vis, $pan, $auth] = W::compile(
+                    new VisibilitySource(direct: $candidate->sources === [] ? [] : $candidate->contributions),
+                    fn (PanelBuilder $p) => $p->grantConditions([VisibilityCondition::class])->restrictions([ParityResourceRestriction::class]),
+                );
+                $expectedIds = [];
+                $recordIds = [];
+                foreach ($candidate->records as $rec) {
+                    $recordIds[] = $rec->id;
+
+                    if ($auth->decide($pan, AccessRequest::for(W::subject(), PermissionKey::of('admin', 'orders.view'))->on(null, $rec))->allowed()) {
+                        $expectedIds[] = $rec->id;
+                    }
+                }
+                $q = $vis->visibleTo($pan, VisibilityProject::query()->whereKey($recordIds), W::subject(), 'orders.view');
+
+                return (clone $q)->orderBy('id')->pluck('id')->all() !== $expectedIds || $q->count() !== count($expectedIds);
+            });
+            $summary = sprintf(
+                'seed=%d shrunk(records=%d,sources=%d,contributions=%d,roles=%d); reproduce: AZGUARD_PROPERTY_SEED=%d',
+                $seed,
+                count($shrunk->records),
+                count($shrunk->sources),
+                count($shrunk->contributions),
+                count($shrunk->roles),
+                $seed,
+            );
+        }
+
+        $this->assertSame($ids, $actualIds, $summary);
+        $this->assertSame(count($ids), $actualCount, 'count '.$summary);
     }
+});
+
+it('shrinks a failing parity scenario to a minimal counterexample across records sources contributions and roles', function (): void {
+    $scenario = new ParityScenario(
+        seed: 17,
+        records: [1, 2, 3, 4, 5],
+        sources: ['folder', 'generated', 'extra'],
+        contributions: ['g1', 'g2', 'g3', 'g4', 'g5', 'g6'],
+        roles: ['r1', 'r2', 'r3', 'r4'],
+    );
+
+    $shrunk = ParityGenerator::shrink($scenario, static function (ParityScenario $candidate): bool {
+        return in_array(2, $candidate->records, true)
+            && in_array(4, $candidate->records, true)
+            && in_array('generated', $candidate->sources, true)
+            && in_array('g3', $candidate->contributions, true)
+            && in_array('r2', $candidate->roles, true);
+    });
+
+    expect($shrunk->seed)->toBe(17)
+        ->and($shrunk->records)->toBe([2, 4])
+        ->and($shrunk->sources)->toBe(['generated'])
+        ->and($shrunk->contributions)->toBe(['g3'])
+        ->and($shrunk->roles)->toBe(['r2']);
+});
+
+it('keeps decide and visibleTo parity when the host logger throws on an unknown role contribution', function (): void {
+    $projects = VisibilityProject::query()->orderBy('id')->get();
+    $source = new VisibilitySource(
+        direct: [W::grant(1)],
+        roles: [W::role(2, key: 'unknown-removed-role')],
+    );
+    [$visibility, $panel, $authorizer] = W::compile($source);
+
+    Log::shouldReceive('notice')
+        ->andThrow(new RuntimeException('Custom host logger transport failed.'));
+
+    $expectedIds = [];
+    foreach ($projects as $resource) {
+        $decision = $authorizer->decide($panel, AccessRequest::for(W::subject(), PermissionKey::of('admin', 'orders.view'))->on(null, $resource));
+
+        if ($decision->allowed()) {
+            $expectedIds[] = $resource->id;
+        }
+    }
+
+    $actualIds = $visibility->visibleTo($panel, VisibilityProject::query(), W::subject(), 'orders.view')
+        ->orderBy('id')
+        ->pluck('id')
+        ->all();
+
+    expect($actualIds)->toBe($expectedIds)
+        ->and($actualIds)->not->toBeEmpty();
 });

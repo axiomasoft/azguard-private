@@ -63,6 +63,17 @@ it('retains the null ttl error and detects invalid memory limits', function (): 
     expect(DoctorWorld::summary(DoctorWorld::only(DoctorWorld::run(production: true), 'cache.memory')))->toBe(['core cache.memory error']);
 });
 
+it('reports both memory and signing errors when runtime configuration breaks both', function (): void {
+    config(['cache.stores.shared.driver' => 'redis', 'azguard.cache.namespace' => 'deployment',
+        'azguard.cache.signing_key' => str_repeat('k', 32)]);
+    securityPanel('shared');
+    config(['azguard.cache.max_memo_entries' => 2000, 'azguard.cache.namespace' => '']);
+    $findings = DoctorWorld::run(production: true);
+
+    expect(DoctorWorld::summary(DoctorWorld::only($findings, 'cache.memory')))->toBe(['core cache.memory error'])
+        ->and(DoctorWorld::summary(DoctorWorld::only($findings, 'cache.signing')))->toBe(['panel:test cache.signing error']);
+});
+
 it('redacts cache credentials in both command formats and reports production errors', function (): void {
     $key = str_repeat('secret-key-', 4);
     $dsn = 'redis://operator:secret-pass@example.test:6379';

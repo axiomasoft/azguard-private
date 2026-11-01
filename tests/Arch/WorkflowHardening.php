@@ -34,6 +34,7 @@ function workflowHardeningViolations(string $file, string $raw, array $parsed): 
     $permissionName = $name;
     foreach (['core', 'filament'] as $package) {
         $packagePath = "packages/{$package}/.github/workflows/provenance.yml";
+
         if ($file === $packagePath || str_ends_with($file, '/'.$packagePath)) {
             $permissionName = $packagePath;
         }

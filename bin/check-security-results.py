@@ -8,6 +8,22 @@ from pathlib import Path
 import re
 import subprocess
 import sys
+import tomllib
+
+ROOT = Path(__file__).resolve().parent.parent
+EXPECTED_GITLEAKS_CONFIG_SHA256 = '72d02105f6cb4acddfe9cb1b105d1db4814b21d62b639e608194aa38590ae01c'
+FORBIDDEN_GITLEAKS_PATHS = (
+    'packages/',
+    'src/',
+    'config/',
+    '.github/workflows/',
+)
+FORBIDDEN_GITLEAKS_SAMPLES = (
+    'packages/core/src/AzGuard.php',
+    'src/AzGuard.php',
+    'config/azguard.php',
+    '.github/workflows/security.yml',
+)
 
 SCOPES = {
     'codeql-actions': 'CodeQL Actions extraction across the checked-out repository',
@@ -58,11 +74,41 @@ def validate_sarif(data, scanner):
                     raise ValueError('SARIF contains an error or invalid notification')
 
 
-def check(scanner, outcome, sha, report_dir, metadata):
+def validate_gitleaks_policy(root=ROOT, expected_sha256=EXPECTED_GITLEAKS_CONFIG_SHA256):
+    root = Path(root)
+    ignore_path = root / '.gitleaksignore'
+    if ignore_path.exists() or ignore_path.is_symlink():
+        raise ValueError('forbidden .gitleaksignore present')
+    config_path = root / '.gitleaks.toml'
+    raw = config_path.read_bytes()
+    parsed = tomllib.loads(raw.decode('utf-8'))
+    allowlist = parsed.get('allowlist', {})
+    if not isinstance(allowlist, dict):
+        raise ValueError('invalid gitleaks allowlist')
+    paths = allowlist.get('paths', [])
+    if not isinstance(paths, list):
+        raise ValueError('invalid gitleaks allowlist paths')
+    for pattern in paths:
+        if not isinstance(pattern, str):
+            raise ValueError('invalid gitleaks allowlist path pattern')
+        if any(prefix in pattern for prefix in FORBIDDEN_GITLEAKS_PATHS) or any(
+            re.search(pattern, sample) for sample in FORBIDDEN_GITLEAKS_SAMPLES
+        ):
+            raise ValueError('gitleaks allowlist excludes product code')
+    if hashlib.sha256(raw).hexdigest() != expected_sha256:
+        raise ValueError('unexpected .gitleaks.toml digest')
+
+
+def check(scanner, outcome, sha, report_dir, metadata, root=ROOT):
     errors = []
     report_dir = Path(report_dir)
     if scanner not in SCOPES:
         errors.append('unknown scanner scope')
+    if scanner.startswith('gitleaks-'):
+        try:
+            validate_gitleaks_policy(root)
+        except (OSError, UnicodeDecodeError, tomllib.TOMLDecodeError, ValueError, re.error) as exc:
+            errors.append(f'invalid gitleaks policy: {exc}')
     if outcome != 'success':
         errors.append(f'scanner outcome is {outcome!r}, not success')
     if not re.fullmatch(r'[0-9a-f]{40}', sha):

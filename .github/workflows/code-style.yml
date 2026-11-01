@@ -2,7 +2,7 @@ name: Code Style
 
 on:
   push:
-    branches: [main, 'feat/**', 'fix/**']
+    branches: [main, 'feat/**', 'fix/**', 'hotfix/**']
   pull_request:
     branches: [main]
   workflow_dispatch:

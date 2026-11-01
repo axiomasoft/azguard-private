@@ -20,7 +20,7 @@ with a user-visible change edits `[Unreleased]`; the release moves it under the 
 ## Versioning: lockstep
 
 The historical changelog calls 1.0.0 the first public release, but that statement alone does not establish publication
-or consumption. Treat 1.0 as potentially consumed. The read-only local inventory `build/release/publication-inventory.json`
+or consumption. Treat 1.0 as potentially consumed. The read-only local publication inventory
 records observations and access failures separately; an inaccessible private API or a 404 does not prove absence.
 The planned line is **2.0.0-rc.1**, then **2.0.0** for both packages because Unreleased contains breaking changes.
 The release SHA is chosen during P8 qualification after the code is complete. Existing tags must not be moved or rewritten.
@@ -156,13 +156,15 @@ The two repositories cannot be updated atomically: a failed second tag push can 
 the release job fails. Packagist may pick up that package before the other tag exists. Do not describe this state as a
 successful release, delete or overwrite a public tag, or assume the first push was rolled back.
 
-For a partial publication, preserve the failed run and attempt, candidate SHA, verified split SHAs and logs. Inspect
+### Recovery from a partial package tag push
+
+For a partial publication between `axiomasoft/azguard` and `axiomasoft/azguard-filament`, preserve the failed run and attempt, candidate SHA, verified split SHAs and logs. Inspect
 both public tag targets with `git ls-remote --refs --tags https://github.com/axiomasoft/<repo>.git refs/tags/<tag>`
 for `<repo>` equal to `azguard` and `azguard-filament`, and compare each existing target with the corresponding
 verified split SHA from the failed run. Investigate any conflicting target with the owner; the workflow rejects it.
 After the cause is resolved and the required authorization is in place, rerun **all jobs** for the same release run,
-not just the failed job: each attempt must produce its own complete gate and provenance evidence. The publication
-job accepts an existing tag only when it exactly matches the newly verified split commit, then pushes any missing tag.
+not just the failed job: each attempt must produce its own complete gate and provenance evidence. The idempotent publication
+step (`publish-packages`) checks each existing tag SHA against the newly verified split commit, accepts a matching tag, and pushes any missing tag.
 A retry can fail again; it does not make the two remote updates atomic. Check both tag targets and the final release
 job after the retry.
 

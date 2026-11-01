@@ -7,6 +7,12 @@ on:
   schedule:
     - cron: '31 2 * * *'
   workflow_dispatch:
+    inputs:
+      memory:
+        description: 'Run the 10k-request memory growth check'
+        required: false
+        default: false
+        type: boolean
   workflow_call:
     inputs:
       memory:
@@ -43,7 +49,7 @@ jobs:
       - name: Exercise persistent workers
         env:
           WORKER_EVENT: ${{ github.event_name }}
-          WORKER_MEMORY: ${{ inputs.memory }}
+          WORKER_MEMORY: ${{ inputs.memory == true || inputs.memory == 'true' }}
         run: |
           set -Eeuo pipefail
           if [[ "$WORKER_EVENT" == 'schedule' || "$WORKER_MEMORY" == 'true' || "$WORKER_EVENT" == 'workflow_dispatch' ]]; then

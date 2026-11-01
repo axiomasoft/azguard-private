@@ -391,6 +391,7 @@ final class DatabaseSource implements ChecksHealth, DescribesSchema, FencesReads
      */
     public function decisionFieldsInMeta(Panel $panel): array
     {
+        $this->bindPanelServices($panel);
         $found = [];
 
         foreach ($this->declaredFields($panel) as $kind => $fields) {
@@ -411,6 +412,7 @@ final class DatabaseSource implements ChecksHealth, DescribesSchema, FencesReads
      */
     public function missingModelColumns(Panel $panel): array
     {
+        $this->bindPanelServices($panel);
         $storage = $this->resolvedStorage();
         $models = $this->storageModels();
         $found = [];

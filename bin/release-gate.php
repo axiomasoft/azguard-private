@@ -2,6 +2,61 @@
 
 declare(strict_types=1);
 
+const EXPECTED_GITLEAKS_CONFIG_SHA256 = '72d02105f6cb4acddfe9cb1b105d1db4814b21d62b639e608194aa38590ae01c';
+
+/**
+ * Validate Gitleaks configuration digest, product-code allowlist restrictions, and .gitleaksignore absence.
+ *
+ * @return list<string>
+ */
+function gitleaksPolicyErrors(?string $root = null, string $expectedSha256 = EXPECTED_GITLEAKS_CONFIG_SHA256): array
+{
+    $root ??= dirname(__DIR__);
+    $errors = [];
+
+    if (file_exists($root.'/.gitleaksignore') || is_link($root.'/.gitleaksignore')) {
+        $errors[] = 'forbidden .gitleaksignore present';
+    }
+    $config = @file_get_contents($root.'/.gitleaks.toml');
+
+    if (! is_string($config)) {
+        $errors[] = 'missing .gitleaks.toml';
+
+        return $errors;
+    }
+
+    if (preg_match('/^\[allowlist\]\R([\s\S]*?)(?=^\[\[rules\]\]|\z)/m', $config, $section) === 1
+        && preg_match('/^paths\s*=\s*\[([\s\S]*?)^\]/m', $section[1], $pathsBlock) === 1) {
+        preg_match_all("/'''([^']*)'''|\"([^\"]*)\"/", $pathsBlock[1], $matches);
+        $patterns = array_values(array_filter([...$matches[1], ...$matches[2]], static fn (string $v): bool => $v !== ''));
+        $forbiddenPrefixes = ['packages/', 'src/', 'config/', '.github/workflows/'];
+        $samples = ['packages/core/src/AzGuard.php', 'src/AzGuard.php', 'config/azguard.php', '.github/workflows/security.yml'];
+
+        foreach ($patterns as $pattern) {
+            foreach ($forbiddenPrefixes as $prefix) {
+                if (str_contains($pattern, $prefix)) {
+                    $errors[] = 'gitleaks allowlist excludes product code';
+
+                    break 2;
+                }
+            }
+            foreach ($samples as $sample) {
+                if (@preg_match('~'.$pattern.'~', $sample) === 1) {
+                    $errors[] = 'gitleaks allowlist excludes product code';
+
+                    break 2;
+                }
+            }
+        }
+    }
+
+    if (! hash_equals($expectedSha256, hash('sha256', $config))) {
+        $errors[] = 'unexpected .gitleaks.toml digest';
+    }
+
+    return $errors;
+}
+
 /**
  * Evaluate a single release run. The caller must collect evidence from that run;
  * missing or malformed evidence is an error, never an implicit success.
@@ -11,7 +66,7 @@ declare(strict_types=1);
  */
 function releaseGateErrors(array $data): array
 {
-    $errors = [];
+    $errors = gitleaksPolicyErrors(is_string($data['root'] ?? null) ? $data['root'] : null);
     $sha = $data['sha'] ?? null;
 
     if (! is_string($sha) || preg_match('/\A[0-9a-f]{40}\z/', $sha) !== 1) {
@@ -83,6 +138,10 @@ function releaseGateErrors(array $data): array
 
         if (($row['result'] ?? null) !== 'success') {
             $errors[] = "matrix row {$name}: ".(is_string($row['result'] ?? null) ? $row['result'] : 'missing');
+        }
+
+        if (($row['dependency_audit_passed'] ?? false) !== true) {
+            $errors[] = "missing dependency audit for {$name}";
         }
         $lock = $row['lock'] ?? null;
 
@@ -172,6 +231,7 @@ function releaseGateErrors(array $data): array
             } else {
                 foreach ($parsed['runs'] as $index => $run) {
                     $runShape = $shape->runs[$index];
+
                     if (! is_object($runShape) || ! is_array($runShape->results ?? null) || ($run['results'] ?? null) !== []) {
                         $errors[] = "scanner {$name} contains findings or invalid results";
 
@@ -200,6 +260,7 @@ function releaseGateErrors(array $data): array
 
                             continue;
                         }
+
                         if (array_key_exists('exitCode', $invocation) && (! is_int($invocation['exitCode']) || $invocation['exitCode'] !== 0)) {
                             $errors[] = "scanner {$name} has invalid invocation exit code";
                         }

@@ -80,7 +80,8 @@ it('checks custom aliases, reverse resolution, collisions and alias renames', fu
     Relation::morphMap(['probe' => MorphProbeOne::class, 'other' => MorphProbeTwo::class], false);
     expect(morphProbe([MorphProbeOne::class, MorphProbeTwo::class]))->toBe([])
         ->and(SubjectRef::of('probe', 7)->equals(SubjectRef::of('other', 7)))->toBeFalse()
-        ->and(morphProbe([MorphProbeCustom::class]))->toHaveCount(1);
+        ->and(morphProbe([MorphProbeCustom::class]))->toHaveCount(1)
+        ->and(morphProbe([MorphProbeCustom::class, MorphProbeOne::class]))->toHaveCount(1);
     Relation::morphMap(['renamed' => MorphProbeOne::class], false);
     expect(morphProbe([MorphProbeOne::class]))->toBe([])
         ->and(SubjectRef::of('probe', 7)->equals(SubjectRef::of('renamed', 7)))->toBeFalse();
@@ -127,8 +128,11 @@ it('does not change the global strict flag or unrelated host polymorphic relatio
         ->and($host->owner()->getRelated())->toBeInstanceOf(MorphProbeTwo::class);
     Relation::requireMorphMap();
     $findings = morphProbe([MorphProbeOne::class]);
+    $nonProdFindings = morphProbe([MorphProbeOne::class], false);
     expect($findings)->toHaveCount(1)
-        ->and($findings[0]->severity->value)->toBe('warning')
+        ->and($findings[0]->severity->value)->toBe('error')
+        ->and($nonProdFindings)->toHaveCount(1)
+        ->and($nonProdFindings[0]->severity->value)->toBe('error')
         ->and(Relation::requiresMorphMap())->toBeTrue()
         ->and(Relation::morphMap())->toBe($before);
 });

@@ -16,6 +16,7 @@ use AzGuard\Panels\PanelBuilder;
 use AzGuard\Tests\Fixtures\Authorization\GeneratedSource;
 use AzGuard\Tests\Modules\Scopes\Fixtures\ScopeWorld;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Bus;
 
 it('resolves an empty console request and fails closed when tenant or context is required', function (): void {
     app()->instance(Request::class, Request::create('/'));
@@ -79,4 +80,109 @@ it('uses explicit and within scopes ahead of request resolvers and clears job st
                 ->and(app(ActingActor::class)->current($panel))->not->toEqual(ActorRef::system('job-one'));
         });
     });
+});
+
+it('evaluates decide and decideMany without a request instance in the container and isolates sequential queue jobs', function (): void {
+    $tenantResolver = new class implements TenantResolver
+    {
+        public function resolve(Request $request): ?TenantRef
+        {
+            return $request->header('X-Tenant') ? TenantRef::of('org', $request->header('X-Tenant')) : null;
+        }
+    };
+    $scopeResolver = new class implements AssignmentScopeResolver
+    {
+        public function resolve(Request $request): ?AssignmentScopeRef
+        {
+            return $request->header('X-Store') ? AssignmentScopeRef::of('store', $request->header('X-Store')) : null;
+        }
+    };
+    $a = ScopeWorld::scope('A', 1);
+    $b = ScopeWorld::scope('B', 2);
+    $grantA = ScopeWorld::grant($a);
+    $source = new GeneratedSource(read: static fn ($subject, array $scopes): array => array_values(array_filter(
+        [$grantA],
+        static fn ($grant): bool => array_any($scopes, static fn ($scope): bool => $scope->equals($grant->scope)),
+    )));
+    [$engine, $panel, $request] = ScopeWorld::compile(
+        $source,
+        'required',
+        static fn (PanelBuilder $p) => $p->tenantResolvers([$tenantResolver])->scopeResolvers([$scopeResolver]),
+    );
+
+    app()->forgetInstance('request');
+    app()->forgetInstance(Request::class);
+    app()->offsetUnset('request');
+    app()->offsetUnset(Request::class);
+
+    expect(app()->bound('request'))->toBeFalse()
+        ->and($engine->decide($panel, $request)->allowed())->toBeFalse()
+        ->and($engine->decide($panel, $request)->reason)->toBe(DecisionReason::AssignmentScopeFilterError)
+        ->and($engine->decide($panel, $request->inScope($a))->allowed())->toBeTrue();
+
+    $batch = $engine->decideMany([
+        $request->inScope($a),
+        $request->inScope($b),
+        $request,
+    ]);
+    expect($batch->get(0)->allowed())->toBeTrue()
+        ->and($batch->get(1)->allowed())->toBeFalse()
+        ->and($batch->get(1)->reason)->toBe(DecisionReason::NotGranted)
+        ->and($batch->get(2)->allowed())->toBeFalse()
+        ->and($batch->get(2)->reason)->toBe(DecisionReason::AssignmentScopeFilterError);
+
+    [$resolverlessEngine, $resolverlessPanel, $resolverlessRequest] = ScopeWorld::compile($source, 'required');
+    app()->forgetInstance('request');
+    app()->offsetUnset('request');
+    expect($resolverlessEngine->decide($resolverlessPanel, $resolverlessRequest)->reason)->toBe(DecisionReason::TenantRequired)
+        ->and($resolverlessEngine->decideMany([$resolverlessRequest->inScope($a), $resolverlessRequest])->get(0)->allowed())->toBeTrue()
+        ->and($resolverlessEngine->decideMany([$resolverlessRequest->inScope($a), $resolverlessRequest])->get(1)->reason)->toBe(DecisionReason::TenantRequired);
+
+    $observed = [];
+    Bus::dispatchSync(function () use ($engine, $panel, $request, $a, &$observed): void {
+        app(CurrentPanel::class)->set($panel);
+        app(ActingActor::class)->run(ActorRef::system('queue-job-1'), function () use ($engine, $panel, $request, $a, &$observed): void {
+            app(WithinContext::class)->run($panel, $a, function () use ($engine, $panel, $request, &$observed): void {
+                $decision = $engine->decide($panel, $request);
+                $observed['job1'] = [
+                    'allowed' => $decision->allowed(),
+                    'scope' => $decision->scope,
+                    'panel' => app(CurrentPanel::class)->get()?->id(),
+                    'actor' => app(ActingActor::class)->current($panel),
+                ];
+            });
+        });
+        // Leave ambient state dirty at the end of job 1 to verify forgetScopedInstances() resets it before job 2.
+        app(CurrentPanel::class)->set($panel);
+    });
+
+    app()->forgetScopedInstances();
+    app()->forgetInstance('request');
+    app()->forgetInstance(Request::class);
+    app()->offsetUnset('request');
+    app()->offsetUnset(Request::class);
+
+    Bus::dispatchSync(function () use ($engine, $panel, $request, $b, &$observed): void {
+        $decisionWithoutExplicitScope = $engine->decide($panel, $request);
+        $batchInJob2 = $engine->decideMany([$request->inScope($b)]);
+        $observed['job2'] = [
+            'ambient_panel' => app(CurrentPanel::class)->get(),
+            'ambient_context' => app(CurrentContext::class)->get($panel),
+            'ambient_actor' => app(ActingActor::class)->current($panel),
+            'unscoped_allowed' => $decisionWithoutExplicitScope->allowed(),
+            'unscoped_reason' => $decisionWithoutExplicitScope->reason,
+            'scoped_b_allowed' => $batchInJob2->get(0)->allowed(),
+        ];
+    });
+
+    expect($observed['job1']['allowed'])->toBeTrue()
+        ->and($observed['job1']['scope'])->toEqual($a)
+        ->and($observed['job1']['panel'])->toBe($panel->id())
+        ->and($observed['job1']['actor'])->toEqual(ActorRef::system('queue-job-1'))
+        ->and($observed['job2']['ambient_panel'])->toBeNull()
+        ->and($observed['job2']['ambient_context'])->toBeNull()
+        ->and($observed['job2']['ambient_actor'])->not->toEqual(ActorRef::system('queue-job-1'))
+        ->and($observed['job2']['unscoped_allowed'])->toBeFalse()
+        ->and($observed['job2']['unscoped_reason'])->toBe(DecisionReason::AssignmentScopeFilterError)
+        ->and($observed['job2']['scoped_b_allowed'])->toBeFalse();
 });

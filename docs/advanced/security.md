@@ -4,10 +4,9 @@ AzGuard evaluates authority supplied by trusted application code and configured 
 authenticate HTTP users, authorize every caller of its change API, or establish a cryptographic identity
 for an audit actor. The host must authenticate and authorize every untrusted entry point.
 
-This page defines the trust contract and the proof obligations for hardening work in **P2–P6**.
-Code locations below describe the current enforcement points; requirements explicitly marked **pending**
-are not guarantees of the current implementation. Test locations identify existing regression homes and
-the concrete negative cases required there, not a claim that all those cases already exist or pass.
+This page defines the security invariants and trust boundaries of AzGuard 2.0, along with their runtime
+enforcement points and regression verification suites. Code locations below identify where each invariant
+is enforced, and verification entries identify the automated regression and engine tests that guard it.
 See [Consistency](./consistency.md) for timing guarantees and [Operations](./operations.md) for deployment.
 
 ## Release scanner scope
@@ -83,11 +82,12 @@ confidentiality nor availability, does not repair an incorrect source state toke
 of a still-valid envelope at the same key and unchanged revision. Source fencing, revision changes and
 finite expiry remain necessary. A backend holding the key can sign false authority.
 
-## Invariant enforcement and P2–P6 checks
+## Invariant enforcement and verification checks
 
-Each `SEC-*` entry is a shared proof obligation for the P2–P6 implementation and qualification work.
-The checks specify observable negative cases; a documentation check alone cannot discharge them.
-Paths are relative to the repository root. Method names identify enforcement, not supported public SPI.
+Each `SEC-*` entry defines an active security invariant, its runtime enforcement points, and the
+regression checks that verify its negative and boundary cases. A documentation check alone cannot
+discharge an invariant. Paths are relative to the repository root. Method names identify enforcement,
+not supported public SPI.
 
 ### SEC-01 — Identity stays bound to authority
 
@@ -99,9 +99,9 @@ Paths are relative to the repository root. Method names identify enforcement, no
 - **Bypass and interference:** a host resolver lying about ownership, a cross-panel contribution or reuse
   of a cache entry across tenant, subject, scope, source, storage, build or read mode. No database lock
   repairs a false resolver result; the host must resolve and check the actual record identity.
-- **P2–P6 check:** `tests/Feature/Authorization/Cache/CacheKeyTest.php` varies each authority tuple field
-  while canonicalizing scope order; extend boundary/source regressions with foreign panel and tenant
-  witnesses and require denial/error, including when another source allows.
+- **Verification check:** `tests/Feature/Authorization/Cache/CacheKeyTest.php` varies each authority tuple field
+  while canonicalizing scope order; boundary and source regressions verify that foreign panel and tenant
+  witnesses are denied or rejected with an error, including when another source allows.
 
 ### SEC-02 — Visibility preserves host scopes and fails closed
 
@@ -112,9 +112,9 @@ Paths are relative to the repository root. Method names identify enforcement, no
 - **Bypass and interference:** ungrouped OR, UNION, custom Builder/scope behavior or treating an unsupported
   source/condition as allow. A later query execution can race a revoke; a Builder holds captured authority,
   not a lock. Never replace unsupported SQL with filtering a paginated result.
-- **P2–P6 check:** `tests/Feature/Visibility/PredicateCompilerTest.php` and
-  `tests/Feature/Visibility/UnsupportedTest.php`: require rejection without query weakening; retain OR and
-  counting-scope cases and add explicit SoftDeletes and tenant global-scope regressions under D2.
+- **Verification check:** `tests/Feature/Visibility/PredicateCompilerTest.php` and
+  `tests/Feature/Visibility/UnsupportedTest.php` verify rejection without query weakening, covering OR and
+  counting-scope cases as well as `SoftDeletes` and tenant global-scope preservation under D2.
 
 ### SEC-03 — Cached grants never freeze host authorization
 
@@ -123,8 +123,8 @@ Paths are relative to the repository root. Method names identify enforcement, no
   membership, grant activity, known roles, eligibility and conditions; restrictions and policies run per operation.
 - **Bypass and interference:** caching final decisions, a stale supplied model, membership removal or a
   condition change without a grant revision. Grant writer locks do not lock host membership/policy tables.
-- **P2–P6 check:** `tests/Feature/Authorization/Cache/LiveInputsTest.php` warms raw authority, changes
-  policy inputs, conditions, restrictions or membership with the same database token, and requires a fresh denial.
+- **Verification check:** `tests/Feature/Authorization/Cache/LiveInputsTest.php` warms raw authority, changes
+  policy inputs, conditions, restrictions or membership with the same database token, and verifies a fresh denial.
 
 ### SEC-04 — Serialized authority is authenticated before use
 
@@ -134,7 +134,7 @@ Paths are relative to the repository root. Method names identify enforcement, no
 - **Bypass and interference:** a Redis writer forges an allowed value object, copies another key's bytes or
   replays a signed entry. There is no Redis-lock substitute for key binding; revoke must change the source
   revision, and finite expiry bounds same-key replay. Key/backend compromise remains outside this guarantee.
-- **P2–P6 checks:** `tests/Feature/Authorization/Cache/EnvelopeIntegrityTest.php` covers forged grants,
+- **Verification check:** `tests/Feature/Authorization/Cache/EnvelopeIntegrityTest.php` covers forged grants,
   unsigned entries, tampering, copies, rotation and unsafe store transports. `SignedEnvelopeTest.php` in the
   same directory covers authenticated invalid fields, exact expiry and oversize envelopes.
   `tests/Feature/Authorization/Cache/RedisStoreTest.php` exercises real Redis tampering, replay after revoke
@@ -148,9 +148,9 @@ Paths are relative to the repository root. Method names identify enforcement, no
 - **Bypass and interference:** changing grants without changing the token, tearing state and row reads,
   or publishing tentative transaction authority to shared cache. A database reader uses a snapshot, not
   the writer's panel lock; a custom reader uses before/read/after fencing against a source revision change.
-- **P2–P6 check:** `tests/Engines/FenceRaceTest.php` places a writer across the read barrier and requires
+- **Verification check:** `tests/Engines/FenceRaceTest.php` places a writer across the read barrier and verifies
   one coherent snapshot or a consistency failure; `tests/Feature/Visibility/UnsupportedTest.php` changes a
-  custom source on all three attempts and requires fail-closed without repeating host evaluation.
+  custom source on all three attempts and verifies fail-closed behavior without repeating host evaluation.
 
 ### SEC-06 — Writers publish one transactional authority transition
 
@@ -161,9 +161,9 @@ Paths are relative to the repository root. Method names identify enforcement, no
 - **Bypass and interference:** direct SQL, restore, a participant on another connection or events before
   commit. Grant/revoke/reset writers contend on the same `panel_state` lock; multi-panel mutations take
   sorted panel locks, then subject revisions in fixed order. Raw writes require a state reset before serving.
-- **P2–P6 check:** `tests/Feature/Changes/TransactionTest.php` requires rollback/retry to leave no leaked
-  authority or duplicate effects; `tests/Modules/Audit/Feature/AuditPluginTest.php` requires journal rollback
-  with the grant and one row after retry. Concurrent engine qualification must exercise writer/reset contention.
+- **Verification check:** `tests/Feature/Changes/TransactionTest.php` verifies that rollback and retry leave no leaked
+  authority or duplicate effects; `tests/Modules/Audit/Feature/AuditPluginTest.php` verifies journal rollback
+  with the grant and one row after retry, while concurrent engine qualification exercises writer and reset contention.
 
 ### SEC-07 — Sensitive use has an explicit freshness and atomicity policy
 
@@ -174,10 +174,11 @@ Paths are relative to the repository root. Method names identify enforcement, no
   revoke between `authorize()` and the host write/export. Primary plus `StateRefresh::Check` covers a
   revoke committed before the check, not one that commits after it. Strict atomicity needs a host protocol
   shared by write/export and revoke, on coordinated connections with the same locks/fence validation.
-- **P2–P6 check:** `tests/Engines/ReplicaLagTest.php` pauses replay: Default may allow while Primary must
-  deny after primary revoke. Add the captured-Builder and concrete-record write/export regression to
-  `tests/Feature/Visibility/VisibleToTest.php`; a barrier test must show host write/revoke coordination or
-  explicitly demonstrate the remaining race. A transaction wrapper on a different connection is insufficient.
+- **Verification check:** `tests/Engines/ReplicaLagTest.php` pauses replay and verifies that Default may allow while
+  Primary denies after primary revoke. `tests/Feature/Visibility/VisibleToTest.php` and
+  `tests/Feature/Visibility/RevocationWindowTest.php` cover captured-Builder staleness, concrete-record primary
+  revalidation for writes and exports, and the revocation window between check and use (confirming that a
+  transaction wrapper on a different connection does not serialize against a revoke).
 
 ### SEC-08 — Actor attribution never substitutes for caller authorization
 
@@ -191,7 +192,7 @@ Paths are relative to the repository root. Method names identify enforcement, no
   confusing actor with target, or treating an old UI selection as permission. Re-resolve actor server-side
   and authorize actor/target/role/scope for every action. Concurrent membership or role changes need the
   host protocol from SEC-07 if atomicity is required; the grant lock alone does not authorize the actor.
-- **P2–P6 check:** `tests/Feature/Changes/ActorTest.php` proves guard/frame attribution and target separation;
+- **Verification check:** `tests/Feature/Changes/ActorTest.php` proves guard/frame attribution and target separation;
   `tests/Feature/Filament/Gate/ForgedCallsTest.php` exercises direct forged actions.
   `tests/Feature/Changes/AuthorizedAssignmentsExampleTest.php` checks the example's denied grants and revokes,
   forged actor fields, foreign targets and scopes, and a user job whose actor lost authority. It checks that
@@ -206,10 +207,12 @@ Paths are relative to the repository root. Method names identify enforcement, no
 - **Bypass and interference:** swallowing a source exception as an empty contribution list, accepting a
   partial allow/super-admin result, or exposing internal reason/component/identity in a response or metric.
   A concurrent outage does not justify bypassing authorization; no lock restores source availability.
-- **P2–P6 check:** `tests/Feature/Http/DecisionResponderTest.php` checks opt-in status mapping and private
-  exception reasons; extend actual HTTP/Filament response coverage to require generic bodies without
-  reason, component, identity or grant fields under source and contract failures. Telemetry, if enabled,
-  must use bounded failure labels rather than subject, tenant or grant identifiers.
+- **Verification check:** `tests/Feature/Http/DecisionResponderTest.php`,
+  `tests/Feature/Http/DenialDisclosureTest.php`, and `tests/Feature/Filament/Gate/DenialDisclosureTest.php`
+  verify opt-in status mapping, private exception reasons, and generic HTTP and Filament denial responses
+  without leaking internal reasons, source classes, table names, identities or grant fields under source and
+  contract failures. Telemetry, if enabled, uses bounded failure labels rather than subject, tenant or grant
+  identifiers.
 
 ## Limitations
 

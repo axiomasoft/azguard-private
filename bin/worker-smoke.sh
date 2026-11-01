@@ -33,8 +33,8 @@ for arg in "$@"; do
     esac
 done
 [[ "$requests" =~ ^[1-9][0-9]{0,6}$ && "$jobs" =~ ^[1-9][0-9]{0,6}$ ]] || usage
-if ((memory_check && (requests < 5000 || jobs < 5000))); then
-    echo 'memory check requires at least 5000 measured requests and jobs' >&2
+if ((memory_check && (requests < 5000 || jobs < 1000))); then
+    echo 'memory check requires at least 5000 measured requests and 1000 jobs' >&2
     exit 2
 fi
 measured_requests=$requests
@@ -125,7 +125,8 @@ if [[ -n "$report_file" ]]; then
         $data = ["server" => "roadrunner", "requests" => (int) $requests, "jobs" => (int) $jobs,
             "warmup" => $memory === "1" ? 200 : 0, "http_pid" => $http["pid"], "queue_pid" => $queue["pid"],
             "http_series" => $dir."/http.jsonl", "job_series" => $dir."/jobs.jsonl", "log" => $dir."/run.log",
-            "memory" => $memory === "1" ? json_decode(file_get_contents($dir."/memory.json"), true, 512, JSON_THROW_ON_ERROR) : null];
+            "memory" => $memory === "1" ? json_decode(file_get_contents($dir."/memory.json"), true, 512, JSON_THROW_ON_ERROR) : null,
+            "queue_memory" => $memory === "1" && is_file($dir."/queue-memory.json") ? json_decode(file_get_contents($dir."/queue-memory.json"), true, 512, JSON_THROW_ON_ERROR) : null];
         if (file_put_contents($target, json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR)."\n") === false) exit(1);
     ' "$report_file" "$report" "$measured_requests" "$measured_jobs" "$memory_check"
     echo "summary report: $report_file"

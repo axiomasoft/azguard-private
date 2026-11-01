@@ -101,11 +101,17 @@ it('binds independent sources through panel arguments for state and description'
         });
         $stateSource = DatabaseSource::make();
         $descriptionSource = DatabaseSource::make();
+        $metaSource = DatabaseSource::make();
+        $columnsSource = DatabaseSource::make();
         expect($stateSource->state($panel, $frame->scope()->tenant))->not->toBeNull()
-            ->and($descriptionSource->describe($panel)->id)->toBe($descriptionSource->id());
+            ->and($descriptionSource->describe($panel)->id)->toBe($descriptionSource->id())
+            ->and($metaSource->decisionFieldsInMeta($panel))->toBe([])
+            ->and($columnsSource->missingModelColumns($panel))->toBe([]);
         $other = new Panel('other', 'Other', false, $panel->settings(), [], []);
         expect(fn () => $stateSource->state($other, $frame->scope()->tenant))->toThrow(DefinitionException::class)
-            ->and(fn () => $descriptionSource->describe($other))->toThrow(DefinitionException::class);
+            ->and(fn () => $descriptionSource->describe($other))->toThrow(DefinitionException::class)
+            ->and(fn () => $metaSource->decisionFieldsInMeta($other))->toThrow(DefinitionException::class)
+            ->and(fn () => $columnsSource->missingModelColumns($other))->toThrow(DefinitionException::class);
     } finally {
         app(StorageSchema::class)->drop('default');
     }

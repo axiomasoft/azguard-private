@@ -86,10 +86,11 @@ final readonly class BatchEvaluation
             $finished += $entries;
         }
         ksort($decisions);
+        $conflicted = [];
 
         try {
             $set = DecisionSet::of(...array_values($decisions));
-        } catch (ConsistencyException) {
+        } catch (ConsistencyException $error) {
             // Decisions of one storage/panel read at different states cannot share the set: they are denied, not
             // evaluated again with new host inputs.
             $states = [];
@@ -111,12 +112,42 @@ final readonly class BatchEvaluation
                 $state = $decision->state;
 
                 if ($state instanceof StateToken && isset($conflicts[IdentityCodec::compose([$state->storageId(), $state->panel()])])) {
+                    $conflicted[$i] = true;
                     $frame = $finished[$i]['frame'];
                     $frame = $frame->readAttempt?->discardedFrame($frame) ?? $frame;
                     $finished[$i] = array_replace($finished[$i], ['frame' => $frame]);
-                    $decisions[$i] = Decision::failed(DecisionReason::ConsistencyError, $frame->state(), $frame->scope(), 'dynamic_sources');
+                    $finished[$i]['trace']->error('state', DecisionReason::ConsistencyError->value, 'sources', $error);
+                    $decisions[$i] = Decision::failed(DecisionReason::ConsistencyError, $frame->state(), $frame->scope(), 'sources');
                 }
             }
+            $set = DecisionSet::of(...array_values($decisions));
+        }
+        $rebuild = false;
+        foreach ($groups as $g => $group) {
+            $first = $group[array_key_first($group)];
+            $attempt = $first['frame']->readAttempt;
+
+            if ($attempt === null || $starts[$g] instanceof Throwable || array_intersect_key($group, $conflicted) !== []) {
+                continue;
+            }
+
+            try {
+                $attempt->confirm($first['frame']);
+            } catch (Throwable $error) {
+                $rebuild = true;
+                $reason = $error instanceof ConsistencyException ? DecisionReason::ConsistencyError : DecisionReason::SourceError;
+                $started = $starts[$g]['started'];
+                foreach ($group as $i => $entry) {
+                    $frame = $attempt->discardedFrame($finished[$i]['frame']);
+                    $finished[$i] = array_replace($finished[$i], ['frame' => $frame]);
+                    $finished[$i]['trace']->error('state', $reason->value, 'dynamic_sources', $error);
+                    $decisions[$i] = ($started[$i][0] ?? null) !== null && ! $entry['frame']->dynamicRead ? $started[$i][0]
+                        : Decision::failed($reason, $frame->state(), $frame->scope(), 'dynamic_sources');
+                }
+            }
+        }
+
+        if ($rebuild) {
             $set = DecisionSet::of(...array_values($decisions));
         }
         ksort($finished);
@@ -258,7 +289,6 @@ final readonly class BatchEvaluation
             }
 
             if ($attempt !== null) {
-                $attempt->confirm($first['frame']);
                 foreach ($entries as $i => $entry) {
                     $frame = match (true) {
                         // A read that stayed inconsistent consumed no state.

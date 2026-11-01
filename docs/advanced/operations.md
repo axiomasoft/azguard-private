@@ -170,7 +170,7 @@ a stable `code`. Alert on them: they mean a broken source or policy, not a user 
 
 ## Observability
 
-AzGuard has no metrics API in 1.0. Each signal is available from a surface that already exists; a first-class metrics hook is
+AzGuard has no metrics API in 1.0. Each signal is available from a surface that already exists (see [Decision observability](./observability.md) for the bounded after-hook counter adapter and alert rules); a first-class metrics hook is
 a 1.1 candidate (see `ROADMAP.md`).
 
 | Signal | Where to read it |

@@ -6,6 +6,7 @@ namespace AzGuard\Diagnostics\Internal\Checks;
 
 use AzGuard\Authorization\Internal\Cache\SignedEnvelope;
 use AzGuard\Configuration\Internal\AzGuardConfig;
+use AzGuard\Configuration\Internal\CacheSigningConfig;
 use AzGuard\Contracts\Diagnostics\DoctorCheck;
 use AzGuard\Diagnostics\DoctorContext;
 use AzGuard\Diagnostics\DoctorFinding;
@@ -55,7 +56,7 @@ final readonly class CacheIntegrity implements DoctorCheck
                 continue;
             }
 
-            if (! $context->config()->cacheSigningAvailable()) {
+            if (CacheSigningConfig::fromConfig($this->config) === null) {
                 $message = 'Configure a valid cache signing key and explicit namespace, including valid rotation keys; shared caching is disabled.';
                 yield $context->isProduction()
                     ? DoctorFinding::error('cache.signing', $message, $scope)

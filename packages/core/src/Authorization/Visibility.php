@@ -108,7 +108,6 @@ final readonly class Visibility
         $definition = $catalog->get($request->permission());
         $compiler = new PredicateCompiler;
         $mapping = $this->mapping($query, $frame, $compiler);
-        $type = $mapping?->definition->type() ?? 'global';
         $contributions = $definition->authority === PermissionAuthority::Grants ? $sourceRead->selections($request, $frame, $mapping?->definition->type()) : [];
         $frame = $sourceRead->consumedFrame($frame);
         $compiler->constrain($query, P::pass());

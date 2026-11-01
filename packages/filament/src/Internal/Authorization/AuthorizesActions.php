@@ -52,14 +52,23 @@ final class AuthorizesActions
                 $record instanceof Model && ! self::exports($action) ? $record : null);
         });
 
-        if (! $action instanceof BulkAction || FilamentContext::serving()?->enforced() !== true) {
+        if (! $action instanceof BulkAction) {
             return;
         }
         $action->authorizeIndividualRecords(static function (Model $record) use ($action): Response {
-            $resource = FilamentContext::resourceOf($action->getLivewire());
+            $livewire = $action->getLivewire();
+            $context = FilamentContext::serving();
+            $resource = FilamentContext::resourceOf($livewire);
+
+            if ($context?->enforced() !== true || ($resource !== null && $context->excludes('resources', $resource))) {
+                $filament = $livewire instanceof HasActions ? $livewire->getDefaultActionIndividualRecordAuthorizationResponseResolver($action) : null;
+                $response = $filament === null ? null : $filament($record);
+
+                return $response instanceof Response ? $response : Response::allow();
+            }
 
             if ($resource !== null && self::changesRelation($action)) {
-                return self::relation($action, $action->getLivewire(), $resource);
+                return self::relation($action, $livewire, $resource);
             }
 
             return $resource === null ? Response::deny() : FilamentGate::resource($resource, self::exports($action) ? 'view' : self::ability($action), $record);
