@@ -117,6 +117,20 @@ function releaseViolations(array $workflows): array
         $violations[] = 'compatibility.yml: tag runs must have separate non-cancelling groups';
     }
 
+    if (($workflows['security.yml']['concurrency'] ?? null) !== [
+        'group' => 'security-${{ github.ref_type == \'tag\' && github.run_id || github.ref }}',
+        'cancel-in-progress' => '${{ github.ref_type == \'branch\' && github.ref != \'refs/heads/main\' }}',
+    ]) {
+        $violations[] = 'security.yml: tag runs must have separate non-cancelling groups';
+    }
+
+    if (($workflows['tests-nightly.yml']['concurrency'] ?? null) !== [
+        'group' => 'tests-nightly-${{ github.ref }}',
+        'cancel-in-progress' => false,
+    ]) {
+        $violations[] = 'tests-nightly.yml: tag runs must use the non-cancelling nightly group';
+    }
+
     foreach (['test', 'test-db-matrix'] as $matrixJob) {
         $steps = releaseSteps($workflows['tests.yml']['jobs'][$matrixJob] ?? []);
         $runs = array_map(static fn (array $step): string => (string) ($step['run'] ?? ''), $steps);
@@ -257,8 +271,11 @@ function releaseViolations(array $workflows): array
     $artifactUses = implode("\n", array_map(static fn (array $step): string => (string) ($step['uses'] ?? ''), releaseSteps($artifacts)));
     $provenance = $jobs['provenance'] ?? [];
 
-    if (($provenance['timeout-minutes'] ?? 0) < 60) {
-        $violations[] = 'release.yml: provenance timeout must cover all bounded attestation waits';
+    // Five verifications can each sleep 19 * 30 seconds (47.5 minutes total).
+    // Preserve the configured 75-minute budget for network and setup; live sufficiency is not established here.
+    $provenanceTimeout = $provenance['timeout-minutes'] ?? null;
+    if (! is_int($provenanceTimeout) || $provenanceTimeout < 75) {
+        $violations[] = 'release.yml: provenance timeout must preserve the 75-minute budget for waits and overhead';
     }
     $permissions = $provenance['permissions'] ?? [];
     ksort($permissions);
@@ -474,11 +491,46 @@ it('reports a broken release graph', function (Closure $break, string $violation
 
         return $w;
     }, 'compatibility.yml: tag runs must have separate non-cancelling groups'],
+    'cancelling tag security' => [static function (array $w): array {
+        $w['security.yml']['concurrency']['cancel-in-progress'] = '${{ github.ref != \'refs/heads/main\' }}';
+
+        return $w;
+    }, 'security.yml: tag runs must have separate non-cancelling groups'],
+    'security tag runs share a concurrency group' => [static function (array $w): array {
+        $w['security.yml']['concurrency']['group'] = 'security-${{ github.ref }}';
+
+        return $w;
+    }, 'security.yml: tag runs must have separate non-cancelling groups'],
+    'cancelling tag nightly' => [static function (array $w): array {
+        $w['tests-nightly.yml']['concurrency']['cancel-in-progress'] = true;
+
+        return $w;
+    }, 'tests-nightly.yml: tag runs must use the non-cancelling nightly group'],
+    'nightly shares the release concurrency group' => [static function (array $w): array {
+        $w['tests-nightly.yml']['concurrency']['group'] = 'release-${{ github.ref }}';
+
+        return $w;
+    }, 'tests-nightly.yml: tag runs must use the non-cancelling nightly group'],
     'provenance timeout shorter than the waits' => [static function (array $w): array {
         $w['release.yml']['jobs']['provenance']['timeout-minutes'] = 30;
 
         return $w;
-    }, 'release.yml: provenance timeout must cover all bounded attestation waits'],
+    }, 'release.yml: provenance timeout must preserve the 75-minute budget for waits and overhead'],
+    'provenance timeout leaves too little overhead' => [static function (array $w): array {
+        $w['release.yml']['jobs']['provenance']['timeout-minutes'] = 60;
+
+        return $w;
+    }, 'release.yml: provenance timeout must preserve the 75-minute budget for waits and overhead'],
+    'provenance timeout below the budget' => [static function (array $w): array {
+        $w['release.yml']['jobs']['provenance']['timeout-minutes'] = 74;
+
+        return $w;
+    }, 'release.yml: provenance timeout must preserve the 75-minute budget for waits and overhead'],
+    'provenance timeout missing' => [static function (array $w): array {
+        unset($w['release.yml']['jobs']['provenance']['timeout-minutes']);
+
+        return $w;
+    }, 'release.yml: provenance timeout must preserve the 75-minute budget for waits and overhead'],
     'missing matrix OSV scan' => [static function (array $w): array {
         $w['tests.yml']['jobs']['test']['steps'] = array_values(array_filter($w['tests.yml']['jobs']['test']['steps'], static fn (array $step): bool => ($step['name'] ?? '') !== 'Scan resolved lock with OSV'));
 
