@@ -11,7 +11,7 @@ composer bench:load                       # mini tier, sqlite file, no cache, ev
 php bench/bin/run.php --tier=smoke        # seconds; the test suite runs this as a harness check
 cd bench && make up && make matrix        # every published driver/cache pair (docker compose of the repository)
 php bench/bin/run.php --tier=mini --driver=pgsql --cache=redis --profile=checks-concurrent,multi-tenant
-php bench/bin/compare.php BASE.json HEAD.json     # p50 regressions, exit 1 when found
+php bench/bin/compare.php BASE.json HEAD.json     # stable p95 / throughput regressions, exit 1 when found
 ```
 
 Requirements: PHP with `pcntl` and `posix`, `pdo_sqlite`; `pdo_pgsql`, `pdo_mysql` and `phpredis` for the server
@@ -41,7 +41,12 @@ filtered by owner and a tenant panel over teams. Seeding is deterministic, worke
 | checks-concurrent | one check of a random user and permission per request, ladder of workers | — |
 | large-sets | the heavy subject: missing and held permission, `abilities()` of 50, `permissionSet()`, repeat in one request | — |
 | visible-at-scale | `visibleTo` page of 25 and count over all posts | user 10 sees exactly its posts |
+| filament-pagination | Filament resource count and pagination with a 16-clause policy | count and page contain only user 10's posts |
 | cache-cold-warm | the same check with a flushed store, a warm store and a warm request; then a shared warm store | — |
+| cache-churn | 10,000 grant/revoke cycles (10 in smoke), 2-second TTL | final denial, memo and RSS bounds, Redis keys expire after grace |
+| automatic-roles | 1, 10 and 100 automatic roles with 100 or 500 permissions per role | first permission allowed and last denied |
+| lock-contention | disjoint subjects, a hot subject and a hot panel; writer and reader ladders | each writer's final grant matches its last write |
+| visibility-branches | exact visibility with 999, 1000 and 10000 witnesses, including count and pagination | exact rows and fail-closed budget |
 | grant-revoke-load | 1–2 writers toggle grants while readers check the same subjects | final state equals the last write |
 | consistency-load | one writer; readers on other subjects (`disjoint`), on one hot subject (`hot`), under an open-loop writer at 50 and 200 writes/s (`paced*`); hits vs misses | final state equals the last write |
 | multi-tenant | member, outsider and tenant admin checks on the tenant panel | every answer is right |
@@ -56,6 +61,29 @@ recorded as `check_inconsistent`: that is the designed outcome, measured separat
 p99, queries per operation, throughput, errors and stability. Each stage runs 3 times, up to 5 while the p95 of an
 operation varies more than 10%; the medians are published and `stable` marks a CV of at most 10%. Numbers of one
 machine are comparable only with each other: compare a change with `compare.php` on the same host.
+
+The comparator requires the same host identity, environment, dataset, stages and operation names, 3–5 repetitions,
+and passing correctness checks. It refuses legacy results without `environment.host_id`: rerun the baseline on the
+same host. The identity is a hash of `/etc/machine-id`, not a proof against cloned machine identities. Stable p95
+regresses only when it rises by more than 20% and more than 1 ms; throughput regresses when it falls by more than
+20%. Unstable operations do not fail these thresholds. These are project policies, not a service-level guarantee.
+The smoke tier uses fewer contention combinations and one repetition, so is not a comparison baseline.
+
+Redis cache keys use a per-run prefix; the cold profile removes keys under that prefix rather than flushing the
+database. The benchmark accepts only the configured local Redis hosts. `cache-churn` records per-worker RSS and
+request-map peaks, and, for `--cache=redis`, reports whole-server `used_memory` before/after and checks expiry of
+new prefix keys after a three-second grace period. Use a disposable Redis server for attributable memory numbers;
+non-Redis results do not qualify Redis growth. The RSS growth limit is 128 MiB for this workload. Compare measurements
+from baseline and candidate on the same host; existing results without these measurements cannot establish growth.
+Worker RSS includes pages inherited from the parent runner; compare each worker's growth as well as absolute values.
+
+Lock wait and hold probes include the limitations described in `bench/src/Probe.php`. A bench-only connection
+wrapper counts failed root transactions, classifies deadlocks, timeouts, lock conflicts and serialization failures from
+their driver codes and messages, and counts retries within each measured contention operation; other failures remain
+explicitly unclassified. The wrapper and Filament
+provider change the benchmark environment, and the comparator refuses pairs that differ in either setting. The
+Filament profile calls the actual enforcing resource query and paginator, not a mounted Livewire page. These results
+do not constitute an application or Filament scalability claim.
 
 ## What comes from chatom bench
 
@@ -102,8 +130,8 @@ vary by more than 10% between repetitions and are marked `stable: no` in the fil
 | mariadb | 92 | 10 | 0 | 18 |
 
 The numbers of one host are comparable only with each other. Absolute values depend on the host and its load at the
-time: do not compare them with another machine. Before a release, run the same pairs on the same host and compare:
-`php bench/bin/compare.php results/2026-10-14-1.0-<driver>-<cache>-mini.json <new>.json` (see `RELEASING.md`).
+time: do not compare them with another machine. These historical files lack the host and Redis metadata required by
+the current comparator; collect a new baseline and candidate on the same host before comparing them (see `RELEASING.md`).
 
 ## CI
 

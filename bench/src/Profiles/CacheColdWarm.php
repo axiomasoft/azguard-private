@@ -8,6 +8,8 @@ use AzGuardBench\Load\Stage;
 use AzGuardBench\Load\Stand;
 use AzGuardBench\Load\Tier;
 use Illuminate\Support\Facades\Cache;
+use Redis;
+use RuntimeException;
 
 /**
  * Cache cold and warm. In triples for one random user: `cold` flushes the persistent store (when the panel has one)
@@ -54,7 +56,30 @@ final class CacheColdWarm extends BaseProfile
             $this->user = $this->randomUser($tier);
             $this->permission = $this->randomPermission();
 
-            if ($stand->cache !== 'none') {
+            if ($stand->cache === 'redis') {
+                // RedisStore::flush() issues FLUSHDB, ignoring the cache prefix. Only delete this run's keys.
+                $store = Cache::store('redis')->getStore();
+                $client = $store->connection()->client();
+                $prefix = (string) $client->getOption(Redis::OPT_PREFIX).$store->getPrefix();
+
+                if (! str_contains($prefix, 'azguard_bench_')) {
+                    throw new RuntimeException('Refusing to clear an unisolated Redis cache.');
+                }
+                $cursor = '0';
+                $pending = [];
+                do {
+                    [$cursor, $keys] = $client->rawCommand('SCAN', $cursor, 'MATCH', $prefix.'*', 'COUNT', '1000');
+                    foreach ($keys as $key) {
+                        if (! str_starts_with($key, $prefix)) {
+                            throw new RuntimeException('Redis returned a key outside the bench prefix.');
+                        }
+                        $pending[] = $key;
+                    }
+                } while ((string) $cursor !== '0');
+                foreach ($pending as $key) {
+                    $client->rawCommand('DEL', $key);
+                }
+            } elseif ($stand->cache !== 'none') {
                 Cache::store($stand->cache)->flush();
             }
         }

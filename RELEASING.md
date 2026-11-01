@@ -220,16 +220,14 @@ run and independent review before publication. A successful local fixture or bui
    local services before approval. A missing service or skipped check is an incomplete
    qualification, not green.
 
-   Run the load bench on the same host as the reference and compare. The recorded
-   profile of the 1.0 code is `bench/results/2026-10-14-1.0-<driver>-<cache>-mini.json` for
-   `sqlite/none`, `sqlite/array`, `pgsql/none`, `pgsql/redis`, `mysql/none` and `mariadb/none`
-   (see `bench/README.md`). For each pair run
-   `php -d opcache.enable_cli=1 bench/bin/run.php --tier=mini --driver=<driver> --cache=<cache> --out=<new>`
-   with nothing else running on the host, then
-   `php bench/bin/compare.php bench/results/2026-10-14-1.0-<driver>-<cache>-mini.json <new>.json`.
-   A run with a failed correctness check or an engine error blocks the release. A reported
-   regression needs a fix or a sentence in the release notes. Numbers of another host are not
-   comparable: if the host changed, record a new reference first.
+   Run the load bench on the same host for a baseline and candidate, with the same driver, cache,
+   tier, dataset and tool versions (see `bench/README.md`). For each pair run
+   `php -d opcache.enable_cli=1 bench/bin/run.php --tier=mini --driver=<driver> --cache=<cache> --out=<baseline>`
+   on the baseline and the same command with `--out=<candidate>` on the candidate, with nothing
+   else running on the host. Compare with `php bench/bin/compare.php <baseline>.json <candidate>.json`.
+   The historical 1.0 results lack the metadata needed for this comparison. A failed correctness
+   check, engine error or stable matched regression blocks qualification; unstable results do not
+   establish a latency verdict. If the host changed, record a new baseline first.
 2. Decide the SemVer version from the actual API/default/schema delta. Move the
    reviewed release notes from `[Unreleased]` into a `## [x.y.z] - YYYY-MM-DD` section
    in the root `CHANGELOG.md` in the **candidate commit** (not after the tag).

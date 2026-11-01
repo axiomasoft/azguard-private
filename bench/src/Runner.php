@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace AzGuardBench\Load;
 
+use Illuminate\Database\Events\TransactionRolledBack;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Event;
 use RuntimeException;
 use Throwable;
 
@@ -62,10 +64,15 @@ final class Runner
         }
 
         $samples = [];
+        $measurements = [];
         $first = PHP_INT_MAX;
         $last = 0;
         for ($worker = 0; $worker < $stage->workers; $worker++) {
             $window = json_decode((string) file_get_contents("{$directory}/w{$worker}.ok"), true);
+
+            if (is_array($window['measurements'] ?? null)) {
+                $measurements[] = $window['measurements'];
+            }
 
             if (is_array($window) && is_int($window['from'] ?? null) && is_int($window['to'] ?? null)) {
                 $first = min($first, $window['from']);
@@ -80,7 +87,7 @@ final class Runner
             }
         }
 
-        return ['samples' => $samples, 'window_s' => $last > $first ? ($last - $first) / 1e9 : 0.0];
+        return ['samples' => $samples, 'window_s' => $last > $first ? ($last - $first) / 1e9 : 0.0, 'measurements' => $measurements];
     }
 
     private function work(Stand $stand, Tier $tier, Profile $profile, Stage $stage, int $worker, string $directory, int $start): void
@@ -89,6 +96,12 @@ final class Runner
 
         try {
             mt_srand(20261009 + $worker);
+            $rollbacks = 0;
+            $deadlocks = 0;
+            $timeouts = 0;
+            Event::listen(TransactionRolledBack::class, static function () use (&$rollbacks): void {
+                $rollbacks++;
+            });
             $queries = 0;
             DB::listen(static function () use (&$queries): void {
                 $queries++;
@@ -104,6 +117,8 @@ final class Runner
                     if ($errors++ < self::ERROR_LOG_LIMIT) {
                         file_put_contents("{$directory}/w{$worker}.err", 'warm-up: '.$e::class.': '.$e->getMessage()."\n", FILE_APPEND);
                     }
+
+                    throw $e;
                 }
                 Probe::drain();
             }
@@ -111,11 +126,17 @@ final class Runner
             while (hrtime(true) < $start) {
                 usleep(1_000);
             }
+            $rollbacks = 0;
+            TransactionProbe::reset();
             $from = hrtime(true);
 
             for ($i = 0; $i < $stage->iterations; $i++) {
                 $before = $queries;
                 $t0 = hrtime(true);
+
+                if ($profile->id() === 'lock-contention') {
+                    TransactionProbe::begin();
+                }
 
                 try {
                     $op = $profile->iteration($stand, $tier, $stage, $worker, $stage->warmup + $i);
@@ -123,10 +144,17 @@ final class Runner
                 } catch (Throwable $e) {
                     $op = 'error';
                     $ok = false;
+                    $message = strtolower($e->getMessage());
+                    $deadlocks += (int) (str_contains($message, 'deadlock') || str_contains($message, '40p01'));
+                    $timeouts += (int) (str_contains($message, 'timeout') || str_contains($message, 'timed out') || str_contains($message, 'lock wait'));
 
                     if ($errors++ < self::ERROR_LOG_LIMIT) {
                         file_put_contents("{$directory}/w{$worker}.err", $e::class.': '.$e->getMessage()."\n", FILE_APPEND);
                     }
+                }
+
+                if ($profile->id() === 'lock-contention') {
+                    TransactionProbe::end($ok);
                 }
                 $t1 = hrtime(true);
                 fwrite($out, json_encode(['op' => $op, 'us' => round(($t1 - $t0) / 1e3, 1), 'sql' => $queries - $before, 'ok' => $ok, 't' => $t1 - $from], JSON_THROW_ON_ERROR)."\n");
@@ -135,7 +163,12 @@ final class Runner
                 }
             }
             fclose($out);
-            file_put_contents("{$directory}/w{$worker}.ok", json_encode(['from' => $from, 'to' => hrtime(true)], JSON_THROW_ON_ERROR));
+            $measurement = method_exists($profile, 'measurements') ? $profile->measurements() : null;
+
+            if ($profile->id() === 'lock-contention') {
+                $measurement = [...TransactionProbe::counts(), 'transaction_rollbacks' => $rollbacks, 'uncaught_deadlocks' => $deadlocks, 'uncaught_timeouts' => $timeouts];
+            }
+            file_put_contents("{$directory}/w{$worker}.ok", json_encode(['from' => $from, 'to' => hrtime(true), 'measurements' => $measurement], JSON_THROW_ON_ERROR));
         } catch (Throwable $e) {
             file_put_contents("{$directory}/w{$worker}.err", $e::class.': '.$e->getMessage()."\n".$e->getTraceAsString()."\n", FILE_APPEND);
         }

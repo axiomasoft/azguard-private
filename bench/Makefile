@@ -26,5 +26,5 @@ matrix: ## every driver and cache of the published results for TIER (needs `make
 	$(MAKE) run DRIVER=pgsql CACHE=none
 	$(MAKE) run DRIVER=pgsql CACHE=redis
 	$(MAKE) run DRIVER=mysql CACHE=none
-compare: ## BASE=a.json HEAD=b.json: regressions of p50 (ratio >= 1.20 and >= 200 µs)
+compare: ## BASE=a.json HEAD=b.json: stable matched p95 and throughput regressions
 	$(PHP) $(CURDIR)/bin/compare.php $(BASE) $(HEAD)

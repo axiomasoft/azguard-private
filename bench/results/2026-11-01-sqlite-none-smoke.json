@@ -1,0 +1,782 @@
+{
+    "schema": "urn:azguard:bench:result:1",
+    "date": "2026-11-01T19:59:17Z",
+    "commit": "617c371ba978",
+    "dirty": true,
+    "tier": "smoke",
+    "driver": "sqlite",
+    "cache": "none",
+    "environment": {
+        "filament": false,
+        "transaction_probe": true,
+        "redis_server": "none",
+        "redis_client": "none",
+        "host_id": "ac5a95221e77375cf880ee411fcdf5ef4e03a9431d30923cb68b5b142bf4972f",
+        "php": "8.4.1",
+        "laravel": "13.39.0",
+        "database": "sqlite",
+        "database_server": "3.43.2",
+        "opcache": false,
+        "xdebug": false,
+        "cpu": "Intel(R) Core(TM) i7-14700K",
+        "cpus": 28,
+        "os": "Linux 7.0.0-38-generic"
+    },
+    "dataset": {
+        "tier": {
+            "name": "smoke",
+            "users": 40,
+            "heavy_roles": 5,
+            "heavy_direct": 50,
+            "posts": 500,
+            "tenants": 4,
+            "members_per_tenant": 5,
+            "iterations": 20,
+            "warmup": 5,
+            "ladder": [
+                1,
+                2
+            ],
+            "reps": 1
+        },
+        "rows": {
+            "users": 40,
+            "posts": 500,
+            "teams": 4,
+            "team_user": 20,
+            "azg_role_grants": 82,
+            "azg_permission_grants": 54
+        },
+        "digest": "c31f2d8d33f27fe972db60c7c831d5348a06a99fb4e8410c05cec946c62aafc9"
+    },
+    "profiles": [
+        {
+            "id": "automatic-roles",
+            "description": "Automatic roles by count and permissions per role",
+            "primary_op": "check",
+            "stages": [
+                {
+                    "name": "automatic-1-100",
+                    "workers": 1,
+                    "iterations_per_worker": 20,
+                    "warmup_per_worker": 5,
+                    "windows_s": [
+                        0.021
+                    ],
+                    "reps": [
+                        {
+                            "check": {
+                                "count": 20,
+                                "errors": 0,
+                                "p50_us": 917.8,
+                                "p95_us": 1439,
+                                "p99_us": 1780.5,
+                                "max_us": 1780.5,
+                                "sql_per_op": 0,
+                                "ops_per_s": 940.4
+                            }
+                        }
+                    ],
+                    "summary": {
+                        "check": {
+                            "p50_us": 917.8,
+                            "p95_us": 1439,
+                            "p99_us": 1780.5,
+                            "sql_per_op": 0,
+                            "ops_per_s": 940.4,
+                            "errors": 0,
+                            "p95_cv": 0,
+                            "stable": true
+                        }
+                    },
+                    "checks": [
+                        {
+                            "name": "automatic grants and denials",
+                            "ok": true,
+                            "detail": "first permission granted, last denied"
+                        }
+                    ],
+                    "measurements": [
+                        []
+                    ]
+                },
+                {
+                    "name": "automatic-1-500",
+                    "workers": 1,
+                    "iterations_per_worker": 20,
+                    "warmup_per_worker": 5,
+                    "windows_s": [
+                        0.025
+                    ],
+                    "reps": [
+                        {
+                            "check": {
+                                "count": 20,
+                                "errors": 0,
+                                "p50_us": 949.8,
+                                "p95_us": 1439.5,
+                                "p99_us": 1887,
+                                "max_us": 1887,
+                                "sql_per_op": 0,
+                                "ops_per_s": 786.7
+                            }
+                        }
+                    ],
+                    "summary": {
+                        "check": {
+                            "p50_us": 949.8,
+                            "p95_us": 1439.5,
+                            "p99_us": 1887,
+                            "sql_per_op": 0,
+                            "ops_per_s": 786.7,
+                            "errors": 0,
+                            "p95_cv": 0,
+                            "stable": true
+                        }
+                    },
+                    "checks": [
+                        {
+                            "name": "automatic grants and denials",
+                            "ok": true,
+                            "detail": "first permission granted, last denied"
+                        }
+                    ],
+                    "measurements": [
+                        []
+                    ]
+                },
+                {
+                    "name": "automatic-10-100",
+                    "workers": 1,
+                    "iterations_per_worker": 20,
+                    "warmup_per_worker": 5,
+                    "windows_s": [
+                        0.024
+                    ],
+                    "reps": [
+                        {
+                            "check": {
+                                "count": 20,
+                                "errors": 0,
+                                "p50_us": 984.6,
+                                "p95_us": 1045.6,
+                                "p99_us": 1257.6,
+                                "max_us": 1257.6,
+                                "sql_per_op": 0,
+                                "ops_per_s": 843.1
+                            }
+                        }
+                    ],
+                    "summary": {
+                        "check": {
+                            "p50_us": 984.6,
+                            "p95_us": 1045.6,
+                            "p99_us": 1257.6,
+                            "sql_per_op": 0,
+                            "ops_per_s": 843.1,
+                            "errors": 0,
+                            "p95_cv": 0,
+                            "stable": true
+                        }
+                    },
+                    "checks": [
+                        {
+                            "name": "automatic grants and denials",
+                            "ok": true,
+                            "detail": "first permission granted, last denied"
+                        }
+                    ],
+                    "measurements": [
+                        []
+                    ]
+                },
+                {
+                    "name": "automatic-10-500",
+                    "workers": 1,
+                    "iterations_per_worker": 20,
+                    "warmup_per_worker": 5,
+                    "windows_s": [
+                        0.031
+                    ],
+                    "reps": [
+                        {
+                            "check": {
+                                "count": 20,
+                                "errors": 0,
+                                "p50_us": 1239.4,
+                                "p95_us": 1966.5,
+                                "p99_us": 2193.5,
+                                "max_us": 2193.5,
+                                "sql_per_op": 0,
+                                "ops_per_s": 647.5
+                            }
+                        }
+                    ],
+                    "summary": {
+                        "check": {
+                            "p50_us": 1239.4,
+                            "p95_us": 1966.5,
+                            "p99_us": 2193.5,
+                            "sql_per_op": 0,
+                            "ops_per_s": 647.5,
+                            "errors": 0,
+                            "p95_cv": 0,
+                            "stable": true
+                        }
+                    },
+                    "checks": [
+                        {
+                            "name": "automatic grants and denials",
+                            "ok": true,
+                            "detail": "first permission granted, last denied"
+                        }
+                    ],
+                    "measurements": [
+                        []
+                    ]
+                },
+                {
+                    "name": "automatic-100-100",
+                    "workers": 1,
+                    "iterations_per_worker": 20,
+                    "warmup_per_worker": 5,
+                    "windows_s": [
+                        0.071
+                    ],
+                    "reps": [
+                        {
+                            "check": {
+                                "count": 20,
+                                "errors": 0,
+                                "p50_us": 1704.6,
+                                "p95_us": 1981.2,
+                                "p99_us": 3095.9,
+                                "max_us": 3095.9,
+                                "sql_per_op": 0,
+                                "ops_per_s": 282
+                            }
+                        }
+                    ],
+                    "summary": {
+                        "check": {
+                            "p50_us": 1704.6,
+                            "p95_us": 1981.2,
+                            "p99_us": 3095.9,
+                            "sql_per_op": 0,
+                            "ops_per_s": 282,
+                            "errors": 0,
+                            "p95_cv": 0,
+                            "stable": true
+                        }
+                    },
+                    "checks": [
+                        {
+                            "name": "automatic grants and denials",
+                            "ok": true,
+                            "detail": "first permission granted, last denied"
+                        }
+                    ],
+                    "measurements": [
+                        []
+                    ]
+                },
+                {
+                    "name": "automatic-100-500",
+                    "workers": 1,
+                    "iterations_per_worker": 20,
+                    "warmup_per_worker": 5,
+                    "windows_s": [
+                        0.041
+                    ],
+                    "reps": [
+                        {
+                            "check": {
+                                "count": 20,
+                                "errors": 0,
+                                "p50_us": 1664.4,
+                                "p95_us": 2048.2,
+                                "p99_us": 2074.4,
+                                "max_us": 2074.4,
+                                "sql_per_op": 0,
+                                "ops_per_s": 492.8
+                            }
+                        }
+                    ],
+                    "summary": {
+                        "check": {
+                            "p50_us": 1664.4,
+                            "p95_us": 2048.2,
+                            "p99_us": 2074.4,
+                            "sql_per_op": 0,
+                            "ops_per_s": 492.8,
+                            "errors": 0,
+                            "p95_cv": 0,
+                            "stable": true
+                        }
+                    },
+                    "checks": [
+                        {
+                            "name": "automatic grants and denials",
+                            "ok": true,
+                            "detail": "first permission granted, last denied"
+                        }
+                    ],
+                    "measurements": [
+                        []
+                    ]
+                }
+            ]
+        },
+        {
+            "id": "lock-contention",
+            "description": "Panel contention with disjoint subjects and hot subjects",
+            "primary_op": "check",
+            "stages": [
+                {
+                    "name": "disjoint:writers1:readers1",
+                    "workers": 2,
+                    "iterations_per_worker": 20,
+                    "warmup_per_worker": 5,
+                    "windows_s": [
+                        0.044
+                    ],
+                    "reps": [
+                        {
+                            "check": {
+                                "count": 20,
+                                "errors": 0,
+                                "p50_us": 1734.3,
+                                "p95_us": 2968.4,
+                                "p99_us": 3398.1,
+                                "max_us": 3398.1,
+                                "sql_per_op": 5,
+                                "ops_per_s": 456.9
+                            },
+                            "probe.lock_hold": {
+                                "count": 20,
+                                "errors": 0,
+                                "p50_us": 946.7,
+                                "p95_us": 2518.6,
+                                "p99_us": 2537.2,
+                                "max_us": 2537.2,
+                                "sql_per_op": 0,
+                                "ops_per_s": 456.9
+                            },
+                            "probe.lock_wait": {
+                                "count": 20,
+                                "errors": 0,
+                                "p50_us": 10,
+                                "p95_us": 20,
+                                "p99_us": 30,
+                                "max_us": 30,
+                                "sql_per_op": 0,
+                                "ops_per_s": 456.9
+                            },
+                            "probe.snapshot": {
+                                "count": 20,
+                                "errors": 0,
+                                "p50_us": 165.8,
+                                "p95_us": 196.8,
+                                "p99_us": 287.4,
+                                "max_us": 287.4,
+                                "sql_per_op": 0,
+                                "ops_per_s": 456.9
+                            },
+                            "write": {
+                                "count": 20,
+                                "errors": 0,
+                                "p50_us": 1122.8,
+                                "p95_us": 2661.5,
+                                "p99_us": 2773.6,
+                                "max_us": 2773.6,
+                                "sql_per_op": 9.5,
+                                "ops_per_s": 456.9
+                            }
+                        }
+                    ],
+                    "summary": {
+                        "check": {
+                            "p50_us": 1734.3,
+                            "p95_us": 2968.4,
+                            "p99_us": 3398.1,
+                            "sql_per_op": 5,
+                            "ops_per_s": 456.9,
+                            "errors": 0,
+                            "p95_cv": 0,
+                            "stable": true
+                        },
+                        "probe.lock_hold": {
+                            "p50_us": 946.7,
+                            "p95_us": 2518.6,
+                            "p99_us": 2537.2,
+                            "sql_per_op": 0,
+                            "ops_per_s": 456.9,
+                            "errors": 0,
+                            "p95_cv": 0,
+                            "stable": true
+                        },
+                        "probe.lock_wait": {
+                            "p50_us": 10,
+                            "p95_us": 20,
+                            "p99_us": 30,
+                            "sql_per_op": 0,
+                            "ops_per_s": 456.9,
+                            "errors": 0,
+                            "p95_cv": 0,
+                            "stable": true
+                        },
+                        "probe.snapshot": {
+                            "p50_us": 165.8,
+                            "p95_us": 196.8,
+                            "p99_us": 287.4,
+                            "sql_per_op": 0,
+                            "ops_per_s": 456.9,
+                            "errors": 0,
+                            "p95_cv": 0,
+                            "stable": true
+                        },
+                        "write": {
+                            "p50_us": 1122.8,
+                            "p95_us": 2661.5,
+                            "p99_us": 2773.6,
+                            "sql_per_op": 9.5,
+                            "ops_per_s": 456.9,
+                            "errors": 0,
+                            "p95_cv": 0,
+                            "stable": true
+                        }
+                    },
+                    "checks": [
+                        {
+                            "name": "all writers end in their last state",
+                            "ok": true,
+                            "detail": "0 of 1 incorrect"
+                        }
+                    ],
+                    "measurements": [
+                        [
+                            {
+                                "retries": 0,
+                                "deadlocks": 0,
+                                "timeouts": 0,
+                                "lock_conflicts": 0,
+                                "serialization_failures": 0,
+                                "other_failures": 0,
+                                "transaction_rollbacks": 0,
+                                "uncaught_deadlocks": 0,
+                                "uncaught_timeouts": 0
+                            },
+                            {
+                                "retries": 0,
+                                "deadlocks": 0,
+                                "timeouts": 0,
+                                "lock_conflicts": 0,
+                                "serialization_failures": 0,
+                                "other_failures": 0,
+                                "transaction_rollbacks": 0,
+                                "uncaught_deadlocks": 0,
+                                "uncaught_timeouts": 0
+                            }
+                        ]
+                    ]
+                },
+                {
+                    "name": "hot-subject:writers1:readers1",
+                    "workers": 2,
+                    "iterations_per_worker": 20,
+                    "warmup_per_worker": 5,
+                    "windows_s": [
+                        0.044
+                    ],
+                    "reps": [
+                        {
+                            "check": {
+                                "count": 20,
+                                "errors": 0,
+                                "p50_us": 1721.5,
+                                "p95_us": 3214.1,
+                                "p99_us": 3697.8,
+                                "max_us": 3697.8,
+                                "sql_per_op": 5,
+                                "ops_per_s": 451.1
+                            },
+                            "probe.lock_hold": {
+                                "count": 20,
+                                "errors": 0,
+                                "p50_us": 929.7,
+                                "p95_us": 2293.5,
+                                "p99_us": 2441.8,
+                                "max_us": 2441.8,
+                                "sql_per_op": 0,
+                                "ops_per_s": 451.1
+                            },
+                            "probe.lock_wait": {
+                                "count": 20,
+                                "errors": 0,
+                                "p50_us": 10,
+                                "p95_us": 20,
+                                "p99_us": 50,
+                                "max_us": 50,
+                                "sql_per_op": 0,
+                                "ops_per_s": 451.1
+                            },
+                            "probe.snapshot": {
+                                "count": 20,
+                                "errors": 0,
+                                "p50_us": 162.5,
+                                "p95_us": 276.1,
+                                "p99_us": 304.7,
+                                "max_us": 304.7,
+                                "sql_per_op": 0,
+                                "ops_per_s": 451.1
+                            },
+                            "write": {
+                                "count": 20,
+                                "errors": 0,
+                                "p50_us": 1077.7,
+                                "p95_us": 2441.5,
+                                "p99_us": 2607.2,
+                                "max_us": 2607.2,
+                                "sql_per_op": 9.5,
+                                "ops_per_s": 451.1
+                            }
+                        }
+                    ],
+                    "summary": {
+                        "check": {
+                            "p50_us": 1721.5,
+                            "p95_us": 3214.1,
+                            "p99_us": 3697.8,
+                            "sql_per_op": 5,
+                            "ops_per_s": 451.1,
+                            "errors": 0,
+                            "p95_cv": 0,
+                            "stable": true
+                        },
+                        "probe.lock_hold": {
+                            "p50_us": 929.7,
+                            "p95_us": 2293.5,
+                            "p99_us": 2441.8,
+                            "sql_per_op": 0,
+                            "ops_per_s": 451.1,
+                            "errors": 0,
+                            "p95_cv": 0,
+                            "stable": true
+                        },
+                        "probe.lock_wait": {
+                            "p50_us": 10,
+                            "p95_us": 20,
+                            "p99_us": 50,
+                            "sql_per_op": 0,
+                            "ops_per_s": 451.1,
+                            "errors": 0,
+                            "p95_cv": 0,
+                            "stable": true
+                        },
+                        "probe.snapshot": {
+                            "p50_us": 162.5,
+                            "p95_us": 276.1,
+                            "p99_us": 304.7,
+                            "sql_per_op": 0,
+                            "ops_per_s": 451.1,
+                            "errors": 0,
+                            "p95_cv": 0,
+                            "stable": true
+                        },
+                        "write": {
+                            "p50_us": 1077.7,
+                            "p95_us": 2441.5,
+                            "p99_us": 2607.2,
+                            "sql_per_op": 9.5,
+                            "ops_per_s": 451.1,
+                            "errors": 0,
+                            "p95_cv": 0,
+                            "stable": true
+                        }
+                    },
+                    "checks": [
+                        {
+                            "name": "all writers end in their last state",
+                            "ok": true,
+                            "detail": "0 of 1 incorrect"
+                        }
+                    ],
+                    "measurements": [
+                        [
+                            {
+                                "retries": 0,
+                                "deadlocks": 0,
+                                "timeouts": 0,
+                                "lock_conflicts": 0,
+                                "serialization_failures": 0,
+                                "other_failures": 0,
+                                "transaction_rollbacks": 0,
+                                "uncaught_deadlocks": 0,
+                                "uncaught_timeouts": 0
+                            },
+                            {
+                                "retries": 0,
+                                "deadlocks": 0,
+                                "timeouts": 0,
+                                "lock_conflicts": 0,
+                                "serialization_failures": 0,
+                                "other_failures": 0,
+                                "transaction_rollbacks": 0,
+                                "uncaught_deadlocks": 0,
+                                "uncaught_timeouts": 0
+                            }
+                        ]
+                    ]
+                },
+                {
+                    "name": "hot-panel:writers1:readers1",
+                    "workers": 2,
+                    "iterations_per_worker": 20,
+                    "warmup_per_worker": 5,
+                    "windows_s": [
+                        0.055
+                    ],
+                    "reps": [
+                        {
+                            "check": {
+                                "count": 20,
+                                "errors": 0,
+                                "p50_us": 2582.8,
+                                "p95_us": 2981,
+                                "p99_us": 5182.5,
+                                "max_us": 5182.5,
+                                "sql_per_op": 5,
+                                "ops_per_s": 365.8
+                            },
+                            "probe.lock_hold": {
+                                "count": 20,
+                                "errors": 0,
+                                "p50_us": 1518.6,
+                                "p95_us": 2738.2,
+                                "p99_us": 3562.7,
+                                "max_us": 3562.7,
+                                "sql_per_op": 0,
+                                "ops_per_s": 365.8
+                            },
+                            "probe.lock_wait": {
+                                "count": 20,
+                                "errors": 0,
+                                "p50_us": 20,
+                                "p95_us": 30,
+                                "p99_us": 60,
+                                "max_us": 60,
+                                "sql_per_op": 0,
+                                "ops_per_s": 365.8
+                            },
+                            "probe.snapshot": {
+                                "count": 20,
+                                "errors": 0,
+                                "p50_us": 261.8,
+                                "p95_us": 320.9,
+                                "p99_us": 345.6,
+                                "max_us": 345.6,
+                                "sql_per_op": 0,
+                                "ops_per_s": 365.8
+                            },
+                            "write": {
+                                "count": 20,
+                                "errors": 0,
+                                "p50_us": 1811.7,
+                                "p95_us": 3013.7,
+                                "p99_us": 3806.1,
+                                "max_us": 3806.1,
+                                "sql_per_op": 9.5,
+                                "ops_per_s": 365.8
+                            }
+                        }
+                    ],
+                    "summary": {
+                        "check": {
+                            "p50_us": 2582.8,
+                            "p95_us": 2981,
+                            "p99_us": 5182.5,
+                            "sql_per_op": 5,
+                            "ops_per_s": 365.8,
+                            "errors": 0,
+                            "p95_cv": 0,
+                            "stable": true
+                        },
+                        "probe.lock_hold": {
+                            "p50_us": 1518.6,
+                            "p95_us": 2738.2,
+                            "p99_us": 3562.7,
+                            "sql_per_op": 0,
+                            "ops_per_s": 365.8,
+                            "errors": 0,
+                            "p95_cv": 0,
+                            "stable": true
+                        },
+                        "probe.lock_wait": {
+                            "p50_us": 20,
+                            "p95_us": 30,
+                            "p99_us": 60,
+                            "sql_per_op": 0,
+                            "ops_per_s": 365.8,
+                            "errors": 0,
+                            "p95_cv": 0,
+                            "stable": true
+                        },
+                        "probe.snapshot": {
+                            "p50_us": 261.8,
+                            "p95_us": 320.9,
+                            "p99_us": 345.6,
+                            "sql_per_op": 0,
+                            "ops_per_s": 365.8,
+                            "errors": 0,
+                            "p95_cv": 0,
+                            "stable": true
+                        },
+                        "write": {
+                            "p50_us": 1811.7,
+                            "p95_us": 3013.7,
+                            "p99_us": 3806.1,
+                            "sql_per_op": 9.5,
+                            "ops_per_s": 365.8,
+                            "errors": 0,
+                            "p95_cv": 0,
+                            "stable": true
+                        }
+                    },
+                    "checks": [
+                        {
+                            "name": "all writers end in their last state",
+                            "ok": true,
+                            "detail": "0 of 1 incorrect"
+                        }
+                    ],
+                    "measurements": [
+                        [
+                            {
+                                "retries": 0,
+                                "deadlocks": 0,
+                                "timeouts": 0,
+                                "lock_conflicts": 0,
+                                "serialization_failures": 0,
+                                "other_failures": 0,
+                                "transaction_rollbacks": 0,
+                                "uncaught_deadlocks": 0,
+                                "uncaught_timeouts": 0
+                            },
+                            {
+                                "retries": 0,
+                                "deadlocks": 0,
+                                "timeouts": 0,
+                                "lock_conflicts": 0,
+                                "serialization_failures": 0,
+                                "other_failures": 0,
+                                "transaction_rollbacks": 0,
+                                "uncaught_deadlocks": 0,
+                                "uncaught_timeouts": 0
+                            }
+                        ]
+                    ]
+                }
+            ]
+        }
+    ]
+}

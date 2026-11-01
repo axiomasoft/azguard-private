@@ -19,6 +19,7 @@ use AzGuardBench\Load\Runner;
 use AzGuardBench\Load\Stand;
 use AzGuardBench\Load\Summary;
 use AzGuardBench\Load\Tier;
+use Illuminate\Support\Facades\Cache;
 
 $root = dirname(__DIR__, 2);
 require $root.'/vendor/autoload.php';
@@ -29,11 +30,19 @@ $tier = Tier::named($option('tier', 'mini'));
 $driver = $option('driver', 'sqlite');
 $cache = $option('cache', 'none');
 $reps = (int) $option('reps', (string) $tier->reps);
-$out = $option('out', $root.'/bench/results/'.gmdate('Y-m-d').'-'.$driver.'-'.$cache.'-'.$tier->name);
+$outputDirectory = getenv('AZGUARD_BENCH_OUTPUT_DIR') ?: $root.'/bench/results';
+$out = $option('out', rtrim($outputDirectory, '/').'/'.gmdate('Y-m-d').'-'.$driver.'-'.$cache.'-'.$tier->name);
 $work = $root.'/bench/.runs/'.getmypid();
 $profiles = ProfileCatalog::select($option('profile', 'all'));
 
-$stand = Stand::boot($driver, $cache, $work);
+$filament = in_array('filament-pagination', array_map(static fn (array $entry): string => $entry['profile']->id(), $profiles), true);
+$transactionProbe = in_array('lock-contention', array_map(static fn (array $entry): string => $entry['profile']->id(), $profiles), true);
+$stand = Stand::boot($driver, $cache, $work, $filament, $transactionProbe);
+// Testbench installs Laravel's exception handler while booting; a CLI benchmark must not report a fatal setup error as success.
+set_exception_handler(static function (Throwable $error): never {
+    fwrite(STDERR, $error::class.': '.$error->getMessage()."\n");
+    exit(1);
+});
 $log = static fn (string $line): int|false => fwrite(STDERR, '['.gmdate('H:i:s').'] '.$line."\n");
 $log("seeding tier {$tier->name} on {$driver}");
 $t = hrtime(true);
@@ -49,11 +58,13 @@ foreach ($profiles as ['profile' => $profile, 'primary_op' => $primary]) {
     foreach ($profile->stages($tier) as $stage) {
         $repetitions = [];
         $windows = [];
+        $measurements = [];
         for ($rep = 1; $rep <= 5; $rep++) {
             $profile->prepare($stand, $tier, $stage);
             $run = $runner->run($stand, $tier, $profile, $stage, "{$work}/{$profile->id()}/{$stage->name}/{$rep}");
             $repetitions[] = Summary::repetition($run['samples'], $run['window_s']);
             $windows[] = round($run['window_s'], 3);
+            $measurements[] = $run['measurements'];
             $summary = Summary::across($repetitions);
 
             if ($rep >= $reps && ($rep >= 5 || Summary::worstCv($summary) <= Summary::STABLE_CV)) {
@@ -69,7 +80,7 @@ foreach ($profiles as ['profile' => $profile, 'primary_op' => $primary]) {
         }
         $failed = $failed || in_array(false, array_column($checks, 'ok'), true);
         $stages[] = ['name' => $stage->name, 'workers' => $stage->workers, 'iterations_per_worker' => $stage->iterations, 'warmup_per_worker' => $stage->warmup,
-            'windows_s' => $windows, 'reps' => $repetitions, 'summary' => $summary, 'checks' => $checks];
+            'windows_s' => $windows, 'reps' => $repetitions, 'summary' => $summary, 'checks' => $checks, 'measurements' => $measurements];
         $primaryStats = $summary[$primary] ?? null;
         $log(sprintf('%s %s: %d reps%s', $profile->id(), $stage->name, count($repetitions), $primaryStats === null ? '' : sprintf(', %s p50 %.0f µs p95 %.0f µs, %.1f ops/s', $primary, $primaryStats['p50_us'], $primaryStats['p95_us'], $primaryStats['ops_per_s'])));
     }
@@ -77,17 +88,32 @@ foreach ($profiles as ['profile' => $profile, 'primary_op' => $primary]) {
 }
 
 $git = static fn (string $args): string => trim((string) shell_exec('git -C '.escapeshellarg($root).' '.$args.' 2>/dev/null'));
+$gitRoot = $git('rev-parse --show-toplevel');
+$ownRepository = $gitRoot !== '' && realpath($gitRoot) === realpath($root);
 $cpu = preg_match('/model name\s*:\s*(.+)/', (string) @file_get_contents('/proc/cpuinfo'), $m) === 1 ? trim($m[1]) : php_uname('m');
 $database = $stand->database();
+$redisServer = 'none';
+$redisClient = 'none';
+
+if ($cache === 'redis') {
+    $redisInfo = Cache::store('redis')->getStore()->connection()->client()->info('server');
+    $redisServer = (string) ($redisInfo['redis_version'] ?? '');
+    $redisClient = (string) phpversion('redis');
+}
 $result = [
     'schema' => ResultFile::SCHEMA,
     'date' => gmdate('Y-m-d\TH:i:s\Z'),
-    'commit' => $git('rev-parse --short=12 HEAD'),
-    'dirty' => $git('status --porcelain -- packages bench') !== '',
+    'commit' => $ownRepository ? $git('rev-parse --short=12 HEAD') : 'unversioned',
+    'dirty' => ! $ownRepository || $git('status --porcelain -- packages bench') !== '',
     'tier' => $tier->name,
     'driver' => $driver,
     'cache' => $cache,
     'environment' => [
+        'filament' => $filament,
+        'transaction_probe' => $transactionProbe,
+        'redis_server' => $redisServer, 'redis_client' => $redisClient,
+        'host_id' => is_readable('/etc/machine-id') && trim((string) file_get_contents('/etc/machine-id')) !== ''
+            ? hash('sha256', trim((string) file_get_contents('/etc/machine-id'))) : null,
         'php' => PHP_VERSION, 'laravel' => $stand->app->version(), 'database' => $database['driver'], 'database_server' => $database['server'],
         'opcache' => (bool) ini_get('opcache.enable_cli'), 'xdebug' => extension_loaded('xdebug'), 'cpu' => $cpu,
         'cpus' => (int) trim((string) shell_exec('nproc 2>/dev/null')), 'os' => php_uname('s').' '.php_uname('r'),

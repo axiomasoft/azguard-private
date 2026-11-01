@@ -15,7 +15,8 @@
         "cache": {"enum": ["none", "array", "redis"]},
         "environment": {
             "type": "object",
-            "required": ["php", "laravel", "database", "database_server", "opcache", "xdebug", "cpu", "cpus", "os"]
+            "required": ["php", "laravel", "database", "database_server", "opcache", "xdebug", "cpu", "cpus", "os"],
+            "properties": {"host_id": {"type": ["string", "null"], "description": "SHA-256 of machine-id, or null when unavailable; legacy results may omit this field."}, "filament": {"type": "boolean", "description": "Whether this run loaded the Filament providers; legacy results may omit it."}, "transaction_probe": {"type": "boolean", "description": "Whether bench-side transaction observation was enabled; legacy results may omit it."}, "redis_server": {"type": "string"}, "redis_client": {"type": "string"}}
         },
         "dataset": {
             "type": "object",
@@ -35,6 +36,7 @@
                             "required": ["name", "workers", "iterations_per_worker", "warmup_per_worker", "windows_s", "reps", "summary", "checks"],
                             "properties": {
                                 "workers": {"type": "integer", "minimum": 1},
+                                "measurements": {"type": "array", "description": "Optional per-repetition, per-worker profile measurements; legacy files may omit it."},
                                 "reps": {"type": "array", "items": {"type": "object", "additionalProperties": {"$ref": "#/$defs/repetition"}}},
                                 "summary": {"type": "object", "additionalProperties": {"$ref": "#/$defs/summary"}},
                                 "checks": {

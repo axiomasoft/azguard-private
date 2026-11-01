@@ -6,6 +6,11 @@ version) are documented here. Format: [Keep a Changelog](https://keepachangelog.
 
 ## [Unreleased]
 
+- Load bench results add an optional hashed host identity; the comparator refuses older results without it and now
+  gates stable matched p95 and throughput regressions. Rerun the baseline on the same host before comparing;
+  the old `--ratio` and `--delta-us` comparator options have been removed in favour of the fixed project policy.
+- Bench stage results may contain per-repetition worker measurements for memory and contention diagnostics; readers
+  of older result files should treat the new `measurements` field as optional.
 - Release ZIPs use canonical container metadata so the public split workflow can attest the exact archive digest.
 - Remove mutation testing workflows, commands and release gate by maintainer decision.
 
