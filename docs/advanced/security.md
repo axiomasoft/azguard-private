@@ -10,6 +10,23 @@ are not guarantees of the current implementation. Test locations identify existi
 the concrete negative cases required there, not a claim that all those cases already exist or pass.
 See [Consistency](./consistency.md) for timing guarantees and [Operations](./operations.md) for deployment.
 
+## Release scanner scope
+
+The reusable release controls require successful CodeQL analyses for GitHub Actions and
+JavaScript/TypeScript, including `docs/.vitepress/config.ts`. CodeQL does not analyze PHP;
+PHPStan/Larastan, tests, mutation testing and Composer audit are separate controls. CodeQL
+requires repository entitlement where applicable; an unavailable analysis or upload blocks
+the release rather than substituting Zizmor or actionlint. Entitlement must be verified on
+the private repository before a release candidate.
+
+Zizmor audits `.github/workflows` with the pedantic persona at medium severity and above.
+Gitleaks 8.30.1 scans the checkout as a directory and Git patches reachable from the
+candidate commit, including first-parent merge diffs. History does not include unrelated
+refs, and patch scans do not establish binary file content coverage. The pinned detection
+rules in `.gitleaks.toml` remove the upstream allowlists; inline comments and ignore files
+are disabled. Findings in history still require investigation. Scanner reports and metadata
+identify the commit and scope; missing, failed or incomplete reports block the release.
+
 ## Assets
 
 | Asset | Required protection |

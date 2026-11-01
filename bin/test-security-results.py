@@ -72,13 +72,25 @@ class ResultTests(unittest.TestCase):
         self.write(self.sarif)
         self.assertTrue(self.check())
 
+    def test_missing_empty_or_incomplete_invocations_fail_for_each_sarif_scanner(self):
+        for scanner, name in [('codeql-actions', 'CodeQL'), ('zizmor', 'zizmor')]:
+            for invocations in (None, [], [{}], [{'executionSuccessful': False}]):
+                with self.subTest(scanner=scanner, invocations=invocations):
+                    self.sarif['runs'][0]['tool']['driver']['name'] = name
+                    if invocations is None:
+                        self.sarif['runs'][0].pop('invocations', None)
+                    else:
+                        self.sarif['runs'][0]['invocations'] = invocations
+                    self.write(self.sarif)
+                    self.assertTrue(self.check(scanner=scanner))
+
     def test_sha_mismatch_fails(self):
         self.assertTrue(self.check(sha='0' * 40))
         self.assertTrue(self.check(sha='bad'))
 
     def test_codeql_category_must_match_the_requested_language(self):
         self.assertTrue(self.check(scanner='codeql-javascript-typescript'))
-        for category in (None, '', '/language:php/', '/language:actions/extra/'):
+        for category in (None, '', '/language:actions', '/language:php/', '/language:actions/extra/'):
             with self.subTest(category=category):
                 self.sarif['runs'][0]['automationDetails'] = {'id': category}
                 self.write(self.sarif)

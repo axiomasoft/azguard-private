@@ -106,7 +106,14 @@ function releaseGateErrors(array $data): array
         $errors[] = "missing matrix row {$name}";
     }
 
-    $scanners = ['codeql-actions', 'codeql-javascript-typescript', 'zizmor', 'gitleaks-worktree', 'gitleaks-history'];
+    $scopes = [
+        'codeql-actions' => 'CodeQL Actions extraction across the checked-out repository',
+        'codeql-javascript-typescript' => 'CodeQL JavaScript/TypeScript extraction across the checked-out repository, including docs/.vitepress/config.ts',
+        'zizmor' => 'GitHub Actions workflows in .github/workflows; pedantic, medium and higher',
+        'gitleaks-worktree' => 'Gitleaks directory scan of the checked-out worktree using the pinned rules without allowlists',
+        'gitleaks-history' => 'Gitleaks git patch scan of all commits reachable from the checked-out commit, including merge changes, using the pinned rules without allowlists',
+    ];
+    $scanners = array_keys($scopes);
     $reports = $data['scanners'] ?? null;
 
     if (! is_array($reports) || ! array_is_list($reports)) {
@@ -126,6 +133,10 @@ function releaseGateErrors(array $data): array
             $errors[] = "duplicate scanner {$name}";
         }
         $seen[$name] = true;
+
+        if (($report['scope'] ?? null) !== $scopes[$name]) {
+            $errors[] = "scanner {$name} has invalid scope";
+        }
 
         if (($report['sha'] ?? null) !== $sha || ($report['run_id'] ?? null) !== ($data['run_id'] ?? null)) {
             $errors[] = "stale scanner {$name}";
@@ -149,17 +160,19 @@ function releaseGateErrors(array $data): array
         }
 
         try {
+            $shape = json_decode($contents, false, 512, JSON_THROW_ON_ERROR);
             $parsed = json_decode($contents, true, 512, JSON_THROW_ON_ERROR);
 
             if (str_starts_with($name, 'gitleaks-')) {
-                if ($parsed !== []) {
+                if (! is_array($shape) || $shape !== []) {
                     $errors[] = "scanner {$name} contains findings";
                 }
-            } elseif (! is_array($parsed) || ($parsed['version'] ?? null) !== '2.1.0' || ! is_array($parsed['runs'] ?? null) || $parsed['runs'] === []) {
+            } elseif (! is_object($shape) || ($parsed['version'] ?? null) !== '2.1.0' || ! is_array($shape->runs ?? null) || $parsed['runs'] === []) {
                 $errors[] = "scanner {$name} has invalid SARIF";
             } else {
-                foreach ($parsed['runs'] as $run) {
-                    if (! is_array($run) || ($run['results'] ?? null) !== []) {
+                foreach ($parsed['runs'] as $index => $run) {
+                    $runShape = $shape->runs[$index];
+                    if (! is_object($runShape) || ! is_array($runShape->results ?? null) || ($run['results'] ?? null) !== []) {
                         $errors[] = "scanner {$name} contains findings or invalid results";
 
                         continue;
@@ -174,15 +187,15 @@ function releaseGateErrors(array $data): array
                     if (str_starts_with($name, 'codeql-') && ($run['automationDetails']['id'] ?? null) !== '/language:'.substr($name, 7).'/') {
                         $errors[] = "scanner {$name} has incorrect SARIF category";
                     }
-                    $invocations = $run['invocations'] ?? [];
+                    $invocations = $run['invocations'] ?? null;
 
-                    if (! is_array($invocations)) {
+                    if (! is_array($runShape->invocations ?? null) || ! is_array($invocations) || ! array_is_list($invocations) || $invocations === []) {
                         $errors[] = "scanner {$name} has invalid invocations";
 
                         continue;
                     }
-                    foreach ($invocations as $invocation) {
-                        if (! is_array($invocation) || ($invocation['executionSuccessful'] ?? null) !== true) {
+                    foreach ($invocations as $invocationIndex => $invocation) {
+                        if (! is_object($runShape->invocations[$invocationIndex]) || ! is_array($invocation) || ($invocation['executionSuccessful'] ?? null) !== true) {
                             $errors[] = "scanner {$name} invocation failed";
 
                             continue;
@@ -190,7 +203,7 @@ function releaseGateErrors(array $data): array
                         foreach (['toolExecutionNotifications', 'toolConfigurationNotifications'] as $key) {
                             $notifications = $invocation[$key] ?? [];
 
-                            if (! is_array($notifications)) {
+                            if ((property_exists($runShape->invocations[$invocationIndex], $key) && ! is_array($runShape->invocations[$invocationIndex]->{$key})) || ! is_array($notifications)) {
                                 $errors[] = "scanner {$name} has invalid notifications";
 
                                 continue;

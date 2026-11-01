@@ -35,14 +35,21 @@ foreach (['pgsql', 'mysql', 'mariadb'] as $db) {
         $evidence['matrix'][] = ['name' => "db-{$db}-laravel{$laravel}", 'sha' => $sha, 'run_id' => '123-1', 'result' => 'success', 'lock' => $lock, 'lock_sha256' => hash('sha256', $lock)];
     }
 }
-foreach (['codeql-actions', 'codeql-javascript-typescript', 'zizmor', 'gitleaks-worktree', 'gitleaks-history'] as $scanner) {
-    $run = ['tool' => ['driver' => ['name' => str_starts_with($scanner, 'codeql-') ? 'CodeQL' : 'zizmor']], 'results' => []];
+$scopes = [
+    'codeql-actions' => 'CodeQL Actions extraction across the checked-out repository',
+    'codeql-javascript-typescript' => 'CodeQL JavaScript/TypeScript extraction across the checked-out repository, including docs/.vitepress/config.ts',
+    'zizmor' => 'GitHub Actions workflows in .github/workflows; pedantic, medium and higher',
+    'gitleaks-worktree' => 'Gitleaks directory scan of the checked-out worktree using the pinned rules without allowlists',
+    'gitleaks-history' => 'Gitleaks git patch scan of all commits reachable from the checked-out commit, including merge changes, using the pinned rules without allowlists',
+];
+foreach (array_keys($scopes) as $scanner) {
+    $run = ['tool' => ['driver' => ['name' => str_starts_with($scanner, 'codeql-') ? 'CodeQL' : 'zizmor']], 'results' => [], 'invocations' => [['executionSuccessful' => true]]];
 
     if (str_starts_with($scanner, 'codeql-')) {
         $run['automationDetails'] = ['id' => '/language:'.substr($scanner, 7).'/'];
     }
     $report = str_starts_with($scanner, 'gitleaks-') ? '[]' : json_encode(['version' => '2.1.0', 'runs' => [$run]], JSON_THROW_ON_ERROR);
-    $evidence['scanners'][] = ['scanner' => $scanner, 'sha' => $sha, 'run_id' => '123-1', 'outcome' => 'success', 'errors' => [], 'report' => $report, 'report_sha256' => hash('sha256', $report)];
+    $evidence['scanners'][] = ['scanner' => $scanner, 'scope' => $scopes[$scanner], 'sha' => $sha, 'run_id' => '123-1', 'outcome' => 'success', 'errors' => [], 'report' => $report, 'report_sha256' => hash('sha256', $report)];
 }
 foreach ([
     'composer' => ['advisories' => [], 'abandoned' => []],
@@ -152,14 +159,39 @@ $bad = $evidence;
 $bad['scanners'][0]['outcome'] = 'failure';
 $expect($bad, 'scanner codeql-actions outcome: failure');
 $bad = $evidence;
+$bad['scanners'][0]['scope'] = 'PHP';
+$expect($bad, 'scanner codeql-actions has invalid scope');
+$bad = $evidence;
 $bad['scanners'][0]['errors'] = ['analysis unavailable'];
 $expect($bad, 'analysis unavailable');
 $bad = $evidence;
 $bad['scanners'][0]['report'] = 'advisory finding';
 $expect($bad, 'report digest mismatch');
+foreach ([null, [], [['executionSuccessful' => false]], [['executionSuccessful' => true, 'toolExecutionNotifications' => [['level' => 'error']]]]] as $invocations) {
+    $bad = $evidence;
+    $report = json_decode($bad['scanners'][0]['report'], true, 512, JSON_THROW_ON_ERROR);
+    if ($invocations === null) {
+        unset($report['runs'][0]['invocations']);
+    } else {
+        $report['runs'][0]['invocations'] = $invocations;
+    }
+    $bad['scanners'][0]['report'] = json_encode($report, JSON_THROW_ON_ERROR);
+    $bad['scanners'][0]['report_sha256'] = hash('sha256', $bad['scanners'][0]['report']);
+    $expect($bad, 'scanner codeql-actions');
+}
+$bad = $evidence;
+$report = json_decode($bad['scanners'][0]['report'], false, 512, JSON_THROW_ON_ERROR);
+$report->runs[0]->results = new stdClass;
+$bad['scanners'][0]['report'] = json_encode($report, JSON_THROW_ON_ERROR);
+$bad['scanners'][0]['report_sha256'] = hash('sha256', $bad['scanners'][0]['report']);
+$expect($bad, 'invalid results');
 $bad = $evidence;
 $bad['scanners'][3]['report'] = '[{"finding":"secret"}]';
 $bad['scanners'][3]['report_sha256'] = hash('sha256', $bad['scanners'][3]['report']);
+$expect($bad, 'contains findings');
+$bad = $evidence;
+$bad['scanners'][3]['report'] = '{}';
+$bad['scanners'][3]['report_sha256'] = hash('sha256', '{}');
 $expect($bad, 'contains findings');
 $bad = $evidence;
 $bad['scanners'][] = $bad['scanners'][0];

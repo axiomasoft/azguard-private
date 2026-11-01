@@ -13,8 +13,8 @@ SCOPES = {
     'codeql-actions': 'CodeQL Actions extraction across the checked-out repository',
     'codeql-javascript-typescript': 'CodeQL JavaScript/TypeScript extraction across the checked-out repository, including docs/.vitepress/config.ts',
     'zizmor': 'GitHub Actions workflows in .github/workflows; pedantic, medium and higher',
-    'gitleaks-worktree': 'Gitleaks directory scan of the checked-out worktree',
-    'gitleaks-history': 'Gitleaks git scan of commits reachable from the checked-out commit',
+    'gitleaks-worktree': 'Gitleaks directory scan of the checked-out worktree using the pinned rules without allowlists',
+    'gitleaks-history': 'Gitleaks git patch scan of all commits reachable from the checked-out commit, including merge changes, using the pinned rules without allowlists',
 }
 
 
@@ -40,9 +40,9 @@ def validate_sarif(data, scanner):
         results = run.get('results')
         if not isinstance(results, list) or results:
             raise ValueError('SARIF results missing, invalid or contain findings')
-        invocations = run.get('invocations', [])
-        if not isinstance(invocations, list):
-            raise ValueError('invalid SARIF invocations')
+        invocations = run.get('invocations')
+        if not isinstance(invocations, list) or not invocations:
+            raise ValueError('missing or invalid SARIF invocations')
         for invocation in invocations:
             if not isinstance(invocation, dict) or invocation.get('executionSuccessful') is not True:
                 raise ValueError('SARIF invocation failed or incomplete')
