@@ -67,10 +67,15 @@ build_sbom() {
 }
 JSON
     (cd "${project}" && composer update --no-dev --no-scripts --no-plugins --no-interaction --no-progress >/dev/null)
+    sha256sum "${project}/composer.lock" > "${work}/sbom-${package}.lock.sha256"
     # Audit the exact production lock used for the SBOM, not the monorepo lock.
     (cd "${project}" && composer audit --locked --no-dev --abandoned=fail --no-interaction)
+    # Query the same production resolution against OSV before using it for the SBOM.
+    bash "${root}/bin/security-tools.sh" osv-scanner -- scan source --lockfile="${project}/composer.lock" --config="${root}/.github/osv-scanner.toml"
+    sha256sum --check "${work}/sbom-${package}.lock.sha256"
     # The scan reads composer.lock only; vendor/ is not part of the evidence.
     bash "${root}/bin/security-tools.sh" syft -- "dir:${project}" -o "cyclonedx-json=${out}/sbom-${package}.cdx.json" --quiet
+    sha256sum --check "${work}/sbom-${package}.lock.sha256"
     python3 - "${out}/sbom-${package}.cdx.json" "${name}" "${version}" <<'PY'
 import json, sys
 

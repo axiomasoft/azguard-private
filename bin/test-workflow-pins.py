@@ -117,9 +117,14 @@ jobs:
         self.check_bad(BASE.replace('      - run: echo safe', '      - env:\n          TITLE: "${{ github.event.pull_request.title }}"\n        run: python3 -c \'import os; os.system(os.environ["TITLE"])\''))
 
     def test_snapshot_binds_workflow_environment_and_runner(self):
+        for filename in ('compatibility.yml', 'release.yml', 'tests.yml'):
+            with self.subTest(filename=filename):
+                workflow = (pins.ROOT / '.github/workflows' / filename).read_text()
+                self.assertEqual([], pins.check_workflow(workflow, filename))
+                self.assertIn('reviewed workflow changed: full review and digest update required',
+                              pins.check_workflow(workflow + '\n# review required\n', filename))
         text = (pins.ROOT / '.github/workflows/compatibility.yml').read_text()
-        for modified in (text + '\n# review required\n',
-                         text.replace('permissions:\n', 'env: {GIT_EXTERNAL_DIFF: attacker}\npermissions:\n', 1),
+        for modified in (text.replace('permissions:\n', 'env: {GIT_EXTERNAL_DIFF: attacker}\npermissions:\n', 1),
                          text.replace('runs-on: ubuntu-latest', 'runs-on: ${{ github.event.pull_request.title }}')):
             self.assertTrue(pins.check_workflow(modified, 'compatibility.yml'))
 

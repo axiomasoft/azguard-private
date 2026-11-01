@@ -216,10 +216,29 @@ for repo in azguard azguard-filament; do
     if git --git-dir="$tmp/remotes/$repo.git" show-ref --verify --quiet refs/tags/v2.0.0-rc.1; then echo 'tag published after failed prerequisite' >&2; exit 1; fi
 done
 export FILAMENT_SHA="$(git --git-dir="$tmp/remotes/azguard-filament.git" rev-parse refs/heads/release-candidate/v2.0.0-rc.1/123/2)"
+# Reject the second push after the first succeeds, then exercise recovery.
+printf '#!/bin/sh\nexit 1\n' > "$tmp/remotes/azguard-filament.git/hooks/pre-receive"
+chmod +x "$tmp/remotes/azguard-filament.git/hooks/pre-receive"
+mkdir "$tmp/publish-partial"
+if RUNNER_TEMP="$tmp/publish-partial" bash "$tmp/publish-step.sh" >"$tmp/output" 2>&1; then echo 'publication ignored the second remote failure' >&2; exit 1; fi
+[[ "$(git --git-dir="$tmp/remotes/azguard.git" rev-parse refs/tags/v2.0.0-rc.1)" == "$CORE_SHA" ]]
+if git --git-dir="$tmp/remotes/azguard-filament.git" show-ref --verify --quiet refs/tags/v2.0.0-rc.1; then echo 'second tag unexpectedly exists' >&2; exit 1; fi
+rm "$tmp/remotes/azguard-filament.git/hooks/pre-receive"
+git -C "$tmp/work" push -q "$tmp/remotes/azguard-filament.git" "$sha:refs/tags/v2.0.0-rc.1"
+mkdir "$tmp/publish-conflict"
+if RUNNER_TEMP="$tmp/publish-conflict" bash "$tmp/publish-step.sh" >"$tmp/output" 2>&1; then echo 'publication accepted a conflicting existing tag' >&2; exit 1; fi
+[[ "$(git --git-dir="$tmp/remotes/azguard.git" rev-parse refs/tags/v2.0.0-rc.1)" == "$CORE_SHA" ]]
+git --git-dir="$tmp/remotes/azguard-filament.git" update-ref -d refs/tags/v2.0.0-rc.1
 mkdir "$tmp/publish-valid"
 RUNNER_TEMP="$tmp/publish-valid" bash "$tmp/publish-step.sh" >"$tmp/output" 2>&1
 [[ "$(git --git-dir="$tmp/remotes/azguard.git" rev-parse refs/tags/v2.0.0-rc.1)" == "$CORE_SHA" ]]
 [[ "$(git --git-dir="$tmp/remotes/azguard-filament.git" rev-parse refs/tags/v2.0.0-rc.1)" == "$FILAMENT_SHA" ]]
+for repo in azguard azguard-filament; do
+    if git --git-dir="$tmp/remotes/$repo.git" show-ref --verify --quiet refs/heads/release-candidate/v2.0.0-rc.1/123/2; then echo 'verified staging branch was not removed' >&2; exit 1; fi
+done
+# Restore fixture branches for the verifier's subsequent negative examples.
+git --git-dir="$tmp/remotes/azguard.git" update-ref refs/heads/release-candidate/v2.0.0-rc.1/123/2 "$CORE_SHA"
+git --git-dir="$tmp/remotes/azguard-filament.git" update-ref refs/heads/release-candidate/v2.0.0-rc.1/123/2 "$FILAMENT_SHA"
 
 # A changed archive with the original manifest must fail the digest check.
 printf 'tampered' > "$tmp/dist/azguard-core-2.0.0-rc.1.zip"

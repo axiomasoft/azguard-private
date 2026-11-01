@@ -110,13 +110,22 @@ function releaseViolations(array $workflows): array
         $violations[] = 'tests.yml: tag runs must not cancel each other';
     }
 
+    if (($workflows['compatibility.yml']['concurrency'] ?? null) !== [
+        'group' => 'compatibility-${{ github.ref_type == \'tag\' && github.run_id || github.ref }}',
+        'cancel-in-progress' => '${{ github.ref_type == \'branch\' && github.ref != \'refs/heads/main\' }}',
+    ]) {
+        $violations[] = 'compatibility.yml: tag runs must have separate non-cancelling groups';
+    }
+
     foreach (['test', 'test-db-matrix'] as $matrixJob) {
         $steps = releaseSteps($workflows['tests.yml']['jobs'][$matrixJob] ?? []);
         $runs = array_map(static fn (array $step): string => (string) ($step['run'] ?? ''), $steps);
         $resolve = array_search(true, array_map(static fn (string $run): bool => str_contains($run, 'composer update '), $runs), true);
         $audit = array_search('composer audit --locked --abandoned=fail', $runs, true);
+        $osv = array_search(true, array_map(static fn (string $run): bool => str_contains($run, 'bash bin/security-tools.sh osv-scanner -- scan source --lockfile=composer.lock --config=.github/osv-scanner.toml') && str_contains($run, 'sha256sum composer.lock > "$RUNNER_TEMP/audited-lock.sha256"') && str_contains($run, 'sha256sum --check "$RUNNER_TEMP/audited-lock.sha256"'), $runs), true);
         $row = array_search(true, array_map(static fn (string $run): bool => str_contains($run, 'matrix-row/row.json'), $runs), true);
-        if ($resolve === false || $audit === false || $row === false || $resolve >= $audit || $audit >= $row) {
+
+        if ($resolve === false || $audit === false || $osv === false || $row === false || $resolve >= $audit || $audit >= $osv || $osv >= $row || ! str_contains($runs[$row], 'sha256sum --check "$RUNNER_TEMP/audited-lock.sha256"')) {
             $violations[] = "tests.yml: {$matrixJob} must audit its resolved lock before recording success";
         }
     }
@@ -171,6 +180,7 @@ function releaseViolations(array $workflows): array
     $splitSteps = releaseSteps($workflows['split.yml']['jobs']['split'] ?? []);
     $publish = $jobs['publish-packages'] ?? [];
     $publishSteps = releaseSteps($publish);
+
     if ($needs('publish-packages') !== ['gate', 'provenance', 'split']
         || isset($publish['if'])
         || str_contains(releaseRuns($workflows['split.yml']['jobs']['split'] ?? []), 'refs/tags/')
@@ -246,6 +256,10 @@ function releaseViolations(array $workflows): array
     $artifacts = $jobs['artifacts'] ?? [];
     $artifactUses = implode("\n", array_map(static fn (array $step): string => (string) ($step['uses'] ?? ''), releaseSteps($artifacts)));
     $provenance = $jobs['provenance'] ?? [];
+
+    if (($provenance['timeout-minutes'] ?? 0) < 60) {
+        $violations[] = 'release.yml: provenance timeout must cover all bounded attestation waits';
+    }
     $permissions = $provenance['permissions'] ?? [];
     ksort($permissions);
 
@@ -259,6 +273,7 @@ function releaseViolations(array $workflows): array
 
     $provenanceSteps = releaseSteps($provenance);
     $verify = array_search(true, array_map(static fn (array $step): bool => str_contains((string) ($step['run'] ?? ''), 'bin/verify-release-split.sh'), $provenanceSteps), true);
+
     if ($verify === false || ! str_contains((string) ($provenanceSteps[$verify]['run'] ?? ''), '--dispatch-final')) {
         $violations[] = 'release.yml: split verification must dispatch and verify final attestations';
     }
@@ -360,14 +375,24 @@ it('audits the production lock before creating the SBOM', function (): void {
     $script = (string) file_get_contents(dirname(__DIR__, 2).'/bin/release-artifacts.sh');
     $valid = static function (string $script): bool {
         $resolve = strpos($script, 'composer update --no-dev --no-scripts --no-plugins --no-interaction --no-progress');
+        $fingerprint = strpos($script, 'sha256sum "${project}/composer.lock" > "${work}/sbom-${package}.lock.sha256"');
         $audit = strpos($script, 'composer audit --locked --no-dev --abandoned=fail --no-interaction');
+        $osv = strpos($script, 'osv-scanner -- scan source --lockfile="${project}/composer.lock"');
         $scan = strpos($script, 'syft --');
+        $check = 'sha256sum --check "${work}/sbom-${package}.lock.sha256"';
+        $beforeScan = $osv === false ? false : strpos($script, $check, $osv);
+        $afterScan = $scan === false ? false : strpos($script, $check, $scan);
 
-        return $resolve !== false && $audit !== false && $scan !== false && $resolve < $audit && $audit < $scan;
+        return $resolve !== false && $fingerprint !== false && $audit !== false && $osv !== false && $scan !== false
+            && $beforeScan !== false && $afterScan !== false
+            && $resolve < $fingerprint && $fingerprint < $audit && $audit < $osv && $osv < $beforeScan
+            && $beforeScan < $scan && $scan < $afterScan;
     };
 
     expect($valid($script))->toBeTrue()
-        ->and($valid(str_replace('composer audit --locked --no-dev --abandoned=fail --no-interaction', 'true', $script)))->toBeFalse();
+        ->and($valid(str_replace('composer audit --locked --no-dev --abandoned=fail --no-interaction', 'true', $script)))->toBeFalse()
+        ->and($valid(str_replace('osv-scanner -- scan source --lockfile="${project}/composer.lock"', 'true', $script)))->toBeFalse()
+        ->and($valid(str_replace('sha256sum --check "${work}/sbom-${package}.lock.sha256"', 'true', $script)))->toBeFalse();
 });
 
 it('accepts only the two same-commit forms of the expected workflow', function (): void {
@@ -444,6 +469,30 @@ it('reports a broken release graph', function (Closure $break, string $violation
 
         return $w;
     }, 'tests.yml: tag runs must not cancel each other'],
+    'cancelling tag compatibility' => [static function (array $w): array {
+        $w['compatibility.yml']['concurrency']['cancel-in-progress'] = '${{ github.ref != \'refs/heads/main\' }}';
+
+        return $w;
+    }, 'compatibility.yml: tag runs must have separate non-cancelling groups'],
+    'provenance timeout shorter than the waits' => [static function (array $w): array {
+        $w['release.yml']['jobs']['provenance']['timeout-minutes'] = 30;
+
+        return $w;
+    }, 'release.yml: provenance timeout must cover all bounded attestation waits'],
+    'missing matrix OSV scan' => [static function (array $w): array {
+        $w['tests.yml']['jobs']['test']['steps'] = array_values(array_filter($w['tests.yml']['jobs']['test']['steps'], static fn (array $step): bool => ($step['name'] ?? '') !== 'Scan resolved lock with OSV'));
+
+        return $w;
+    }, 'tests.yml: test must audit its resolved lock before recording success'],
+    'matrix lock changes after OSV scan' => [static function (array $w): array {
+        foreach ($w['tests.yml']['jobs']['test']['steps'] as &$step) {
+            if (($step['name'] ?? '') === 'Record successful matrix row') {
+                $step['run'] = str_replace('sha256sum --check "$RUNNER_TEMP/audited-lock.sha256"', 'true', $step['run']);
+            }
+        }
+
+        return $w;
+    }, 'tests.yml: test must audit its resolved lock before recording success'],
     'unaudited matrix lock' => [static function (array $w): array {
         $w['tests.yml']['jobs']['test']['steps'] = array_values(array_filter($w['tests.yml']['jobs']['test']['steps'], static fn (array $step): bool => ($step['name'] ?? '') !== 'Audit resolved dependencies'));
 

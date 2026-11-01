@@ -70,6 +70,13 @@ jobs:
       - name: Audit resolved dependencies
         run: composer audit --locked --abandoned=fail
 
+      - name: Scan resolved lock with OSV
+        run: |
+          set -Eeuo pipefail
+          sha256sum composer.lock > "$RUNNER_TEMP/audited-lock.sha256"
+          bash bin/security-tools.sh osv-scanner -- scan source --lockfile=composer.lock --config=.github/osv-scanner.toml
+          sha256sum --check "$RUNNER_TEMP/audited-lock.sha256"
+
       - name: Retain solved dependency graph
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
@@ -87,6 +94,7 @@ jobs:
         run: |
           set -Eeuo pipefail
           test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          sha256sum --check "$RUNNER_TEMP/audited-lock.sha256"
           mkdir -p "$RUNNER_TEMP/matrix-row"
           cp composer.lock "$RUNNER_TEMP/matrix-row/composer.lock"
           jq -n --arg sha "$GITHUB_SHA" --arg run_id "$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT" --arg name 'php${{ matrix.php }}-laravel${{ matrix.laravel_major }}-${{ matrix.stability }}' '{sha:$sha,run_id:$run_id,name:$name,result:"success"}' > "$RUNNER_TEMP/matrix-row/row.json"
@@ -176,6 +184,13 @@ jobs:
       - name: Audit resolved dependencies
         run: composer audit --locked --abandoned=fail
 
+      - name: Scan resolved lock with OSV
+        run: |
+          set -Eeuo pipefail
+          sha256sum composer.lock > "$RUNNER_TEMP/audited-lock.sha256"
+          bash bin/security-tools.sh osv-scanner -- scan source --lockfile=composer.lock --config=.github/osv-scanner.toml
+          sha256sum --check "$RUNNER_TEMP/audited-lock.sha256"
+
       - name: Retain solved dependency graph
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
@@ -193,6 +208,7 @@ jobs:
         run: |
           set -Eeuo pipefail
           test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          sha256sum --check "$RUNNER_TEMP/audited-lock.sha256"
           mkdir -p "$RUNNER_TEMP/matrix-row"
           cp composer.lock "$RUNNER_TEMP/matrix-row/composer.lock"
           jq -n --arg sha "$GITHUB_SHA" --arg run_id "$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT" --arg name 'db-${{ matrix.connection }}-laravel${{ matrix.laravel_major }}' '{sha:$sha,run_id:$run_id,name:$name,result:"success"}' > "$RUNNER_TEMP/matrix-row/row.json"

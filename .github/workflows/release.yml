@@ -346,7 +346,7 @@ jobs:
     name: Verify split mapping and attest final artifacts
     needs: [gate, split]
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 75
     permissions:
       contents: read
     outputs:
@@ -408,13 +408,27 @@ jobs:
             git init -q "$RUNNER_TEMP/$repo"
             git -C "$RUNNER_TEMP/$repo" fetch --quiet --depth=1 "$url" "$staging"
             [[ "$(git -C "$RUNNER_TEMP/$repo" rev-parse 'FETCH_HEAD^{commit}')" == "$expected" ]]
-            [[ -z "$(git ls-remote --tags "$url" "refs/tags/$GITHUB_REF_NAME")" ]]
+            existing="$(git ls-remote --refs --tags "$url" "refs/tags/$GITHUB_REF_NAME")"
+            [[ -z "$existing" || "$existing" == "$expected"$'\t'"refs/tags/$GITHUB_REF_NAME" ]] || { echo "::error::Existing $repo tag differs from verified split commit"; exit 1; }
           done
           for entry in "azguard:$CORE_SHA" "azguard-filament:$FILAMENT_SHA"; do
             repo="${entry%%:*}"
             expected="${entry#*:}"
             url="https://x-access-token@github.com/axiomasoft/$repo.git"
-            git -C "$RUNNER_TEMP/$repo" push "$url" "$expected:refs/tags/$GITHUB_REF_NAME"
+            existing="$(git ls-remote --refs --tags "$url" "refs/tags/$GITHUB_REF_NAME")"
+            if [[ -z "$existing" ]]; then
+              git -C "$RUNNER_TEMP/$repo" push "$url" "$expected:refs/tags/$GITHUB_REF_NAME"
+            else
+              [[ "$existing" == "$expected"$'\t'"refs/tags/$GITHUB_REF_NAME" ]]
+            fi
+          done
+          # Delete only the staging refs whose exact commits were verified.
+          for entry in "azguard:$CORE_SHA" "azguard-filament:$FILAMENT_SHA"; do
+            repo="${entry%%:*}"
+            expected="${entry#*:}"
+            url="https://x-access-token@github.com/axiomasoft/$repo.git"
+            staging="refs/heads/release-candidate/$GITHUB_REF_NAME/$GITHUB_RUN_ID/$GITHUB_RUN_ATTEMPT"
+            git -C "$RUNNER_TEMP/$repo" push --force-with-lease="$staging:$expected" "$url" ":$staging"
           done
 
   release:

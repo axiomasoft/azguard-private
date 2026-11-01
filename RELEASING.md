@@ -151,6 +151,12 @@ uses `MONOREPO_SPLIT_TOKEN`, which must also be permitted to dispatch that workf
 private run identity, candidate SHA, tag, attempt, and manifest before attesting the actual SBOM and manifest digests.
 Its custom predicate describes a relay of files from the private run; it does not claim that the public workflow built
 them. The private job verifies those subjects against the public workflow identity and split commit before publication.
+Each production SBOM resolution and each test matrix lock is also scanned by OSV before it can qualify the release.
+The two repositories cannot be updated atomically: a failed second tag push can leave one package published even though
+the release job fails. A retry runs the complete gate and provenance again, accepts an existing tag only when it is
+exactly the verified split commit, and rejects any conflicting tag. After both tags are verified, the workflow deletes
+the staging branches using commit-specific leases. A failed run can leave staging branches; inspect and remove those
+only after preserving any required evidence and confirming their run and commit, with the required separate authorization.
 The public workflow must already exist on the split repository default branch for GitHub workflow dispatch. Provisioning
 these permissions and secrets, and qualifying the flow in a real run, require separately authorized setup. No private
 attestation entitlement is assumed. Verify downloads with a `gh` version supporting attestations:
