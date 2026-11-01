@@ -4,4 +4,4 @@ rules:
   superfluous-actions:
     ignore:
       # owner: @academici; reason: retain the pinned release action's existing release semantics; expires: 2027-04-17
-      - release.yml:401
+      - release.yml:445

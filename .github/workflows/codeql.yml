@@ -30,7 +30,7 @@ jobs:
       matrix:
         # CodeQL extracts GitHub Actions workflows and JavaScript/TypeScript sources,
         # including docs/.vitepress/config.ts. PHP is not a CodeQL language: PHPStan/
-        # Larastan, tests, mutation, Composer audit and Semgrep are separate controls.
+        # Larastan, tests, Composer audit and Semgrep are separate controls.
         language: [actions, javascript-typescript]
     steps:
       - name: Checkout
@@ -47,7 +47,7 @@ jobs:
         id: analyze
         uses: github/codeql-action/analyze@ce5e7eeac396d720fe2d802714996c8ce561e311 # v3.39.0
         with:
-          category: '/language:${{ matrix.language }}'
+          category: '/language:${{ matrix.language }}/'
           output: ../codeql-results
 
       - name: Enforce report and bind it to the checked-out commit

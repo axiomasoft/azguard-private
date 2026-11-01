@@ -36,7 +36,7 @@ EXTERNAL = re.compile(r'^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+(?:/[A-Za-z0-9_.-]+)*@[0
 REVIEWED_WORKFLOWS = {
     'bench.yml': '7c74b235f4378986e824240728c964dc86ffe667a8f665e001156181c5107f9d',
     'code-style.yml': '47fc04265aa785339ee1f6e024feb4179268f5b50e69038894803d200ce0d51d',
-    'codeql.yml': 'd4bab2b8a665e79f66cc7e5a1815b49f9eadc495d480a6eff08720e199f273aa',
+    'codeql.yml': '16e1c3bf853fdb28d2e0cab5f2a1c2d646fb34b95afd9833b33bcaf5fa64d276',
     'compatibility.yml': '9265ea0c66f1083dde332e7f7de35c55aecf928f21ae92a012e90bf30f4acf71',
     'dependabot-auto-merge.yml': '37976e5af8911e7ba507395c74cf5d453f9ddbafc3b627ba87118e6eab8f0a54',
     'docs-deploy.yml': '15efe0198116c95ea5205fc336f8eef90139efc68e157b00d1259c1dece6d5bf',
@@ -44,7 +44,7 @@ REVIEWED_WORKFLOWS = {
     'pr-check.yml': 'b72cad5c81a8fe3d9692fd65af390ace4a63c705f7219dc6f8b5f929fd0bb493',
     'release.yml': 'ddc04e3328045c2eca5e3b4d098125881b07286c1ec2221b3e8cab203ad86a8a',
     'secret-scan.yml': 'f290709551ac446e93dc2350348fe5f11dfa7a21d36638d7082abdf0a5918ae7',
-    'security.yml': '8c897b09e7a97184f686c135055e7b4d89f083c339890290730ebde3cafb89bd',
+    'security.yml': '8783771def06dce7fa95053b5fbbb1ddc2de46760749009ceda34a8da3aeb8a6',
     'split.yml': '44098f68ec5a8db29afba6ccab2ca91b2539dbc0d9622ba6da59051b1a912d11',
     'static-analysis.yml': '75cfd1b9002f8fd952cf48a51dd07ab94a3836385ba3c6b9351ed79b677d1b05',
     'tests-nightly.yml': 'f8a9a70f743fd556b8907537fa45c959d6f55b187d98d0f3d87bd9152a98021c',

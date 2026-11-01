@@ -4,7 +4,7 @@
 paths:
   .github/workflows/release.yml:
     ignore:
-      - '^reusable workflow call "\$/\.github/workflows/(tests|static-analysis|code-style|docs|tests-nightly|compatibility|workers|security|codeql|zizmor|secret-scan|mutation|split)\.yml" at "uses" is not following the format '
+      - '^reusable workflow call "\$/\.github/workflows/(tests|static-analysis|code-style|docs|tests-nightly|compatibility|workers|security|codeql|zizmor|secret-scan|split)\.yml" at "uses" is not following the format '
   .github/workflows/docs-deploy.yml:
     ignore:
       - '^reusable workflow call "\$/\.github/workflows/docs\.yml" at "uses" is not following the format '

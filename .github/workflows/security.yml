@@ -19,8 +19,8 @@ defaults:
     shell: bash
 
 concurrency:
-  group: security-${{ github.ref }}
-  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+  group: security-${{ github.ref_type == 'tag' && github.run_id || github.ref }}
+  cancel-in-progress: ${{ github.ref_type == 'branch' && github.ref != 'refs/heads/main' }}
 
 jobs:
   workflow-pins:

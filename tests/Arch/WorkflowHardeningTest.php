@@ -57,6 +57,17 @@ it('rejects an unsafe package workflow and a package omitted from the scanner', 
     }
 });
 
+it('isolates tag security runs from cancellation and pending-run replacement', function (): void {
+    $workflow = Yaml::parseFile(dirname(__DIR__, 2).'/.github/workflows/security.yml');
+    $concurrency = $workflow['concurrency'];
+    $expected = 'security-${{ github.ref_type == \'tag\' && github.run_id || github.ref }}';
+    $cancel = '${{ github.ref_type == \'branch\' && github.ref != \'refs/heads/main\' }}';
+
+    expect($concurrency['group'])->toBe($expected)
+        ->and($concurrency['cancel-in-progress'])->toBe($cancel)
+        ->and(str_replace('github.run_id', 'github.ref', $concurrency['group']))->not->toBe($expected);
+});
+
 it('reports exactly its own rule for the negative fixture', function (string $rule): void {
     $violations = workflowFileViolations(__DIR__.'/Fixtures/Workflows/'.$rule.'.yml');
 

@@ -99,6 +99,8 @@ class ResultTests(unittest.TestCase):
         self.assertTrue(self.check(sha='bad'))
 
     def test_codeql_category_must_match_the_requested_language(self):
+        workflow = Path(__file__).resolve().parents[1] / '.github/workflows/codeql.yml'
+        self.assertIn("category: '/language:${{ matrix.language }}/'", workflow.read_text())
         self.assertTrue(self.check(scanner='codeql-javascript-typescript'))
         for category in (None, '', '/language:actions', '/language:php/', '/language:actions/extra/'):
             with self.subTest(category=category):

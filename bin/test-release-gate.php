@@ -173,6 +173,14 @@ foreach ([
 $bad = $evidence;
 $bad['scanners'][0]['errors'] = ['analysis unavailable'];
 $expect($bad, 'analysis unavailable');
+foreach (['/language:actions', '/language:php/', '/language:javascript-typescript/'] as $category) {
+    $bad = $evidence;
+    $report = json_decode($bad['scanners'][0]['report'], true, 512, JSON_THROW_ON_ERROR);
+    $report['runs'][0]['automationDetails']['id'] = $category;
+    $bad['scanners'][0]['report'] = json_encode($report, JSON_THROW_ON_ERROR);
+    $bad['scanners'][0]['report_sha256'] = hash('sha256', $bad['scanners'][0]['report']);
+    $expect($bad, 'incorrect SARIF category');
+}
 $bad = $evidence;
 $bad['scanners'][0]['report'] = 'advisory finding';
 $expect($bad, 'report digest mismatch');

@@ -37,7 +37,7 @@ Mount or symlink the package directory into the app, then `composer update`.
 
 The root `composer.lock` records the PHP 8.4 / Laravel 13 development graph.
 Use `composer install` without updating the lock for locked CI, analysis,
-mutation and release tooling; changes to that graph should be reviewed with
+and release tooling; changes to that graph should be reviewed with
 the lock. This lock belongs to the monorepo and is excluded from archives; it
 does not constrain applications consuming either library.
 
