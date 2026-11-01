@@ -56,13 +56,21 @@ jobs:
           persist-credentials: false
 
       - name: Split packages/${{ matrix.package.dir }} -> ${{ matrix.package.name }}
-        uses: symplify/monorepo-split-github-action@14e42e2437f674b8987c1f50ca3689116aea1893 # v2.4.5
         env:
-          GITHUB_TOKEN: ${{ secrets.MONOREPO_SPLIT_TOKEN }}
-        with:
-          tag: ${{ github.ref_name }}
-          package_directory: packages/${{ matrix.package.dir }}
-          repository_organization: axiomasoft
-          repository_name: ${{ matrix.package.name }}
-          user_name: 'github-actions[bot]'
-          user_email: 'github-actions[bot]@users.noreply.github.com'
+          SPLIT_TOKEN: ${{ secrets.MONOREPO_SPLIT_TOKEN }}
+          PACKAGE: ${{ matrix.package.dir }}
+          REPOSITORY: ${{ matrix.package.name }}
+        run: |
+          set -Eeuo pipefail
+          [[ "$GITHUB_REF_NAME" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?$ ]]
+          [[ "$GITHUB_RUN_ID" =~ ^[0-9]+$ && "$GITHUB_RUN_ATTEMPT" =~ ^[0-9]+$ ]]
+          [[ "$PACKAGE:$REPOSITORY" == core:azguard || "$PACKAGE:$REPOSITORY" == filament:azguard-filament ]]
+          [[ "$(git rev-parse HEAD)" == "$GITHUB_SHA" ]]
+          split_sha="$(git subtree split --prefix="packages/$PACKAGE" "$GITHUB_SHA")"
+          [[ "$split_sha" =~ ^[0-9a-f]{40}$ ]]
+          askpass="$(mktemp)"
+          trap 'rm -f "$askpass"' EXIT
+          printf '#!/bin/sh\nprintf "%%s\\n" "$SPLIT_TOKEN"\n' > "$askpass"
+          chmod 700 "$askpass"
+          export GIT_ASKPASS="$askpass" GIT_TERMINAL_PROMPT=0
+          git push "https://x-access-token@github.com/axiomasoft/$REPOSITORY.git" "$split_sha:refs/heads/release-candidate/$GITHUB_REF_NAME/$GITHUB_RUN_ID/$GITHUB_RUN_ATTEMPT"

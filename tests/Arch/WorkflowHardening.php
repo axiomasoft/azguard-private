@@ -18,6 +18,8 @@ const WORKFLOW_WRITE_PERMISSIONS = [
     'codeql.yml' => ['analyze' => ['security-events']],
     'dependabot-auto-merge.yml' => ['auto-merge' => ['pull-requests'], 'sweep' => ['pull-requests']],
     'pr-check.yml' => ['size' => ['pull-requests']],
+    'packages/core/.github/workflows/provenance.yml' => ['provenance' => ['id-token', 'attestations'], 'relay-final-artifacts' => ['id-token', 'attestations']],
+    'packages/filament/.github/workflows/provenance.yml' => ['provenance' => ['id-token', 'attestations'], 'relay-final-artifacts' => ['id-token', 'attestations']],
 ];
 
 /** The longest an allowlist entry may live, in days from the day it is checked. */
@@ -30,6 +32,13 @@ const ZIZMOR_ALLOWLIST_MAX_DAYS = 180;
 function workflowHardeningViolations(string $file, string $raw, array $parsed): array
 {
     $name = basename($file);
+    $permissionName = $name;
+    foreach (['core', 'filament'] as $package) {
+        $packagePath = "packages/{$package}/.github/workflows/provenance.yml";
+        if ($file === $packagePath || str_ends_with($file, '/'.$packagePath)) {
+            $permissionName = $packagePath;
+        }
+    }
     $violations = [];
     $jobs = is_array($parsed['jobs'] ?? null) ? $parsed['jobs'] : [];
 
@@ -79,7 +88,7 @@ function workflowHardeningViolations(string $file, string $raw, array $parsed): 
             $violations[] = 'continue-on-error '.$jobLocator;
         }
 
-        foreach (workflowWriteViolations($name, (string) $jobId, $job['permissions'] ?? null) as $permission) {
+        foreach (workflowWriteViolations($permissionName, (string) $jobId, $job['permissions'] ?? null) as $permission) {
             $violations[] = 'write-permission '.$jobLocator.'.permissions.'.$permission;
         }
 

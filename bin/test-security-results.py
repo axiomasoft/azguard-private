@@ -39,6 +39,16 @@ class ResultTests(unittest.TestCase):
         self.assertEqual(checker.SCOPES['codeql-actions'], record['scope'])
         self.assertEqual(64, len(record['report_sha256']))
 
+    def test_zizmor_records_all_workflow_directories(self):
+        self.sarif['runs'][0]['tool']['driver']['name'] = 'zizmor'
+        self.write(self.sarif)
+        self.assertFalse(self.check(scanner='zizmor'))
+        record = json.loads(self.metadata.read_text())
+        self.assertEqual(
+            'GitHub Actions workflows in .github/workflows, packages/core/.github/workflows, and packages/filament/.github/workflows; pedantic, medium and higher',
+            record['scope'],
+        )
+
     def test_findings_skipped_failed_timeout_and_invalid_scope_fail(self):
         for outcome in ('failure', 'skipped', 'cancelled', 'timed_out', ''):
             with self.subTest(outcome=outcome):

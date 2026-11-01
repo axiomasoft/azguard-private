@@ -42,21 +42,21 @@ REVIEWED_WORKFLOWS = {
     'docs-deploy.yml': '15efe0198116c95ea5205fc336f8eef90139efc68e157b00d1259c1dece6d5bf',
     'docs.yml': '4ae6826bdb0d02c9df13a82b4865c85bc21811b0f296412c8f02018422ba22d6',
     'pr-check.yml': 'b72cad5c81a8fe3d9692fd65af390ace4a63c705f7219dc6f8b5f929fd0bb493',
-    'release.yml': '2e6214fd4ef5ea5c4d0f2e4d3489109717815bbb058c26eef01b98334fe1409b',
+    'release.yml': 'ddc04e3328045c2eca5e3b4d098125881b07286c1ec2221b3e8cab203ad86a8a',
     'secret-scan.yml': 'f290709551ac446e93dc2350348fe5f11dfa7a21d36638d7082abdf0a5918ae7',
     'security.yml': '8c897b09e7a97184f686c135055e7b4d89f083c339890290730ebde3cafb89bd',
-    'split.yml': '2493466b3d4964b59befe7eb171e30466ecde3f6f34d7a5526c0d99ad168b578',
+    'split.yml': '44098f68ec5a8db29afba6ccab2ca91b2539dbc0d9622ba6da59051b1a912d11',
     'static-analysis.yml': '75cfd1b9002f8fd952cf48a51dd07ab94a3836385ba3c6b9351ed79b677d1b05',
     'tests-nightly.yml': 'f8a9a70f743fd556b8907537fa45c959d6f55b187d98d0f3d87bd9152a98021c',
-    'tests.yml': 'd5b965c0edee3bcef896765ccb619fad7ad6e3a51fb4569d049351e301452be0',
+    'tests.yml': '1752d2fab7f1eeeccccd6ac7506b4923b999467ef92c4b8dadd4c8abbf87df6c',
     'workers.yml': 'a0d14c246f8bb936af5fac18326cfc84c795304bf93f31869b5ff5a1522ac546',
-    'zizmor.yml': 'd5bf6299059cb222f7928ea541df8ef33f5e69b7362b04f0e68a809cb43b7d86',
+    'zizmor.yml': 'd7338cef329eff163bb36db65998823d8ff92839c1b100f29eb481575ae95581',
 }
 # Set each digest only after independent review of the exact package workflow.
 # Until then these required workflows deliberately fail closed.
 REVIEWED_PACKAGE_WORKFLOWS = {
-    'packages/core/.github/workflows/provenance.yml': '9f932cef4b7b1067b6beaf7ea9789dce78810c8b4e61065576b9527a305eaf71',
-    'packages/filament/.github/workflows/provenance.yml': '9f932cef4b7b1067b6beaf7ea9789dce78810c8b4e61065576b9527a305eaf71',
+    'packages/core/.github/workflows/provenance.yml': '5d927ba9ef7e699543b204b5749eeb7bdf00952cb42ae389e4fcdbf5c28332ac',
+    'packages/filament/.github/workflows/provenance.yml': '5d927ba9ef7e699543b204b5749eeb7bdf00952cb42ae389e4fcdbf5c28332ac',
 }
 UNTRUSTED = re.compile(r'\$\{\{.*?(?:\bgithub\b|\binputs\b|\benv\b)', re.I | re.S)
 # Only these action inputs are known to consume the value as data, not script.

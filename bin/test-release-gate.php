@@ -38,7 +38,7 @@ foreach (['pgsql', 'mysql', 'mariadb'] as $db) {
 $scopes = [
     'codeql-actions' => 'CodeQL Actions extraction across the checked-out repository',
     'codeql-javascript-typescript' => 'CodeQL JavaScript/TypeScript extraction across the checked-out repository, including docs/.vitepress/config.ts',
-    'zizmor' => 'GitHub Actions workflows in .github/workflows; pedantic, medium and higher',
+    'zizmor' => 'GitHub Actions workflows in .github/workflows, packages/core/.github/workflows, and packages/filament/.github/workflows; pedantic, medium and higher',
     'gitleaks-worktree' => 'Gitleaks directory scan of the checked-out worktree using the pinned rules without allowlists',
     'gitleaks-history' => 'Gitleaks git patch scan of all commits reachable from the checked-out commit, including merge changes, using the pinned rules without allowlists',
 ];
@@ -161,6 +161,15 @@ $expect($bad, 'scanner codeql-actions outcome: failure');
 $bad = $evidence;
 $bad['scanners'][0]['scope'] = 'PHP';
 $expect($bad, 'scanner codeql-actions has invalid scope');
+foreach ([
+    'GitHub Actions workflows in .github/workflows; pedantic, medium and higher',
+    'GitHub Actions workflows in .github/workflows, packages/core/.github/workflows; pedantic, medium and higher',
+    'GitHub Actions workflows in .github/workflows, packages/filament/.github/workflows; pedantic, medium and higher',
+] as $incompleteScope) {
+    $bad = $evidence;
+    $bad['scanners'][2]['scope'] = $incompleteScope;
+    $expect($bad, 'scanner zizmor has invalid scope');
+}
 $bad = $evidence;
 $bad['scanners'][0]['errors'] = ['analysis unavailable'];
 $expect($bad, 'analysis unavailable');

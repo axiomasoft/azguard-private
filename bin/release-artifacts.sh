@@ -67,6 +67,8 @@ build_sbom() {
 }
 JSON
     (cd "${project}" && composer update --no-dev --no-scripts --no-plugins --no-interaction --no-progress >/dev/null)
+    # Audit the exact production lock used for the SBOM, not the monorepo lock.
+    (cd "${project}" && composer audit --locked --no-dev --abandoned=fail --no-interaction)
     # The scan reads composer.lock only; vendor/ is not part of the evidence.
     bash "${root}/bin/security-tools.sh" syft -- "dir:${project}" -o "cyclonedx-json=${out}/sbom-${package}.cdx.json" --quiet
     python3 - "${out}/sbom-${package}.cdx.json" "${name}" "${version}" <<'PY'

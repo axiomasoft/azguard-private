@@ -25,14 +25,14 @@ jobs:
         with:
           persist-credentials: false
 
-      # Scope: all collected GitHub Actions workflows in .github/workflows;
+      # Scope: root and split-package GitHub Actions workflows;
       # pedantic findings of medium severity or higher block this control.
       - name: Audit workflows
         id: scan
         run: |
           set -Eeuo pipefail
           mkdir -p "$RUNNER_TEMP/zizmor-results"
-          bash bin/security-tools.sh zizmor -- --strict-collection --format=sarif --persona=pedantic --min-severity=medium --config=.github/zizmor.yml .github/workflows/ > "$RUNNER_TEMP/zizmor-results/zizmor.sarif"
+          bash bin/security-tools.sh zizmor -- --strict-collection --format=sarif --persona=pedantic --min-severity=medium --config=.github/zizmor.yml .github/workflows/ packages/core/.github/workflows/ packages/filament/.github/workflows/ > "$RUNNER_TEMP/zizmor-results/zizmor.sarif"
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 

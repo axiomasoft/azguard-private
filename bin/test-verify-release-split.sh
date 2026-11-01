@@ -8,9 +8,11 @@ export GIT_CONFIG_NOSYSTEM=1 GIT_CONFIG_GLOBAL="$tmp/gitconfig"
 git config --global user.name 'Split fixture'
 git config --global user.email 'split-fixture@example.invalid'
 git config --global "url.file://$tmp/remotes/.insteadOf" 'https://github.com/axiomasoft/'
+git config --global --add "url.file://$tmp/remotes/.insteadOf" 'https://x-access-token@github.com/axiomasoft/'
 mkdir -p "$tmp/work/packages/core" "$tmp/work/packages/filament" "$tmp/remotes" "$tmp/dist"
 mkdir "$tmp/bin"
 export PATH="$tmp/bin:$PATH" SPLIT_FIXTURE="$tmp"
+export GITHUB_RUN_ID=123 GITHUB_RUN_ATTEMPT=2
 cat > "$tmp/bin/gh" <<'SH'
 #!/usr/bin/env bash
 set -Eeuo pipefail
@@ -51,7 +53,7 @@ if [[ ${RELAY_FIXTURE:-} == 1 ]]; then
     exit
 fi
 if [[ "$1" == workflow && "$2" == run ]]; then
-    [[ "$*" == "workflow run provenance.yml --repo axiomasoft/azguard --ref v2.0.0-rc.1 -f candidate=$(git -C "$SPLIT_FIXTURE/work" rev-parse HEAD) -f run_id=123 -f run_attempt=2" ]]
+    [[ "$*" == "workflow run provenance.yml --repo axiomasoft/azguard --ref release-candidate/v2.0.0-rc.1/123/2 -f candidate=$(git -C "$SPLIT_FIXTURE/work" rev-parse HEAD) -f run_id=123 -f run_attempt=2" ]]
     exit
 fi
 [[ ( $# == 13 || $# == 17 ) && "$1" == attestation && "$2" == verify && "$4" == --repo && "$6" == --signer-workflow && "$8" == --signer-digest && "${10}" == --source-digest && "${12}" == --source-ref ]] || exit 1
@@ -59,15 +61,15 @@ repo="${5#axiomasoft/}"
 [[ "$repo" == azguard || "$repo" == azguard-filament ]] || exit 1
 package=core
 [[ "$repo" == azguard-filament ]] && package=filament
-commit="$(git --git-dir="$SPLIT_FIXTURE/remotes/$repo.git" rev-parse 'refs/tags/v2.0.0-rc.1^{commit}')"
+commit="$(git --git-dir="$SPLIT_FIXTURE/remotes/$repo.git" rev-parse 'refs/heads/release-candidate/v2.0.0-rc.1/123/2^{commit}')"
 [[ "$6" == --signer-workflow && "$7" == "axiomasoft/$repo/.github/workflows/provenance.yml${BAD_SIGNER:-}" ]]
 [[ "$9" == "$commit${BAD_COMMIT:-}" && "${11}" == "$commit${BAD_COMMIT:-}" ]]
-[[ "${13:-}" == "refs/tags/v2.0.0-rc.1${BAD_REF:-}" ]]
+[[ "${13:-}" == "refs/heads/release-candidate/v2.0.0-rc.1/123/2${BAD_REF:-}" ]]
 if [[ $# == 17 ]]; then
     [[ "$repo" == azguard && "${14}" == --predicate-type && "${15}" == https://axiomasoft.github.io/azguard/attestations/release-artifact-relay/v1 && "${16}" == --format && "${17}" == json ]]
     [[ "$7" == "axiomasoft/$repo/.github/workflows/provenance.yml${BAD_FINAL_SIGNER:-}" ]]
     [[ "$9" == "$commit${BAD_FINAL_COMMIT:-}" && "${11}" == "$commit${BAD_FINAL_COMMIT:-}" ]]
-    [[ "${13}" == "refs/tags/v2.0.0-rc.1${BAD_FINAL_REF:-}" ]]
+    [[ "${13}" == "refs/heads/release-candidate/v2.0.0-rc.1/123/2${BAD_FINAL_REF:-}" ]]
     subject="$(basename "$3")"
     [[ "$(sha256sum "$3" | cut -d' ' -f1)" == "$(<"$SPLIT_FIXTURE/$subject.digest")${BAD_FINAL_DIGEST:-}" ]]
     jq -n --arg sha "${BAD_PREDICATE_SHA:-$(git -C "$SPLIT_FIXTURE/work" rev-parse HEAD)}" --arg run "${BAD_PREDICATE_RUN:-123}" --arg attempt "${BAD_PREDICATE_ATTEMPT:-2}" '[{verificationResult:{statement:{predicate:{candidate:$sha,run_id:$run,run_attempt:$attempt}}}}]'
@@ -94,7 +96,7 @@ for package in core filament; do
     [[ "$package" == filament ]] && name=azguard-filament
     split="$(git -C "$tmp/work" subtree split --prefix="packages/$package" "$sha" 2>/dev/null)"
     git init --bare -q "$tmp/remotes/$name.git"
-    git -C "$tmp/work" push -q "$tmp/remotes/$name.git" "$split:refs/tags/v2.0.0-rc.1"
+    git -C "$tmp/work" push -q "$tmp/remotes/$name.git" "$split:refs/heads/release-candidate/v2.0.0-rc.1/123/2"
     cp -a "$tmp/work/packages/$package" "$tmp/package-$package"
     php -r '$p=$argv[1]; $j=json_decode(file_get_contents($p), true, 512, JSON_THROW_ON_ERROR); $j["version"]=$argv[2]; file_put_contents($p,json_encode($j,JSON_PRETTY_PRINT|JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE)."\n");' "$tmp/package-$package/composer.json" 2.0.0-rc.1
     mkdir "$tmp/archive-$package"
@@ -173,7 +175,7 @@ checksums
 root="$(cd "$(dirname "$verifier")/.." && pwd)"
 php -r 'require $argv[1]."/vendor/autoload.php"; $w=Symfony\Component\Yaml\Yaml::parseFile($argv[1]."/packages/core/.github/workflows/provenance.yml"); echo $w["jobs"]["relay-final-artifacts"]["steps"][0]["run"];' "$root" > "$tmp/relay-step.sh"
 mkdir "$tmp/relay" "$tmp/relay-temp"
-export FIXTURE_CANDIDATE="$sha" CANDIDATE="$sha" RELEASE_RUN_ID=123 RELEASE_RUN_ATTEMPT=2 GITHUB_REF=refs/tags/v2.0.0-rc.1 RUNNER_TEMP="$tmp/relay-temp" RELAY_FIXTURE=1
+export FIXTURE_CANDIDATE="$sha" CANDIDATE="$sha" RELEASE_RUN_ID=123 RELEASE_RUN_ATTEMPT=2 GITHUB_REF=refs/heads/release-candidate/v2.0.0-rc.1/123/2 RUNNER_TEMP="$tmp/relay-temp" RELAY_FIXTURE=1
 run_relay() { rm -rf "$tmp/relay/dist"; (cd "$tmp/relay" && bash "$tmp/relay-step.sh"); }
 run_relay >"$tmp/output" 2>&1
 for variable in RELAY_SHA RELAY_TAG RELAY_PATH RELAY_ATTEMPT RELAY_TAMPER; do
@@ -203,6 +205,22 @@ if run_relay >"$tmp/output" 2>&1; then echo 'relay accepted unsuccessful complet
 unset RELAY_RUN_STATUS
 unset RELAY_FIXTURE
 
+# Exercise the real publication step against disposable local remotes. A bad
+# second split must not publish even the first package tag.
+php -r 'require $argv[1]."/vendor/autoload.php"; $w=Symfony\Component\Yaml\Yaml::parseFile($argv[1]."/.github/workflows/release.yml"); echo $w["jobs"]["publish-packages"]["steps"][0]["run"];' "$root" > "$tmp/publish-step.sh"
+export GITHUB_REF_NAME=v2.0.0-rc.1 SPLIT_TOKEN=fixture CORE_SHA="$(git --git-dir="$tmp/remotes/azguard.git" rev-parse refs/heads/release-candidate/v2.0.0-rc.1/123/2)"
+export FILAMENT_SHA=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+mkdir "$tmp/publish-invalid"
+if RUNNER_TEMP="$tmp/publish-invalid" bash "$tmp/publish-step.sh" >"$tmp/output" 2>&1; then echo 'publication accepted wrong split SHA' >&2; exit 1; fi
+for repo in azguard azguard-filament; do
+    if git --git-dir="$tmp/remotes/$repo.git" show-ref --verify --quiet refs/tags/v2.0.0-rc.1; then echo 'tag published after failed prerequisite' >&2; exit 1; fi
+done
+export FILAMENT_SHA="$(git --git-dir="$tmp/remotes/azguard-filament.git" rev-parse refs/heads/release-candidate/v2.0.0-rc.1/123/2)"
+mkdir "$tmp/publish-valid"
+RUNNER_TEMP="$tmp/publish-valid" bash "$tmp/publish-step.sh" >"$tmp/output" 2>&1
+[[ "$(git --git-dir="$tmp/remotes/azguard.git" rev-parse refs/tags/v2.0.0-rc.1)" == "$CORE_SHA" ]]
+[[ "$(git --git-dir="$tmp/remotes/azguard-filament.git" rev-parse refs/tags/v2.0.0-rc.1)" == "$FILAMENT_SHA" ]]
+
 # A changed archive with the original manifest must fail the digest check.
 printf 'tampered' > "$tmp/dist/azguard-core-2.0.0-rc.1.zip"
 reject 'FAILED'
@@ -220,7 +238,7 @@ cp "$tmp/archive-core/"*.zip "$tmp/dist/azguard-core-2.0.0-rc.1.zip"
 checksums
 
 # A changed split tree must fail even if the local candidate and ZIP are intact.
-git -C "$tmp/work" push -q --force "$tmp/remotes/azguard.git" "$sha:refs/tags/v2.0.0-rc.1"
+git -C "$tmp/work" push -q --force "$tmp/remotes/azguard.git" "$sha:refs/heads/release-candidate/v2.0.0-rc.1/123/2"
 reject 'split tree mismatch: core'
 # A tag pointing elsewhere must be rejected before any remote verification.
 git -C "$tmp/work" commit --allow-empty -qm 'different tag target'

@@ -106,6 +106,21 @@ function releaseViolations(array $workflows): array
         $violations[] = 'release.yml: releases need a separate non-cancelling concurrency group';
     }
 
+    if (($workflows['tests.yml']['concurrency']['cancel-in-progress'] ?? null) !== '${{ github.ref != \'refs/heads/main\' && !startsWith(github.ref, \'refs/tags/\') }}') {
+        $violations[] = 'tests.yml: tag runs must not cancel each other';
+    }
+
+    foreach (['test', 'test-db-matrix'] as $matrixJob) {
+        $steps = releaseSteps($workflows['tests.yml']['jobs'][$matrixJob] ?? []);
+        $runs = array_map(static fn (array $step): string => (string) ($step['run'] ?? ''), $steps);
+        $resolve = array_search(true, array_map(static fn (string $run): bool => str_contains($run, 'composer update '), $runs), true);
+        $audit = array_search('composer audit --locked --abandoned=fail', $runs, true);
+        $row = array_search(true, array_map(static fn (string $run): bool => str_contains($run, 'matrix-row/row.json'), $runs), true);
+        if ($resolve === false || $audit === false || $row === false || $resolve >= $audit || $audit >= $row) {
+            $violations[] = "tests.yml: {$matrixJob} must audit its resolved lock before recording success";
+        }
+    }
+
     foreach (['validate', 'validate-consumers', 'artifacts', 'release'] as $job) {
         $checkouts = array_values(array_filter(releaseSteps($jobs[$job] ?? []), static fn (array $step): bool => str_starts_with((string) ($step['uses'] ?? ''), 'actions/checkout@')));
 
@@ -153,8 +168,22 @@ function releaseViolations(array $workflows): array
     if ($needs('provenance') !== ['gate', 'split']) {
         $violations[] = 'release.yml: provenance must follow gate and split';
     }
+    $splitSteps = releaseSteps($workflows['split.yml']['jobs']['split'] ?? []);
+    $publish = $jobs['publish-packages'] ?? [];
+    $publishSteps = releaseSteps($publish);
+    if ($needs('publish-packages') !== ['gate', 'provenance', 'split']
+        || isset($publish['if'])
+        || str_contains(releaseRuns($workflows['split.yml']['jobs']['split'] ?? []), 'refs/tags/')
+        || array_filter($splitSteps, static fn (array $step): bool => isset($step['with']['tag'])) !== []
+        || ($jobs['provenance']['outputs']['core_sha'] ?? null) !== '${{ steps.verify.outputs.core_sha }}'
+        || ($jobs['provenance']['outputs']['filament_sha'] ?? null) !== '${{ steps.verify.outputs.filament_sha }}'
+        || ($publishSteps[0]['env']['CORE_SHA'] ?? null) !== '${{ needs.provenance.outputs.core_sha }}'
+        || ($publishSteps[0]['env']['FILAMENT_SHA'] ?? null) !== '${{ needs.provenance.outputs.filament_sha }}') {
+        $violations[] = 'release.yml: package tags must follow verified provenance';
+    }
     $expected[] = 'split';
     $expected[] = 'provenance';
+    $expected[] = 'publish-packages';
     sort($expected);
 
     if ($needs('release') !== $expected) {
@@ -327,6 +356,20 @@ it('holds the release-gating model', function (): void {
     expect(releaseViolations(releaseWorkflows()))->toBe([]);
 });
 
+it('audits the production lock before creating the SBOM', function (): void {
+    $script = (string) file_get_contents(dirname(__DIR__, 2).'/bin/release-artifacts.sh');
+    $valid = static function (string $script): bool {
+        $resolve = strpos($script, 'composer update --no-dev --no-scripts --no-plugins --no-interaction --no-progress');
+        $audit = strpos($script, 'composer audit --locked --no-dev --abandoned=fail --no-interaction');
+        $scan = strpos($script, 'syft --');
+
+        return $resolve !== false && $audit !== false && $scan !== false && $resolve < $audit && $audit < $scan;
+    };
+
+    expect($valid($script))->toBeTrue()
+        ->and($valid(str_replace('composer audit --locked --no-dev --abandoned=fail --no-interaction', 'true', $script)))->toBeFalse();
+});
+
 it('accepts only the two same-commit forms of the expected workflow', function (): void {
     expect(releaseSameCommitWorkflow('./.github/workflows/docs.yml', 'docs.yml'))->toBeTrue()
         ->and(releaseSameCommitWorkflow('$/.github/workflows/docs.yml', 'docs.yml'))->toBeTrue()
@@ -396,6 +439,30 @@ it('reports a broken release graph', function (Closure $break, string $violation
 
         return $w;
     }, 'release.yml: releases need a separate non-cancelling concurrency group'],
+    'cancelling tag tests' => [static function (array $w): array {
+        $w['tests.yml']['concurrency']['cancel-in-progress'] = '${{ github.ref != \'refs/heads/main\' }}';
+
+        return $w;
+    }, 'tests.yml: tag runs must not cancel each other'],
+    'unaudited matrix lock' => [static function (array $w): array {
+        $w['tests.yml']['jobs']['test']['steps'] = array_values(array_filter($w['tests.yml']['jobs']['test']['steps'], static fn (array $step): bool => ($step['name'] ?? '') !== 'Audit resolved dependencies'));
+
+        return $w;
+    }, 'tests.yml: test must audit its resolved lock before recording success'],
+    'unaudited database matrix lock' => [static function (array $w): array {
+        $w['tests.yml']['jobs']['test-db-matrix']['steps'] = array_values(array_filter($w['tests.yml']['jobs']['test-db-matrix']['steps'], static fn (array $step): bool => ($step['name'] ?? '') !== 'Audit resolved dependencies'));
+
+        return $w;
+    }, 'tests.yml: test-db-matrix must audit its resolved lock before recording success'],
+    'matrix audit before resolution' => [static function (array $w): array {
+        $steps = &$w['tests.yml']['jobs']['test']['steps'];
+        $audit = array_search('Audit resolved dependencies', array_column($steps, 'name'), true);
+        $step = $steps[$audit];
+        array_splice($steps, $audit, 1);
+        array_unshift($steps, $step);
+
+        return $w;
+    }, 'tests.yml: test must audit its resolved lock before recording success'],
     'release checkout follows a moved tag' => [static function (array $w): array {
         unset($w['release.yml']['jobs']['release']['steps'][0]['with']['ref']);
 
@@ -410,12 +477,32 @@ it('reports a broken release graph', function (Closure $break, string $violation
         $w['release.yml']['jobs']['release']['needs'] = array_values(array_diff($w['release.yml']['jobs']['release']['needs'], ['nightly']));
 
         return $w;
-    }, 'release.yml: release must need advisories, artifacts, codeql, compat, docs, gate, nightly, provenance, secret-scan, security, split, static, style, tests, validate, validate-consumers, workers, zizmor'],
+    }, 'release.yml: release must need advisories, artifacts, codeql, compat, docs, gate, nightly, provenance, publish-packages, secret-scan, security, split, static, style, tests, validate, validate-consumers, workers, zizmor'],
     'release without the split' => [static function (array $w): array {
         $w['release.yml']['jobs']['release']['needs'] = ['validate', 'validate-consumers', 'tests', 'static', 'style', 'docs', 'nightly', 'compat', 'security'];
 
         return $w;
-    }, 'release.yml: release must need advisories, artifacts, codeql, compat, docs, gate, nightly, provenance, secret-scan, security, split, static, style, tests, validate, validate-consumers, workers, zizmor'],
+    }, 'release.yml: release must need advisories, artifacts, codeql, compat, docs, gate, nightly, provenance, publish-packages, secret-scan, security, split, static, style, tests, validate, validate-consumers, workers, zizmor'],
+    'package tags before provenance' => [static function (array $w): array {
+        $w['release.yml']['jobs']['publish-packages']['needs'] = ['gate', 'split'];
+
+        return $w;
+    }, 'release.yml: package tags must follow verified provenance'],
+    'split publishes a tag early' => [static function (array $w): array {
+        $w['split.yml']['jobs']['split']['steps'][] = ['run' => 'git push origin HEAD:refs/tags/v1.0.0'];
+
+        return $w;
+    }, 'release.yml: package tags must follow verified provenance'],
+    'split action publishes a tag early' => [static function (array $w): array {
+        $w['split.yml']['jobs']['split']['steps'][] = ['uses' => 'example/action@'.str_repeat('a', 40), 'with' => ['tag' => '${{ github.ref_name }}']];
+
+        return $w;
+    }, 'release.yml: package tags must follow verified provenance'],
+    'package publication ignores verified SHA' => [static function (array $w): array {
+        $w['release.yml']['jobs']['publish-packages']['steps'][0]['env']['CORE_SHA'] = '${{ github.sha }}';
+
+        return $w;
+    }, 'release.yml: package tags must follow verified provenance'],
     'gate skipped on failure' => [static function (array $w): array {
         unset($w['release.yml']['jobs']['gate']['if']);
 

@@ -46,7 +46,7 @@ Consequences:
 - Never tag a single package independently — always tag the monorepo.
 
 The package `composer.json` files intentionally carry **no `version` field**:
-Composer derives the version from the git tag the split action pushes.
+Composer derives the version from the package tag published after provenance succeeds.
 
 ## Compatibility baseline
 
@@ -142,8 +142,9 @@ The `artifacts` job of `release.yml` runs `bin/release-artifacts.sh <version> <o
 (`azguard-core-<v>.zip`, `azguard-filament-<v>.zip`), a CycloneDX SBOM of each package's production dependencies
 (`sbom-core.cdx.json`, `sbom-filament.cdx.json`, made with the pinned `syft`) and `SHA256SUMS`. After the split, the
 provenance job compares each public split tree to the candidate and rebuilds the archive to compare its contents. It
-also verifies a public attestation of each exact ZIP against the split repository, workflow identity, tag and split
-commit. The package trees carry the public tag-triggered producers, and the release builder and producers normalize
+also verifies a public attestation of each exact ZIP against the split repository, workflow identity, staging branch and split
+commit. The staging branch is `release-candidate/<tag>/<run-id>/<attempt>`; package tags are pushed only after both
+split mappings and final attestations succeed. The package trees carry the public branch-triggered producers, and the release builder and producers normalize
 ZIP metadata identically. After mapping succeeds, the core split workflow retrieves the exact artifact from the private
 release run using a read-only `PRIVATE_RELEASE_READ_TOKEN` configured in the public core repository. The release dispatch
 uses `MONOREPO_SPLIT_TOKEN`, which must also be permitted to dispatch that workflow. The public workflow checks the
@@ -156,8 +157,8 @@ attestation entitlement is assumed. Verify downloads with a `gh` version support
 
 ```bash
 sha256sum -c SHA256SUMS
-gh attestation verify azguard-core-<v>.zip --repo axiomasoft/azguard --signer-workflow axiomasoft/azguard/.github/workflows/provenance.yml --signer-digest <split-commit> --source-digest <split-commit> --source-ref refs/tags/v<version>
-gh attestation verify sbom-core.cdx.json --repo axiomasoft/azguard --signer-workflow axiomasoft/azguard/.github/workflows/provenance.yml --signer-digest <split-commit> --source-digest <split-commit> --source-ref refs/tags/v<version> --predicate-type https://axiomasoft.github.io/azguard/attestations/release-artifact-relay/v1
+gh attestation verify azguard-core-<v>.zip --repo axiomasoft/azguard --signer-workflow axiomasoft/azguard/.github/workflows/provenance.yml --signer-digest <split-commit> --source-digest <split-commit> --source-ref refs/heads/release-candidate/v<version>/<run-id>/<attempt>
+gh attestation verify sbom-core.cdx.json --repo axiomasoft/azguard --signer-workflow axiomasoft/azguard/.github/workflows/provenance.yml --signer-digest <split-commit> --source-digest <split-commit> --source-ref refs/heads/release-candidate/v<version>/<run-id>/<attempt> --predicate-type https://axiomasoft.github.io/azguard/attestations/release-artifact-relay/v1
 ```
 
 The same script builds the files locally (`bash bin/release-artifacts.sh 2.0.0-rc.1 /tmp/out`).
@@ -255,7 +256,10 @@ run and independent review before publication. A successful local fixture or bui
      Filament, core-only archives and the Audit relocation rehearsal in clean Laravel 13 apps stamped with the tag's
      version, and `release-preflight` on the tagged commit.
 
-   **`split.yml`** is called only after all of them succeed; its jobs fail if the one-time setup is incomplete. The
+   **`split.yml`** is called only after all of them succeed; it pushes staging branches, not package tags. Its jobs
+   fail if the one-time setup is incomplete. After split verification and attestations, the publication job checks both
+   staged commits again and pushes their package tags. A failure between the two tag pushes can leave a partial
+   publication and requires owner-directed recovery; tags are never overwritten. The
    GitHub release needs the whole graph and both splits. Its notes are the version's CHANGELOG section, printed by
    `bin/release-notes.sh x.y.z REF` (try it before tagging). The workflow has no manual trigger, and a pre-release tag
    (`vX.Y.Z-*`) runs the same graph.

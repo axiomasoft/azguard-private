@@ -26,16 +26,35 @@ function workflowFileViolations(string $path): array
     return workflowHardeningViolations($path, $raw, Yaml::parse($raw));
 }
 
-it('finds no violation in any workflow of .github/workflows', function (): void {
-    $files = glob(dirname(__DIR__, 2).'/.github/workflows/*.yml') ?: [];
+it('finds no violation in root or package workflows', function (): void {
+    $root = dirname(__DIR__, 2);
+    $files = [...(glob($root.'/.github/workflows/*.yml') ?: []), ...(glob($root.'/packages/*/.github/workflows/*.yml') ?: []), ...(glob($root.'/packages/*/.github/workflows/*.yaml') ?: [])];
     $violations = [];
 
     foreach ($files as $file) {
         $violations = [...$violations, ...workflowFileViolations($file)];
     }
 
-    expect($files)->not->toBeEmpty()
+    expect($files)->toContain($root.'/packages/core/.github/workflows/provenance.yml', $root.'/packages/filament/.github/workflows/provenance.yml')
         ->and($violations)->toBe([]);
+});
+
+it('rejects an unsafe package workflow and a package omitted from the scanner', function (): void {
+    $root = dirname(__DIR__, 2);
+    foreach (['core', 'filament'] as $package) {
+        $path = $root."/packages/{$package}/.github/workflows/provenance.yml";
+        $raw = (string) file_get_contents($path);
+        $unsafe = str_replace('persist-credentials: false', 'persist-credentials: true', $raw);
+        expect(workflowRuleIds(workflowHardeningViolations($path, $unsafe, Yaml::parse($unsafe))))->toContain('persisted-credentials');
+    }
+    $workflow = Yaml::parseFile($root.'/.github/workflows/zizmor.yml');
+    $run = $workflow['jobs']['zizmor']['steps'][1]['run'];
+    $coversPackages = static fn (string $command): bool => str_contains($command, 'packages/core/.github/workflows/')
+        && str_contains($command, 'packages/filament/.github/workflows/');
+    expect($coversPackages($run))->toBeTrue();
+    foreach (['core', 'filament'] as $package) {
+        expect($coversPackages(str_replace("packages/{$package}/.github/workflows/", '', $run)))->toBeFalse();
+    }
 });
 
 it('reports exactly its own rule for the negative fixture', function (string $rule): void {

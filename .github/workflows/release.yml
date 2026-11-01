@@ -349,6 +349,9 @@ jobs:
     timeout-minutes: 30
     permissions:
       contents: read
+    outputs:
+      core_sha: ${{ steps.verify.outputs.core_sha }}
+      filament_sha: ${{ steps.verify.outputs.filament_sha }}
     steps:
       - name: Checkout candidate
         uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
@@ -369,13 +372,54 @@ jobs:
           tools: composer:v2
           coverage: none
       - name: Verify split trees and archives
+        id: verify
         env:
           GH_TOKEN: ${{ secrets.MONOREPO_SPLIT_TOKEN }}
         run: bash bin/verify-release-split.sh "$GITHUB_SHA" "$GITHUB_REF_NAME" dist --dispatch-final
 
+  publish-packages:
+    name: Publish verified package tags
+    needs: [gate, split, provenance]
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    steps:
+      - name: Publish only the verified split commits
+        env:
+          SPLIT_TOKEN: ${{ secrets.MONOREPO_SPLIT_TOKEN }}
+          CORE_SHA: ${{ needs.provenance.outputs.core_sha }}
+          FILAMENT_SHA: ${{ needs.provenance.outputs.filament_sha }}
+        run: |
+          set -Eeuo pipefail
+          [[ "$GITHUB_REF_NAME" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?$ ]]
+          [[ "$GITHUB_RUN_ID" =~ ^[0-9]+$ && "$GITHUB_RUN_ATTEMPT" =~ ^[0-9]+$ ]]
+          [[ "$CORE_SHA" =~ ^[0-9a-f]{40}$ && "$FILAMENT_SHA" =~ ^[0-9a-f]{40}$ && -n "$SPLIT_TOKEN" ]]
+          askpass="$(mktemp)"
+          trap 'rm -f "$askpass"' EXIT
+          printf '#!/bin/sh\nprintf "%%s\\n" "$SPLIT_TOKEN"\n' > "$askpass"
+          chmod 700 "$askpass"
+          export GIT_ASKPASS="$askpass" GIT_TERMINAL_PROMPT=0
+          for entry in "azguard:$CORE_SHA" "azguard-filament:$FILAMENT_SHA"; do
+            repo="${entry%%:*}"
+            expected="${entry#*:}"
+            url="https://x-access-token@github.com/axiomasoft/$repo.git"
+            staging="refs/heads/release-candidate/$GITHUB_REF_NAME/$GITHUB_RUN_ID/$GITHUB_RUN_ATTEMPT"
+            git init -q "$RUNNER_TEMP/$repo"
+            git -C "$RUNNER_TEMP/$repo" fetch --quiet --depth=1 "$url" "$staging"
+            [[ "$(git -C "$RUNNER_TEMP/$repo" rev-parse 'FETCH_HEAD^{commit}')" == "$expected" ]]
+            [[ -z "$(git ls-remote --tags "$url" "refs/tags/$GITHUB_REF_NAME")" ]]
+          done
+          for entry in "azguard:$CORE_SHA" "azguard-filament:$FILAMENT_SHA"; do
+            repo="${entry%%:*}"
+            expected="${entry#*:}"
+            url="https://x-access-token@github.com/axiomasoft/$repo.git"
+            git -C "$RUNNER_TEMP/$repo" push "$url" "$expected:refs/tags/$GITHUB_REF_NAME"
+          done
+
   release:
     name: Create GitHub Release
-    needs: [gate, validate, validate-consumers, tests, static, style, docs, nightly, compat, security, codeql, zizmor, secret-scan, artifacts, split, workers, advisories, provenance]
+    needs: [gate, validate, validate-consumers, tests, static, style, docs, nightly, compat, security, codeql, zizmor, secret-scan, artifacts, split, workers, advisories, provenance, publish-packages]
     runs-on: ubuntu-latest
     permissions:
       contents: write

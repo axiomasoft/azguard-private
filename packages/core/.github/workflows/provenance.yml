@@ -2,8 +2,8 @@ name: Public split provenance
 
 on:
   push:
-    tags:
-      - 'v[0-9]*.[0-9]*.[0-9]*'
+    branches:
+      - 'release-candidate/**'
   workflow_dispatch:
     inputs:
       candidate:
@@ -51,11 +51,12 @@ jobs:
       - name: Build canonical package ZIP
         run: |
           set -Eeuo pipefail
-          [[ "$GITHUB_REF_NAME" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?$ ]]
+          [[ "$GITHUB_REF" =~ ^refs/heads/release-candidate/(v[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?)/[0-9]+/[0-9]+$ ]]
+          tag="${BASH_REMATCH[1]}"
           [[ "$(git rev-parse HEAD)" == "$GITHUB_SHA" ]]
           cp -a . "$RUNNER_TEMP/package"
           rm -rf "$RUNNER_TEMP/package/.git"
-          php -r '$p=$argv[1]; $j=json_decode(file_get_contents($p),true,512,JSON_THROW_ON_ERROR); $j["version"]=$argv[2]; file_put_contents($p,json_encode($j,JSON_PRETTY_PRINT|JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE)."\n");' "$RUNNER_TEMP/package/composer.json" "${GITHUB_REF_NAME#v}"
+          php -r '$p=$argv[1]; $j=json_decode(file_get_contents($p),true,512,JSON_THROW_ON_ERROR); $j["version"]=$argv[2]; file_put_contents($p,json_encode($j,JSON_PRETTY_PRINT|JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE)."\n");' "$RUNNER_TEMP/package/composer.json" "${tag#v}"
           mkdir "$RUNNER_TEMP/built" dist
           composer archive --format=zip --dir="$RUNNER_TEMP/built" --working-dir="$RUNNER_TEMP/package" --no-interaction
           files=("$RUNNER_TEMP/built/"*.zip)
@@ -84,10 +85,12 @@ jobs:
           RELEASE_RUN_ATTEMPT: ${{ inputs.run_attempt }}
         run: |
           set -Eeuo pipefail
-          [[ "$GITHUB_REF" =~ ^refs/tags/v[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?$ ]]
+          [[ "$GITHUB_REF" =~ ^refs/heads/release-candidate/(v[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?)/([0-9]+)/([0-9]+)$ ]]
+          tag="${BASH_REMATCH[1]}"
+          [[ "${BASH_REMATCH[3]}" == "$RELEASE_RUN_ID" && "${BASH_REMATCH[4]}" == "$RELEASE_RUN_ATTEMPT" ]]
           [[ "$CANDIDATE" =~ ^[0-9a-f]{40}$ && "$RELEASE_RUN_ID" =~ ^[0-9]+$ && "$RELEASE_RUN_ATTEMPT" =~ ^[0-9]+$ ]]
           gh api "repos/axiomasoft/azguard-private/actions/runs/$RELEASE_RUN_ID/attempts/$RELEASE_RUN_ATTEMPT" > "$RUNNER_TEMP/run.json"
-          jq -e --arg sha "$CANDIDATE" --arg tag "${GITHUB_REF#refs/tags/}" --argjson run "$RELEASE_RUN_ID" --argjson attempt "$RELEASE_RUN_ATTEMPT" \
+          jq -e --arg sha "$CANDIDATE" --arg tag "$tag" --argjson run "$RELEASE_RUN_ID" --argjson attempt "$RELEASE_RUN_ATTEMPT" \
             '.id == $run and .head_sha == $sha and .head_branch == $tag and .event == "push" and (.path == ".github/workflows/release.yml" or .path == (".github/workflows/release.yml@" + $tag) or .path == (".github/workflows/release.yml@refs/tags/" + $tag)) and .run_attempt == $attempt and .repository.full_name == "axiomasoft/azguard-private" and (.status == "in_progress" or (.status == "completed" and .conclusion == "success"))' "$RUNNER_TEMP/run.json" > /dev/null
           # The release itself is waiting for this relay. Check its completed
           # prerequisites, not the conclusion of the still-running workflow.
@@ -112,7 +115,7 @@ jobs:
                 ([.steps[]? | select(.name == $step)] | length == 1 and .[0].status == "completed" and .[0].conclusion == "success"))
             )' "$RUNNER_TEMP/jobs.json" > /dev/null || { echo '::error::Private release prerequisites are missing, ambiguous, or unsuccessful.'; exit 1; }
           gh run download "$RELEASE_RUN_ID" --repo axiomasoft/azguard-private --name "release-artifacts-$RELEASE_RUN_ATTEMPT" --dir dist
-          version="${GITHUB_REF#refs/tags/v}"
+          version="${tag#v}"
           cd dist
           printf '%s\n' "azguard-core-$version.zip" "azguard-filament-$version.zip" sbom-core.cdx.json sbom-filament.cdx.json | sort > "$RUNNER_TEMP/expected"
           awk '{print $2}' SHA256SUMS | sort > "$RUNNER_TEMP/actual"
