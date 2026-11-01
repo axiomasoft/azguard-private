@@ -22,7 +22,6 @@ WRITE_PERMISSIONS = {
     ('codeql.yml', 'analyze'): {'security-events'},
     ('release.yml', 'codeql'): {'security-events'},
     ('docs-deploy.yml', 'deploy'): {'pages', 'id-token'},
-    ('release.yml', 'provenance'): {'id-token', 'attestations'},
     ('release.yml', 'release'): {'contents'},
     ('dependabot-auto-merge.yml', 'auto-merge'): {'pull-requests'},
     ('dependabot-auto-merge.yml', 'sweep'): {'pull-requests'},
@@ -317,8 +316,9 @@ def check_package_workflows(root):
                 if not isinstance(job, dict):
                     raise ValueError(f'{job_id}: job must be a mapping')
                 permissions = job.get('permissions', {'contents': 'read'})
+                allowed = {'id-token', 'attestations'} if job_id in {'provenance', 'relay-final-artifacts'} else set()
                 if not isinstance(permissions, dict) or any(
-                    level not in ('read', 'none') and not (permission in {'id-token', 'attestations'} and level == 'write')
+                    level not in ('read', 'none') and not (permission in allowed and level == 'write')
                     for permission, level in permissions.items()
                 ):
                     errors.append((path, f'{job_id}: forbidden permissions'))

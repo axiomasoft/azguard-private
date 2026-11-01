@@ -114,9 +114,13 @@ it('allows only the listed continue-on-error step and the listed write permissio
         ->and($coverage('tests.yml', 'test', 'Upload coverage to Codecov'))->toBe(['continue-on-error'])
         ->and($write('release.yml', 'release', ['contents' => 'write']))->toBe([])
         ->and($write('release.yml', 'release', ['packages' => 'write']))->toBe(['write-permission'])
-        ->and($write('release.yml', 'provenance', ['id-token' => 'write', 'attestations' => 'write']))->toBe([])
+        ->and($write('release.yml', 'provenance', ['id-token' => 'write', 'attestations' => 'write']))->toBe(['write-permission'])
+        ->and($write('packages/core/.github/workflows/provenance.yml', 'provenance', ['id-token' => 'write', 'attestations' => 'write']))->toBe([])
+        ->and($write('packages/filament/.github/workflows/provenance.yml', 'relay-final-artifacts', ['id-token' => 'write', 'attestations' => 'write']))->toBe([])
+        ->and($write('packages/core/.github/workflows/provenance.yml', 'other', ['id-token' => 'write']))->toBe(['write-permission'])
         ->and($write('release.yml', 'artifacts', ['id-token' => 'write']))->toBe(['write-permission'])
         ->and($write('release.yml', 'other', ['contents' => 'write']))->toBe(['write-permission'])
+        ->and($write('pr-check.yml', 'size', ['pull-requests' => 'write']))->toBe(['write-permission'])
         ->and($write('release.yml', 'release', ['contents' => 'read']))->toBe([]);
 });
 

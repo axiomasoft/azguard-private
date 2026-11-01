@@ -21,9 +21,12 @@ the private repository before a release candidate.
 
 Zizmor audits `.github/workflows`, `packages/core/.github/workflows`, and
 `packages/filament/.github/workflows` with the pedantic persona at medium severity and above.
-Gitleaks 8.30.1 scans the checkout as a directory and Git patches reachable from the
-candidate commit, including first-parent merge diffs. History does not include unrelated
-refs, and patch scans do not establish binary file content coverage. The pinned detection
+The reusable `secret-scan.yml` runs Gitleaks 8.30.1 on the checkout as a directory and on
+Git patches reachable from the candidate SHA, including first-parent merge diffs; it does
+not scan unrelated refs. The secondary `security.yml` history job instead scans `--all`
+refs available in its full-depth checkout, including first-parent merge diffs; this does
+not establish coverage of refs absent from that checkout. Neither patch scan establishes
+binary file content coverage. The pinned detection
 rules in `.gitleaks.toml` remove the upstream allowlists; inline comments and ignore files
 are disabled. Findings in history still require investigation. Scanner reports and metadata
 identify the commit and scope; missing, failed or incomplete reports block the release.

@@ -13,11 +13,10 @@ const WORKFLOW_CONTINUE_ON_ERROR = ['tests.yml' => ['coverage' => ['Upload cover
 
 /** W6: job-level write permissions, knowledge/supply-chain#permissions. Workflow => job => permission keys that may be `write`. */
 const WORKFLOW_WRITE_PERMISSIONS = [
-    'release.yml' => ['release' => ['contents'], 'provenance' => ['id-token', 'attestations'], 'codeql' => ['security-events']],
+    'release.yml' => ['release' => ['contents'], 'codeql' => ['security-events']],
     'docs-deploy.yml' => ['deploy' => ['pages', 'id-token']],
     'codeql.yml' => ['analyze' => ['security-events']],
     'dependabot-auto-merge.yml' => ['auto-merge' => ['pull-requests'], 'sweep' => ['pull-requests']],
-    'pr-check.yml' => ['size' => ['pull-requests']],
     'packages/core/.github/workflows/provenance.yml' => ['provenance' => ['id-token', 'attestations'], 'relay-final-artifacts' => ['id-token', 'attestations']],
     'packages/filament/.github/workflows/provenance.yml' => ['provenance' => ['id-token', 'attestations'], 'relay-final-artifacts' => ['id-token', 'attestations']],
 ];

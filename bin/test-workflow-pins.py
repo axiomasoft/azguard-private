@@ -190,6 +190,15 @@ jobs:
         self.assertTrue(any('forbidden permission' in e for e in pins.check_workflow(benign, 'release.yml')))
         self.assertTrue(pins.check_workflow(replacement.replace('contents: write', 'contents: read'), 'new.yml'))
 
+    def test_release_provenance_cannot_regain_write_even_after_snapshot_review(self):
+        text = (pins.ROOT / '.github/workflows/release.yml').read_text()
+        unsafe = text.replace('  provenance:\n    name: Verify split mapping and attest final artifacts\n    needs: [gate, split]\n    runs-on: ubuntu-latest\n    timeout-minutes: 75\n    permissions:\n      contents: read',
+                                '  provenance:\n    name: Verify split mapping and attest final artifacts\n    needs: [gate, split]\n    runs-on: ubuntu-latest\n    timeout-minutes: 75\n    permissions:\n      contents: read\n      id-token: write')
+        self.assertNotEqual(text, unsafe)
+        with mock.patch.dict(pins.REVIEWED_WORKFLOWS, {'release.yml': hashlib.sha256(unsafe.encode()).hexdigest()}):
+            self.assertTrue(any('provenance: forbidden permission id-token: write' in error
+                                for error in pins.check_workflow(unsafe, 'release.yml')))
+
     def test_unreviewed_data_example_cannot_print_secrets(self):
         template = BASE.replace('      - run: echo safe', '      - env:\n          TITLE: "VALUE"\n        run: echo "$TITLE"')
         for value in ('${{ toJSON(secrets) }}', '${{ secrets.GITHUB_TOKEN }}',
@@ -275,6 +284,7 @@ jobs:
                     (BASE.replace('@d23441a48e516b6c34aea4fa41551a30e30af803', '@v6'), 'forbidden uses'),
                     (BASE.replace('persist-credentials: false', 'persist-credentials: true'), 'persisted credentials'),
                     (BASE.replace('runs-on: ubuntu-latest', 'runs-on: ubuntu-latest\n    permissions: {contents: write}'), 'forbidden permissions'),
+                    (BASE.replace('runs-on: ubuntu-latest', 'runs-on: ubuntu-latest\n    permissions: {id-token: write}'), 'forbidden permissions'),
                 ):
                     with self.subTest(name=name, expected=expected):
                         path.write_text(unsafe)
