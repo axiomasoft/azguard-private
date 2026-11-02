@@ -18,6 +18,25 @@ Doctor, and representative allow and deny decisions. Do not mark unavailable art
 does not install old package code or dependencies, and does not qualify an upgrade. The baseline drill remains
 unavailable until artifact-specific executable fixtures and publication evidence are added.
 
+### Historical consumer evidence (not a published baseline)
+
+On 2026-11-02 the local private historical checkout was at commit
+`fb89b1b3b7c778f9156ceccb877b4896fff3d1e8`, with core tree
+`8c3f9d1963c97d3d9ebf98e8a2a6f726c17b4ffd`. Three local consumer
+`composer.lock` files each record `axiomasoft/azguard` as `dev-main` from a path repository, with
+reference `95a14066a220caba7ef201fa963fec31d3c29f4c`. These locks are indirect evidence of
+consumption; their path references have not been proven to identify that checkout, and neither the locks nor
+the checkout establishes a published release.
+
+This historical core schema has no `panel_state.epoch` or `subject_revisions` table, and creates the audit
+table as part of core storage. The current schema requires the first two and assigns audit storage to the audit
+module. The current initial migration calls `StorageSchema::create`, which creates tables rather than migrating
+an existing historical schema. A direct historical database upgrade is therefore not established by the
+reconstructed fixture; no historical upgrade or data parity is claimed. A reviewed migration and isolated
+rehearsal against a verified consumer database and dependency pair are needed before attempting it. The historical
+core also allows Illuminate 11, whereas the current core requires Illuminate 12 or 13; dependency compatibility
+must be resolved as part of that rehearsal. This finding does not change the published-baseline gate.
+
 After publication inventory establishes each required baseline, record it in `tests/Fixtures/Upgrade/baselines.php`
 with its `id`, an `https` inventory evidence link and the SHA-256 hashes under `sha256.core` and
 `sha256.filament`. Review an artifact-specific `baselines/<id>/drill.sh` that installs the matching old artifacts,
