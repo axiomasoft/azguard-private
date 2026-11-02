@@ -44,7 +44,11 @@ Forcing the current initial migration instead fails because the tables already e
 present in both cases. This is an incompatibility reproduction, not an upgrade or a consumer lock match; it uses
 the current test dependencies, not a historical dependency lock. Run it with an explicitly supplied checkout:
 `env -i PATH="$PATH" DB_CONNECTION=sqlite DB_DATABASE=:memory: CACHE_STORE=array AZGUARD_HISTORICAL_CHECKOUT=/path/to/checkout vendor/bin/pest tests/Fixtures/Upgrade/HistoricalUpgradeTest.php`.
-An absent checkout fails as unavailable. The fixture verifies its commit, core tree and clean core files before executing it. No data conversion is supplied.
+An absent checkout fails as unavailable. The fixture verifies its commit, core tree and clean core files before executing it.
+It then performs a nonrelease SQLite-only experiment on that synthetic database: add epoch and subject revisions,
+update its schema marker, retain the seeded role, permission and audit rows, run the current migrator twice,
+check an allow and a deny, and reset the panel incarnation and epoch. This is not a production migration or proof
+of historical decision parity; it does not validate arbitrary historical data, other database engines, or a consumer lock.
 Changes made after the two P6.8 review rounds, including this reproduction, have not received independent review.
 
 After publication inventory establishes each required baseline, record it in `tests/Fixtures/Upgrade/baselines.php`
