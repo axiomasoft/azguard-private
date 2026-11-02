@@ -37,6 +37,16 @@ rehearsal against a verified consumer database and dependency pair are needed be
 core also allows Illuminate 11, whereas the current core requires Illuminate 12 or 13; dependency compatibility
 must be resolved as part of that rehearsal. This finding does not change the published-baseline gate.
 
+The opt-in test `tests/Fixtures/Upgrade/HistoricalUpgradeTest.php` executes the pinned checkout's actual initial migration and seeds a synthetic role grant
+in an in-memory SQLite database, then copies it to a unique temporary SQLite file. With that migration recorded,
+the current migrator returns success but leaves schema 1 unchanged; a current storage read rejects the schema.
+Forcing the current initial migration instead fails because the tables already exist. The seeded grant remains
+present in both cases. This is an incompatibility reproduction, not an upgrade or a consumer lock match; it uses
+the current test dependencies, not a historical dependency lock. Run it with an explicitly supplied checkout:
+`env -i PATH="$PATH" DB_CONNECTION=sqlite DB_DATABASE=:memory: CACHE_STORE=array AZGUARD_HISTORICAL_CHECKOUT=/path/to/checkout vendor/bin/pest tests/Fixtures/Upgrade/HistoricalUpgradeTest.php`.
+An absent checkout fails as unavailable. The fixture verifies its commit, core tree and clean core files before executing it. No data conversion is supplied.
+Changes made after the two P6.8 review rounds, including this reproduction, have not received independent review.
+
 After publication inventory establishes each required baseline, record it in `tests/Fixtures/Upgrade/baselines.php`
 with its `id`, an `https` inventory evidence link and the SHA-256 hashes under `sha256.core` and
 `sha256.filament`. Review an artifact-specific `baselines/<id>/drill.sh` that installs the matching old artifacts,
