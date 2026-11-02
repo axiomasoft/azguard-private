@@ -6,6 +6,10 @@ version) are documented here. Format: [Keep a Changelog](https://keepachangelog.
 
 ## [Unreleased]
 
+- The upgrade drill can dispatch reviewed fixtures for inventoried baselines, verify artifact hashes and reject missing
+  checkpoints; its report lists successful fixture logs. An empty inventory remains unavailable and nonzero. The
+  reconstructed candidate schema is a separate rehearsal and does not qualify a published upgrade.
+
 - Load bench results add an optional hashed host identity; the comparator refuses older results without it and now
   gates stable matched p95 and throughput regressions. Rerun the baseline on the same host before comparing;
   the old `--ratio` and `--delta-us` comparator options have been removed in favour of the fixed project policy.

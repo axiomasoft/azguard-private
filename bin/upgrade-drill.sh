@@ -44,7 +44,37 @@ if [[ -n "$report" ]]; then
     ' "$report" "$target" "$version" "$sha" "$supported"
 fi
 
+registry="$root/tests/Fixtures/Upgrade/baselines.php"
+count="$(php -r '$entries = require $argv[1]; if (!is_array($entries)) { exit(2); } echo count($entries);' "$registry")" || exit 2
+if (( count > 0 )); then
+    if [[ "$supported" != true || -z "$report" || -z "${AZGUARD_UPGRADE_ARTIFACT_DIR:-}" ]]; then
+        echo 'UNAVAILABLE: qualifying registered baselines requires --all-supported, --report and AZGUARD_UPGRADE_ARTIFACT_DIR.' >&2
+        exit 1
+    fi
+    results="${report}.fixtures"
+    if ! mkdir "$results"; then
+        echo "UNAVAILABLE: fixture result directory must be fresh: $results" >&2
+        exit 1
+    fi
+    if ! php "$root/tests/Fixtures/Upgrade/run-baselines.php" "$registry" "$AZGUARD_UPGRADE_ARTIFACT_DIR" "$results" "$version"; then
+        echo "FAIL: baseline qualification failed; fixture output: $results" >&2
+        exit 1
+    fi
+    php -r '
+        $report = json_decode(file_get_contents($argv[1]), true, flags: JSON_THROW_ON_ERROR);
+        $entries = require $argv[2];
+        $report["status"] = "passed";
+        $report["baselines"] = array_map(static fn ($entry) => ["id" => $entry["id"], "evidence" => $entry["evidence"],
+            "fixture_log" => $argv[3]."/".$entry["id"]."/fixture.log"], $entries);
+        unset($report["reason"]);
+        if (file_put_contents($argv[1], json_encode($report, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR)."\n") === false) { exit(2); }
+    ' "$report" "$registry" "$results"
+    echo "PASS: all registered baselines qualified; fixture output: $results"
+    exit 0
+fi
+
 echo 'UNAVAILABLE: no proven published baseline and executable baseline-to-2.0 fixture are recorded for this drill.' >&2
+echo 'EXPECTED GATE: exit 1 means qualification is unavailable, not that an upgrade passed.' >&2
 echo 'The 2026-10-30 inventory in RELEASING.md is historical; obtain current split and Packagist evidence before qualification.' >&2
 echo 'A fresh install or reconstructed schema is not a published upgrade baseline. Upgrade qualification has not passed.' >&2
 exit 1

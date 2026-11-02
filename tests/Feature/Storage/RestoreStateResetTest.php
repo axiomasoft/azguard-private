@@ -11,12 +11,64 @@ use AzGuard\Kernel\Identity\TenantRef;
 use AzGuard\Panels\Internal\PanelRegistry;
 use AzGuard\Panels\PanelBuilder;
 use AzGuard\Storage\Internal\StorageRegistry;
+use AzGuard\Storage\Schema\StorageSchema;
 use AzGuard\Tests\Fixtures\Changes\ChangeWorld as W;
 use AzGuard\Tests\Fixtures\Crm\CrmWorld;
+use AzGuard\Tests\Fixtures\Upgrade\ReconstructedStorageSchema;
 use AzGuard\Tests\Support\AuditTable;
+use Composer\InstalledVersions;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Artisan;
+
+it('rehearses a reconstructed candidate schema without claiming a published baseline', function (): void {
+    CrmWorld::seed();
+    AuditTable::create();
+    $panel = W::panel(configure: static fn (PanelBuilder $p) => $p->plugins([AuditPlugin::make()]));
+    W::revoke($panel, 'seller', 1, 1);
+    W::grant($panel, 'seller', 1, 1);
+    CrmWorld::assign('clients.view', 2, 2, kind: 'permission', fields: ['region' => 'north', 'eligible' => true]);
+    $allowed = restoreDecision();
+    $denied = CrmWorld::decide($panel, client: 4)->reason;
+    $storage = CrmWorld::storage();
+    $tables = ['permissions', 'role_grants', 'permission_grants', 'panel_state', 'subject_revisions', 'storage_state'];
+    $rows = [];
+    foreach ($tables as $table) {
+        $rows[$table] = $storage->table($table)->get()->map(static fn ($row) => (array) $row)->all();
+    }
+    $audit = $storage->table('audit_log')->get()->toArray();
+    app(StorageSchema::class)->drop('default');
+    app(ReconstructedStorageSchema::class)->create('default');
+    $storage->table('storage_state')->delete();
+    foreach ($tables as $table) {
+        if ($rows[$table] !== []) {
+            $storage->table($table)->insert($rows[$table]);
+        }
+    }
+
+    $migrator = app('migrator');
+
+    if (! $migrator->repositoryExists()) {
+        $migrator->getRepository()->createRepository();
+    }
+    $migrator->getRepository()->log('2026_10_01_000000_create_azguard_storage', 1);
+    $path = dirname(__DIR__, 3).'/packages/core/database/migrations';
+    expect(Artisan::call('migrate', ['--path' => [$path], '--realpath' => true]))->toBe(0)
+        ->and(Artisan::call('migrate', ['--path' => [$path], '--realpath' => true]))->toBe(0);
+    foreach ($tables as $table) {
+        expect($storage->table($table)->get()->map(static fn ($row) => (array) $row)->all())->toEqual($rows[$table]);
+    }
+    expect($storage->table('audit_log')->get()->toArray())->toEqual($audit)
+        ->and($allowed)->toBe(DecisionReason::Granted)
+        ->and(restoreDecision())->toBe($allowed)
+        ->and(CrmWorld::decide($panel, client: 4)->reason)->toBe($denied)
+        ->and($denied)->not->toBe(DecisionReason::Granted)
+        ->and(Artisan::call('azguard:doctor'))->toBe(0);
+    $filament = json_decode((string) file_get_contents(dirname(__DIR__, 3).'/packages/filament/composer.json'), true, flags: JSON_THROW_ON_ERROR);
+    expect($filament['require']['axiomasoft/azguard'])->toBe('self.version')
+        ->and(InstalledVersions::getPrettyVersion('axiomasoft/azguard'))
+        ->toBe(InstalledVersions::getPrettyVersion('axiomasoft/azguard-filament'));
+});
 
 beforeEach(function (): void {
     $this->restoreOriginalConnection = app('db')->getDefaultConnection();
@@ -174,6 +226,7 @@ it('restores a complete disposable SQLite backup before resetting the database s
 
         W::revoke($panel, 'seller', 1, 1);
         expect(restoreDecision())->toBe(DecisionReason::NotGranted);
+        $cached = $source->state($panel, W::tenant());
         $database->purge($name);
         expect(copy($backup, $live))->toBeTrue();
         $reconnect($live);
@@ -183,10 +236,17 @@ it('restores a complete disposable SQLite backup before resetting the database s
         expect($restored->incarnation())->toBe($before->incarnation())
             ->and(CrmWorld::storage()->table('audit_log')->count())->toBe($auditCount);
 
+        // Recreate the token of the cached denial without revoking the restored seller grant.
+        W::revoke($panel, 'analyst', 1, 2);
+        $collision = $source->state($panel, W::tenant());
+        expect($collision->incarnation())->toBe($cached->incarnation())
+            ->and($collision->epoch())->toBe($cached->epoch())
+            ->and(restoreDecision())->toBe(DecisionReason::NotGranted);
+
         expect(Artisan::call('azguard:state:reset', ['panel' => 'crm']))->toBe(0);
         $after = $source->state($panel, W::tenant());
-        expect($after->incarnation())->not->toBe($restored->incarnation())
-            ->and($after->epoch())->toBeGreaterThan($restored->epoch())
+        expect($after->incarnation())->not->toBe($collision->incarnation())
+            ->and($after->epoch())->toBeGreaterThan($collision->epoch())
             ->and(restoreDecision())->toBe(DecisionReason::Granted)
             ->and(CrmWorld::storage()->table('audit_log')->orderByDesc('id')->first())
             ->toMatchObject(['type' => 'panel.touched', 'actor_reason' => 'azguard:state:reset']);
