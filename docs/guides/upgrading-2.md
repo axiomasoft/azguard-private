@@ -13,6 +13,24 @@ baseline artifact and lock file; retain the artifact identity, commit, tool vers
 roles, grants, fields, morph identities and audit rows, migrations run twice, matching core and Filament versions,
 Doctor, and representative allow and deny decisions. Do not mark unavailable artifacts as passed.
 
+### Published monorepo v0.3.0 inventory
+
+On 2026-11-02, the [GitHub release](https://github.com/axiomasoft/azguard-private/releases/tag/v0.3.0)
+was present, non-draft and non-prerelease, published on 2026-07-22, with no attached assets. Origin advertised
+annotated tag object `a713e5e6ac47785afa5b15dbdf7d75d15cfb0ea6`, peeling to commit
+`d26db856b32761bf73ac16984e9b1a8182a2126c`, matching the local tag. The tagged monorepo contains
+`axioma-studio/azguard-core`, `axioma-studio/azguard-filament` and `axioma-studio/azguard-context`;
+its root Composer path repository assigns them version `0.3.0`. The core tree is
+`178602abb5dff23079266b4c4ec8cf24066dce0f`; the core and context contain their own historical migrations.
+This establishes the monorepo release and its contents, not publication of matching split Composer artifacts.
+
+At that tag, `SECURITY.md` described security fixes for the latest 0.x and main. The current
+`SECURITY.md` explicitly excludes versions below 1.0, and the compatibility baseline policy in `RELEASING.md`
+starts at 1.0. Thus v0.3.0 is not a required supported baseline under the current contract; the historical
+security policy alone is not a promise of a 0.3-to-2.0 upgrade. No upgrade fixture was qualified for it and it
+does not replace the missing published supported baseline. The V1 gate remains nonzero. These inventory findings
+were added after the two P6.8 review rounds and have not received independent review.
+
 `bash tests/Fixtures/Upgrade/reconstructed-drill.sh` rehearses a schema reconstructed from local candidate
 `3d789538` and runs the current core migration twice against retained data. It is not a published 1.0 artifact,
 does not install old package code or dependencies, and does not qualify an upgrade. The baseline drill remains
