@@ -47,7 +47,7 @@ it('reproduces the pinned historical schema incompatibility on disposable SQLite
     $previous = $database->getDefaultConnection();
 
     try {
-        $process = new Process(['/usr/bin/env', '-i', 'PATH=/usr/bin:/bin', PHP_BINARY,
+        $process = new Process(['/usr/bin/env', '-i', 'PATH=/usr/bin:/bin', 'TMPDIR='.sys_get_temp_dir(), PHP_BINARY,
             __DIR__.'/historical-seed.php', $checkout, $file], timeout: 30);
         $process->mustRun();
         config(['database.connections.historical_test' => ['driver' => 'sqlite', 'database' => $file, 'prefix' => '']]);

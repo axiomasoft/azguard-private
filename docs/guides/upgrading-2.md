@@ -28,8 +28,7 @@ At that tag, `SECURITY.md` described security fixes for the latest 0.x and main.
 `SECURITY.md` explicitly excludes versions below 1.0, and the compatibility baseline policy in `RELEASING.md`
 starts at 1.0. Thus v0.3.0 is not a required supported baseline under the current contract; the historical
 security policy alone is not a promise of a 0.3-to-2.0 upgrade. No upgrade fixture was qualified for it and it
-does not replace the missing published supported baseline. The V1 gate remains nonzero. These inventory findings
-were added after the two P6.8 review rounds and have not received independent review.
+does not replace the missing published supported baseline. The V1 gate remains nonzero.
 
 `bash tests/Fixtures/Upgrade/reconstructed-drill.sh` rehearses a schema reconstructed from local candidate
 `3d789538` and runs the current core migration twice against retained data. It is not a published 1.0 artifact,
@@ -67,7 +66,6 @@ It then performs a nonrelease SQLite-only experiment on that synthetic database:
 update its schema marker, retain the seeded role, permission and audit rows, run the current migrator twice,
 check an allow and a deny, and reset the panel incarnation and epoch. This is not a production migration or proof
 of historical decision parity; it does not validate arbitrary historical data, other database engines, or a consumer lock.
-Changes made after the two P6.8 review rounds, including this reproduction, have not received independent review.
 
 After publication inventory establishes each required baseline, record it in `tests/Fixtures/Upgrade/baselines.php`
 with its `id`, an `https` inventory evidence link and the SHA-256 hashes under `sha256.core` and
