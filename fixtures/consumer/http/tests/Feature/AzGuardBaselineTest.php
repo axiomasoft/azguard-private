@@ -35,9 +35,10 @@ final class AzGuardBaselineTest extends TestCase
         $this->assertSame('bigint', config('azguard.ids.host_keys'));
         $this->assertSame('sqlite', config('azguard.storages.default.connection'));
         $this->assertSame('array', config('cache.stores.array.driver'));
+        $this->assertSame('consumer-fixture', config('azguard.cache.namespace'));
     }
 
-    public function test_stored_grants_use_the_installed_schema_and_fence_under_refresh_database(): void
+    public function test_stored_grants_use_the_installed_schema_and_shared_cache_under_refresh_database(): void
     {
         $storage = app(StorageRegistry::class)->get('default');
         $storage->verifySchema();
@@ -57,10 +58,15 @@ final class AzGuardBaselineTest extends TestCase
         $this->get('/stored/refund')->assertOk()->assertSeeText('refunded');
 
         app()->forgetScopedInstances();
+        $grantReads = 0;
         $stateReads = 0;
-        app('db')->listen(static function (QueryExecuted $query) use (&$stateReads): void {
+        app('db')->listen(static function (QueryExecuted $query) use (&$grantReads, &$stateReads): void {
             if (! str_starts_with(strtolower(ltrim($query->sql)), 'select')) {
                 return;
+            }
+
+            if (str_contains($query->sql, 'azg_permission_grants') || str_contains($query->sql, 'azg_role_grants')) {
+                $grantReads++;
             }
 
             if (str_contains($query->sql, 'azg_panel_state')) {
@@ -69,7 +75,8 @@ final class AzGuardBaselineTest extends TestCase
         });
 
         $this->assertTrue(AzGuard::check($user, StoredPermission::Refund));
-        $this->assertGreaterThan(0, $stateReads, 'The repeated check must execute its database fence, including when cache is unavailable.');
+        $this->assertSame(0, $grantReads, 'A fresh request scope must read grants from the shared array cache.');
+        $this->assertGreaterThan(0, $stateReads, 'The shared-cache hit must still execute its database fence.');
 
         AzGuard::actingAs('testing', static fn () => AzGuard::panel('stored')->for($user)->revokePermission(StoredPermission::Refund));
         $this->assertSame(DecisionReason::NotGranted, AzGuard::panel('stored')->for($user)->decide(StoredPermission::Refund)->reason);
@@ -93,6 +100,7 @@ final class AzGuardBaselineTest extends TestCase
             $former = User::factory()->create();
             $this->actingAsWithPermissions($former, [StoredPermission::Refund], panel: 'stored');
             $this->assertTrue(AzGuard::check($former, StoredPermission::Refund));
+            $this->assertNotEmpty(app('cache')->store('array')->getStore()->all(false));
             $first = $storage->state('stored');
             $connection->rollBack();
 
