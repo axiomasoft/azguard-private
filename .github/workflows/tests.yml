@@ -337,12 +337,17 @@ jobs:
           token: ${{ secrets.CODECOV_TOKEN }}
 
   consumer-fixture:
-    name: Consumer fixture · built archives · L${{ matrix.laravel }}
+    name: Consumer archives · PHP ${{ matrix.php }} · Laravel ${{ matrix.laravel }}
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        laravel: [12, 13]
+        include:
+          - { php: '8.3', laravel: '12' }
+          - { php: '8.3', laravel: '13' }
+          - { php: '8.4', laravel: '12' }
+          - { php: '8.4', laravel: '13' }
+          - { php: '8.5', laravel: '13' }
     env:
       LARAVEL: ${{ matrix.laravel }}
     steps:
@@ -354,29 +359,42 @@ jobs:
       - name: Setup PHP
         uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # 2.40.0
         with:
-          php-version: '8.4'
+          php-version: ${{ matrix.php }}
           extensions: mbstring, pdo, pdo_sqlite, sqlite3, zip
           coverage: none
           tools: composer:v2
 
-      - name: Core archive in a clean Laravel app
-        run: bash bin/consumer-fixture.sh --laravel="$LARAVEL"
+      - name: Qualify archives with both dependency policies
+        run: bash bin/consumer-matrix.sh --source="$GITHUB_SHA" --pair='${{ matrix.php }}-${{ matrix.laravel }}' --output="$RUNNER_TEMP/consumer"
 
-      - name: Core and Filament archives in a clean Laravel app
-        run: bash bin/consumer-fixture.sh --laravel="$LARAVEL" --with-filament
+      - name: Retain consumer evidence
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: consumer-${{ matrix.php }}-${{ matrix.laravel }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/consumer/
+          if-no-files-found: error
 
-      # Blocking: the core archive without modules/ boots, migrates, passes the doctor, grants and checks (I13, I19).
-      - name: Core archive without module roots in a clean Laravel app
-        run: bash bin/consumer-fixture.sh core-only --laravel="$LARAVEL"
-
-      # Blocking: Audit moved to its own archive keeps FQCNs, commands, migration basename and journal rows (I19).
-      - name: Audit module relocation rehearsal in a clean Laravel app
-        run: bash bin/consumer-fixture.sh relocated-audit --laravel="$LARAVEL"
+  consumer-matrix:
+    name: Consumer archive matrix completeness
+    needs: [consumer-fixture]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          pattern: consumer-*-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/consumer
+          merge-multiple: true
+      - run: bash bin/test-consumer-matrix.sh
+      - run: bash bin/consumer-matrix.sh --verify="$RUNNER_TEMP/consumer"
 
   all:
     name: Tests · all lanes
     if: always()
-    needs: [test, test-db-matrix, test-replica, test-redis, coverage, consumer-fixture]
+    needs: [test, test-db-matrix, test-replica, test-redis, coverage, consumer-fixture, consumer-matrix]
     runs-on: ubuntu-latest
     steps:
       - name: Fail unless every required job succeeded

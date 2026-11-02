@@ -25,6 +25,8 @@ set -euo pipefail
 
 root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 dist="${root}/build/dist"
+policy="latest"
+evidence_dir=""
 
 laravel="13"
 version="1.0.0"
@@ -45,6 +47,10 @@ for arg in "$@"; do
         --laravel=*) laravel="${arg#*=}" ;;
         --version=*) version="${arg#*=}"; version_given=1 ;;
         --source=archive | --source=packagist) source="${arg#*=}" ;;
+        --source-root=?*) root="${arg#*=}" ;;
+        --dist=?*) dist="${arg#*=}" ;;
+        --evidence=?*) evidence_dir="${arg#*=}" ;;
+        --policy=lowest | --policy=latest) policy="${arg#*=}" ;;
         --with-filament) with_filament=1 ;;
         --keep) keep=1 ;;
         --report=?*) report="${arg#*=}" ;;
@@ -116,6 +122,7 @@ build_archives() {
     for package in "${packages[@]}"; do
         copy="${work}/pkg-${package}"
         cp -a "${root}/packages/${package}" "${copy}"
+        rm -rf "${copy}/.github"
         # The core-only archive has no module roots: the directory is gone, the providers and PSR-4 roots of the modules too.
         if [[ "${mode}" == "core-only" ]]; then
             rm -rf "${copy}/modules"
@@ -133,15 +140,48 @@ build_archives() {
         composer archive --format=zip --dir="${dist}" --working-dir="${copy}" --no-interaction >/dev/null
     done
 
+    validate_archives "${dist}"
+    if [[ -n "${evidence_dir}" ]]; then
+        mkdir -p "${evidence_dir}"
+        cp "${dist}"/*.zip "${evidence_dir}/"
+        (cd "${evidence_dir}" && sha256sum ./*.zip >archives.sha256)
+        for copy in "${dist}"/*.zip; do
+            unzip -Z1 "${copy}" >"${evidence_dir}/$(basename "${copy}").list"
+            unzip -p "${copy}" composer.json >"${evidence_dir}/$(basename "${copy}").manifest.json"
+        done
+    fi
+
     log "archives in ${dist}:"
     ls -1 "${dist}" | sed 's/^/  /'
+}
+
+# Inspect the actual bytes Composer will install, including symlink entries.
+validate_archives() {
+    php -r '
+        foreach (glob($argv[1]."/*.zip") as $file) {
+            $zip = new ZipArchive;
+            if ($zip->open($file) !== true) { throw new RuntimeException("Cannot open $file"); }
+            for ($i = 0; $i < $zip->numFiles; $i++) {
+                $name = $zip->getNameIndex($i);
+                $zip->getExternalAttributesIndex($i, $opsys, $attr);
+                if ((($attr >> 16) & 0170000) === 0120000 || preg_match("~(^|/)(vendor|node_modules|tests?|\.git|\.github|\.agents|build|bench|plan|evidence)(/|$)|(^|/)(\.env[^/]*|[^/]*\.(pem|key))$~i", $name)) {
+                    throw new RuntimeException("Forbidden archive entry: $name in $file");
+                }
+            }
+            $zip->close();
+        }
+    ' "$1"
 }
 
 create_app() {
     log "creating a clean Laravel ${laravel}.x application"
     # Laravel's create-project hooks may migrate. Never inherit a host database target into those hooks.
     APP_ENV=testing DB_CONNECTION=sqlite DB_DATABASE=:memory: DB_URL= AZGUARD_DB_CONNECTION=sqlite \
-        composer create-project "laravel/laravel:^${laravel}.0" "${work}/app" --no-interaction --prefer-dist --no-progress >/dev/null
+        composer create-project "laravel/laravel:^${laravel}.0" "${work}/app" --no-install --no-scripts --no-interaction --prefer-dist --no-progress >/dev/null
+    # The app skeleton's development tools are unrelated to the package runtime and
+    # can require a newer PHP than the supported pair. Keep only the HTTP test runner.
+    php -r '$f=$argv[1]; $j=json_decode(file_get_contents($f),true,512,JSON_THROW_ON_ERROR); $j["require-dev"]=["phpunit/phpunit"=>"^11.5","mockery/mockery"=>"^1.6","fakerphp/faker"=>"^1.23"]; file_put_contents($f,json_encode($j,JSON_PRETTY_PRINT|JSON_UNESCAPED_SLASHES)."\n");' "${work}/app/composer.json"
+    cp "${work}/app/.env.example" "${work}/app/.env"
 }
 
 install_archives() {
@@ -157,6 +197,8 @@ install_archives() {
         composer config prefer-stable true
         log "requiring from Packagist: ${packages[*]}"
         composer require "${packages[@]}" --no-interaction --no-progress
+        composer check-platform-reqs
+        php artisan key:generate --force --no-interaction
         return
     fi
     composer config minimum-stability dev
@@ -164,7 +206,26 @@ install_archives() {
     composer config repositories.azguard artifact "${dist}"
 
     log "requiring from the artifact repository: ${packages[*]}"
-    composer require "${packages[@]}" --no-interaction --no-progress
+    composer require "${packages[@]}" --no-update --no-interaction
+    local flags=(--prefer-stable)
+    [[ "${policy}" == lowest ]] && flags+=(--prefer-lowest)
+    log "dependency policy: composer update ${flags[*]}"
+    composer update "${flags[@]}" --prefer-dist --no-interaction --no-progress
+    composer check-platform-reqs
+    php artisan key:generate --force --no-interaction
+    if [[ -n "${evidence_dir}" ]]; then
+        cp composer.lock "${evidence_dir}/composer.lock"
+        cp composer.json "${evidence_dir}/consumer-composer.json"
+    fi
+}
+
+repeat_install() {
+    [[ "${source}" == archive && "${mode}" == full && "${policy}" == lowest && "${with_filament}" == 0 ]] || return 0
+    log "repeating the locked install with an isolated Composer cache"
+    mkdir -p "${work}/repeat" "${work}/repeat-cache"
+    (cd "${work}/app" && tar --exclude=./vendor -cf - .) | (cd "${work}/repeat" && tar -xf -)
+    (cd "${work}/repeat" && COMPOSER_CACHE_DIR="${work}/repeat-cache" composer install --no-scripts --prefer-dist --no-interaction --no-progress && composer check-platform-reqs)
+    [[ -d "${work}/repeat/vendor/axiomasoft/azguard" && ! -L "${work}/repeat/vendor/axiomasoft/azguard" ]]
 }
 
 # Reads Laravel's own discovery manifest instead of grepping its escaped source.
@@ -253,7 +314,7 @@ http_step() {
     printf "\nrequire __DIR__.'/azguard.php';\n" >> routes/web.php
     composer dump-autoload --no-interaction >/dev/null
 
-    export APP_ENV=testing DB_CONNECTION=sqlite DB_URL= AZGUARD_DB_CONNECTION=sqlite
+    export APP_ENV=testing DB_CONNECTION=sqlite DB_URL= AZGUARD_DB_CONNECTION=sqlite CACHE_STORE=file CACHE_DRIVER=file AZGUARD_CACHE_NAMESPACE=consumer-fixture
     export DB_DATABASE="${work}/app/database/azguard_consumer_test.sqlite"
     export AZGUARD_CONSUMER_FIXTURE_ROOT="${work}/app"
     php -r '
@@ -272,7 +333,7 @@ http_step() {
             throw new RuntimeException("Consumer phpunit.xml has no PHP environment section.");
         }
         $values = ["APP_ENV" => "testing", "DB_CONNECTION" => "sqlite", "DB_DATABASE" => $argv[1],
-            "DB_URL" => "", "AZGUARD_DB_CONNECTION" => "sqlite", "AZGUARD_CONSUMER_FIXTURE_ROOT" => getcwd()];
+            "DB_URL" => "", "AZGUARD_DB_CONNECTION" => "sqlite", "CACHE_STORE" => "file", "CACHE_DRIVER" => "file", "AZGUARD_CACHE_NAMESPACE" => "consumer-fixture", "AZGUARD_CONSUMER_FIXTURE_ROOT" => getcwd()];
         foreach ($values as $name => $value) {
             foreach (iterator_to_array($php->childNodes) as $node) {
                 if ($node instanceof DOMElement && in_array($node->tagName, ["env", "server"], true) && $node->getAttribute("name") === $name) {
@@ -292,12 +353,21 @@ http_step() {
 
     log "Install: bigint host keys, sqlite connection and pre-existing config cache on Laravel ${laravel}"
     php artisan config:cache --no-interaction
-    php artisan azguard:install --connection=sqlite --host-keys=bigint --migrate --force --no-interaction
+    if [[ "${mode}" == core-only ]]; then
+        # DevTools supplies azguard:install and is deliberately absent here.
+        php -r '$s=file_get_contents("vendor/axiomasoft/azguard/config/azguard.php"); $s=str_replace("\x27ids\x27 => [\x27host_keys\x27 => \x27string\x27]", "\x27ids\x27 => [\x27host_keys\x27 => \x27bigint\x27]", $s, $count); if ($count !== 1) exit(1); file_put_contents("config/azguard.php",$s);'
+        php artisan config:clear --no-interaction
+        php artisan migrate --force --no-interaction
+    else
+        php artisan azguard:install --connection=sqlite --host-keys=bigint --migrate --force --no-interaction
+    fi
+    php artisan route:list --no-interaction >/dev/null
+    php artisan azguard:doctor --no-interaction
 
     log "HTTP: #[CheckPermission] behind azguard.panel on Laravel ${laravel}"
     php vendor/bin/phpunit tests/Feature/AzGuardHttpTest.php
     log "HTTP OK"
-    log "RefreshDatabase: installed writer, shared file cache, rollback/restart and production guard on Laravel ${laravel}"
+    log "RefreshDatabase: installed writer, array cache, rollback/restart and production guard on Laravel ${laravel}"
     php vendor/bin/phpunit tests/Feature/AzGuardBaselineTest.php
     log "RefreshDatabase OK"
 }
@@ -339,6 +409,7 @@ build_relocated_archives() {
 
     local core="${work}/relocated-core" audit="${work}/relocated-audit"
     cp -a "${root}/packages/core" "${core}"
+    rm -rf "${core}/.github"
     rm -rf "${core}/modules/audit"
     mkdir -p "${audit}"
     cp -a "${root}/packages/core/modules/audit/." "${audit}/"
@@ -367,6 +438,15 @@ build_relocated_archives() {
 
     composer archive --format=zip --dir="${target}" --working-dir="${core}" --no-interaction >/dev/null
     composer archive --format=zip --dir="${target}" --working-dir="${audit}" --no-interaction >/dev/null
+    validate_archives "${target}"
+    if [[ -n "${evidence_dir}" ]]; then
+        cp "${target}"/*.zip "${evidence_dir}/"
+        (cd "${evidence_dir}" && sha256sum ./*.zip >archives.sha256)
+        for core in "${target}"/*.zip; do
+            unzip -Z1 "${core}" >"${evidence_dir}/$(basename "${core}").list"
+            unzip -p "${core}" composer.json >"${evidence_dir}/$(basename "${core}").manifest.json"
+        done
+    fi
     log "relocated archives in ${target}:"
     ls -1 "${target}" | sed 's/^/  /'
 }
@@ -427,10 +507,19 @@ relocated_audit_step() {
         || relocation_fail "before the relocation AuditPlugin does not load from the core archive: $(cat "${before}/autoload.json")"
 
     log "relocated-audit: relocate — core ${relocated} without modules/audit + axiomasoft/azguard-audit ${relocated}"
-    build_relocated_archives "${relocated}" "${root}/build/dist-relocated"
+    build_relocated_archives "${relocated}" "${work}/dist-relocated"
     composer config --unset repositories.azguard
-    composer config repositories.azguard-relocated artifact "${root}/build/dist-relocated"
-    composer require "axiomasoft/azguard:${relocated}" "axiomasoft/azguard-audit:${relocated}" --no-interaction --no-progress
+    composer config repositories.azguard-relocated artifact "${work}/dist-relocated"
+    local flags=(--prefer-stable)
+    [[ "${policy}" == lowest ]] && flags+=(--prefer-lowest)
+    composer require "axiomasoft/azguard:${relocated}" "axiomasoft/azguard-audit:${relocated}" --no-update --no-interaction
+    composer update "${flags[@]}" --prefer-dist --no-interaction --no-progress
+    composer check-platform-reqs
+    if [[ -n "${evidence_dir}" ]]; then
+        cp "${evidence_dir}/composer.lock" "${evidence_dir}/composer-initial.lock"
+        cp composer.lock "${evidence_dir}/composer.lock"
+        cp composer.json "${evidence_dir}/consumer-composer.json"
+    fi
     composer dump-autoload --optimize --no-interaction >/dev/null
     for package in azguard azguard-audit; do
         [[ ! -L "vendor/axiomasoft/${package}" ]] || relocation_fail "vendor/axiomasoft/${package} is a symlink"
@@ -503,7 +592,7 @@ relocation_report() {
     local before="$1" after="$2" relocated="$3" archive
     echo "| Archive | sha256 |"
     echo "|:--|:--|"
-    for archive in "${dist}"/axiomasoft-*.zip "${root}"/build/dist-relocated/axiomasoft-*.zip; do
+    for archive in "${dist}"/axiomasoft-*.zip "${work}"/dist-relocated/axiomasoft-*.zip; do
         echo "| \`${archive#"${root}"/}\` | \`$(sha256sum "${archive}" | cut -d' ' -f1)\` |"
     done
     echo
@@ -563,11 +652,14 @@ if [[ "${source}" == "archive" ]]; then
 fi
 create_app
 install_archives
+repeat_install
 smoke
 if [[ "${mode}" == "core-only" ]]; then
     core_only_step
+    http_step
 elif [[ "${mode}" == "relocated-audit" ]]; then
     relocated_audit_step
+    http_step
 else
     http_step
     if ((with_filament)); then

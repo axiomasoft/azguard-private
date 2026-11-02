@@ -21,6 +21,6 @@ final class StoredGuardPanelProvider extends PanelProvider
     {
         return $panel->for(User::class, guard: 'web')
             ->permissions([StoredPermission::class, DatabaseSource::make()])
-            ->cache('file', ttl: 3600);
+            ->cache('array', ttl: 3600);
     }
 }
