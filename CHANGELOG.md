@@ -6,6 +6,8 @@ version) are documented here. Format: [Keep a Changelog](https://keepachangelog.
 
 ## [Unreleased]
 
+- The release setup verifier accepts `--setup=PATH --read-only --strict` as well as the existing `--setup [PATH]` form;
+  setup verification remains read-only and strict in both forms.
 - Release setup probes support public and private source repositories and bind their visibility to the verification
   result, requiring fresh probes after a visibility change.
 - Gate package splitting on verified release setup and disable the unverified public final-artifact relay.
