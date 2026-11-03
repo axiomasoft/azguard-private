@@ -26,7 +26,9 @@ use Illuminate\Contracts\Cache\Factory;
 use Illuminate\Redis\Connections\PhpRedisConnection;
 use Illuminate\Redis\Connections\PredisConnection;
 use Illuminate\Support\Carbon;
+use ReflectionProperty;
 use Throwable;
+use UnexpectedValueException;
 
 /** @internal Request/job memo and revision-keyed store of raw authority; never a decision cache. */
 final class PermissionSetCache
@@ -223,7 +225,7 @@ final class PermissionSetCache
         }
 
         if ($store instanceof ArrayStore) {
-            $item = $store->all(false)[$key] ?? null;
+            $item = $this->arrayItem($store, $key);
 
             if ($item === null) {
                 return null;
@@ -264,7 +266,7 @@ final class PermissionSetCache
     private function forgetEnvelope(mixed $store, string $key, mixed $raw): void
     {
         if ($store instanceof ArrayStore) {
-            if (($store->all(false)[$key]['value'] ?? null) === $raw) {
+            if (($this->arrayItem($store, $key)['value'] ?? null) === $raw) {
                 $store->forget($key);
             }
         } elseif ($store instanceof RedisStore && is_string($raw) && $this->supportsStore($store)) {
@@ -277,6 +279,29 @@ final class PermissionSetCache
                 $connection->command('eval', [$script, 1, $store->getPrefix().$key, $raw]);
             }
         }
+    }
+
+    /** @return array{value: mixed, expiresAt: float|int}|null */
+    private function arrayItem(ArrayStore $store, string $key): ?array
+    {
+        // Laravel 12.0 has no all(false); get() may deserialize before MAC verification.
+        $storage = (new ReflectionProperty(ArrayStore::class, 'storage'))->getValue($store);
+
+        if (! is_array($storage)) {
+            throw new UnexpectedValueException('Invalid array cache storage.');
+        }
+        $item = $storage[$key] ?? null;
+
+        if ($item === null) {
+            return null;
+        }
+
+        if (! is_array($item) || ! array_key_exists('value', $item) || ! isset($item['expiresAt'])
+            || (! is_int($item['expiresAt']) && ! is_float($item['expiresAt']))) {
+            throw new UnexpectedValueException('Invalid array cache entry.');
+        }
+
+        return ['value' => $item['value'], 'expiresAt' => $item['expiresAt']];
     }
 
     private function unwrapEnvelope(mixed $raw): mixed

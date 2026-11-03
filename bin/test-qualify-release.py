@@ -2,7 +2,6 @@
 """Safety and evidence checks for the local-only qualification runner."""
 import hashlib
 import json
-import os
 from pathlib import Path
 import subprocess
 import tempfile
@@ -55,6 +54,8 @@ class LocalQualificationTests(unittest.TestCase):
         self.assertTrue(receipt["clean_source"] and receipt["isolated_checkout"] and receipt["no_publish"])
         self.assertTrue(receipt["required_lanes_unavailable"])
         self.assertEqual(3, len(receipt["checks"]))
+        self.assertEqual(3, receipt["php_syntax_coverage"]["tracked_files"])
+        self.assertEqual(3, receipt["php_syntax_coverage"]["checked_files"])
         for check in receipt["checks"]:
             self.assertEqual(0, check["exit"])
             log = self.root / check["log"]
@@ -88,8 +89,9 @@ class LocalQualificationTests(unittest.TestCase):
         self.assertFalse(target.exists())
 
     def test_a_failing_check_is_failed_not_incomplete_or_green(self):
-        (self.repo / "bin/release-gate.php").write_text("<?php invalid syntax!\n")
-        self.git("add", "bin/release-gate.php")
+        # This file was outside the old three-file sample and must be checked.
+        (self.repo / "bin/test-db.php").write_text("<?php invalid syntax!\n")
+        self.git("add", "bin/test-db.php")
         self.git("commit", "--quiet", "-m", "bad syntax")
         sha = self.git("rev-parse", "HEAD").strip()
         self.candidate.write_text(json.dumps({"schema": "azguard.local-qualification-candidate.v1", "source_sha": sha}))
@@ -97,7 +99,27 @@ class LocalQualificationTests(unittest.TestCase):
         self.assertEqual(1, result.returncode, result.stderr)
         receipt = json.loads(self.report.read_text())
         self.assertEqual("failed", receipt["result"])
-        self.assertNotEqual(0, receipt["checks"][0]["exit"])
+        self.assertEqual(4, receipt["php_syntax_coverage"]["tracked_files"])
+        self.assertEqual(4, receipt["php_syntax_coverage"]["checked_files"])
+        failed = [check for check in receipt["checks"] if check["source_path"] == "bin/test-db.php"]
+        self.assertEqual(1, len(failed))
+        self.assertNotEqual(0, failed[0]["exit"])
+
+    def test_tracked_php_symlink_fails_without_linting_target(self):
+        target = self.root / "outside.php"
+        target.write_text("<?php invalid syntax!\n")
+        (self.repo / "bin/unsafe.php").symlink_to(target)
+        self.git("add", "bin/unsafe.php")
+        self.git("commit", "--quiet", "-m", "symlink fixture")
+        sha = self.git("rev-parse", "HEAD").strip()
+        self.candidate.write_text(json.dumps({"schema": "azguard.local-qualification-candidate.v1", "source_sha": sha}))
+        result = self.run_runner()
+        self.assertEqual(1, result.returncode, result.stderr)
+        receipt = json.loads(self.report.read_text())
+        rejected = [check for check in receipt["checks"] if check["source_path"] == "bin/unsafe.php"]
+        self.assertEqual(1, len(rejected))
+        self.assertEqual(127, rejected[0]["exit"])
+        self.assertIn("regular file", (self.root / rejected[0]["log"]).read_text())
 
     def test_checkout_disables_source_fsmonitor_and_git_hooks(self):
         marker = self.root / "git-hook-executed"

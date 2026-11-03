@@ -35,7 +35,8 @@ afterEach(function (): void {
 
 function assignmentSnapshot(): array
 {
-    return [W::rows(), W::version(), CrmWorld::storage()->table('subject_revisions')->orderBy('id')->get()->toArray(),
+    return [W::rows(), W::version(), CrmWorld::storage()->table('subject_revisions')
+        ->orderBy('panel')->orderBy('subject_type')->orderBy('subject_id')->get()->toArray(),
         EventWorld::auditRows(), EventWorld::events()];
 }
 

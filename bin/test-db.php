@@ -1,9 +1,9 @@
 #!/usr/bin/env php
 <?php
 
-use AzGuard\Tests\Support\DatabaseLaneEnvironment;
-
 declare(strict_types=1);
+
+use AzGuard\Tests\Support\DatabaseLaneEnvironment;
 
 /*
  * The database lane: the tests whose result depends on the engine (group `database`, tests/zones.json) on one server

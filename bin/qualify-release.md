@@ -1,6 +1,6 @@
 # Local qualification probe
 
-`qualify-release.sh` runs a small, fixed set of source checks in a temporary Git
+`qualify-release.sh` syntax-checks every tracked PHP file in a temporary Git
 clone. It does **not** perform release qualification, and cannot publish, split,
 tag, connect to databases, run a matrix or make a remote request. It returns
 `1` even when every local check passes: the remaining required lanes are listed
@@ -21,5 +21,6 @@ bash bin/qualify-release.sh --candidate=/tmp/azguard-candidate.json --no-publish
 
 The report and its sibling `.artifacts` directory must not already exist. The
 receipt records the commit and tree, lockfile hash, tool versions, command exits
-and SHA-256 digests of retained check logs. It is explicitly `nonrelease`, is not
+and SHA-256 digests of retained check logs. PHP coverage records the exact tracked
+file count and index digest. It is explicitly `nonrelease`, is not
 accepted as the full P8.2 evidence bundle, and does not satisfy any release gate.

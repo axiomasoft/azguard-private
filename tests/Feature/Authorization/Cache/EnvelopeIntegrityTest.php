@@ -17,6 +17,8 @@ use AzGuard\Panels\PanelBuilder;
 use AzGuard\Tests\Fixtures\Authorization\AuthorizationWorld;
 use AzGuard\Tests\Fixtures\Authorization\Cache\CacheSource;
 use AzGuard\Tests\Fixtures\Authorization\Cache\FencedCacheSource;
+use Illuminate\Cache\ArrayStore;
+use Illuminate\Cache\Repository;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\File;
 
@@ -168,7 +170,14 @@ it('keeps oversized authoritative data locally without writing it to the shared 
 });
 
 it('does not deserialize a forged outer value in a serialized array store', function (): void {
-    config(['cache.stores.envelope_serialized' => ['driver' => 'array', 'serialize' => true], 'cache.serializable_classes' => null]);
+    app('cache')->extend('legacy_array', static fn () => new Repository(new class(true) extends ArrayStore
+    {
+        public function all($unserialize = true)
+        {
+            throw new LogicException('Laravel 12.0 has no all method.');
+        }
+    }));
+    config(['cache.stores.envelope_serialized' => ['driver' => 'legacy_array'], 'cache.serializable_classes' => null]);
     [, $panel] = AuthorizationWorld::compile(new CacheSource, fn (PanelBuilder $panel) => $panel->cache('envelope_serialized', 60));
     $now = Carbon::now()->toDateTimeImmutable();
     $store = app('cache')->store('envelope_serialized')->getStore();
@@ -177,13 +186,18 @@ it('does not deserialize a forged outer value in a serialized array store', func
     expect((new PermissionSetCache(app('cache')))->get('array-outer', $panel, Volatility::Stable, true, $now))->toHaveCount(1);
     $store->forever('array-outer', $store->get('array-outer'));
     expect((new PermissionSetCache(app('cache')))->get('array-outer', $panel, Volatility::Stable, true, $now))->toHaveCount(1);
-    $storage = $store->all(false);
+    $storage = (new ReflectionProperty(ArrayStore::class, 'storage'))->getValue($store);
     $storage['array-outer']['value'] = serialize(new EnvelopeWakeupSentinel);
     (new ReflectionProperty($store, 'storage'))->setValue($store, $storage);
     EnvelopeWakeupSentinel::$woken = false;
     expect((new PermissionSetCache(app('cache')))->get('array-outer', $panel, Volatility::Stable, true, $now))->toBeNull()
         ->and(EnvelopeWakeupSentinel::$woken)->toBeFalse()
-        ->and($store->all(false))->not->toHaveKey('array-outer');
+        ->and((new ReflectionProperty(ArrayStore::class, 'storage'))->getValue($store))->not->toHaveKey('array-outer');
+
+    foreach ([['value' => 'raw'], ['value' => 'raw', 'expiresAt' => 'not-a-timestamp'], 'invalid'] as $invalid) {
+        (new ReflectionProperty(ArrayStore::class, 'storage'))->setValue($store, ['array-outer' => $invalid]);
+        expect((new PermissionSetCache(app('cache')))->get('array-outer', $panel, Volatility::Stable, true, $now))->toBeNull();
+    }
 });
 
 it('bypasses stores whose read transport cannot be inspected safely', function (): void {

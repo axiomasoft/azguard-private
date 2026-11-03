@@ -6,6 +6,7 @@ version) are documented here. Format: [Keep a Changelog](https://keepachangelog.
 
 ## [Unreleased]
 
+- Restore signed array-cache reads on Laravel 12.0 while rejecting malformed or unsigned values before deserialization.
 - Current work is local to the monorepo: neither core nor Filament is being split, tagged or published. Earlier
   core-only release preparation remains deferred and does not authorize remote configuration or publication.
 - The core-only offline archive rehearsal uses `azguard.package-evidence.offline-fixture.v2`; the previous v1 format is

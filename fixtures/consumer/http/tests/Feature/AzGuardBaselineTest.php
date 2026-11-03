@@ -13,9 +13,11 @@ use AzGuard\Panels\Reads;
 use AzGuard\Storage\Internal\AuthorityReadBaseline;
 use AzGuard\Storage\Internal\StorageRegistry;
 use AzGuard\Testing\InteractsWithAzGuard;
+use Illuminate\Cache\ArrayStore;
 use Illuminate\Database\Events\QueryExecuted;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Route;
+use ReflectionProperty;
 use Tests\TestCase;
 
 final class AzGuardBaselineTest extends TestCase
@@ -100,7 +102,8 @@ final class AzGuardBaselineTest extends TestCase
             $former = User::factory()->create();
             $this->actingAsWithPermissions($former, [StoredPermission::Refund], panel: 'stored');
             $this->assertTrue(AzGuard::check($former, StoredPermission::Refund));
-            $this->assertNotEmpty(app('cache')->store('array')->getStore()->all(false));
+            $arrayStore = app('cache')->store('array')->getStore();
+            $this->assertNotEmpty((new ReflectionProperty(ArrayStore::class, 'storage'))->getValue($arrayStore));
             $first = $storage->state('stored');
             $connection->rollBack();
 

@@ -48,7 +48,7 @@ def digest(data: bytes) -> str:
 
 
 def command(argv: list[str], cwd: Path, env: dict[str, str], timeout: int = 120) -> subprocess.CompletedProcess[bytes]:
-    return subprocess.run(argv, cwd=cwd, env=env, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+    return subprocess.run(argv, cwd=cwd, env=env, stdin=subprocess.DEVNULL, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
                           timeout=timeout, check=False)
 
 
@@ -124,18 +124,34 @@ def main() -> int:
         if lock.is_symlink() or not lock.is_file():
             raise RuntimeError("composer.lock unavailable or not a regular file")
         lock_hash = digest(lock.read_bytes())
-        checks = [
-            ["php", "-l", "bin/release-gate.php"],
-            ["php", "-l", "bin/verify-release-evidence.php"],
-            ["php", "-l", "packages/core/src/AzGuard.php"],
-        ]
+        listing = command(["git", "ls-files", "--stage", "-z", "--", "*.php"], checkout, env)
+        if listing.returncode:
+            raise RuntimeError("cannot enumerate tracked PHP files")
+        tracked_php = []
+        for entry in listing.stdout.split(b"\0"):
+            if not entry:
+                continue
+            header, separator, encoded_path = entry.partition(b"\t")
+            fields = header.split(b" ")
+            if not separator or len(fields) != 3 or fields[2] != b"0":
+                raise RuntimeError("invalid or unmerged PHP index entry")
+            path = encoded_path.decode("utf-8", errors="strict")
+            if not path or path.startswith("/") or ".." in Path(path).parts:
+                raise RuntimeError("invalid tracked PHP path")
+            tracked_php.append((fields[0], path))
+        if not tracked_php:
+            raise RuntimeError("candidate has no tracked PHP files")
         artifacts.mkdir(mode=0o700)
         results = []
-        for index, argv in enumerate(checks, start=1):
+        for index, (mode, path) in enumerate(tracked_php, start=1):
             started = timestamp()
+            source = checkout / path
+            # An absolute argument cannot be interpreted as a CLI switch even
+            # if a tracked filename starts with '-'.  PHP's '-l --' reads stdin
+            # on some runtimes, so do not use it as an option delimiter.
+            argv = ["php", "-l", str(source)]
             try:
-                source = checkout / argv[-1]
-                if source.is_symlink() or not source.is_file() or not source.resolve().is_relative_to(checkout):
+                if mode not in (b"100644", b"100755") or source.is_symlink() or not source.is_file() or not source.resolve().is_relative_to(checkout):
                     raise OSError("check target must be a regular file within the isolated checkout")
                 result = command(argv, checkout, env)
                 exit_code, output, error = result.returncode, result.stdout, result.stderr
@@ -144,7 +160,7 @@ def main() -> int:
             log = output + b"\n--- stderr ---\n" + error
             log_name = f"check-{index}.log"
             (artifacts / log_name).write_bytes(log)
-            results.append({"argv": argv, "cwd": "isolated-checkout", "started_at": started,
+            results.append({"argv": argv, "source_path": path, "cwd": "isolated-checkout", "started_at": started,
                             "finished_at": timestamp(), "exit": exit_code,
                             "status": "passed" if exit_code == 0 else "failed",
                             "log": f"{artifacts.name}/{log_name}", "sha256": digest(log)})
@@ -160,6 +176,8 @@ def main() -> int:
             "tools": {"git": git_version, "php": php_version, "python": sys.version.split()[0]},
             "clean_source": True, "isolated_checkout": True, "no_publish": True,
             "started_at": results[0]["started_at"], "finished_at": timestamp(),
+            "php_syntax_coverage": {"tracked_files": len(tracked_php), "checked_files": len(results),
+                                    "tracked_index_sha256": digest(listing.stdout)},
             "checks": results, "required_lanes_unavailable": MISSING,
             "note": "Local source checks only. Not a full matrix, release qualification, attestation or publication proof.",
         }
