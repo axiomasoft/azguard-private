@@ -1,5 +1,95 @@
 # Upgrading to 2.0
 
+The next release line is **2.0.0-rc.1 → 2.0.0** for both packages. Treat 1.0 as potentially consumed;
+the historical changelog is not proof of publication. Review these changes before updating code or stored data.
+
+## Dependencies and package versions
+
+Upgrade Laravel 11 applications first. Supported pairs are PHP 8.3/8.4 with Laravel 12 and PHP 8.3/8.4/8.5
+with Laravel 13. The plugin requires Filament `^5.8.4`. Composer `self.version` binds the plugin to the exact
+core version, including the prerelease suffix; update them together. For an RC evaluation, select
+`axiomasoft/azguard:2.0.0-rc.1` and `axiomasoft/azguard-filament:2.0.0-rc.1` explicitly. A development path
+repository must assign both packages the same version; the monorepo's `2.0.0` path override is a local solver
+identity, not evidence of a stable release. The root development lock does not constrain your application's lock.
+
+## API and extension contracts
+
+Only publication-marked types and their supported members belong to the API/SPI promise. The 2.0 changes include:
+
+| Previous use | Required change |
+|---|---|
+| `StorageDescriptor::$connection` could be null | It is now a resolved `string` connection name. Use that name; changing Laravel's default does not move existing storage descriptors. |
+| `DoctorContext::storages()` relied on its former shape | Iterate `list<StorageDescriptor>`; use descriptor identity and resolved connection, without opening internal storage objects. |
+| Direct `DoctorContext::config()` calls | This member is internal. Custom Doctor checks should receive their own application dependencies. |
+| Constructing `Visibility`, `PanelOverview`, `GateBridge` or `StorageSchema` directly | Their constructors are internal. Use the documented authorization, diagnostics and storage entry points. |
+| `FolderSource::configured()` / `bind()` | These members are internal; configure sources through panel registration and the supported `FolderSource::make()` factory. |
+| `FakeSubject::newEloquentBuilder()` | This is an internal Eloquent hook; create a fake subject with `FakeSubject::of()`. |
+| Reading `AzGuardPlugin::keys()` | This is internal; use the generator and Doctor as supported views of the keys. |
+| Participant table aliases or uppercase names such as `ROLE_GRANTS` | `tables()` must return lowercase ASCII base names matching `[a-z][a-z0-9_]*`. Migrate any renamed tables and update your queries explicitly. |
+| Audit retention below one day | Configure at least one day; `AuditOptions` rejects shorter retention. |
+
+`isSuperAdmin()`, `hasRole()`, `roleNames()`, `permissionSet()` and panel admission now use the model from which
+the subject wrapper was constructed, consistently with `decide()`. Reload the intended host model before creating
+the wrapper; do not expect a separately loaded copy to replace it. Bare `SubjectRef` reads still use the source.
+New source metadata does not add a mandatory method to existing source implementations.
+
+### Primary authority and SQL visibility
+
+For sensitive operations on replica-default panels, use `SubjectAccess::onPrimary()` or
+`AccessRequest::onPrimary()` and retain `StateRefresh::Check`. Reload host records and membership from primary
+too. A primary authority read does not make host data fresh or make check/use atomic; coordinate concurrent
+revokes with the host write where required. See [consistency](../advanced/consistency.md).
+
+Unsupported scopes, tenants, roles, conditions or sources still deny or raise the documented unsupported-visibility
+error. `visibleTo()` cannot turn unsupported SQL into Allow or authorize by filtering a paginated result.
+Policies/restrictions reading matching grants need an equivalent supported predicate for exact visibility.
+
+### Filament enforcement
+
+Attaching, associating, detaching and dissociating, including bulk actions, now require the owner resource's
+`update` ability or the relation manager's `$azguardRelationAbility`. Reading alone is insufficient.
+Register resource widget keys or provide a deciding trait: an undecided widget mounted in an enforcing panel
+is refused with 403. Enforcing panels require `consistency.reads: primary` for writes and exports.
+The shared export download route is refused, including legacy exports and other panels; a replacement must
+reauthorize the actor, original context and every exported record. Follow the [Filament guide](./filament.md).
+
+## Cache rollover and bounded lifetime
+
+Configure a unique `AZGUARD_CACHE_NAMESPACE` and signing secret (`AZGUARD_CACHE_SIGNING_KEY`, or Laravel's
+`APP_KEY` fallback); configure only bounded previous keys during rotation. The current contribution key uses
+`azguard:sets:v2:` and includes the signing namespace, source/state identity and read mode. Existing unsigned
+entries and entries with a previous key digest are ignored; authority is loaded again. Do not copy or re-sign
+old entries. Signed envelope version 1 is distinct from the key prefix and package major version.
+
+Shared permission sets default to 300 seconds, capped at 3600 seconds and the nearest active expiry. A null
+shared TTL is a configuration/Doctor error; runtime fallback remains finite. Each request/job memo map is
+bounded at 1024 entries; `cache.max_memo_entries` and `cache.max_state_entries` may reduce the limits to 1–1024.
+Shared caching requires stable fenced authority and a supported raw store (array or Redis). Redis client
+serialization/compression must be disabled. Other stores bypass shared caching and retain request/job memoization.
+
+Restart long-lived workers after deployment and rebuild the catalog cache with the deployment build id.
+For old permanent Redis entries, inspect the exact application's connection, prefix, namespace/key generation
+and TTL, then remove only the obsolete entries under the [cache cleanup procedure](../advanced/caching.md).
+Do not flush a shared database. Reset state after a database restore as the operations runbook requires.
+
+## Machine-format consumers and baseline policy
+
+Regenerate API manifests with `composer api:manifest` and validate with `composer api:check`. Manifest readers
+must accept return-by-reference records and `@phpstan-type` contracts. Console snapshot readers must handle option
+mode and repeatability. `SourceDescription` and `azguard:panels:list --sources --json` add `volatility` and a
+declaration-only `matrix` (`urn:azguard:source-capabilities:2`); a conditional cell does not authorize anything.
+
+Doctor consumers must accept `panels.sources.visibility`, `panels.sources.cache` and `cache.integrity` findings,
+the changed `cache.signing` severity and the absence of the store name in `cache.store` details. The production
+missing-`catalog.build_id` finding is now an error for a cached catalog or persistent panel cache.
+Ignore unknown JSON keys and match open enums with a default arm. See [machine formats](../reference/formats.md).
+
+The previous compatibility candidate is preserved, with its old-to-2.0 breaks and additions in the generated
+[migration inventory](../reference/compatibility-2.json). It includes the source metadata PHPDoc changes and the
+TTL default change from 3600 to 300. The separately pinned 2.0 candidate starts the same-major comparison;
+later 2.x breaks remain blocking. This inventory describes code/format changes, not a qualified database upgrade.
+No published migration or historical changelog entry is rewritten by this baseline decision.
+
 ## Qualification and rollback
 
 The 2026-10-30 publication inventory in `RELEASING.md` did not establish a published 1.0 artifact. It does not
@@ -86,6 +176,11 @@ Keep traffic stopped until the restore and mandatory state reset in the
 [operations runbook](../advanced/operations.md#manual-database-changes-and-restores) are complete.
 
 ## Morph identities
+
+Use stable morph aliases for subjects, scopes and tenants. Doctor's `morph.identity` check warns about class-name
+identities in production; `azguard_doctor.strict_morph_identity=true` makes that finding an error. Enforced-map
+violations, invalid aliases and aliases that collide or do not resolve back to their models are errors.
+These diagnostics do not perform a migration and do not make an invalid runtime identity acceptable.
 
 Before changing an Eloquent morph alias or renaming a model whose class name was stored as its type, follow the
 [morph identity inventory, migration and rollback runbook](../advanced/operations.md#morph-identity-and-alias-changes).

@@ -1,6 +1,10 @@
 {
     "schema": "urn:azguard:compatibility:1",
     "candidate": "8a9c86f94a566a7366355804bc47f36f5f9e5125",
+    "major": 2,
+    "major_candidate": "f70d82e293a5c0b0e09cd198eadfb220ea0fe620",
+    "rationale": "Start the 2.0 compatibility line at the committed P6 surface, before P7 documentation changes. Preserve the former candidate and every old-to-2.0 delta as migration inventory; subsequent 2.x breaks remain blocking. This is not evidence of a published upgrade.",
+    "migration_inventory": "docs/reference/compatibility-2.json",
     "artifacts": [
         {
             "id": "source-capabilities",

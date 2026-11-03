@@ -6,6 +6,12 @@ version) are documented here. Format: [Keep a Changelog](https://keepachangelog.
 
 ## [Unreleased]
 
+- Align 2.0 installation, split READMEs and compatibility docs with the five supported PHP/Laravel pairs,
+  Filament `^5.8.4` and exact core/plugin versions. Complete the API/SPI, cache and machine-format migration notes.
+- Auto compatibility comparison now stays within major 2, refuses a HEAD baseline and verifies a generated
+  old-candidate-to-2.0 migration inventory. Preserve the former candidate unchanged; the new pinned candidate
+  establishes the 2.x contract without treating known major-transition breaks as same-major regressions.
+
 - The upgrade drill can dispatch reviewed fixtures for inventoried baselines, verify artifact hashes and reject missing
   checkpoints; its report lists successful fixture logs. An empty inventory remains unavailable and nonzero. The
   reconstructed candidate schema is a separate rehearsal and does not qualify a published upgrade.

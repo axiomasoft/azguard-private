@@ -87,9 +87,11 @@ This repository is the development monorepo. The packages are split into read-on
 
 ## Requirements
 
-PHP 8.3–8.5 (8.5 with Laravel 13), Laravel 12 or 13, and SQLite, MySQL 8, MariaDB 10.11+ or
-PostgreSQL 16. The Filament plugin needs Filament 5.8.4 or later. CI runs every PHP × Laravel pair on SQLite, and
-the suite on each database server.
+The 2.0 line supports PHP 8.3/8.4 with Laravel 12, and PHP 8.3/8.4/8.5 with Laravel 13.
+The Filament plugin requires Filament `^5.8.4` and the exact same AzGuard core version (`self.version`).
+CI resolves lowest and latest dependencies for each of these five pairs on SQLite. Server lanes use
+MySQL 8, MariaDB 10.11, PostgreSQL 16 and Redis 7; these lanes do not represent every platform cross-product.
+See the [compatibility policy](docs/reference/compatibility.md) and [2.0 upgrade guide](docs/guides/upgrading-2.md).
 
 ## Contributing and security
 

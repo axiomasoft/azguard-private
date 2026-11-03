@@ -3,7 +3,7 @@
 #
 #   bash bin/compat-drill.sh [--baseline=<ref>] [--report=<file>]
 #
-# Clones the repository into a throwaway directory, tags the baseline (default HEAD) as v1.0.0 in the clone only, and
+# Clones the repository into a throwaway directory, tags the baseline (default HEAD) in its supported major, and
 # for each case patches real source, regenerates the manifests or the format fixtures, commits and runs
 # `php bin/api-compat.php --against=auto`. D1-D5 must be rejected with their rule id (exit 1), the control D6 must stay
 # compatible (exit 0). The main repository's tags are asserted unchanged at the end. Exit 0 only when every case
@@ -53,7 +53,9 @@ done
 
 # Only the drill's own tag is a stable tag in the clone, so `--against=auto` selects it.
 git -C "$clone" tag --list 'v[1-9]*' | xargs -r git -C "$clone" tag -d >/dev/null
-git -C "$clone" tag v1.0.0
+major="$("$php" -r '$s=json_decode(file_get_contents($argv[1]), true, flags: JSON_THROW_ON_ERROR); $m=$s["major"] ?? 1; if (!is_int($m) || $m < 1) exit(2); echo $m;' "$clone/compatibility.json")"
+fixture_tag="v${major}.0.0"
+git -C "$clone" tag "$fixture_tag"
 
 # Edits one file of the clone with a PHP callback over its content; fails when the content does not change.
 edit() {
@@ -87,7 +89,7 @@ run_case() {
         echo "${id} FAIL: the patch did not change ${changed}" >&2
         failures=$((failures + 1))
         rows+=("| ${id} | ${description} | ${rule} | — | not regenerated |")
-        git -C "$clone" reset --quiet --hard v1.0.0 && git -C "$clone" clean -fdq
+        git -C "$clone" reset --quiet --hard "$fixture_tag" && git -C "$clone" clean -fdq
         return
     fi
 
@@ -116,7 +118,7 @@ run_case() {
         printf '%s\n' "$output" | grep -v '^[0-9]* compatibility break' | sed "s/^/    ${id} /"
     fi
 
-    git -C "$clone" reset --quiet --hard v1.0.0
+    git -C "$clone" reset --quiet --hard "$fixture_tag"
     git -C "$clone" clean -fdq
 }
 
@@ -179,7 +181,7 @@ if [[ -n "$report" ]]; then
         echo "|:--|:--|:--|:--|:--|"
         printf '%s\n' "${rows[@]}"
         echo
-        echo "Baseline \`${baseline}\` = \`${sha}\` tagged v1.0.0 in a throwaway clone; main repository tags ${tag_verdict}."
+        echo "Baseline \`${baseline}\` = \`${sha}\` tagged ${fixture_tag} in a throwaway clone; main repository tags ${tag_verdict}."
     } > "$report"
 fi
 

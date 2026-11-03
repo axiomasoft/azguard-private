@@ -82,8 +82,9 @@ For an extension author this means:
 
 - depend only on types marked `#[Api]` or `#[Spi]`; a type in an `Internal` namespace or marked `@internal` can change in
   any release;
-- a published migration is never edited; a schema change is a new migration, and the upgrade is checked from the
-  previous release with `bin/upgrade-fixture.sh`;
+- a published migration is never edited; a schema change is a new migration. Published-baseline upgrades require
+  artifact-specific qualification with `bin/upgrade-fixture.sh`; the [2.0 guide](../guides/upgrading-2.md) records
+  the currently unavailable baseline and historical-schema limitations;
 - an event payload gains keys in a minor version and never loses or retypes one, so read keys by name and ignore the
   ones you do not know;
 - a closed enum never gains a case, so `match` over it stays exhaustive; an open enum may, so keep a default arm.
@@ -111,8 +112,18 @@ A reader of these formats must ignore keys it does not know.
 - `composer api:check` regenerates the manifests and fails when they are stale.
 - `composer api:compat` compares the manifests and the format fixtures with the baseline and fails on every break listed
   above. It is a blocking job of the continuous integration and of the release workflow, so a tag cannot skip it.
-- The baseline is the newest stable tag (`vX.Y.Z`, major 1 or higher) that is an ancestor of the checked commit. Before
-  the first stable tag it is the commit named in `compatibility.json`.
+- `compatibility.json` declares supported `major: 2`. Auto comparison selects the newest stable `v2.Y.Z` ancestor,
+  excluding tags on HEAD. Before an eligible stable tag exists, it uses the immutable `major_candidate` SHA.
+  The fallback must also precede HEAD: the first 2.0 tag is never compared with itself. Tags of other majors and
+  prereleases cannot become an automatic baseline. A same-major break still exits 1.
+- The former `candidate` SHA is retained unchanged. The committed [2.0 migration inventory](./compatibility-2.json)
+  records every break and addition between that candidate and `major_candidate`, with the exact rationale for
+  starting the 2.0 line. This inventory is generated with `php bin/api-compat.php --write-migration-inventory`;
+  auto comparison verifies it against both pinned committed trees and rejects a missing or stale inventory.
+  Later 2.x changes are compared normally and cannot be hidden in that historical inventory.
+- `php bin/api-compat.php --against=<ref> --json` still compares across majors on request and reports all breaks
+  with exit 1; the major policy does not suppress explicit migration diagnostics. Historical specs without `major`
+  retain the original newest-stable-v1+ / `candidate` behavior.
 - The pointer in `compatibility.json` can change in a pull request only with the `compat-baseline` label, which is
   the explicit release decision.
 
@@ -124,5 +135,23 @@ A reader of these formats must ignore keys it does not know.
 | Minor (`1.1.0`) | The additions listed above |
 | Major (`2.0.0`) | Any break listed above |
 
-The supported platforms are the ones in the `require` section of each package: PHP 8.3–8.5 and Laravel 12–13, and
-Filament 5 for `axiomasoft/azguard-filament`.
+## Supported platforms
+
+Composer's requirements permit PHP `^8.3` and Illuminate `^12.0|^13.0`. The tested support promise is the following
+five pairs, matching `.github/workflows/tests.yml` and `bin/consumer-matrix.sh`:
+
+| PHP | Laravel | Dependency resolution |
+|---|---|---|
+| 8.3 | 12 | lowest and latest |
+| 8.4 | 12 | lowest and latest |
+| 8.3 | 13 | lowest and latest |
+| 8.4 | 13 | lowest and latest |
+| 8.5 | 13 | lowest and latest |
+
+PHP 8.5 with Laravel 12 and Laravel 11 are outside this promise. The SQLite lane covers these pairs; separate
+server lanes use the pinned MySQL 8, MariaDB 10.11, PostgreSQL 16 and Redis 7 images from `docker-compose.yml`.
+These are tested engine lines, not a claim that every engine version or platform cross-product was qualified.
+
+The Filament package requires `filament/filament: ^5.8.4` (5.8.4 or later within major 5), and
+`axiomasoft/azguard: self.version`: install both AzGuard packages at the same version. The root development lock
+pins development tools; consumer lowest/latest lanes resolve independently and keep their own locks.
