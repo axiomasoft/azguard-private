@@ -77,6 +77,14 @@ identity must also be verified. No claim about the current GitHub settings is ma
 No active producer workflow is supplied by this candidate. In particular, adding
 an `if` check or pinned script to a workflow loaded from a staging ref is not an
 acceptable substitute for the protected execution and credential boundary above.
+`trusted-producer.candidate.yml` is a non-active workflow proposal outside
+`.github/workflows`: it has an unconditional failure before its credentialed
+inspection and another before attestation. Its fixed inspection body validates
+workflow identity, source run, qualified gate, signed source tag and the core
+split without checking out either source or staging, and drops the token before
+the subtree calculation. It is not a working release producer: artifact building,
+real attestations and verified environment controls are still required. Do not
+remove either guard or install an environment secret based on its local fixtures.
 
 `bin/trusted-producer-evidence.php` is an unconnected candidate verifier and
 `bin/trusted-producer-evidence-format.json` describes its predicate. Its approved

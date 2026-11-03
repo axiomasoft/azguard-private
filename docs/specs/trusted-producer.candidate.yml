@@ -1,0 +1,110 @@
+# REVIEW CANDIDATE ONLY: this is outside .github/workflows and is not active.
+# Do not install this workflow or its environment secret until the external
+# controls described in trusted-core-producer.md have been independently proved.
+name: Trusted core producer candidate
+on:
+  workflow_dispatch:
+    inputs:
+      source_sha:
+        description: Qualified source commit
+        type: string
+        required: true
+      split_sha:
+        description: Expected core split commit
+        type: string
+        required: true
+      tag:
+        description: Signed source release tag
+        type: string
+        required: true
+      run_id:
+        description: Source qualification run ID
+        type: string
+        required: true
+      run_attempt:
+        description: Source qualification attempt
+        type: string
+        required: true
+permissions:
+  contents: read
+defaults:
+  run:
+    shell: bash
+jobs:
+  inspect:
+    name: Inspect signed source and core split
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    environment: release-producer
+    permissions:
+      contents: read
+    steps:
+      - name: Block candidate until controls are independently verified
+        run: |
+          set -Eeuo pipefail
+          echo '::error::Candidate is disabled; do not provision its environment secret.'
+          exit 1
+      - name: Verify source and split without executing their files
+        env:
+          GH_TOKEN: ${{ secrets.PRIVATE_RELEASE_READ_TOKEN }}
+          TRUSTED_WORKFLOW_SHA: ${{ vars.TRUSTED_CORE_PRODUCER_SHA }}
+          RELEASE_TAG_PUBLIC_KEY: ${{ vars.RELEASE_TAG_PUBLIC_KEY }}
+          RELEASE_TAG_SIGNER_FINGERPRINT: ${{ vars.RELEASE_TAG_SIGNER_FINGERPRINT }}
+          CANDIDATE_SHA: ${{ inputs.source_sha }}
+          EXPECTED_SPLIT_SHA: ${{ inputs.split_sha }}
+          CANDIDATE_TAG: ${{ inputs.tag }}
+          SOURCE_RUN_ID: ${{ inputs.run_id }}
+          SOURCE_RUN_ATTEMPT: ${{ inputs.run_attempt }}
+        run: |
+          set -Eeuo pipefail
+          [[ "$GITHUB_REPOSITORY" == axiomasoft/azguard && "$GITHUB_EVENT_NAME" == workflow_dispatch && "$GITHUB_REF" == refs/heads/main ]]
+          [[ "$TRUSTED_WORKFLOW_SHA" =~ ^[0-9a-f]{40}$ && "$GITHUB_SHA" == "$TRUSTED_WORKFLOW_SHA" ]]
+          [[ "$CANDIDATE_SHA" =~ ^[0-9a-f]{40}$ && "$EXPECTED_SPLIT_SHA" =~ ^[0-9a-f]{40}$ ]]
+          [[ "$CANDIDATE_TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?$ ]]
+          [[ "$SOURCE_RUN_ID" =~ ^[1-9][0-9]*$ && "$SOURCE_RUN_ATTEMPT" =~ ^[1-9][0-9]*$ ]]
+          [[ -n "$GH_TOKEN" && -n "$RELEASE_TAG_PUBLIC_KEY" && "$RELEASE_TAG_SIGNER_FINGERPRINT" =~ ^([0-9A-F]{40}|[0-9A-F]{64})$ ]]
+          work="$(mktemp -d "$RUNNER_TEMP/trusted-producer.XXXXXXXX")"
+          trap 'rm -rf "$work"' EXIT
+          mkdir -m 700 "$work/home" "$work/gnupg"
+          export HOME="$work/home" GNUPGHOME="$work/gnupg" GIT_CONFIG_NOSYSTEM=1 GIT_CONFIG_GLOBAL=/dev/null GIT_TERMINAL_PROMPT=0
+          unset GIT_CONFIG_COUNT GIT_DIR GIT_WORK_TREE GIT_INDEX_FILE GIT_OBJECT_DIRECTORY GIT_ALTERNATE_OBJECT_DIRECTORIES GIT_TEMPLATE_DIR
+          gh api "repos/axiomasoft/azguard-private/actions/runs/$SOURCE_RUN_ID/attempts/$SOURCE_RUN_ATTEMPT" > "$work/run.json"
+          jq -e --arg sha "$CANDIDATE_SHA" --arg tag "$CANDIDATE_TAG" --argjson run "$SOURCE_RUN_ID" --argjson attempt "$SOURCE_RUN_ATTEMPT" '
+            .id == $run and .run_attempt == $attempt and .head_sha == $sha and .head_branch == $tag
+            and .repository.full_name == "axiomasoft/azguard-private" and .event == "push"
+            and (.path == ".github/workflows/release.yml" or .path == (".github/workflows/release.yml@" + $tag) or .path == (".github/workflows/release.yml@refs/tags/" + $tag))
+            and (.status == "in_progress" or (.status == "completed" and .conclusion == "success"))' "$work/run.json" >/dev/null
+          gh api --paginate --slurp "repos/axiomasoft/azguard-private/actions/runs/$SOURCE_RUN_ID/attempts/$SOURCE_RUN_ATTEMPT/jobs?per_page=100" > "$work/jobs.json"
+          jq -e --arg sha "$CANDIDATE_SHA" --argjson run "$SOURCE_RUN_ID" '
+            (map(.jobs | length) | add) as $count | (map(.jobs[])) as $jobs |
+            (length > 0 and all(.[]; .total_count == $count)) and
+            ($jobs | all(.[]; (.id | type == "number" and . > 0)) and length == (map(.id) | unique | length)) and
+            ([$jobs[] | select(.name == "Release evidence gate")] | . as $m |
+              length == 1 and ($m[0] | .head_sha == $sha and .run_id == $run and .status == "completed" and .conclusion == "success" and
+                ([.steps[]? | select(.name == "Evaluate release evidence")] | length == 1 and .[0].status == "completed" and .[0].conclusion == "success")))' "$work/jobs.json" >/dev/null
+          printf '%s\n' "$RELEASE_TAG_PUBLIC_KEY" | gpg --batch --quiet --import
+          printf '#!/bin/sh\nprintf "%%s\\n" "$GH_TOKEN"\n' > "$work/askpass"
+          chmod 700 "$work/askpass"
+          export GIT_ASKPASS="$work/askpass"
+          git init -q "$work/source"
+          git -C "$work/source" -c core.hooksPath=/dev/null fetch --quiet --no-tags "https://x-access-token@github.com/axiomasoft/azguard-private.git" "refs/tags/$CANDIDATE_TAG:refs/tags/$CANDIDATE_TAG"
+          [[ "$(git -C "$work/source" cat-file -t "refs/tags/$CANDIDATE_TAG")" == tag ]]
+          [[ "$(git -C "$work/source" rev-parse "refs/tags/$CANDIDATE_TAG^{commit}")" == "$CANDIDATE_SHA" ]]
+          git -C "$work/source" verify-tag --raw "refs/tags/$CANDIDATE_TAG" 2> "$work/status"
+          mapfile -t signatures < <(awk '$1 == "[GNUPG:]" && $2 == "VALIDSIG" {print $3}' "$work/status")
+          [[ ${#signatures[@]} == 1 && "${signatures[0]}" == "$RELEASE_TAG_SIGNER_FINGERPRINT" ]]
+          git init --bare -q "$work/split.git"
+          staging="refs/heads/release-candidate/$CANDIDATE_TAG/$SOURCE_RUN_ID/$SOURCE_RUN_ATTEMPT"
+          git -C "$work/split.git" -c core.hooksPath=/dev/null fetch --quiet --no-tags https://github.com/axiomasoft/azguard.git "$staging:refs/heads/candidate"
+          # No credential or source-derived file is available to subtree split.
+          unset GH_TOKEN GIT_ASKPASS
+          mkdir -p "$work/source/packages/core"
+          split="$(git -C "$work/source" -c core.hooksPath=/dev/null subtree split --prefix=packages/core "$CANDIDATE_SHA")"
+          [[ "$split" == "$EXPECTED_SPLIT_SHA" ]]
+          [[ "$(git -C "$work/split.git" rev-parse 'refs/heads/candidate^{commit}')" == "$EXPECTED_SPLIT_SHA" ]]
+          [[ "$(git -C "$work/split.git" rev-parse 'refs/heads/candidate^{tree}')" == "$(git -C "$work/source" rev-parse "$CANDIDATE_SHA:packages/core")" ]]
+      - name: Block attestation until independent controls and artifact build exist
+        run: |
+          set -Eeuo pipefail
+          echo '::error::Candidate only: trusted environment proof and verified artifact build are not implemented.'
+          exit 1
