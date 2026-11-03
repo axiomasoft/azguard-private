@@ -9,12 +9,13 @@ require_once __DIR__.'/trusted-producer-evidence.php';
  * and authenticate $expected outside this function. This does not authorize or
  * perform an attestation, release, network call or secret-bearing checkout.
  *
- * @param array{workflow_sha: string, source_sha: string, split_sha: string, tag: string} $expected
+ * @param  array{workflow_sha: string, source_sha: string, split_sha: string, tag: string}  $expected
  * @return array{workflow_sha: string, source_sha: string, split_sha: string, tag: string, mode: string}
  */
 function trustedProducerInspectSource(string $repository, array $expected, array $gitTool, bool $keepControlled = false): array
 {
     $staged = trustedProducerStageInputs(['git' => $gitTool], ['git']);
+
     try {
         return trustedProducerInspectStagedSource($repository, $expected, $staged['inputs']['git'], $keepControlled);
     } finally {
@@ -34,6 +35,7 @@ function trustedProducerInspectStagedSource(string $repository, array $expected,
     $gitPath = $gitTool['path'];
     $keys = array_keys($expected);
     sort($keys);
+
     if ($keys !== ['source_sha', 'split_sha', 'tag', 'workflow_sha']) {
         throw new RuntimeException('incomplete approved identity');
     }
@@ -42,30 +44,36 @@ function trustedProducerInspectStagedSource(string $repository, array $expected,
             throw new RuntimeException('invalid approved identity');
         }
     }
+
     if (! is_string($expected['tag']) || preg_match('/\Av[0-9]+\.[0-9]+\.[0-9]+(?:-[0-9A-Za-z.-]+)?\z/', $expected['tag']) !== 1) {
         throw new RuntimeException('invalid tag');
     }
     $key = getenv('RELEASE_TAG_PUBLIC_KEY');
     $fingerprint = getenv('RELEASE_TAG_SIGNER_FINGERPRINT');
+
     if (! is_string($key) || $key === '' || ! is_string($fingerprint)
         || preg_match('/\A(?:[0-9A-F]{40}|[0-9A-F]{64})\z/', $fingerprint) !== 1) {
         throw new RuntimeException('independently trusted public signing key required');
     }
     $gitDir = rtrim($repository, '/').'/.git';
+
     if (is_link($gitDir) || ! is_dir($gitDir) || is_link($gitDir.'/objects') || ! is_dir($gitDir.'/objects')) {
         throw new RuntimeException('untrusted source object directory');
     }
     $work = sys_get_temp_dir().'/azguard-isolated-source-'.bin2hex(random_bytes(12));
+
     if (! mkdir($work, 0700) || ! mkdir($work.'/repo', 0700)) {
         throw new RuntimeException('cannot create isolated source');
     }
     $success = false;
+
     try {
         trustedProducerOfflineCommand([$gitPath, 'init', '-q', $work.'/repo'], $work);
         // Copy only supported object files and the requested loose tag.
         // Source configuration, hooks and other refs never enter the controlled repo.
         foreach (new FilesystemIterator($gitDir.'/objects', FilesystemIterator::SKIP_DOTS) as $bucket) {
             $name = $bucket->getFilename();
+
             if ($name === 'info') {
                 if ($bucket->isLink() || ! $bucket->isDir()) {
                     throw new RuntimeException('unsafe object metadata directory');
@@ -75,8 +83,10 @@ function trustedProducerInspectStagedSource(string $repository, array $expected,
                         throw new RuntimeException('alternate object stores are unsupported');
                     }
                 }
+
                 continue;
             }
+
             if ($name === 'pack') {
                 if ($bucket->isLink() || ! $bucket->isDir()) {
                     throw new RuntimeException('unsafe pack directory');
@@ -98,8 +108,10 @@ function trustedProducerInspectStagedSource(string $repository, array $expected,
                             throw new RuntimeException('cannot copy pack file');
                         }
                     }
+
                     if (isset($parts['rev'])) {
                         $reverse = (string) file_get_contents($work.'/repo/.git/objects/pack/'.$base.'.rev');
+
                         if (strlen($reverse) < 52 || substr($reverse, 0, 12) !== "RIDX\0\0\0\1\0\0\0\1"
                             || bin2hex(substr($reverse, -40, 20)) !== substr($base, 5)
                             || ! hash_equals(substr($reverse, -20), hash('sha1', substr($reverse, 0, -20), true))) {
@@ -109,12 +121,15 @@ function trustedProducerInspectStagedSource(string $repository, array $expected,
                     trustedProducerOfflineCommand([$gitPath, '-C', $work.'/repo', 'verify-pack', '-v',
                         $work.'/repo/.git/objects/pack/'.$base.'.idx'], $work);
                 }
+
                 continue;
             }
+
             if ($bucket->isLink() || ! $bucket->isDir() || preg_match('/\A[0-9a-f]{2}\z/', $name) !== 1) {
                 throw new RuntimeException('unsafe object directory');
             }
             $destination = $work.'/repo/.git/objects/'.$name;
+
             if (! mkdir($destination, 0700)) {
                 throw new RuntimeException('cannot create object bucket');
             }
@@ -132,9 +147,11 @@ function trustedProducerInspectStagedSource(string $repository, array $expected,
         }
         $tagPath = $gitDir.'/refs/tags/'.$expected['tag'];
         $tagObject = null;
+
         if (is_link($tagPath)) {
             throw new RuntimeException('unsafe loose tag');
         }
+
         if (file_exists($tagPath)) {
             if (! is_file($tagPath) || preg_match('/\A([0-9a-f]{40})\n\z/', (string) file_get_contents($tagPath), $loose) !== 1) {
                 throw new RuntimeException('invalid loose tag');
@@ -142,10 +159,12 @@ function trustedProducerInspectStagedSource(string $repository, array $expected,
             $tagObject = $loose[1];
         } else {
             $packedPath = $gitDir.'/packed-refs';
+
             if (is_link($packedPath) || ! is_file($packedPath) || filesize($packedPath) > 16 * 1024 * 1024) {
                 throw new RuntimeException('missing or unsafe packed refs');
             }
             $packed = file_get_contents($packedPath);
+
             if (! is_string($packed) || ! str_ends_with($packed, "\n")) {
                 throw new RuntimeException('invalid packed refs');
             }
@@ -153,16 +172,21 @@ function trustedProducerInspectStagedSource(string $repository, array $expected,
             foreach (explode("\n", substr($packed, 0, -1)) as $line) {
                 if (str_starts_with($line, '#')) {
                     $previousRef = false;
+
                     continue;
                 }
+
                 if (preg_match('/\A\^[0-9a-f]{40}\z/', $line) === 1 && $previousRef) {
                     $previousRef = false;
+
                     continue;
                 }
+
                 if (preg_match('~\A([0-9a-f]{40}) (refs/[^\s\x00-\x1f]+)\z~', $line, $match) !== 1) {
                     throw new RuntimeException('invalid packed refs entry');
                 }
                 $previousRef = true;
+
                 if ($match[2] === 'refs/tags/'.$expected['tag']) {
                     if ($tagObject !== null) {
                         throw new RuntimeException('duplicate packed tag');
@@ -171,6 +195,7 @@ function trustedProducerInspectStagedSource(string $repository, array $expected,
                 }
             }
         }
+
         if ($tagObject === null || file_put_contents($work.'/repo/.git/refs/tags/'.$expected['tag'], $tagObject."\n") === false) {
             throw new RuntimeException('missing requested tag');
         }
@@ -181,18 +206,22 @@ function trustedProducerInspectStagedSource(string $repository, array $expected,
             'RELEASE_TAG_PUBLIC_KEY' => $key, 'RELEASE_TAG_SIGNER_FINGERPRINT' => $fingerprint];
         $process = proc_open([PHP_BINARY, __DIR__.'/trusted-isolated-tag-verifier.php', $work.'/repo', $expected['tag'], $expected['source_sha']],
             [0 => ['file', '/dev/null', 'r'], 1 => ['file', '/dev/null', 'w'], 2 => ['file', '/dev/null', 'w']], $pipes, null, $env);
+
         if (! is_resource($process) || proc_close($process) !== 0) {
             throw new RuntimeException('isolated signed tag verification failed');
         }
+
         if (! mkdir($work.'/repo/packages/core', 0700, true)) {
             throw new RuntimeException('cannot create isolated subtree path');
         }
         $split = trim(trustedProducerOfflineCommand([$gitPath, '-C', $work.'/repo', '-c', 'core.hooksPath=/dev/null',
             '-c', 'core.fsmonitor=false', 'subtree', 'split', '--prefix=packages/core', $expected['source_sha']], $work));
+
         if (! hash_equals($expected['split_sha'], $split)) {
             throw new RuntimeException('source and core split do not match');
         }
         $success = true;
+
         return [...$expected, 'mode' => 'offline-candidate-only', ...($keepControlled ? ['controlled_work' => $work, 'controlled_repository' => $work.'/repo'] : [])];
     } finally {
         if (! $success || ! $keepControlled) {
@@ -207,11 +236,13 @@ function trustedProducerOfflineCommand(array $argv, string $home): string
     $env = ['PATH' => '/usr/bin:/bin', 'HOME' => $home, 'COMPOSER_HOME' => $home.'/composer',
         'GIT_CONFIG_NOSYSTEM' => '1', 'GIT_CONFIG_GLOBAL' => '/dev/null', 'GIT_TERMINAL_PROMPT' => '0'];
     $process = proc_open($argv, [0 => ['file', '/dev/null', 'r'], 1 => ['pipe', 'w'], 2 => ['file', '/dev/null', 'w']], $pipes, null, $env);
+
     if (! is_resource($process)) {
         throw new RuntimeException('cannot start offline producer command');
     }
     $output = stream_get_contents($pipes[1]);
     fclose($pipes[1]);
+
     if (proc_close($process) !== 0 || ! is_string($output)) {
         throw new RuntimeException('offline producer command failed');
     }
@@ -223,9 +254,11 @@ function trustedProducerOfflineCommand(array $argv, string $home): string
 function trustedProducerStageInputs(array $inputs, array $executables): array
 {
     $directory = sys_get_temp_dir().'/azguard-approved-inputs-'.bin2hex(random_bytes(12));
+
     if (! mkdir($directory, 0700)) {
         throw new RuntimeException('cannot create approved input workspace');
     }
+
     try {
         foreach ($inputs as $name => $input) {
             if (! is_string($name) || preg_match('/\A[a-z_]+\z/', $name) !== 1 || ! is_array($input)
@@ -237,13 +270,22 @@ function trustedProducerStageInputs(array $inputs, array $executables): array
             }
             $source = @fopen($input['path'], 'rb');
             $target = @fopen($directory.'/'.$name, 'xb');
+
             if ($source === false || $target === false) {
-                if (is_resource($source)) fclose($source);
-                if (is_resource($target)) fclose($target);
+                if (is_resource($source)) {
+                    fclose($source);
+                }
+
+                if (is_resource($target)) {
+                    fclose($target);
+                }
+
                 throw new RuntimeException('cannot stage approved input');
             }
+
             try {
                 $stat = fstat($source);
+
                 if (! is_array($stat) || ($stat['mode'] & 0170000) !== 0100000 || stream_copy_to_stream($source, $target) === false) {
                     throw new RuntimeException('input is not a regular file');
                 }
@@ -252,15 +294,18 @@ function trustedProducerStageInputs(array $inputs, array $executables): array
                 fclose($target);
             }
             $path = $directory.'/'.$name;
+
             if (! hash_equals($input['sha256'], (string) hash_file('sha256', $path))
                 || ! chmod($path, in_array($name, $executables, true) ? 0500 : 0400)) {
                 throw new RuntimeException('approved input digest mismatch: '.$name);
             }
             $inputs[$name]['path'] = $path;
         }
+
         return ['directory' => $directory, 'inputs' => $inputs];
     } catch (Throwable $error) {
         packageRemoveFixtureDirectory($directory);
+
         throw $error;
     }
 }
@@ -270,13 +315,14 @@ function trustedProducerStageInputs(array $inputs, array $executables): array
  * Tool paths/hashes and dependency evidence are independently approved inputs;
  * injected signature checking is for offline composition and is not live proof.
  *
- * @param array<string, mixed> $identity
- * @param array<string, array{path: string, sha256: string}> $inputs
+ * @param  array<string, mixed>  $identity
+ * @param  array<string, array{path: string, sha256: string}>  $inputs
  * @return array<string, mixed>
  */
 function trustedProducerBuildOffline(string $repository, array $identity, array $inputs, string $output, array $sourceRun): array
 {
     $staged = trustedProducerStageInputs($inputs, ['composer', 'git', 'python', 'tar', 'validator']);
+
     try {
         return trustedProducerBuildStagedOffline($repository, $identity, $staged['inputs'], $output, $sourceRun);
     } finally {
@@ -291,6 +337,7 @@ function trustedProducerBuildStagedOffline(string $repository, array $identity, 
     }
     $runKeys = array_keys($sourceRun);
     sort($runKeys);
+
     if ($runKeys !== ['run_attempt', 'run_id']
         || ! is_string($sourceRun['run_id']) || preg_match('/\A[1-9][0-9]*\z/', $sourceRun['run_id']) !== 1
         || ! is_string($sourceRun['run_attempt']) || preg_match('/\A[1-9][0-9]*\z/', $sourceRun['run_attempt']) !== 1) {
@@ -299,6 +346,7 @@ function trustedProducerBuildStagedOffline(string $repository, array $identity, 
     $expectedInputKeys = ['composer', 'dependency_sbom', 'git', 'lock', 'normalizer', 'python', 'tar', 'validator'];
     $inputKeys = array_keys($inputs);
     sort($inputKeys);
+
     if ($inputKeys !== $expectedInputKeys) {
         throw new RuntimeException('incomplete approved tools or evidence');
     }
@@ -316,6 +364,7 @@ function trustedProducerBuildStagedOffline(string $repository, array $identity, 
             throw new RuntimeException('offline producer tool is not executable: '.$name);
         }
     }
+
     if (is_link($output) || ! is_dir($output) || (new FilesystemIterator($output, FilesystemIterator::SKIP_DOTS))->valid()) {
         throw new RuntimeException('offline output must be an existing empty directory');
     }
@@ -323,10 +372,13 @@ function trustedProducerBuildStagedOffline(string $repository, array $identity, 
     $repository = $inspect['controlled_repository'];
     $version = substr($inspect['tag'], 1);
     $work = sys_get_temp_dir().'/azguard-trusted-build-'.bin2hex(random_bytes(12));
+
     if (! mkdir($work, 0700) || ! mkdir($work.'/package', 0700) || ! mkdir($work.'/built', 0700)) {
         packageRemoveFixtureDirectory($inspect['controlled_work']);
+
         throw new RuntimeException('cannot create offline build workspace');
     }
+
     try {
         // Reject non-regular entries before extraction; neither checkout nor any
         // source-provided script or Composer plugin is executed.
@@ -342,10 +394,12 @@ function trustedProducerBuildStagedOffline(string $repository, array $identity, 
             'archive', '--format=tar', '--output='.$work.'/source.tar', $inspect['split_sha']], $work);
         trustedProducerOfflineCommand([$inputs['tar']['path'], '--no-same-owner', '--no-same-permissions', '-xf', $work.'/source.tar', '-C', $work.'/package'], $work);
         $manifestPath = $work.'/package/composer.json';
+
         if (is_link($manifestPath) || ! is_file($manifestPath)) {
             throw new RuntimeException('missing core package manifest');
         }
         $manifest = json_decode((string) file_get_contents($manifestPath), true, 512, JSON_THROW_ON_ERROR);
+
         if (! is_array($manifest) || ($manifest['name'] ?? null) !== 'axiomasoft/azguard') {
             throw new RuntimeException('source package identity mismatch');
         }
@@ -354,12 +408,14 @@ function trustedProducerBuildStagedOffline(string $repository, array $identity, 
         trustedProducerOfflineCommand([$inputs['composer']['path'], 'archive', '--format=zip', '--dir='.$work.'/built',
             '--working-dir='.$work.'/package', '--no-interaction', '--no-plugins', '--no-scripts'], $work);
         $archives = glob($work.'/built/*.zip') ?: [];
+
         if (count($archives) !== 1 || is_link($archives[0])) {
             throw new RuntimeException('expected exactly one core archive');
         }
         trustedProducerOfflineCommand([$inputs['python']['path'], $inputs['normalizer']['path'], $archives[0]], $work);
         $zipName = 'azguard-core-'.$version.'.zip';
         $zipPath = $work.'/'.$zipName;
+
         if (! copy($archives[0], $zipPath)) {
             throw new RuntimeException('cannot stage core archive');
         }
@@ -368,12 +424,14 @@ function trustedProducerBuildStagedOffline(string $repository, array $identity, 
         file_put_contents($sourcePath, json_encode($source, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR)."\n");
         $lock = json_decode((string) file_get_contents($inputs['lock']['path']), true, 512, JSON_THROW_ON_ERROR);
         $bom = json_decode((string) file_get_contents($inputs['dependency_sbom']['path']), true, 512, JSON_THROW_ON_ERROR);
+
         if (! is_array($lock) || ! is_array($bom) || packageResolvedGraphErrors($lock, $bom, 'axiomasoft/azguard', $version) !== []) {
             throw new RuntimeException('approved dependency SBOM and lock graph mismatch');
         }
         foreach ([$sourcePath, $inputs['dependency_sbom']['path']] as $path) {
             $document = json_decode((string) file_get_contents($path), true, 512, JSON_THROW_ON_ERROR);
             $spec = $document['specVersion'] ?? null;
+
             if (! in_array($spec, ['1.4', '1.5', '1.6'], true)) {
                 throw new RuntimeException('unsupported CycloneDX version');
             }
@@ -395,6 +453,7 @@ function trustedProducerBuildStagedOffline(string $repository, array $identity, 
         $sums = '';
         foreach ($payload as $name => $path) {
             $sums .= hash_file('sha256', $path).'  '.$name."\n";
+
             if (! copy($path, $output.'/'.$name)) {
                 throw new RuntimeException('cannot write offline artifact');
             }

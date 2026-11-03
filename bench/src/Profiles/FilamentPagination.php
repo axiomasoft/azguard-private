@@ -11,6 +11,7 @@ use AzGuardBench\Load\Stage;
 use AzGuardBench\Load\Stand;
 use AzGuardBench\Load\Tier;
 use Filament\Facades\Filament;
+use Illuminate\Contracts\Auth\Authenticatable;
 use RuntimeException;
 
 /** Filament resource count and page with a policy comprising sixteen predicates. */
@@ -46,7 +47,7 @@ final class FilamentPagination extends BaseProfile
     public function iteration(Stand $stand, Tier $tier, Stage $stage, int $worker, int $i): string
     {
         $stand->newRequest();
-        $resource = Catalog::class('PostResource');
+        $resource = Catalog::resource('PostResource');
         $query = $resource::getEloquentQuery()->orderBy('id');
 
         if ($i % 2 === 0) {
@@ -56,7 +57,9 @@ final class FilamentPagination extends BaseProfile
                 throw new RuntimeException('Filament page or count was incorrect.');
             }
             foreach ($page->items() as $post) {
-                if ((int) $post->user_id !== 10) {
+                $userId = $post->getAttribute('user_id');
+
+                if (! is_numeric($userId) || (int) $userId !== 10) {
                     throw new RuntimeException('Filament returned another user’s post.');
                 }
             }
@@ -74,7 +77,7 @@ final class FilamentPagination extends BaseProfile
     public function verify(Stand $stand, Tier $tier, Stage $stage): array
     {
         $this->serve();
-        $resource = Catalog::class('PostResource');
+        $resource = Catalog::resource('PostResource');
         $count = $resource::getEloquentQuery()->count();
 
         return [['name' => 'Filament count matches visible posts', 'ok' => $count === $this->expected($tier), 'detail' => "{$count} expected ".$this->expected($tier)]];
@@ -87,7 +90,12 @@ final class FilamentPagination extends BaseProfile
 
     private function serve(): void
     {
-        auth()->guard('web')->setUser(Dataset::model(Catalog::class('FilamentUser'), 10));
+        $user = Dataset::model(Catalog::class('FilamentUser'), 10);
+
+        if (! $user instanceof Authenticatable) {
+            throw new RuntimeException('The Filament benchmark user must be authenticatable.');
+        }
+        auth()->guard('web')->setUser($user);
         Filament::setCurrentPanel('bench-ui');
         Filament::bootCurrentPanel();
     }

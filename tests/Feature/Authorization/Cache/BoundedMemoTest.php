@@ -180,7 +180,9 @@ it('bounds memo in a queue worker and flushes it for the next job', function (bo
             return false;
         }
     };
-    $status = $worker->daemon('test', 'default', new WorkerOptions(memory: 512, maxJobs: 2));
+    // The suite shares a PHP process, so its pre-existing memory must not stop this worker before the second job.
+    // The assertions below independently bound each job's additional memory usage.
+    $status = $worker->daemon('test', 'default', new WorkerOptions(memory: 0, maxJobs: 2));
     expect($errors)->toBe($throw ? ['job failed after memo population'] : [])->and($status)->toBe(0)->and($observed)->toHaveCount(4)
         ->and($observed[0])->toBeNull()->and($observed[2])->toBeNull()
         ->and($observed[1])->toBeLessThan(16 * 1024 * 1024)->and($observed[3])->toBeLessThan(16 * 1024 * 1024);

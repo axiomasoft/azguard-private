@@ -4,6 +4,9 @@ For 2.0, use PHP 8.3/8.4 with Laravel 12 or PHP 8.3/8.4/8.5 with Laravel 13. Oth
 The [compatibility policy](../reference/compatibility.md#supported-platforms) records the five CI pairs and server lanes.
 For an existing installation, follow [upgrading to 2.0](../guides/upgrading-2.md) before running migrations.
 
+The current work is local to the monorepo; neither package is being split or published. The Composer command below
+applies only to a separately published core version, if available, and does not install the current checkout.
+
 ```bash
 composer require axiomasoft/azguard
 php artisan azguard:install --migrate --panel=Admin

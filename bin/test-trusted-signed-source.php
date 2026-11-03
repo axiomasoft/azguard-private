@@ -1,10 +1,12 @@
 <?php
 
 declare(strict_types=1);
+use Symfony\Component\Yaml\Yaml;
 
 require_once __DIR__.'/trusted-core-producer-candidate.php';
 
 $root = sys_get_temp_dir().'/azguard-signed-producer-'.bin2hex(random_bytes(8));
+
 if (! mkdir($root, 0700) || ! mkdir($root.'/keys', 0700) || ! mkdir($root.'/repo/packages/core', 0700, true)) {
     throw new RuntimeException('cannot create signed source fixture');
 }
@@ -13,10 +15,12 @@ foreach (['GNUPGHOME', 'RELEASE_TAG_PUBLIC_KEY', 'RELEASE_TAG_SIGNER_FINGERPRINT
     $original[$name] = getenv($name);
 }
 putenv('GNUPGHOME='.$root.'/keys');
+
 try {
     packageEvidenceCommand(['gpg', '--batch', '--pinentry-mode', 'loopback', '--passphrase', '',
         '--quick-generate-key', 'Fixture <fixture@example.invalid>', 'ed25519', 'sign', '0']);
     $listing = packageEvidenceCommand(['gpg', '--batch', '--with-colons', '--fingerprint']);
+
     if (preg_match('/^fpr:::::::::([0-9A-F]{40}):/m', $listing, $match) !== 1) {
         throw new RuntimeException('fixture fingerprint missing');
     }
@@ -39,6 +43,7 @@ try {
     packageVerifySignedTag($repo, 'v2.0.0', $source);
     $git('gc', '--prune=now');
     $packIndex = glob($repo.'/.git/objects/pack/*.idx') ?: [];
+
     if (count($packIndex) !== 1) {
         throw new RuntimeException('packed fixture was not created');
     }
@@ -49,11 +54,13 @@ try {
     putenv('UNRECOGNIZED_CREDENTIAL=fixture-secret');
     $approvedGit = ['path' => '/usr/bin/git', 'sha256' => hash_file('sha256', '/usr/bin/git')];
     $inspection = trustedProducerInspectSource($repo, $approved, $approvedGit);
+
     if (file_exists($marker) || ($inspection['source_sha'] ?? null) !== $source) {
         throw new RuntimeException('unsafe source config executed');
     }
     $packedRefs = $repo.'/.git/packed-refs';
     $originalRefs = (string) file_get_contents($packedRefs);
+
     if (preg_match('/^([0-9a-f]{40}) refs\/tags\/v2\.0\.0$/m', $originalRefs, $tagMatch) !== 1) {
         throw new RuntimeException('packed tag fixture missing');
     }
@@ -63,6 +70,7 @@ try {
         } catch (RuntimeException) {
             return;
         }
+
         throw new LogicException('unsafe packed ref accepted');
     };
     file_put_contents($packedRefs, $originalRefs.$tagMatch[0]."\n");
@@ -86,16 +94,20 @@ try {
     $savedIndex = (string) file_get_contents($index);
     unlink($index);
     symlink($root.'/missing-index', $index);
+
     try {
         trustedProducerInspectSource($repo, $approved, $approvedGit);
+
         throw new LogicException('symlinked pack index accepted');
     } catch (RuntimeException) {
     }
     unlink($index);
     file_put_contents($index, $savedIndex);
     file_put_contents($index, substr_replace($savedIndex, chr(ord($savedIndex[20]) ^ 1), 20, 1));
+
     try {
         trustedProducerInspectSource($repo, $approved, $approvedGit);
+
         throw new LogicException('mismatched pack index accepted');
     } catch (RuntimeException) {
     }
@@ -119,6 +131,7 @@ try {
         }
         $inputs[$name] = ['path' => $path, 'sha256' => hash_file('sha256', $path)];
     }
+
     if (! hash_equals($cyclone['sha256'], $inputs['validator']['sha256'])) {
         throw new RuntimeException('validator digest mismatch');
     }
@@ -127,6 +140,7 @@ try {
     $run = ['run_id' => '123', 'run_attempt' => '1'];
     $first = trustedProducerBuildOffline($repo, $approved, $inputs, $root.'/out1', $run);
     $second = trustedProducerBuildOffline($repo, $approved, $inputs, $root.'/out2', $run);
+
     if (json_encode($first, JSON_THROW_ON_ERROR) !== json_encode($second, JSON_THROW_ON_ERROR)
         || file_exists($marker) || ($first['qualification'] ?? null) !== 'nonrelease') {
         throw new RuntimeException('unsafe or nondeterministic isolated build');
@@ -142,6 +156,7 @@ try {
     file_put_contents($root.'/config.json', json_encode($config, JSON_THROW_ON_ERROR));
     $pipeline = proc_open([PHP_BINARY, __DIR__.'/trusted-producer-pipeline.php', 'build', $root.'/config.json'],
         [0 => ['file', '/dev/null', 'r'], 1 => ['file', '/dev/null', 'w'], 2 => ['file', '/dev/null', 'w']], $pipes);
+
     if (! is_resource($pipeline) || proc_close($pipeline) !== 0
         || file_get_contents($root.'/out-cli/azguard-core-2.0.0.zip') !== file_get_contents($root.'/out1/azguard-core-2.0.0.zip')) {
         throw new RuntimeException('pipeline build fixture failed');
@@ -154,15 +169,17 @@ try {
     file_put_contents($root.'/config.json', json_encode($config, JSON_THROW_ON_ERROR));
     $pipeline = proc_open([PHP_BINARY, __DIR__.'/trusted-producer-pipeline.php', 'build', $root.'/config.json'],
         [0 => ['file', '/dev/null', 'r'], 1 => ['file', '/dev/null', 'w'], 2 => ['file', '/dev/null', 'w']], $pipes);
+
     if (! is_resource($pipeline) || proc_close($pipeline) === 0 || file_exists($root.'/bad-predicate.json')) {
         throw new RuntimeException('pipeline accepted invalid split');
     }
     // Exercise the actual candidate workflow bridge with authenticated local
     // fixtures. Its credentialed fetch and both live guards are not run here.
     require_once __DIR__.'/../vendor/autoload.php';
-    $workflow = Symfony\Component\Yaml\Yaml::parseFile(__DIR__.'/../docs/specs/trusted-producer.candidate.yml');
+    $workflow = Yaml::parseFile(__DIR__.'/../docs/specs/trusted-producer.candidate.yml');
     $workflowRun = $workflow['jobs']['inspect']['steps'][2]['run'];
     $bridge = strstr($workflowRun, '# Independently authenticated graph/config provisioning is external.');
+
     if (! is_string($bridge)) {
         throw new RuntimeException('candidate workflow build bridge missing');
     }
@@ -181,21 +198,25 @@ try {
     $runBridge = static function (string $script) use ($root, $bridgeEnv): int {
         $process = proc_open(['bash', '-c', $script], [0 => ['file', '/dev/null', 'r'], 1 => ['file', '/dev/null', 'w'],
             2 => ['file', '/dev/null', 'w']], $pipes, $root, $bridgeEnv);
+
         return is_resource($process) ? proc_close($process) : throw new RuntimeException('cannot start workflow bridge');
     };
     file_put_contents($root.'/symlink-target', 'must-stay-unchanged');
     symlink($root.'/symlink-target', $root.'/effective-producer.json');
+
     if ($runBridge("set -Eeuo pipefail\nwork=\"$root\"\n".$bridge) !== 0
         || file_get_contents($root.'/trusted-output/azguard-core-2.0.0.zip') !== file_get_contents($root.'/out1/azguard-core-2.0.0.zip')
         || json_decode((string) file_get_contents($root.'/producer-predicate.json'), true, 512, JSON_THROW_ON_ERROR)['source_sha'] !== $source) {
         throw new RuntimeException('workflow build bridge fixture failed');
     }
+
     if (file_get_contents($root.'/symlink-target') !== 'must-stay-unchanged') {
         throw new RuntimeException('workflow bridge followed a predictable symlink');
     }
     packageRemoveFixtureDirectory($root.'/trusted-output');
     unlink($root.'/approved-evidence.json');
     unlink($root.'/producer-predicate.json');
+
     if ($runBridge("set -Eeuo pipefail\nwork=\"$root\"\nphp() { return 127; }\n".$bridge) === 0
         || file_exists($root.'/producer-predicate.json')) {
         throw new RuntimeException('workflow bridge ignored a missing build command');
@@ -207,6 +228,7 @@ try {
     file_put_contents($root.'/config.json', json_encode($collision, JSON_THROW_ON_ERROR));
     $pipeline = proc_open([PHP_BINARY, __DIR__.'/trusted-producer-pipeline.php', 'build', $root.'/config.json'],
         [0 => ['file', '/dev/null', 'r'], 1 => ['file', '/dev/null', 'w'], 2 => ['file', '/dev/null', 'w']], $pipes);
+
     if (! is_resource($pipeline) || proc_close($pipeline) === 0 || file_exists($root.'/nonexistent-evidence')) {
         throw new RuntimeException('pipeline followed dangling evidence symlink');
     }
@@ -215,34 +237,42 @@ try {
     file_put_contents($root.'/config.json', json_encode($collision, JSON_THROW_ON_ERROR));
     $pipeline = proc_open([PHP_BINARY, __DIR__.'/trusted-producer-pipeline.php', 'build', $root.'/config.json'],
         [0 => ['file', '/dev/null', 'r'], 1 => ['file', '/dev/null', 'w'], 2 => ['file', '/dev/null', 'w']], $pipes);
+
     if (! is_resource($pipeline) || proc_close($pipeline) === 0 || file_exists($root.'/same-evidence')) {
         throw new RuntimeException('pipeline accepted colliding output paths');
     }
     $badIdentity = $approved;
     $badIdentity['split_sha'] = str_repeat('f', 40);
+
     try {
         trustedProducerInspectSource($repo, $badIdentity, $approvedGit);
+
         throw new LogicException('incorrect split accepted');
     } catch (RuntimeException) {
     }
     $badInputs = $inputs;
     $badInputs['lock']['sha256'] = str_repeat('f', 64);
     mkdir($root.'/out-bad', 0700);
+
     try {
         trustedProducerBuildOffline($repo, $approved, $badInputs, $root.'/out-bad', $run);
+
         throw new LogicException('incorrect lock digest accepted');
     } catch (RuntimeException) {
     }
     putenv('UNRECOGNIZED_CREDENTIAL');
     putenv('RELEASE_TAG_SIGNER_FINGERPRINT='.str_repeat('0', 40));
+
     try {
         trustedProducerInspectSource($repo, $approved, $approvedGit);
+
         throw new LogicException('isolated verifier accepted wrong fingerprint');
     } catch (RuntimeException) {
     }
 
     try {
         packageVerifySignedTag($repo, 'v2.0.0', $source);
+
         throw new LogicException('wrong trusted tag signer was accepted');
     } catch (RuntimeException) {
         // Expected rejection, with an actual generated signature and wrong key identity.

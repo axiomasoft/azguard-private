@@ -250,6 +250,7 @@ function releaseViolations(array $workflows): array
         ['php' => '8.4', 'laravel' => '12'], ['php' => '8.4', 'laravel' => '13'],
         ['php' => '8.5', 'laravel' => '13'],
     ];
+
     if (($consumer['strategy']['matrix']['include'] ?? null) !== $expectedPairs
         || ! str_contains(releaseRuns($consumer), 'bin/consumer-matrix.sh --source=')) {
         $violations[] = 'tests.yml consumer-fixture: exact supported pairs and consumer-matrix qualification required';

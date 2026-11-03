@@ -7,14 +7,16 @@ namespace AzGuardBench\Load\Profiles;
 use AzGuard\Authorization\Internal\Authorizer;
 use AzGuard\Authorization\Visibility;
 use AzGuard\Exceptions\VisibilityNotSupportedException;
+use AzGuard\Kernel\Decision\Grant;
 use AzGuard\Panels\Internal\PanelRegistry;
+use AzGuard\Panels\Panel;
 use AzGuard\Tests\Fixtures\Panels\User;
 use AzGuard\Tests\Fixtures\Visibility\VisibilityProject;
-use AzGuard\Tests\Fixtures\Visibility\VisibilitySource;
 use AzGuard\Tests\Fixtures\Visibility\VisibilityWorld;
 use AzGuardBench\Load\Stage;
 use AzGuardBench\Load\Stand;
 use AzGuardBench\Load\Tier;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
@@ -26,11 +28,12 @@ final class VisibilityBranches extends BaseProfile
 {
     private ?PanelRegistry $registry = null;
 
+    /** @var array<string, class-string<Model>> */
     private array $morphMap = [];
 
-    private mixed $visibility = null;
+    private ?Visibility $visibility = null;
 
-    private mixed $panel = null;
+    private ?Panel $panel = null;
 
     public function id(): string
     {
@@ -72,12 +75,16 @@ final class VisibilityBranches extends BaseProfile
             ]);
         }
         $count = (int) substr($stage->name, strlen('branches-'));
-        $source = new VisibilitySource(direct: array_map(static fn (int $id) => VisibilityWorld::grant($id), range(1, $count)));
+        $sourceClass = 'AzGuard\\Tests\\Fixtures\\Visibility\\VisibilitySource';
+        $source = new $sourceClass(direct: array_map(static fn (int $id): Grant => VisibilityWorld::grant($id), range(1, $count)));
         [$this->visibility, $this->panel] = VisibilityWorld::compile($source);
     }
 
     public function iteration(Stand $stand, Tier $tier, Stage $stage, int $worker, int $i): string
     {
+        if ($this->visibility === null || $this->panel === null) {
+            throw new RuntimeException('Visibility benchmark was not prepared.');
+        }
         $query = VisibilityProject::query()->whereIn('id', [1, 4]);
         $original = $query->toSql();
 
@@ -95,7 +102,9 @@ final class VisibilityBranches extends BaseProfile
             $page = $this->visibility->visibleTo($this->panel, VisibilityProject::query()->whereIn('id', [1, 4]), VisibilityWorld::subject(), 'orders.view')
                 ->orderBy('id')->paginate(1, ['*'], 'page', 1);
 
-            if ($page->total() !== 2 || $page->items()[0]->getKey() !== 1) {
+            $first = $page->items()[0] ?? null;
+
+            if ($page->total() !== 2 || ! $first instanceof Model || $first->getKey() !== 1) {
                 throw new RuntimeException('Visibility pagination returned incorrect rows or count.');
             }
 

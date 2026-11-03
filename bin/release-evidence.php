@@ -49,6 +49,7 @@ function evidenceViolations(array $evidence, string $repo = 'axiomasoft/azguard-
     $show = static fn (mixed $value): string => is_scalar($value) ? (string) $value : get_debug_type($value);
 
     $schema = $evidence['schema'] ?? null;
+
     if (! in_array($schema, [EVIDENCE_SCHEMA, EVIDENCE_CORE_SCHEMA], true)) {
         $violations[] = 'E1 schema: expected '.EVIDENCE_SCHEMA.' or '.EVIDENCE_CORE_SCHEMA.', got '.$show($schema);
     }
@@ -116,9 +117,11 @@ function evidenceViolations(array $evidence, string $repo = 'axiomasoft/azguard-
     $artifacts = is_array($evidence['artifacts'] ?? null) ? $evidence['artifacts'] : [];
     $splits = is_array($evidence['split'] ?? null) ? $evidence['split'] : [];
     $packagist = is_array($evidence['packagist'] ?? null) ? $evidence['packagist'] : [];
+
     if ($coreOnly && (array_key_exists('filament_archive', $artifacts) || array_key_exists('sbom_filament', $artifacts) || array_key_exists('filament', $splits) || array_key_exists('filament', $packagist))) {
         $violations[] = 'E10 scope: core-only evidence must not contain Filament artifacts, split or Packagist entry';
     }
+
     if ($coreOnly && (! is_string($evidence['packagist']['core'] ?? null) || $evidence['packagist']['core'] === '')) {
         $violations[] = 'E10 scope: core-only evidence requires a core Packagist entry';
     }

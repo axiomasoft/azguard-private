@@ -23,6 +23,7 @@ final class DatabaseLaneEnvironment
         foreach (['PGSQL', 'MYSQL', 'MARIADB'] as $driver) {
             foreach (['PORT', 'DATABASE'] as $part) {
                 $key = $driver.'_'.$part;
+
                 if (array_key_exists($key, $environment) || ! isset($values[$key])) {
                     continue;
                 }
@@ -30,6 +31,7 @@ final class DatabaseLaneEnvironment
                 $valid = $part === 'DATABASE'
                     ? is_string($value) && preg_match('/\A[a-zA-Z0-9_]+_test\z/', $value) === 1
                     : is_string($value) && ctype_digit($value) && (int) $value > 0 && (int) $value <= 65535;
+
                 if (! $valid) {
                     throw new RuntimeException('Invalid '.$key.' in local database lane configuration.');
                 }

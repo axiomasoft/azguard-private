@@ -134,7 +134,7 @@ if ($unmapped !== []) {
     fwrite(STDERR, "Not in any zone (run `composer test` to be safe):\n  ".implode("\n  ", $unmapped)."\n");
 }
 
-$base = 'php -d memory_limit=1G vendor/bin/pest --fail-on-skipped --exclude-group=engines --exclude-group=redis --exclude-group=replica --exclude-group=extended '.$groupFlags('zone');
+$base = 'php -d memory_limit=1G vendor/bin/pest --fail-on-skipped --exclude-group=engines --exclude-group=redis --exclude-group=replica --exclude-group=extended --exclude-group=mysql-engines '.$groupFlags('zone');
 $extra = $passthrough === [] ? '' : ' '.implode(' ', array_map('escapeshellarg', $passthrough));
 $commands = [['sqlite', $base.$extra, 'sqlite']];
 

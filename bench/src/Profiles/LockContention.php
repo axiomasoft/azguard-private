@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace AzGuardBench\Load\Profiles;
 
+use AzGuard\Changes\ChangeResult;
 use AzGuard\Facades\AzGuard;
 use AzGuardBench\Load\Catalog;
 use AzGuardBench\Load\Stage;
@@ -47,7 +48,7 @@ final class LockContention extends BaseProfile
         for ($w = 0; $w < $writers; $w++) {
             $id = $this->target($scenario, $w);
             DB::table('users')->insertOrIgnore(['id' => $id, 'name' => 'contention-'.$id]);
-            AzGuard::actingAs('benchmark', fn () => $this->subject($id)->revokePermission(Catalog::name(900 + $w)));
+            AzGuard::actingAs('benchmark', fn (): ChangeResult => $this->subject($id)->revokePermission(Catalog::name(900 + $w)));
         }
     }
 
@@ -59,7 +60,7 @@ final class LockContention extends BaseProfile
         if ($worker < $writers) {
             $subject = $this->subject($this->target($scenario, $worker));
             $permission = Catalog::name(900 + $worker);
-            AzGuard::actingAs('benchmark', fn () => $i % 2 === 0 ? $subject->grantPermission($permission) : $subject->revokePermission($permission));
+            AzGuard::actingAs('benchmark', fn (): ChangeResult => $i % 2 === 0 ? $subject->grantPermission($permission) : $subject->revokePermission($permission));
 
             return 'write';
         }
@@ -86,13 +87,20 @@ final class LockContention extends BaseProfile
         return [['name' => 'all writers end in their last state', 'ok' => $wrong === 0, 'detail' => "{$wrong} of {$writers} incorrect"]];
     }
 
+    /** @return array{string, positive-int} */
     private function parameters(Stage $stage): array
     {
         if (preg_match('/^(disjoint|hot-subject|hot-panel):writers(\d+):readers\d+$/', $stage->name, $m) !== 1) {
             throw new RuntimeException('Invalid contention stage');
         }
 
-        return [$m[1], (int) $m[2]];
+        $writers = (int) $m[2];
+
+        if ($writers < 1) {
+            throw new RuntimeException('Contention stage must have at least one writer');
+        }
+
+        return [$m[1], $writers];
     }
 
     private function target(string $scenario, int $writer): int

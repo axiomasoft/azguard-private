@@ -54,7 +54,7 @@
         }
     },
     "scripts": {
-        "test": "php -d memory_limit=1G vendor/bin/pest --fail-on-skipped --exclude-group=engines --exclude-group=redis --exclude-group=replica --exclude-group=extended",
+        "test": "php -d memory_limit=1G vendor/bin/pest --fail-on-skipped --exclude-group=engines --exclude-group=redis --exclude-group=replica --exclude-group=extended --exclude-group=mysql-engines",
         "test:parallel": "vendor/bin/pest --fail-on-skipped --exclude-group=stand --parallel --processes=4 --passthru-php='-d memory_limit=1G'",
         "test:changed": [
             "Composer\\Config::disableProcessTimeout",
@@ -110,7 +110,7 @@
         "check:coverage": "Line coverage gate (--min=85) with an unlimited memory limit.",
         "bench": "Reproducible micro-benchmarks; prints a Markdown table (AZGUARD_BENCH_SAMPLES, default 300).",
         "bench:load": "Load bench (bench/README.md)",
-        "test": "SQLite lane: every test except engines, redis, replica and the extended (scale) ones.",
+        "test": "SQLite lane: every test except engines, mysql-engines, redis, replica and the extended (scale) ones.",
         "test:parallel": "The SQLite lane on 4 ParaTest workers.",
         "test:changed": "Only the zones a change touches and the zones that use them (tests/zones.json); --quick, --db, --base=<ref>, --dry-run.",
         "test:db": "The database lane on one server: composer test:db -- <pgsql|mysql|mariadb> [--parallel[=N]] [--full] [--engines] [--zone=<zone>].",

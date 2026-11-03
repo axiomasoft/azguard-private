@@ -1,6 +1,7 @@
 # Release evidence
 
-The current publication scope is core only; the Filament integration remains in the monorepo outside that scope.
+The current work does not publish or split either package. The core-only receipt format described below is retained
+for local evidence and a separately authorized future release; it does not establish a current publication plan.
 Each release candidate has an evidence file, `release-evidence/v<version>.yml`, at the root of the repository (outside
 `packages/`, so it is never part of a split archive). It binds one commit to the workflow runs, local runs and artifacts
 that qualified it. `bin/release-evidence.php` validates it, offline for the shape and with `--live` against GitHub.

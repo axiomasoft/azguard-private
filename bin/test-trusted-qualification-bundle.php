@@ -5,7 +5,11 @@ declare(strict_types=1);
 require_once __DIR__.'/trusted-qualification-bundle.php';
 
 $root = sys_get_temp_dir().'/azguard-qualification-'.bin2hex(random_bytes(8));
-if (! mkdir($root, 0700)) throw new RuntimeException('cannot create fixture');
+
+if (! mkdir($root, 0700)) {
+    throw new RuntimeException('cannot create fixture');
+}
+
 try {
     $identity = ['workflow_sha' => str_repeat('a', 40), 'source_sha' => str_repeat('b', 40), 'split_sha' => str_repeat('c', 40),
         'tag' => 'v2.0.0', 'run_id' => '123', 'run_attempt' => '1'];
@@ -33,17 +37,25 @@ try {
     $approved = [...$identity, 'manifest_sha256' => hash_file('sha256', $root.'/manifest.json')];
     // This stub asserts plumbing only: it is not a GitHub signature or run proof.
     $fake = static fn (array $claims, string $path): bool => $claims === $approved && is_file($path);
+
     if ((trustedQualificationBundleFixture($root, $approved, $fake)['qualification'] ?? '') !== 'nonrelease-offline-fixture') {
         throw new RuntimeException('offline fixture did not validate');
     }
     $reject = static function (callable $case): void {
-        try { $case(); } catch (RuntimeException) { return; }
+        try {
+            $case();
+        } catch (RuntimeException) {
+            return;
+        }
+
         throw new RuntimeException('untrusted bundle accepted');
     };
     $reject(static fn () => trustedQualificationBundleFixture($root, $approved, static fn (): bool => false));
     foreach (['source_sha', 'split_sha', 'workflow_sha', 'run_id', 'run_attempt', 'tag', 'manifest_sha256'] as $key) {
         $bad = $approved;
-        $bad[$key] = match ($key) { 'run_id', 'run_attempt' => '9', 'tag' => 'v2.0.1', 'manifest_sha256' => str_repeat('f', 64), default => str_repeat('f', 40) };
+        $bad[$key] = match ($key) {
+            'run_id', 'run_attempt' => '9', 'tag' => 'v2.0.1', 'manifest_sha256' => str_repeat('f', 64), default => str_repeat('f', 40)
+        };
         $reject(static fn () => trustedQualificationBundleFixture($root, $bad, static fn (): bool => true));
     }
     foreach (['producer-config.json', 'resolution-core.lock', 'sbom-core.cdx.json'] as $file) {
@@ -81,11 +93,15 @@ try {
     file_put_contents($target, $original);
     $reject(static fn () => trustedQualificationBundleFixture($root, $approved, static function () use ($target): bool {
         file_put_contents($target, 'changed');
+
         return true;
     }));
     $process = proc_open([PHP_BINARY, __DIR__.'/trusted-qualification-bundle.php'],
         [0 => ['file', '/dev/null', 'r'], 1 => ['file', '/dev/null', 'w'], 2 => ['file', '/dev/null', 'w']], $pipes);
-    if (! is_resource($process) || proc_close($process) !== 1) throw new RuntimeException('production bundle CLI was enabled');
+
+    if (! is_resource($process) || proc_close($process) !== 1) {
+        throw new RuntimeException('production bundle CLI was enabled');
+    }
     echo "Qualification bundle fixtures passed; independent GitHub authentication remains unavailable.\n";
 } finally {
     packageRemoveFixtureDirectory($root);

@@ -42,6 +42,7 @@ function releaseSetupProposal(string $root): array
     foreach (releaseSetupPaths() as $repo => $paths) {
         foreach ($paths as $target => $source) {
             $hash = @hash_file('sha256', $root.'/'.$source);
+
             if (! is_string($hash)) {
                 throw new RuntimeException('missing setup payload: '.$source);
             }
@@ -52,6 +53,7 @@ function releaseSetupProposal(string $root): array
     foreach (['main.json', 'tags.json', 'tag-creation.json', 'required-checks.json'] as $file) {
         $path = '.github/rulesets/'.$file;
         $contents = @file_get_contents($root.'/'.$path);
+
         if (! is_string($contents)) {
             throw new RuntimeException('missing setup payload: '.$path);
         }
@@ -59,28 +61,40 @@ function releaseSetupProposal(string $root): array
     }
 
     return [
+        'execution_scope' => 'local-only; no split or publication',
+        'remote_proposal_status' => 'deferred reference only; no configuration, split or publication is authorized',
         'source_repository' => 'axiomasoft/azguard-private',
         'source_visibility' => 'No source visibility change is proposed. Probes bind the observed public or private visibility to the live setup verification.',
-        'split_repositories' => ['axiomasoft/azguard'],
+        'split_repositories' => [],
         'default_branch' => 'main',
-        'split_visibility' => 'public',
+        'split_visibility' => null,
         'producer_trust_status' => 'BLOCKED: a split-repository staging ref can alter workflow code. Do not configure a private source-read secret in the split repository or dispatch the setup probe until independently verified trusted producer control exists.',
         'distribution_policy' => [
-            'guarantee' => 'The explicitly published release ZIP assets have checksums, validated SBOMs and verified split provenance.',
+            'guarantee' => 'No release is authorized. Any future release ZIP guarantee requires a separately reviewed distribution design and verified provenance.',
             'github_snapshots' => 'Provider-generated source ZIP/tar.gz snapshots are separate and their bytes are not claimed to have release-asset attestations.',
-            'composer_delivery' => 'Only the core package is planned for publication. Packagist points Composer at the core split repository; its GitHub-generated zipball is distinct from the signed release asset. The Filament package is not currently published.',
+            'composer_delivery' => 'Neither core nor Filament is being published or split in the current work. A future Composer distribution mechanism requires a separate decision and qualification.',
             'references' => ['https://docs.github.com/en/repositories/working-with-files/using-files/downloading-source-code-archives', 'https://getcomposer.org/doc/05-repositories.md'],
         ],
-        'environment' => ['repository' => 'axiomasoft/azguard-private', 'name' => 'release',
-            'payload' => ['wait_timer' => 0, 'prevent_self_review' => false,
-                'reviewers' => [['type' => 'User', 'id' => 3863273]], 'deployment_branch_policy' => null],
-            'reviewer_login' => 'academici', 'basis' => '.github/CODEOWNERS; owner must review this proposed actor and permissions'],
-        'variables' => ['RELEASE_TAG_PUBLIC_KEY', 'RELEASE_TAG_SIGNER_FINGERPRINT', 'SPLIT_ENABLED'],
-        'secrets' => [
-            ['name' => 'MONOREPO_SPLIT_TOKEN', 'configured_in' => 'axiomasoft/azguard-private', 'repositories' => ['axiomasoft/azguard'], 'permissions' => ['contents' => 'write', 'actions' => 'write']],
-            ['name' => 'RELEASE_SETUP_READ_TOKEN', 'configured_in' => 'axiomasoft/azguard-private', 'repositories' => ['axiomasoft/azguard-private', 'axiomasoft/azguard'], 'permissions' => ['administration' => 'read', 'actions' => 'read', 'contents' => 'read', 'secrets' => 'read', 'variables' => 'read', 'security_events' => 'read', 'metadata' => 'read']],
+        'environment' => null,
+        'variables' => [],
+        'secrets' => [],
+        'payloads' => [],
+        'rulesets_and_checks' => [],
+        'deferred_reference' => [
+            'split_repositories' => ['axiomasoft/azguard'],
+            'split_visibility' => 'public',
+            'environment' => ['repository' => 'axiomasoft/azguard-private', 'name' => 'release',
+                'payload' => ['wait_timer' => 0, 'prevent_self_review' => false,
+                    'reviewers' => [['type' => 'User', 'id' => 3863273]], 'deployment_branch_policy' => null],
+                'reviewer_login' => 'academici', 'basis' => '.github/CODEOWNERS; owner must review this proposed actor and permissions'],
+            'variables' => ['RELEASE_TAG_PUBLIC_KEY', 'RELEASE_TAG_SIGNER_FINGERPRINT', 'SPLIT_ENABLED'],
+            'secrets' => [
+                ['name' => 'MONOREPO_SPLIT_TOKEN', 'configured_in' => 'axiomasoft/azguard-private', 'repositories' => ['axiomasoft/azguard'], 'permissions' => ['contents' => 'write', 'actions' => 'write']],
+                ['name' => 'RELEASE_SETUP_READ_TOKEN', 'configured_in' => 'axiomasoft/azguard-private', 'repositories' => ['axiomasoft/azguard-private', 'axiomasoft/azguard'], 'permissions' => ['administration' => 'read', 'actions' => 'read', 'contents' => 'read', 'secrets' => 'read', 'variables' => 'read', 'security_events' => 'read', 'metadata' => 'read']],
+            ],
+            'payloads' => $payloads,
+            'rulesets_and_checks' => $rulesets,
         ],
-        'payloads' => $payloads, 'rulesets_and_checks' => $rulesets,
         'setup_probe' => 'Blocked pending independently verified trusted producer control. Do not dispatch, install a private source-read token in the split repository, or enable release based on this proposal.',
     ];
 }
@@ -89,15 +103,18 @@ function releaseSetupProposal(string $root): array
 function releaseSetupRequestErrors(array $request, string $root): array
 {
     $errors = [];
+
     if (($request['schema'] ?? null) !== 'azguard.release.setup-request.v1' || ! array_key_exists('candidate_sha', $request) || $request['candidate_sha'] !== null
         || ($request['remote_changes_authorized'] ?? null) !== false
-        || ($request['status'] ?? null) !== 'reviewable proposal; applied settings and entitlements are not proven') {
+        || ($request['status'] ?? null) !== 'deferred reference only; no split or publication authorized') {
         $errors[] = 'invalid setup request identity';
     }
+
     if (($request['proposal'] ?? null) !== releaseSetupProposal($root)) {
         $errors[] = 'setup proposal or payload digest mismatch';
     }
     $observed = $request['observations'] ?? null;
+
     if (! is_array($observed) || ! is_string($observed['observed_at_utc'] ?? null)
         || ! preg_match('/\A\d{4}-\d\d-\d\dT\d\d:\d\d:\d\dZ\z/', $observed['observed_at_utc'])
         || ! is_array($observed['repositories'] ?? null)) {
@@ -105,6 +122,7 @@ function releaseSetupRequestErrors(array $request, string $root): array
     } else {
         foreach (array_keys(releaseSetupPaths()) as $repo) {
             $row = $observed['repositories'][$repo] ?? null;
+
             if (! is_array($row) || ! in_array($row['status'] ?? null, ['observed', 'unavailable'], true)
                 || ! is_string($row['detail'] ?? null) || $row['detail'] === '') {
                 $errors[] = 'missing observation for '.$repo;
@@ -119,14 +137,17 @@ function releaseSetupRequestErrors(array $request, string $root): array
 function releaseSetupKeyMatches(string $key, string $fingerprint): bool
 {
     $home = sys_get_temp_dir().'/azguard-setup-key-'.bin2hex(random_bytes(12));
+
     if (! mkdir($home, 0700)) {
         return false;
     }
     $env = getenv();
     $env['GNUPGHOME'] = $home;
+
     try {
         $process = proc_open(['gpg', '--batch', '--with-colons', '--import-options', 'show-only', '--dry-run', '--import'],
             [0 => ['pipe', 'r'], 1 => ['pipe', 'w'], 2 => ['file', '/dev/null', 'w']], $pipes, null, $env);
+
         if (! is_resource($process)) {
             return false;
         }
@@ -134,6 +155,7 @@ function releaseSetupKeyMatches(string $key, string $fingerprint): bool
         fclose($pipes[0]);
         $output = stream_get_contents($pipes[1]);
         fclose($pipes[1]);
+
         if (proc_close($process) !== 0 || ! is_string($output)) {
             return false;
         }
@@ -142,6 +164,7 @@ function releaseSetupKeyMatches(string $key, string $fingerprint): bool
         return in_array($fingerprint, $matches[1] ?? [], true);
     } finally {
         $process = proc_open(['gpgconf', '--kill', 'gpg-agent'], [0 => ['file', '/dev/null', 'r'], 1 => ['file', '/dev/null', 'w'], 2 => ['file', '/dev/null', 'w']], $pipes, null, $env);
+
         if (is_resource($process)) {
             proc_close($process);
         }
@@ -157,6 +180,7 @@ function releaseSetupKeyMatches(string $key, string $fingerprint): bool
 function releaseSetupCommand(array $command): array
 {
     $process = proc_open($command, [0 => ['file', '/dev/null', 'r'], 1 => ['pipe', 'w'], 2 => ['file', '/dev/null', 'w']], $pipes);
+
     if (! is_resource($process)) {
         return [127, ''];
     }
@@ -191,14 +215,17 @@ function releaseSetupProbeJobValid(array $pages, int $run, string $sha, string $
             return false;
         }
         $ids[$job['id']] = true;
+
         if (($job['name'] ?? null) === $jobName) {
             $matches[] = $job;
         }
     }
+
     if (count($matches) !== 1) {
         return false;
     }
     $job = $matches[0];
+
     if (($job['run_id'] ?? null) !== $run || ($job['head_sha'] ?? null) !== $sha
         || ($job['status'] ?? null) !== 'completed' || ($job['conclusion'] ?? null) !== 'success'
         || ! is_array($job['steps'] ?? null)) {
@@ -206,6 +233,7 @@ function releaseSetupProbeJobValid(array $pages, int $run, string $sha, string $
     }
     foreach ($steps as $stepName) {
         $found = array_values(array_filter($job['steps'], static fn (mixed $step): bool => is_array($step) && ($step['name'] ?? null) === $stepName));
+
         if (count($found) !== 1 || ($found[0]['status'] ?? null) !== 'completed' || ($found[0]['conclusion'] ?? null) !== 'success') {
             return false;
         }
@@ -220,15 +248,22 @@ function releaseSetupProbeJobValid(array $pages, int $run, string $sha, string $
  */
 function releaseSetupLiveErrors(array $request, string $root, callable $api, callable $verifyAttestation, callable $audit, int $now): array
 {
+    // The current owner instruction forbids every split and publication. Keep
+    // the historical read-only diagnostics below, but never treat them as an
+    // approval or allow a release even if every historical check succeeds.
+    $scopeError = 'current scope forbids split and publication; release setup is blocked';
     // Staging refs can alter workflow code before a producer validates itself. A
     // future implementation must verify independent trusted control rather than
     // accepting a self-reported proof or a successful setup probe.
     $producerTrustError = 'trusted producer control is not established; release setup is blocked';
     $errors = releaseSetupRequestErrors($request, $root);
+
     if ($errors !== []) {
-        return [$producerTrustError, ...$errors];
+        return [$scopeError, $producerTrustError, ...$errors];
     }
+    $errors[] = $scopeError;
     $errors[] = $producerTrustError;
+
     if (! $audit()) {
         $errors[] = 'source settings audit unavailable or failed';
     }
@@ -238,19 +273,24 @@ function releaseSetupLiveErrors(array $request, string $root, callable $api, cal
     $sourcePrivate = null;
     foreach (releaseSetupPaths() as $repo => $paths) {
         $repoData = $api('repos/'.$repo);
+
         if (! is_array($repoData) || ($repoData['full_name'] ?? null) !== $repo || ($repoData['default_branch'] ?? null) !== 'main'
             || ($repoData['archived'] ?? null) !== false || ! is_bool($repoData['private'] ?? null)
             || ($repo !== 'axiomasoft/azguard-private' && $repoData['private'] !== false)) {
             $errors[] = 'repository identity, visibility or default branch unverified: '.$repo;
+
             continue;
         }
+
         if ($repo === 'axiomasoft/azguard-private') {
             $sourcePrivate = $repoData['private'];
         }
         $head = $api('repos/'.$repo.'/commits/main');
         $sha = is_array($head) ? ($head['sha'] ?? null) : null;
+
         if (! is_string($sha) || ! preg_match('/\A[0-9a-f]{40}\z/', $sha)) {
             $errors[] = 'default branch SHA unavailable: '.$repo;
+
             continue;
         }
         $heads[$repo] = $sha;
@@ -258,6 +298,7 @@ function releaseSetupLiveErrors(array $request, string $root, callable $api, cal
             $file = $api('repos/'.$repo.'/contents/'.$target.'?ref='.$sha);
             $content = is_array($file) && ($file['encoding'] ?? null) === 'base64' && is_string($file['content'] ?? null)
                 ? base64_decode(str_replace("\n", '', $file['content']), true) : false;
+
             if (! is_string($content) || ! hash_equals((string) hash_file('sha256', $root.'/'.$source), hash('sha256', $content))) {
                 $errors[] = 'remote payload mismatch: '.$repo.'/'.$target;
             }
@@ -266,6 +307,7 @@ function releaseSetupLiveErrors(array $request, string $root, callable $api, cal
         $key = $api('repos/'.$repo.'/actions/variables/RELEASE_TAG_PUBLIC_KEY');
         $value = is_array($fp) ? ($fp['value'] ?? null) : null;
         $keyValue = is_array($key) ? ($key['value'] ?? null) : null;
+
         if (! is_string($value) || ! preg_match('/\A(?:[0-9A-F]{40}|[0-9A-F]{64})\z/', $value)
             || ! is_string($keyValue) || ! str_contains($keyValue, 'BEGIN PGP PUBLIC KEY BLOCK')
             || str_contains($keyValue, 'PRIVATE KEY BLOCK')) {
@@ -277,6 +319,7 @@ function releaseSetupLiveErrors(array $request, string $root, callable $api, cal
             $publicKey = $keyValue;
         }
     }
+
     if ($fingerprint === null || $publicKey === null || ! releaseSetupKeyMatches($publicKey, $fingerprint)) {
         $errors[] = 'tag signing fingerprint does not belong to the configured key';
     }
@@ -285,6 +328,7 @@ function releaseSetupLiveErrors(array $request, string $root, callable $api, cal
     $protected = false;
     $environmentExact = true;
     $reviewerRules = 0;
+
     if (is_array($reviewers)) {
         foreach ($reviewers as $rule) {
             if (is_array($rule) && ($rule['type'] ?? null) === 'required_reviewers'
@@ -299,19 +343,23 @@ function releaseSetupLiveErrors(array $request, string $root, callable $api, cal
             }
         }
     }
+
     if (! is_array($environment) || ($environment['name'] ?? null) !== 'release' || ! $protected || $reviewerRules !== 1 || ! $environmentExact
         || ! array_key_exists('deployment_branch_policy', $environment) || $environment['deployment_branch_policy'] !== null) {
         $errors[] = 'release environment reviewers unverified';
     }
     $secret = $api('repos/axiomasoft/azguard-private/actions/secrets/MONOREPO_SPLIT_TOKEN');
+
     if (! is_array($secret) || ($secret['name'] ?? null) !== 'MONOREPO_SPLIT_TOKEN') {
         $errors[] = 'split token metadata unavailable';
     }
     $readSecret = $api('repos/axiomasoft/azguard-private/actions/secrets/RELEASE_SETUP_READ_TOKEN');
+
     if (! is_array($readSecret) || ($readSecret['name'] ?? null) !== 'RELEASE_SETUP_READ_TOKEN') {
         $errors[] = 'setup read token metadata unavailable';
     }
     $enabled = $api('repos/axiomasoft/azguard-private/actions/variables/SPLIT_ENABLED');
+
     if (! is_array($enabled) || ($enabled['name'] ?? null) !== 'SPLIT_ENABLED' || ($enabled['value'] ?? null) !== 'true') {
         $errors[] = 'split variable not enabled';
     }
@@ -321,9 +369,11 @@ function releaseSetupLiveErrors(array $request, string $root, callable $api, cal
         $workflowData = $api('repos/'.$repo.'/actions/workflows/'.$workflow);
         $runs = $api('repos/'.$repo.'/actions/workflows/'.$workflow.'/runs?branch=main&event=workflow_dispatch&status=completed&per_page=100');
         $workflowId = is_array($workflowData) ? ($workflowData['id'] ?? null) : null;
+
         if (! is_int($workflowId) || ($workflowData['state'] ?? null) !== 'active'
             || ($workflowData['path'] ?? null) !== '.github/workflows/'.$workflow || ! is_array($runs['workflow_runs'] ?? null)) {
             $errors[] = 'setup probe unavailable: '.$repo;
+
             continue;
         }
         $validRun = false;
@@ -332,6 +382,7 @@ function releaseSetupLiveErrors(array $request, string $root, callable $api, cal
                 continue;
             }
             $created = is_string($run['created_at'] ?? null) ? strtotime($run['created_at']) : false;
+
             if (! is_int($run['id'] ?? null) || ! is_int($run['run_attempt'] ?? null) || $run['run_attempt'] < 1
                 || ($run['workflow_id'] ?? null) !== $workflowId || ($run['head_sha'] ?? null) !== $sha
                 || ($run['repository']['full_name'] ?? null) !== $repo
@@ -343,17 +394,21 @@ function releaseSetupLiveErrors(array $request, string $root, callable $api, cal
             $pages = $api('repos/'.$repo.'/actions/runs/'.$run['id'].'/attempts/'.$run['run_attempt'].'/jobs?per_page=100', true);
             $jobName = $source ? 'Verify split publication prerequisites' : 'Verify split attestation prerequisites';
             $steps = $source ? ['Verify setup read token', 'Probe split push and dispatch permissions'] : ['Verify source read access', 'Create setup probe', 'Attest setup probe'];
+
             if (! $source) {
                 if ($sourcePrivate === null) {
                     continue;
                 }
                 $steps[] = $sourcePrivate ? 'Confirm private source' : 'Confirm public source';
             }
+
             if (is_array($pages) && releaseSetupProbeJobValid($pages, $run['id'], $sha, $jobName, $steps)) {
                 $validRun = true;
+
                 break;
             }
         }
+
         if (! $validRun) {
             $errors[] = 'fresh successful setup probe unavailable: '.$repo;
         } elseif (! $source && ! $verifyAttestation($repo, $sha)) {

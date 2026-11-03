@@ -23,8 +23,10 @@ while (($line = fgets(STDIN)) !== false) {
 
             continue;
         }
+
         if ($command['mode'] === 'disconnect') {
             $id = (int) $command['connection_id'];
+
             if ($storage->connection()->getDriverName() === 'pgsql') {
                 $storage->connection()->selectOne('select pg_terminate_backend(?) as terminated', [$id]);
             } else {

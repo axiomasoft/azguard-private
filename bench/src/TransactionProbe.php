@@ -13,6 +13,7 @@ final class TransactionProbe
 
     private static int $failed = 0;
 
+    /** @var array{retries: int, deadlocks: int, timeouts: int, lock_conflicts: int, serialization_failures: int, other_failures: int} */
     private static array $counts = ['retries' => 0, 'deadlocks' => 0, 'timeouts' => 0, 'lock_conflicts' => 0, 'serialization_failures' => 0, 'other_failures' => 0];
 
     public static function reset(): void
@@ -51,6 +52,7 @@ final class TransactionProbe
         self::$active = false;
     }
 
+    /** @return array{retries: int, deadlocks: int, timeouts: int, lock_conflicts: int, serialization_failures: int, other_failures: int} */
     public static function counts(): array
     {
         return self::$counts;

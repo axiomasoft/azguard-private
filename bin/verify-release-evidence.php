@@ -11,15 +11,17 @@ require_once __DIR__.'/verify-release-setup.php';
  * expected identity. Acquisition and authenticity of the record remain the
  * caller's responsibility; this is not proof of artifact provenance.
  *
- * @param array<string, mixed> $data
+ * @param  array<string, mixed>  $data
  * @return list<string>
  */
 function candidateSourceEvidenceErrors(array $data, string $expectedSha, string $expectedRun): array
 {
     $errors = [];
+
     if (preg_match('/\A[0-9a-f]{40}\z/', $expectedSha) !== 1 || ($data['sha'] ?? null) !== $expectedSha) {
         $errors[] = 'candidate SHA mismatch';
     }
+
     if (preg_match('/\A[1-9][0-9]*-[1-9][0-9]*\z/', $expectedRun) !== 1 || ($data['run_id'] ?? null) !== $expectedRun) {
         $errors[] = 'candidate run mismatch';
     }
@@ -33,10 +35,12 @@ function candidateSourceEvidenceErrors(array $data, string $expectedSha, string 
 function releaseEvidenceSetupPath(array $args): ?string
 {
     $mode = $args[0] ?? '';
+
     if ($mode !== '--setup' && ! str_starts_with($mode, '--setup=')) {
         return null;
     }
     $path = $mode === '--setup' ? null : substr($mode, strlen('--setup='));
+
     if ($path === '') {
         throw new RuntimeException('setup request path must not be empty');
     }
@@ -61,9 +65,11 @@ function releaseEvidenceSetupPath(array $args): ?string
 if (isset($_SERVER['SCRIPT_FILENAME']) && realpath($_SERVER['SCRIPT_FILENAME']) === __FILE__) {
     try {
         $path = releaseEvidenceSetupPath(array_slice($argv, 1));
+
         if ($path !== null) {
             $raw = @file_get_contents($path);
             $request = is_string($raw) ? json_decode($raw, true, 512, JSON_THROW_ON_ERROR) : null;
+
             if (! is_array($request)) {
                 throw new RuntimeException('cannot read setup request');
             }
@@ -71,17 +77,21 @@ if (isset($_SERVER['SCRIPT_FILENAME']) && realpath($_SERVER['SCRIPT_FILENAME']) 
                 $command = $paginate ? ['gh', 'api', '--paginate', '--slurp', $endpoint] : ['gh', 'api', $endpoint];
                 [$exit, $output] = releaseSetupCommand($command);
                 $data = $exit === 0 ? json_decode($output, true) : null;
+
                 return is_array($data) ? $data : null;
             };
             $audit = static function (): bool {
                 [$exit, $output] = releaseSetupCommand([PHP_BINARY, __DIR__.'/repository-settings-audit.php', '--live', '--json']);
+
                 return $exit === 0 && json_decode($output, true) === [];
             };
             $attestation = static function (string $repo, string $sha): bool {
                 $path = tempnam(sys_get_temp_dir(), 'azguard-setup-probe-');
+
                 if ($path === false) {
                     return false;
                 }
+
                 try {
                     if (file_put_contents($path, "azguard-attestation-setup-v1\n") === false) {
                         return false;
@@ -90,51 +100,61 @@ if (isset($_SERVER['SCRIPT_FILENAME']) && realpath($_SERVER['SCRIPT_FILENAME']) 
                         '--signer-workflow', $repo.'/.github/workflows/attestation-setup.yml', '--signer-digest', $sha,
                         '--source-ref', 'refs/heads/main', '--source-digest', $sha,
                         '--predicate-type', 'https://slsa.dev/provenance/v1', '--format', 'json']);
+
                     return $exit === 0 && packageAttestationPredicatesMatch($output, []);
                 } finally {
                     unlink($path);
                 }
             };
             $errors = releaseSetupLiveErrors($request, dirname(__DIR__), $api, $attestation, $audit, time());
+
             if ($errors !== []) {
                 throw new RuntimeException(implode('; ', $errors));
             }
             echo "Current setup prerequisites verified read-only; candidate qualification and publication remain separate.\n";
             exit(0);
         }
+
         if ($argc === 7 && $argv[1] === '--candidate-artifacts') {
             $verify = static function (array $command, array $expected): bool {
                 $setting = getenv('AZGUARD_ATTEST_RETRIES');
                 $retries = is_string($setting) && preg_match('/\A(?:[1-9]|1[0-9]|20)\z/', $setting) ? (int) $setting : 20;
                 for ($i = 0; $i < $retries; $i++) {
                     $process = proc_open($command, [0 => ['file', '/dev/null', 'r'], 1 => ['pipe', 'w'], 2 => ['file', '/dev/null', 'w']], $pipes);
+
                     if (! is_resource($process)) {
                         return false;
                     }
                     $output = stream_get_contents($pipes[1]);
                     fclose($pipes[1]);
+
                     if (proc_close($process) === 0 && is_string($output) && packageAttestationPredicatesMatch($output, $expected)) {
                         return true;
                     }
+
                     if ($i + 1 < $retries) {
                         sleep(5);
                     }
                 }
+
                 return false;
             };
             packageVerifyAttestations(dirname(__DIR__), $argv[2], $argv[3], $argv[4], $argv[5], $argv[6], $verify);
             echo "Candidate artifacts and trusted attestations verified; split tag publication remains a separate check.\n";
             exit(0);
         }
+
         if ($argc !== 5 || $argv[1] !== '--candidate-source') {
             throw new RuntimeException('usage: php bin/verify-release-evidence.php --setup[=REQUEST] [--read-only] [--strict] | --candidate-source SHA RUN-ID-ATTEMPT FILE | --candidate-artifacts SHA TAG DIST CORE-SHA RUN-ID-ATTEMPT');
         }
         $raw = @file_get_contents($argv[4]);
         $data = is_string($raw) ? json_decode($raw, true, 512, JSON_THROW_ON_ERROR) : null;
+
         if (! is_array($data)) {
             throw new RuntimeException('cannot read candidate evidence');
         }
         $errors = candidateSourceEvidenceErrors($data, $argv[2], $argv[3]);
+
         if ($errors !== []) {
             throw new RuntimeException(implode('; ', $errors));
         }

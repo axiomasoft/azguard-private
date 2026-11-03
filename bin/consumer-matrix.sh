@@ -91,6 +91,15 @@ if [[ "$source_ref" == worktree ]]; then
     tree="$(tar --sort=name --mtime='UTC 1970-01-01' --owner=0 --group=0 --numeric-owner -C "$tmp/source" -cf - . | sha256sum | cut -d' ' -f1)"
 else
     git -C "$root" archive "$source_ref" | tar -xf - -C "$tmp/source"
+    # tests/ is export-ignored, but relocated-audit compares against this tracked
+    # fixture. Read it from the selected commit, never from the working tree.
+    fixture='tests/Fixtures/Console/commands.json'
+    fixture_entry="$(git -C "$root" ls-tree "$source_ref" -- "$fixture")"
+    [[ "$fixture_entry" == $'100644 blob '*$'\t'"$fixture" ]] || {
+        echo "Missing or unsafe fixture in selected commit: $fixture" >&2; exit 1;
+    }
+    mkdir -p "$tmp/source/tests/Fixtures/Console"
+    git -C "$root" cat-file blob "$source_ref:$fixture" > "$tmp/source/$fixture"
 fi
 php -r '
     $rows=[]; foreach (["8.3-12","8.3-13","8.4-12","8.4-13","8.5-13"] as $p) foreach (["lowest","latest"] as $d) foreach (["core","core-only","relocated-audit"] as $c) $rows[]=["id"=>"$p-$d-$c","result"=>"pending"];

@@ -14,12 +14,12 @@ declare(strict_types=1);
 
 use AzGuardBench\Load\Dataset;
 use AzGuardBench\Load\ProfileCatalog;
+use AzGuardBench\Load\RedisCache;
 use AzGuardBench\Load\ResultFile;
 use AzGuardBench\Load\Runner;
 use AzGuardBench\Load\Stand;
 use AzGuardBench\Load\Summary;
 use AzGuardBench\Load\Tier;
-use Illuminate\Support\Facades\Cache;
 
 $root = dirname(__DIR__, 2);
 require $root.'/vendor/autoload.php';
@@ -96,8 +96,10 @@ $redisServer = 'none';
 $redisClient = 'none';
 
 if ($cache === 'redis') {
-    $redisInfo = Cache::store('redis')->getStore()->connection()->client()->info('server');
-    $redisServer = (string) ($redisInfo['redis_version'] ?? '');
+    [$redis] = RedisCache::clientAndPrefix();
+    $redisInfo = $redis->info('server');
+    $redisVersion = is_array($redisInfo) ? ($redisInfo['redis_version'] ?? '') : '';
+    $redisServer = is_string($redisVersion) ? $redisVersion : '';
     $redisClient = (string) phpversion('redis');
 }
 $result = [

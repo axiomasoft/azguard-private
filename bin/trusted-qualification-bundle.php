@@ -13,15 +13,18 @@ function trustedQualificationBundleFixture(string $directory, array $approved, c
 {
     $keys = array_keys($approved);
     sort($keys);
+
     if ($keys !== ['manifest_sha256', 'run_attempt', 'run_id', 'source_sha', 'split_sha', 'tag', 'workflow_sha']) {
         throw new RuntimeException('incomplete independently approved qualification');
     }
     trustedProducerPredicate([...array_diff_key($approved, ['manifest_sha256' => true]),
         'zip_sha256' => str_repeat('0', 64), 'source_sbom_sha256' => str_repeat('0', 64),
         'dependency_sbom_sha256' => str_repeat('0', 64), 'lock_sha256' => str_repeat('0', 64), 'mapping_sha256' => str_repeat('0', 64)]);
+
     if (! is_string($approved['manifest_sha256']) || preg_match('/\A[0-9a-f]{64}\z/', $approved['manifest_sha256']) !== 1) {
         throw new RuntimeException('invalid approved manifest digest');
     }
+
     if (is_link($directory) || ! is_dir($directory)) {
         throw new RuntimeException('unsafe bundle directory');
     }
@@ -30,20 +33,24 @@ function trustedQualificationBundleFixture(string $directory, array $approved, c
     sort($entries);
     $expectedEntries = $files;
     sort($expectedEntries);
+
     if ($entries !== $expectedEntries) {
         throw new RuntimeException('unexpected qualification bundle entries');
     }
     $contents = [];
     foreach ($files as $file) {
         $path = $directory.'/'.$file;
+
         if (is_link($path) || ! is_file($path) || filesize($path) > 16 * 1024 * 1024) {
             throw new RuntimeException('unsafe qualification bundle file');
         }
         $contents[$file] = file_get_contents($path);
+
         if (! is_string($contents[$file])) {
             throw new RuntimeException('cannot read qualification bundle');
         }
     }
+
     if (! hash_equals($approved['manifest_sha256'], hash('sha256', $contents['manifest.json']))) {
         throw new RuntimeException('unapproved qualification manifest');
     }
@@ -54,6 +61,7 @@ function trustedQualificationBundleFixture(string $directory, array $approved, c
     foreach (array_slice($files, 1) as $file) {
         $expected['files'][$file] = hash('sha256', $contents[$file]);
     }
+
     if (! is_array($manifest) || packageCanonicalJson((object) $manifest) !== packageCanonicalJson((object) $expected)) {
         throw new RuntimeException('qualification identity or file digest mismatch');
     }
@@ -65,6 +73,7 @@ function trustedQualificationBundleFixture(string $directory, array $approved, c
     sort($configKeys);
     $inputKeys = is_array($config['inputs'] ?? null) ? array_keys($config['inputs']) : [];
     sort($inputKeys);
+
     if ($configKeys !== ['approved_output', 'identity', 'inputs', 'output', 'predicate_output', 'repository', 'source_run']
         || $inputKeys !== ['composer', 'dependency_sbom', 'git', 'lock', 'normalizer', 'python', 'tar', 'validator']) {
         throw new RuntimeException('unexpected qualification config schema');
@@ -91,16 +100,19 @@ function trustedQualificationBundleFixture(string $directory, array $approved, c
         || ($bom['version'] ?? null) !== 1 || packageResolvedGraphErrors($lock, $bom, 'axiomasoft/azguard', $version) !== []) {
         throw new RuntimeException('qualification config or dependency graph mismatch');
     }
+
     if ($verify($approved, $directory.'/manifest.json') !== true) {
         throw new RuntimeException('independent qualification authentication unavailable');
     }
     foreach ($contents as $file => $content) {
         clearstatcache(true, $directory.'/'.$file);
+
         if (is_link($directory.'/'.$file) || ! is_file($directory.'/'.$file)
             || ! hash_equals(hash('sha256', $content), (string) hash_file('sha256', $directory.'/'.$file))) {
             throw new RuntimeException('qualification bundle changed during verification');
         }
     }
+
     return ['qualification' => 'nonrelease-offline-fixture', 'identity' => $identity, 'files' => $expected['files']];
 }
 

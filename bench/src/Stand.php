@@ -9,6 +9,7 @@ use AzGuard\Tests\TestCase;
 use AzGuardBench\Load\Profiles\DecisionSetSize;
 use BladeUI\Heroicons\BladeHeroiconsServiceProvider;
 use BladeUI\Icons\BladeIconsServiceProvider;
+use Closure;
 use Filament\Actions\ActionsServiceProvider;
 use Filament\FilamentServiceProvider;
 use Filament\Forms\FormsServiceProvider;
@@ -68,7 +69,7 @@ final class Stand
             require_once __DIR__.'/InstrumentedConnections.php';
             foreach (['sqlite' => BenchSqliteConnection::class, 'pgsql' => BenchPostgresConnection::class,
                 'mysql' => BenchMysqlConnection::class, 'mariadb' => BenchMariadbConnection::class] as $name => $connectionClass) {
-                Connection::resolverFor($name, static fn ($pdo, $database, $prefix, $config) => new $connectionClass($pdo, $database, $prefix, $config));
+                Connection::resolverFor($name, static fn (PDO|Closure $pdo, string $database, string $prefix, array $config): BenchSqliteConnection|BenchPostgresConnection|BenchMysqlConnection|BenchMariadbConnection => new $connectionClass($pdo, $database, $prefix, $config));
             }
         }
         putenv('DB_CONNECTION='.$driver);

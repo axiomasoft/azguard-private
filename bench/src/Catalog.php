@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace AzGuardBench\Load;
 
+use Filament\Resources\Resource;
 use Illuminate\Database\Eloquent\Model;
 use RuntimeException;
 
@@ -76,6 +77,18 @@ final class Catalog
 
         if (! class_exists($class)) {
             throw new RuntimeException("The bench catalog has no class [{$class}]; call Catalog::load() first.");
+        }
+
+        return $class;
+    }
+
+    /** @return class-string<resource> */
+    public static function resource(string $name): string
+    {
+        $class = self::class($name);
+
+        if (! is_subclass_of($class, Resource::class)) {
+            throw new RuntimeException("[{$class}] is not a Filament resource.");
         }
 
         return $class;

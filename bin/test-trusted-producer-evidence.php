@@ -5,9 +5,11 @@ declare(strict_types=1);
 require_once __DIR__.'/trusted-producer-evidence.php';
 
 $directory = sys_get_temp_dir().'/azguard-trusted-producer-'.bin2hex(random_bytes(8));
+
 if (! mkdir($directory, 0700)) {
     throw new RuntimeException('cannot create fixture directory');
 }
+
 try {
     $files = [
         'zip_sha256' => 'azguard-core-2.0.0-rc.1.zip',
@@ -22,6 +24,7 @@ try {
         'run_id' => '123', 'run_attempt' => '2',
     ];
     $zip = new ZipArchive;
+
     if ($zip->open($directory.'/'.$files['zip_sha256'], ZipArchive::CREATE) !== true) {
         throw new RuntimeException('cannot create ZIP fixture');
     }
@@ -54,6 +57,7 @@ try {
         sort($keys);
         $required = $schema['required'];
         sort($required);
+
         if ($keys !== $required || packageCanonicalJson($predicate) !== packageCanonicalJson($expected)) {
             return false;
         }
@@ -61,10 +65,12 @@ try {
             if (isset($rule['const']) && $object[$name] !== $rule['const']) {
                 return false;
             }
+
             if (isset($rule['pattern']) && preg_match('~'.$rule['pattern'].'~D', $object[$name]) !== 1) {
                 return false;
             }
         }
+
         return array_slice($command, 0, 3) === ['gh', 'attestation', 'verify']
             && array_slice($command, 4) === [
                 '--repo', 'axiomasoft/azguard', '--signer-workflow', 'axiomasoft/azguard/.github/workflows/trusted-producer.yml',
@@ -85,12 +91,15 @@ try {
         $env['PATH'] = $directory.':/usr/bin:/bin';
         $process = proc_open([PHP_BINARY, __DIR__.'/trusted-producer-pipeline.php', 'verify', $directory.'/verify.json'],
             [0 => ['file', '/dev/null', 'r'], 1 => ['file', '/dev/null', 'w'], 2 => ['file', '/dev/null', 'w']], $pipes, null, $env);
+
         return is_resource($process) ? proc_close($process) : throw new RuntimeException('cannot start candidate verifier');
     };
+
     if ($runCli() !== 0) {
         throw new RuntimeException('candidate verifier failed with matching fake gh response');
     }
     file_put_contents($directory.'/attestation.json', '[]');
+
     if ($runCli() === 0) {
         throw new RuntimeException('candidate verifier accepted absent attestation');
     }
@@ -101,6 +110,7 @@ try {
         } catch (RuntimeException) {
             return;
         }
+
         throw new RuntimeException('invalid trusted producer evidence accepted');
     };
     // Every identity is independently expected, not read from the statement.
@@ -127,6 +137,7 @@ try {
         $original = (string) file_get_contents($path);
         $reject(static fn () => trustedProducerVerify($directory, $approved, static function () use ($path): bool {
             file_put_contents($path, 'replaced during verification');
+
             return true;
         }));
         file_put_contents($path, $original);

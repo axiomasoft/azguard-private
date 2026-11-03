@@ -5,18 +5,19 @@ declare(strict_types=1);
 namespace AzGuardBench\Load\Profiles;
 
 use AzGuard\Authorization\Internal\Cache\PermissionSetCache;
+use AzGuard\Changes\ChangeResult;
 use AzGuard\Facades\AzGuard;
+use AzGuardBench\Load\RedisCache;
 use AzGuardBench\Load\Stage;
 use AzGuardBench\Load\Stand;
 use AzGuardBench\Load\Tier;
-use Illuminate\Support\Facades\Cache;
-use Redis;
 use ReflectionProperty;
 use RuntimeException;
 
 /** Revision-key churn, bounded request maps and finite Redis expiry. */
 final class CacheChurn extends BaseProfile
 {
+    /** @var list<string> */
     private array $baseline = [];
 
     private int $redisBefore = 0;
@@ -46,7 +47,7 @@ final class CacheChurn extends BaseProfile
 
     public function prepare(Stand $stand, Tier $tier, Stage $stage): void
     {
-        AzGuard::actingAs('benchmark', fn () => $this->subject(2, 'churn')->revokePermission('g50.p20'));
+        AzGuard::actingAs('benchmark', fn (): ChangeResult => $this->subject(2, 'churn')->revokePermission('g50.p20'));
         $stand->newRequest();
         $this->baseline = $stand->cache === 'redis' ? $this->keys() : [];
         $this->redisBefore = $stand->cache === 'redis' ? $this->redisMemory() : 0;
@@ -58,7 +59,7 @@ final class CacheChurn extends BaseProfile
         $this->rssPeak = $this->rssBefore;
         $this->maxSets = $this->maxStates = 0;
         // Keep one request alive past both configured limits. Subjects are model identities, not database writes.
-        $limit = max((int) config('azguard.cache.max_memo_entries'), (int) config('azguard.cache.max_state_entries'));
+        $limit = max(config()->integer('azguard.cache.max_memo_entries'), config()->integer('azguard.cache.max_state_entries'));
         for ($i = 0; $i <= $limit; $i++) {
             if ($this->check($this->subject(100000000 + $i, 'churn'), 'g50.p20')) {
                 throw new RuntimeException('An ungranted subject was allowed.');
@@ -70,12 +71,12 @@ final class CacheChurn extends BaseProfile
     public function iteration(Stand $stand, Tier $tier, Stage $stage, int $worker, int $i): string
     {
         $subject = $this->subject(2, 'churn');
-        AzGuard::actingAs('benchmark', fn () => $subject->grantPermission('g50.p20'));
+        AzGuard::actingAs('benchmark', fn (): ChangeResult => $subject->grantPermission('g50.p20'));
 
         if (! $this->check($subject, 'g50.p20')) {
             throw new RuntimeException('Grant was not visible.');
         }
-        AzGuard::actingAs('benchmark', fn () => $subject->revokePermission('g50.p20'));
+        AzGuard::actingAs('benchmark', fn (): ChangeResult => $subject->revokePermission('g50.p20'));
 
         if ($this->check($subject, 'g50.p20')) {
             throw new RuntimeException('Revoke was not visible.');
@@ -88,11 +89,17 @@ final class CacheChurn extends BaseProfile
     private function observeBounds(): void
     {
         $memo = app(PermissionSetCache::class);
-        $this->maxSets = max($this->maxSets, count((new ReflectionProperty($memo, 'sets'))->getValue($memo)));
-        $this->maxStates = max($this->maxStates, count((new ReflectionProperty($memo, 'states'))->getValue($memo)));
+        $sets = (new ReflectionProperty($memo, 'sets'))->getValue($memo);
+        $states = (new ReflectionProperty($memo, 'states'))->getValue($memo);
+
+        if (! is_array($sets) || ! is_array($states)) {
+            throw new RuntimeException('Unexpected request memo state.');
+        }
+        $this->maxSets = max($this->maxSets, count($sets));
+        $this->maxStates = max($this->maxStates, count($states));
         $this->rssPeak = max($this->rssPeak, $this->rss());
         self::assertBounds($this->maxSets, $this->maxStates, $this->rssPeak - $this->rssBefore,
-            (int) config('azguard.cache.max_memo_entries'), (int) config('azguard.cache.max_state_entries'));
+            config()->integer('azguard.cache.max_memo_entries'), config()->integer('azguard.cache.max_state_entries'));
     }
 
     private static function assertBounds(int $sets, int $states, int $growth, int $setLimit, int $stateLimit): void
@@ -102,6 +109,7 @@ final class CacheChurn extends BaseProfile
         }
     }
 
+    /** @return array<string, int> */
     public function measurements(): array
     {
         return ['rss_start_bytes' => $this->rssBefore, 'rss_end_bytes' => $this->rss(), 'rss_peak_bytes' => $this->rssPeak,
@@ -118,7 +126,7 @@ final class CacheChurn extends BaseProfile
             return $checks;
         }
         $new = array_diff($this->keys(), $this->baseline);
-        $client = Cache::store('redis')->getStore()->connection()->client();
+        [$client] = RedisCache::clientAndPrefix();
         $finite = $new !== [];
         foreach ($new as $key) {
             $ttl = $client->rawCommand('TTL', $key);
@@ -133,11 +141,10 @@ final class CacheChurn extends BaseProfile
         return $checks;
     }
 
+    /** @return list<string> */
     private function keys(): array
     {
-        $store = Cache::store('redis')->getStore();
-        $client = $store->connection()->client();
-        $prefix = (string) $client->getOption(Redis::OPT_PREFIX).$store->getPrefix();
+        [$client, $prefix] = RedisCache::clientAndPrefix();
 
         if (! str_contains($prefix, 'azguard_bench_')) {
             throw new RuntimeException('Refusing unisolated Redis.');
@@ -145,13 +152,13 @@ final class CacheChurn extends BaseProfile
         $cursor = '0';
         $found = [];
         do {
-            [$cursor, $keys] = $client->rawCommand('SCAN', $cursor, 'MATCH', $prefix.'*', 'COUNT', '1000');
+            [$cursor, $keys] = RedisCache::scan($client, $cursor, $prefix);
             foreach ($keys as $key) {
                 if (str_starts_with($key, $prefix)) {
                     $found[] = $key;
                 }
             }
-        } while ((string) $cursor !== '0');
+        } while ($cursor !== '0');
 
         return $found;
     }
@@ -164,9 +171,15 @@ final class CacheChurn extends BaseProfile
 
     private function redisMemory(): int
     {
-        $info = Cache::store('redis')->getStore()->connection()->client()->info('memory');
+        [$client] = RedisCache::clientAndPrefix();
+        $info = $client->info('memory');
+        $memory = is_array($info) ? ($info['used_memory'] ?? null) : null;
 
-        return (int) ($info['used_memory'] ?? 0);
+        if (! is_int($memory) && (! is_string($memory) || ! ctype_digit($memory))) {
+            throw new RuntimeException('Redis used_memory is unavailable.');
+        }
+
+        return (int) $memory;
     }
 
     private function rss(): int

@@ -37,6 +37,10 @@ $user->hasPermission(PostPermission::Update, $post);   // the grant, then PostPo
 
 ## Installation
 
+The current monorepo work is local only: neither package is being split or published. The command below describes
+installation from a separately published core version, if one is available; it does not install the current checkout
+or establish that a particular version has been published.
+
 ```bash
 composer require axiomasoft/azguard
 php artisan azguard:install --panel=Admin --migrate
@@ -83,8 +87,8 @@ The Filament integration remains in this monorepo and is not in the current publ
 | [`axiomasoft/azguard`](packages/core) | The core: panels, sources, decisions, storage, Laravel integration, CLI, testing kit |
 | [`axiomasoft/azguard-filament`](packages/filament) | Filament 5 plugin: resource/page/widget authorization, list filtering, grant editors |
 
-This repository is the development monorepo. Only the core package is in the current publication scope;
-the Filament package is retained for development and is outside the current publication scope.
+This repository is the development monorepo. Neither core nor Filament is in the current publication scope;
+the Filament package is retained for development.
 
 ## Requirements
 

@@ -11,14 +11,17 @@ try {
         throw new RuntimeException('usage: trusted-producer-pipeline.php build|verify approved.json');
     }
     $config = json_decode((string) file_get_contents($argv[2]), true, 512, JSON_THROW_ON_ERROR);
+
     if (! is_array($config)) {
         throw new RuntimeException('invalid independently approved input');
     }
+
     if ($argv[1] === 'build') {
         $required = ['repository', 'identity', 'inputs', 'output', 'source_run', 'approved_output', 'predicate_output'];
         $actual = array_keys($config);
         sort($actual);
         sort($required);
+
         if ($actual !== $required || ! is_array($config['identity']) || ! is_array($config['inputs']) || ! is_array($config['source_run'])) {
             throw new RuntimeException('incomplete build configuration');
         }
@@ -29,6 +32,7 @@ try {
         }
         $approvedParent = realpath(dirname($config['approved_output']));
         $predicateParent = realpath(dirname($config['predicate_output']));
+
         if ($approvedParent === false || $predicateParent === false
             || ($approvedParent === $predicateParent && basename($config['approved_output']) === basename($config['predicate_output']))) {
             throw new RuntimeException('evidence output paths must differ');
@@ -38,11 +42,14 @@ try {
         unset($predicate['schema'], $predicate['producer_event']);
         foreach ([$config['approved_output'] => $predicate, $config['predicate_output'] => $result['predicate']] as $path => $document) {
             $handle = @fopen($path, 'xb');
+
             if ($handle === false) {
                 throw new RuntimeException('cannot exclusively create evidence input');
             }
+
             try {
                 $json = json_encode($document, JSON_THROW_ON_ERROR);
+
                 if (fwrite($handle, $json) !== strlen($json)) {
                     throw new RuntimeException('cannot write evidence input');
                 }
@@ -63,6 +70,6 @@ try {
         });
     }
 } catch (Throwable $error) {
-    fwrite(STDERR, "trusted producer pipeline failed: ".$error->getMessage()."\n");
+    fwrite(STDERR, 'trusted producer pipeline failed: '.$error->getMessage()."\n");
     exit(1);
 }

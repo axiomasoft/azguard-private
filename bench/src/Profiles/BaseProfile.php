@@ -35,6 +35,8 @@ abstract class BaseProfile implements Profile
     /**
      * The decision of a check, as `hasPermission()` takes it, except that an engine error (`*_error` reasons, which
      * a check answers with a fail-closed false) is thrown: the bench must not time the error path as a denial.
+     *
+     * @phpstan-impure
      */
     protected function check(SubjectAccess $subject, string $permission): bool
     {

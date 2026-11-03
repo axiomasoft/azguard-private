@@ -47,6 +47,61 @@ SH
 chmod +x "$tmp/bin/curl" "$tmp/bin/composer"
 php_pair="$(php -r 'echo PHP_MAJOR_VERSION.".".PHP_MINOR_VERSION;')"
 case "$php_pair" in 8.3|8.4) php_pair="$php_pair-12" ;; 8.5) php_pair="$php_pair-13" ;; *) echo "Unsupported test PHP: $php_pair" >&2; exit 1 ;; esac
+# Exact-SHA snapshots must restore the export-ignored fixture from that commit.
+# A disposable repository and stub consumer exercise the actual matrix CLI
+# without installing dependencies or accessing the network.
+git clone --quiet --no-hardlinks "$root" "$tmp/snapshot-repo"
+cp "$root/bin/consumer-matrix.sh" "$tmp/snapshot-repo/bin/consumer-matrix.sh"
+cat > "$tmp/snapshot-repo/bin/consumer-fixture.sh" <<'SH'
+#!/usr/bin/env bash
+set -euo pipefail
+for arg in "$@"; do
+    case "$arg" in
+        --source-root=*) cp "${arg#*=}/tests/Fixtures/Console/commands.json" "$MATRIX_CAPTURE" ;;
+    esac
+done
+exit 42
+SH
+printf '%s\n' '{"fixture":"first commit"}' > "$tmp/snapshot-repo/tests/Fixtures/Console/commands.json"
+git -C "$tmp/snapshot-repo" add -- bin/consumer-matrix.sh bin/consumer-fixture.sh tests/Fixtures/Console/commands.json
+git -C "$tmp/snapshot-repo" -c core.hooksPath=/dev/null -c user.name=Fixture -c user.email=fixture@example.invalid commit --quiet -m 'fixture snapshot one'
+first_sha="$(git -C "$tmp/snapshot-repo" rev-parse HEAD)"
+if MATRIX_CAPTURE="$tmp/capture-first.json" bash "$tmp/snapshot-repo/bin/consumer-matrix.sh" --source="$first_sha" --output="$tmp/snapshot-first" --pair="$php_pair" >"$tmp/snapshot-first.log" 2>&1; then
+    echo 'Injected consumer failure accepted for exact SHA' >&2; exit 1
+fi
+cmp "$tmp/capture-first.json" <(git -C "$tmp/snapshot-repo" show "$first_sha:tests/Fixtures/Console/commands.json")
+printf '%s\n' '{"fixture":"second commit"}' > "$tmp/snapshot-repo/tests/Fixtures/Console/commands.json"
+git -C "$tmp/snapshot-repo" add -- tests/Fixtures/Console/commands.json
+git -C "$tmp/snapshot-repo" -c core.hooksPath=/dev/null -c user.name=Fixture -c user.email=fixture@example.invalid commit --quiet -m 'fixture snapshot two'
+second_sha="$(git -C "$tmp/snapshot-repo" rev-parse HEAD)"
+if MATRIX_CAPTURE="$tmp/capture-second.json" bash "$tmp/snapshot-repo/bin/consumer-matrix.sh" --source="$second_sha" --output="$tmp/snapshot-second" --pair="$php_pair" >"$tmp/snapshot-second.log" 2>&1; then
+    echo 'Injected consumer failure accepted for second SHA' >&2; exit 1
+fi
+cmp "$tmp/capture-second.json" <(git -C "$tmp/snapshot-repo" show "$second_sha:tests/Fixtures/Console/commands.json")
+if cmp -s "$tmp/capture-first.json" "$tmp/capture-second.json"; then echo 'Distinct commits produced the same fixture' >&2; exit 1; fi
+printf '%s\n' '{"fixture":"dirty worktree"}' > "$tmp/snapshot-repo/tests/Fixtures/Console/commands.json"
+if MATRIX_CAPTURE="$tmp/capture-dirty.json" bash "$tmp/snapshot-repo/bin/consumer-matrix.sh" --source="$second_sha" --output="$tmp/snapshot-dirty" --pair="$php_pair" >"$tmp/snapshot-dirty.log" 2>&1; then
+    echo 'Dirty fixture accepted for exact SHA' >&2; exit 1
+fi
+[[ ! -e "$tmp/capture-dirty.json" ]] || { echo 'Dirty fixture was consumed' >&2; exit 1; }
+git -C "$tmp/snapshot-repo" restore -- tests/Fixtures/Console/commands.json
+git -C "$tmp/snapshot-repo" rm --quiet -- tests/Fixtures/Console/commands.json
+git -C "$tmp/snapshot-repo" -c core.hooksPath=/dev/null -c user.name=Fixture -c user.email=fixture@example.invalid commit --quiet -m 'fixture missing'
+missing_sha="$(git -C "$tmp/snapshot-repo" rev-parse HEAD)"
+if MATRIX_CAPTURE="$tmp/capture-missing.json" bash "$tmp/snapshot-repo/bin/consumer-matrix.sh" --source="$missing_sha" --output="$tmp/snapshot-missing" --pair="$php_pair" >"$tmp/snapshot-missing.log" 2>&1; then
+    echo 'Missing committed fixture accepted' >&2; exit 1
+fi
+grep -Fq 'Missing or unsafe fixture in selected commit' "$tmp/snapshot-missing.log"
+[[ ! -e "$tmp/capture-missing.json" ]] || { echo 'Consumer ran with missing fixture' >&2; exit 1; }
+ln -s unrelated.json "$tmp/snapshot-repo/tests/Fixtures/Console/commands.json"
+git -C "$tmp/snapshot-repo" add -- tests/Fixtures/Console/commands.json
+git -C "$tmp/snapshot-repo" -c core.hooksPath=/dev/null -c user.name=Fixture -c user.email=fixture@example.invalid commit --quiet -m 'fixture symlink'
+symlink_sha="$(git -C "$tmp/snapshot-repo" rev-parse HEAD)"
+if MATRIX_CAPTURE="$tmp/capture-symlink.json" bash "$tmp/snapshot-repo/bin/consumer-matrix.sh" --source="$symlink_sha" --output="$tmp/snapshot-symlink" --pair="$php_pair" >"$tmp/snapshot-symlink.log" 2>&1; then
+    echo 'Committed symlink fixture accepted' >&2; exit 1
+fi
+grep -Fq 'Missing or unsafe fixture in selected commit' "$tmp/snapshot-symlink.log"
+[[ ! -e "$tmp/capture-symlink.json" ]] || { echo 'Consumer ran with symlink fixture' >&2; exit 1; }
 if PATH="$tmp/bin:$PATH" MATRIX_TEST_VERSION_FILE="$tmp/version" bash "$root/bin/consumer-matrix.sh" --source=worktree --version=2.0.0-rc.1 --deps=lowest,latest --report="$tmp/report/matrix.json" --pair="$php_pair" >"$tmp/cli.log" 2>&1; then
     echo 'Injected archive failure accepted' >&2; exit 1
 fi

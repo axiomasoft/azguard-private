@@ -85,7 +85,7 @@ jobs:
           if-no-files-found: error
 
       - name: Run tests
-        run: vendor/bin/pest --ci --fail-on-skipped --exclude-group=engines --exclude-group=redis --exclude-group=replica --exclude-group=extended
+        run: vendor/bin/pest --ci --fail-on-skipped --exclude-group=engines --exclude-group=redis --exclude-group=replica --exclude-group=extended --exclude-group=mysql-engines
         env:
           DB_CONNECTION: sqlite
           DB_DATABASE: ':memory:'
@@ -322,7 +322,7 @@ jobs:
         run: composer install --prefer-dist --no-interaction --no-progress
 
       - name: Run tests with coverage
-        run: vendor/bin/pest --ci --fail-on-skipped --exclude-group=engines --exclude-group=redis --exclude-group=replica --exclude-group=extended --coverage --min=85 --coverage-clover=coverage.xml
+        run: vendor/bin/pest --ci --fail-on-skipped --exclude-group=engines --exclude-group=redis --exclude-group=replica --exclude-group=extended --exclude-group=mysql-engines --coverage --min=85 --coverage-clover=coverage.xml
         env:
           DB_CONNECTION: sqlite
           DB_DATABASE: ':memory:'

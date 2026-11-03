@@ -1,14 +1,8 @@
 name: Split packages
 
-# Publishes the core package to its standalone, read-only repository after validation.
-# Filament remains in the monorepo and is not distributed by this workflow.
-# The public release requires the one-time setup in RELEASING.md. Missing setup fails
-# the workflow instead of silently creating a release without its Composer packages.
-#
-# One-time setup (see RELEASING.md):
-#   1. Prepare the core target repo under the org (azguard).
-#   2. Add a MONOREPO_SPLIT_TOKEN secret with push access to it.
-#   3. Submit the core split repo to Packagist and enable the GitHub webhook.
+# Split publication is disabled by owner decision. The implementation below is
+# retained for future review and cannot proceed past the unconditional guard.
+# Filament is not distributed by this workflow.
 
 on:
   workflow_call:
@@ -37,6 +31,12 @@ jobs:
           - { dir: core, name: azguard }
 
     steps:
+      - name: Block split publication
+        run: |
+          set -Eeuo pipefail
+          echo '::error::Split publication is disabled by the project owner.'
+          exit 1
+
       - name: Checkout
         uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
         with:

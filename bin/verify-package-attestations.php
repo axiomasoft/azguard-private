@@ -15,8 +15,10 @@ function packageCanonicalJson(mixed $value): string
             foreach ($properties as $key => $property) {
                 $out->{$key} = $normalize($property);
             }
+
             return $out;
         }
+
         return is_array($item) ? array_map($normalize, $item) : $item;
     };
 
@@ -28,6 +30,7 @@ function packageAttestationPredicatesMatch(string $verified, array $expected): b
 {
     try {
         $entries = json_decode($verified, false, 512, JSON_THROW_ON_ERROR);
+
         if (! is_array($entries) || $entries === []) {
             return false;
         }
@@ -37,6 +40,7 @@ function packageAttestationPredicatesMatch(string $verified, array $expected): b
                 $found[] = packageCanonicalJson($entry->verificationResult->statement->predicate);
             }
         }
+
         if ($found === []) {
             return false;
         }
@@ -45,6 +49,7 @@ function packageAttestationPredicatesMatch(string $verified, array $expected): b
                 return false;
             }
         }
+
         return true;
     } catch (Throwable) {
         return false;
@@ -58,14 +63,17 @@ function packageVerifyChecksums(string $dist, string $version): void
         'resolution-core.lock', 'mapping-core.json'];
     $entries = scandir($dist);
     $allowed = [...$names, 'SHA256SUMS'];
+
     if (! is_array($entries) || array_diff($entries, ['.', '..', ...$allowed]) !== []) {
         throw new RuntimeException('unexpected release artifact');
     }
     $path = $dist.'/SHA256SUMS';
+
     if (is_link($path) || ! is_file($path)) {
         throw new RuntimeException('missing checksum file');
     }
     $lines = file($path, FILE_IGNORE_NEW_LINES);
+
     if (! is_array($lines) || count($lines) !== count($names)) {
         throw new RuntimeException('invalid checksum list');
     }
@@ -76,6 +84,7 @@ function packageVerifyChecksums(string $dist, string $version): void
             throw new RuntimeException('invalid checksum entry');
         }
         $file = $dist.'/'.$match[2];
+
         if (is_link($file) || ! is_file($file) || ! hash_equals($match[1], (string) hash_file('sha256', $file))) {
             throw new RuntimeException('artifact checksum mismatch');
         }
@@ -88,33 +97,40 @@ function packageVerifySignedTag(string $root, string $tag, string $sha): void
 {
     $key = getenv('RELEASE_TAG_PUBLIC_KEY');
     $fingerprint = getenv('RELEASE_TAG_SIGNER_FINGERPRINT');
+
     if (! is_string($key) || $key === '' || ! is_string($fingerprint)
         || ! preg_match('/\A(?:[0-9A-F]{40}|[0-9A-F]{64})\z/', $fingerprint)) {
         throw new RuntimeException('trusted tag key or fingerprint unavailable');
     }
     $git = static fn (string ...$args): string => trim(packageEvidenceCommand(['git', '-C', $root, ...$args]));
+
     if ($git('cat-file', '-t', 'refs/tags/'.$tag) !== 'tag'
         || $git('rev-parse', '--verify', 'refs/tags/'.$tag.'^{commit}') !== $sha
         || $git('rev-parse', '--verify', 'HEAD^{commit}') !== $sha) {
         throw new RuntimeException('signed tag target mismatch');
     }
     $home = sys_get_temp_dir().'/azguard-tag-verification-'.bin2hex(random_bytes(12));
+
     if (! mkdir($home, 0700)) {
         throw new RuntimeException('cannot create verification keyring');
     }
     $env = getenv();
     $env['GNUPGHOME'] = $home;
+
     try {
         $process = proc_open(['gpg', '--batch', '--quiet', '--import'], [0 => ['pipe', 'r'], 1 => ['file', '/dev/null', 'w'], 2 => ['file', '/dev/null', 'w']], $pipes, $root, $env);
+
         if (! is_resource($process)) {
             throw new RuntimeException('cannot start gpg');
         }
         fwrite($pipes[0], $key);
         fclose($pipes[0]);
+
         if (proc_close($process) !== 0) {
             throw new RuntimeException('cannot import trusted tag key');
         }
         $process = proc_open(['git', '-C', $root, 'verify-tag', '--raw', 'refs/tags/'.$tag], [0 => ['file', '/dev/null', 'r'], 1 => ['file', '/dev/null', 'w'], 2 => ['pipe', 'w']], $pipes, $root, $env);
+
         if (! is_resource($process)) {
             throw new RuntimeException('cannot start tag verification');
         }
@@ -122,11 +138,13 @@ function packageVerifySignedTag(string $root, string $tag, string $sha): void
         fclose($pipes[2]);
         $exit = proc_close($process);
         preg_match_all('/^\[GNUPG:\] VALIDSIG ([0-9A-F]+) /m', (string) $status, $matches);
+
         if ($exit !== 0 || ($matches[1] ?? []) !== [$fingerprint]) {
             throw new RuntimeException('untrusted or invalid tag signature');
         }
     } finally {
         $process = proc_open(['gpgconf', '--kill', 'gpg-agent'], [0 => ['file', '/dev/null', 'r'], 1 => ['file', '/dev/null', 'w'], 2 => ['file', '/dev/null', 'w']], $pipes, $root, $env);
+
         if (is_resource($process)) {
             proc_close($process);
         }
@@ -156,6 +174,7 @@ function packageVerifyAttestations(string $root, string $sha, string $tag, strin
     packageVerifyChecksums($dist, $version);
     foreach (['core' => $core] as $package => $splitSha) {
         $computed = trim(packageEvidenceCommand(['git', '-C', $root, 'subtree', 'split', '--prefix=packages/'.$package, $sha]));
+
         if ($computed !== $splitSha) {
             throw new RuntimeException('split commit mismatch');
         }
@@ -163,6 +182,7 @@ function packageVerifyAttestations(string $root, string $sha, string $tag, strin
         foreach (['source-'.$package.'.cdx.json', 'sbom-'.$package.'.cdx.json'] as $file) {
             $bom = json_decode((string) file_get_contents($dist.'/'.$file), true, 512, JSON_THROW_ON_ERROR);
             $spec = $bom['specVersion'] ?? null;
+
             if (! in_array($spec, ['1.4', '1.5', '1.6'], true)) {
                 throw new RuntimeException('unsupported SBOM version');
             }
@@ -183,6 +203,7 @@ function packageVerifyAttestations(string $root, string $sha, string $tag, strin
                 $expected[] = json_decode((string) file_get_contents($dist.'/'.$file), false, 512, JSON_THROW_ON_ERROR);
             }
             $verified = $verify([...$base, '--predicate-type', $predicate, '--format', 'json'], $expected);
+
             if ($verified !== true) {
                 throw new RuntimeException('unverified '.$package.' attestation: '.$predicate);
             }

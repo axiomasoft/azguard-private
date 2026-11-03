@@ -51,6 +51,7 @@ it('rolls back protected host work before a waiting independent revoke commits',
                 CacheEngineWorld::waitForLock($worker->connectionId);
                 expect($engine->decide($panel, DatabaseWorld::request())->allowed())->toBeTrue();
                 $connection->table('users')->where('id', 1)->update(['department' => 'rolled-back']);
+
                 throw new RuntimeException('abort host work');
             });
         } catch (RuntimeException $error) {

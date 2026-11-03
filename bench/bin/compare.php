@@ -27,27 +27,46 @@ try {
             throw new RuntimeException("Not comparable: {$key}");
         }
     }
+
+    if (! is_array($base['environment'] ?? null) || ! is_array($head['environment'] ?? null)) {
+        throw new RuntimeException('Not comparable: environment');
+    }
     foreach (['host_id', 'php', 'laravel', 'database', 'database_server', 'opcache', 'xdebug', 'cpu', 'cpus', 'os', 'filament', 'transaction_probe', 'redis_server', 'redis_client'] as $key) {
         if (! isset($base['environment'][$key], $head['environment'][$key]) || $base['environment'][$key] !== $head['environment'][$key] || $base['environment'][$key] === '') {
             throw new RuntimeException("Not comparable: environment.{$key}");
         }
     }
 
-    if (empty($base['dataset']['digest']) || $base['dataset'] !== ($head['dataset'] ?? null)) {
+    if (! is_array($base['dataset'] ?? null) || empty($base['dataset']['digest']) || $base['dataset'] !== ($head['dataset'] ?? null)) {
         throw new RuntimeException('Not comparable: dataset');
     }
+    /** @param array<mixed> $result
+     * @return array<string, array<mixed>>
+     */
     $index = static function (array $result): array {
         $out = [];
-        foreach ($result['profiles'] ?? [] as $profile) {
-            foreach ($profile['stages'] ?? [] as $stage) {
+        $profiles = $result['profiles'] ?? [];
+
+        if (! is_array($profiles)) {
+            throw new RuntimeException('Invalid profiles');
+        }
+        foreach ($profiles as $profile) {
+            if (! is_array($profile) || ! is_string($profile['id'] ?? null) || ! is_array($profile['stages'] ?? null)) {
+                throw new RuntimeException('Invalid profile');
+            }
+            foreach ($profile['stages'] as $stage) {
+                if (! is_array($stage) || ! is_string($stage['name'] ?? null) || ! is_array($stage['reps'] ?? null)
+                    || ! is_array($stage['summary'] ?? null) || ! is_array($stage['checks'] ?? null)) {
+                    throw new RuntimeException('Invalid stage');
+                }
                 $key = $profile['id'].'/'.$stage['name'];
 
-                if (isset($out[$key]) || count($stage['reps'] ?? []) < 3 || count($stage['reps']) > 5
-                    || empty($stage['summary']) || ! is_array($stage['checks'] ?? null)) {
+                if (isset($out[$key]) || count($stage['reps']) < 3 || count($stage['reps']) > 5
+                    || empty($stage['summary'])) {
                     throw new RuntimeException("Incomplete stage {$key}");
                 }
                 foreach ($stage['checks'] as $check) {
-                    if (($check['ok'] ?? false) !== true) {
+                    if (! is_array($check) || ($check['ok'] ?? false) !== true) {
                         throw new RuntimeException("Failed check in {$key}");
                     }
                 }
@@ -87,15 +106,18 @@ try {
         }
         foreach ($oldOps as $op => $old) {
             $new = $newOps[$op];
-            foreach ([$old, $new] as $sample) {
-                if (! is_numeric($sample['p95_us'] ?? null) || ! is_numeric($sample['ops_per_s'] ?? null)
-                    || ! is_numeric($sample['p95_cv'] ?? null) || ($sample['errors'] ?? null) !== 0) {
-                    throw new RuntimeException("Invalid measurement {$key}/{$op}");
-                }
+
+            if (! is_string($op) || ! is_array($old) || ! is_array($new)
+                || ! is_numeric($old['p95_us'] ?? null) || ! is_numeric($new['p95_us'] ?? null)
+                || ! is_numeric($old['ops_per_s'] ?? null) || ! is_numeric($new['ops_per_s'] ?? null)
+                || ! is_numeric($old['p95_cv'] ?? null) || ! is_numeric($new['p95_cv'] ?? null)
+                || ($old['errors'] ?? null) !== 0 || ($new['errors'] ?? null) !== 0) {
+                throw new RuntimeException("Invalid measurement {$key}/{$op}");
             }
+            /** @param array<mixed> $reps */
             $complete = static function (array $reps, string $op): bool {
                 foreach ($reps as $rep) {
-                    if (! is_array($rep) || ! is_numeric($rep[$op]['p95_us'] ?? null)) {
+                    if (! is_array($rep) || ! is_array($rep[$op] ?? null) || ! is_numeric($rep[$op]['p95_us'] ?? null)) {
                         return false;
                     }
                 }

@@ -21,7 +21,7 @@ final class Runner
     private const int ERROR_LOG_LIMIT = 5;
 
     /**
-     * @return array{samples: list<array{op: string, us: float, sql: int, ok: bool, t: int}>, window_s: float}
+     * @return array{samples: list<array{op: string, us: float, sql: int, ok: bool, t: int}>, window_s: float, measurements: list<array<mixed>>}
      */
     public function run(Stand $stand, Tier $tier, Profile $profile, Stage $stage, string $directory): array
     {
@@ -70,7 +70,7 @@ final class Runner
         for ($worker = 0; $worker < $stage->workers; $worker++) {
             $window = json_decode((string) file_get_contents("{$directory}/w{$worker}.ok"), true);
 
-            if (is_array($window['measurements'] ?? null)) {
+            if (is_array($window) && is_array($window['measurements'] ?? null)) {
                 $measurements[] = $window['measurements'];
             }
 
@@ -114,9 +114,7 @@ final class Runner
                 try {
                     $profile->iteration($stand, $tier, $stage, $worker, $i);
                 } catch (Throwable $e) {
-                    if ($errors++ < self::ERROR_LOG_LIMIT) {
-                        file_put_contents("{$directory}/w{$worker}.err", 'warm-up: '.$e::class.': '.$e->getMessage()."\n", FILE_APPEND);
-                    }
+                    file_put_contents("{$directory}/w{$worker}.err", 'warm-up: '.$e::class.': '.$e->getMessage()."\n", FILE_APPEND);
 
                     throw $e;
                 }

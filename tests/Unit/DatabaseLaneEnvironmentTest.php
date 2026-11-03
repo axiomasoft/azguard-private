@@ -6,6 +6,7 @@ use AzGuard\Tests\Support\DatabaseLaneEnvironment;
 
 it('loads only missing test database endpoints and preserves explicit environment', function (): void {
     $path = tempnam(sys_get_temp_dir(), 'azguard-db-env-');
+
     try {
         file_put_contents($path, "PGSQL_PORT=33435\nPGSQL_DATABASE=azguard_p61_test\nMYSQL_PORT=35306\nDB_CONNECTION=mysql\n");
         expect(DatabaseLaneEnvironment::read($path, ['PGSQL_PORT' => '5432']))->toBe([
@@ -18,6 +19,7 @@ it('loads only missing test database endpoints and preserves explicit environmen
 
 it('rejects an unsafe database name or port in the local configuration', function (string $setting): void {
     $path = tempnam(sys_get_temp_dir(), 'azguard-db-env-');
+
     try {
         file_put_contents($path, $setting);
         expect(fn () => DatabaseLaneEnvironment::read($path, []))->toThrow(RuntimeException::class);

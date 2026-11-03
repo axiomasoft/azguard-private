@@ -81,7 +81,6 @@ it('requires the owner approval only when asked and refuses non-SemVer versions 
         ->and(evidenceRules(evidenceViolations([...evidenceFixture('valid.yml'), 'schema' => 'x'])))->toBe(['E1']);
 });
 
-
 it('validates core-only v2 without weakening the historic v1 contract', function (): void {
     $legacy = evidenceFixture('valid.yml');
     $core = $legacy;

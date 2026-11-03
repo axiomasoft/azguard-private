@@ -5,9 +5,11 @@ declare(strict_types=1);
 require_once __DIR__.'/trusted-core-producer-candidate.php';
 
 $root = sys_get_temp_dir().'/azguard-trusted-source-'.bin2hex(random_bytes(8));
+
 if (! mkdir($root.'/.git/hooks', 0700, true)) {
     throw new RuntimeException('cannot create untrusted repository fixture');
 }
+
 try {
     $marker = $root.'/executed';
     file_put_contents($root.'/.git/config', "[core]\n fsmonitor = touch $marker\n[include]\n path = $root/evil-config\n");
@@ -19,11 +21,14 @@ try {
     $evilGit = $root.'/evil-git';
     file_put_contents($evilGit, "#!/bin/sh\ntouch $marker\n");
     chmod($evilGit, 0700);
+
     try {
         trustedProducerInspectSource($root, $identity, ['path' => $evilGit, 'sha256' => $approvedGit['sha256']]);
+
         throw new LogicException('unapproved Git executable accepted');
     } catch (RuntimeException) {
     }
+
     if (file_exists($marker)) {
         throw new RuntimeException('unapproved Git executable ran');
     }
@@ -36,15 +41,19 @@ try {
         'git' => ['path' => $originalTool, 'sha256' => hash_file('sha256', $originalTool)],
         'lock' => ['path' => $originalLock, 'sha256' => hash_file('sha256', $originalLock)],
     ], ['git']);
+
     try {
         file_put_contents($originalTool, "#!/bin/sh\ntouch $marker\n");
         file_put_contents($originalLock, 'replaced-lock');
+
         if (trustedProducerOfflineCommand([$staged['inputs']['git']['path']], $root) !== 'approved'
             || file_get_contents($staged['inputs']['lock']['path']) !== 'approved-lock' || file_exists($marker)) {
             throw new RuntimeException('staged inputs changed after original replacement');
         }
+
         try {
             trustedProducerStageInputs(['lock' => ['path' => $originalLock, 'sha256' => str_repeat('f', 64)]], []);
+
             throw new LogicException('mismatched staged input accepted');
         } catch (RuntimeException) {
         }
@@ -53,9 +62,11 @@ try {
     }
     $previous = getenv('UNRECOGNIZED_CREDENTIAL');
     putenv('UNRECOGNIZED_CREDENTIAL=secret-fixture');
+
     try {
         try {
             trustedProducerInspectSource($root, $identity, $approvedGit);
+
             throw new LogicException('unsafe source inspection succeeded');
         } catch (RuntimeException $exception) {
             // Expected fail-closed rejection.
@@ -65,9 +76,11 @@ try {
         foreach (['composer', 'dependency_sbom', 'git', 'lock', 'normalizer', 'python', 'tar', 'validator'] as $name) {
             $inputs[$name] = ['path' => '/usr/bin/true', 'sha256' => hash_file('sha256', '/usr/bin/true')];
         }
+
         try {
             trustedProducerBuildOffline($root, $identity, $inputs, $root.'/output',
                 ['run_id' => '1', 'run_attempt' => '1']);
+
             throw new LogicException('unsafe offline build succeeded');
         } catch (RuntimeException $exception) {
             // Expected fail-closed rejection.
@@ -75,6 +88,7 @@ try {
     } finally {
         $previous === false ? putenv('UNRECOGNIZED_CREDENTIAL') : putenv('UNRECOGNIZED_CREDENTIAL='.$previous);
     }
+
     if (file_exists($marker)) {
         throw new RuntimeException('untrusted config or hook executed');
     }

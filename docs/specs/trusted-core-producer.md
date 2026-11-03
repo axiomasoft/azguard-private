@@ -1,6 +1,7 @@
 # Trusted core provenance producer: candidate
 
-Status: design candidate only. The existing split provenance and setup workflows
+Status: deferred design candidate only. Current work does not split or publish either package; this document is not a
+plan to enable a split. The existing split provenance and setup workflows
 remain disabled. This document does not authorize remote settings, secret
 registration, workflow dispatch, tags or publication.
 

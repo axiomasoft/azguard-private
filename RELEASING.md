@@ -1,8 +1,9 @@
 # Releasing AzGuard
 
-AzGuard is developed as a monorepo. The current publication scope is the core package
-`axiomasoft/azguard` from `packages/core`. The Filament integration remains under `packages/filament`
-for development, but it is not in the current publication scope and has no separate release repository.
+AzGuard is developed as a monorepo. **Current scope is local work only:** neither core nor Filament is being split,
+tagged or published. No split repository, remote setup or release is authorized by this document. Both packages remain
+in the monorepo for development. The release procedures below describe historical or deferred mechanisms, not an
+instruction to execute them; any future distribution design and external action require a separate owner decision.
 
 ## Release notes: the curated CHANGELOG
 
@@ -18,8 +19,8 @@ with a user-visible change edits `[Unreleased]`; the release moves it under the 
 The historical changelog calls 1.0.0 the first public release, but that statement alone does not establish publication
 or consumption. Treat 1.0 as potentially consumed. The read-only local publication inventory
 records observations and access failures separately; an inaccessible private API or a 404 does not prove absence.
-The planned core line is **2.0.0-rc.1**, then **2.0.0**, because Unreleased contains breaking changes.
-The release SHA is chosen during P8 qualification after the code is complete. Existing tags must not be moved or rewritten.
+A previous release plan proposed **2.0.0-rc.1**, then **2.0.0**, because Unreleased contains breaking changes.
+No release SHA is selected or publication authorized. Existing tags must not be moved or rewritten.
 
 On 2026-10-30 the accessible origin advertised only `v0.3.0` and `v0.7.0`, and its GitHub releases API returned
 one release, `v0.3.0`. Both split tag queries required unavailable credentials; their release APIs returned 404.
@@ -31,10 +32,9 @@ Retain a copy with the release evidence supplied for approval; a fresh clone doe
 The root `composer.lock` is the development and release lock: qualification jobs `composer install` from it,
 packages never ship it, and version-range jobs re-resolve with `composer update`.
 
-The core release tags the monorepo and publishes the core package at the corresponding version. The local
-Filament integration retains its `self.version` constraint and development version identity; neither creates a
-Filament release. A package manifest intentionally has no `version` field: Composer derives the published core version
-from its package tag. A later decision and qualification are required before publishing Filament.
+The local Filament integration retains its `self.version` constraint and development version identity. A package
+manifest intentionally has no `version` field. A later decision and qualification are required before distributing
+either package; the previous split-based release plan is not the current scope.
 
 ## Compatibility baseline
 
@@ -90,7 +90,7 @@ basis. No published 1.x inventory or LTS commitment is established; newly verifi
 support decision. An acknowledgement within 3 business days is a target, not an SLA. Apply its severity-based
 patch/prerelease and coordinated disclosure process, including the [key compromise response](docs/security.md#key-compromise-response).
 
-### Applying repository settings (owner only)
+### Historical repository-settings procedure (not authorized)
 
 The expected settings live in `.github/rulesets/` and `.github/CODEOWNERS`; `bin/repository-settings-audit.php` compares them
 with the live repository and only reads. Applying them is an owner act.
@@ -142,7 +142,7 @@ for driver in sqlite pgsql mysql mariadb; do bash bin/upgrade-fixture.sh --from=
 decision or the doctor changed. It also reports whether `migrate:rollback` succeeds on the new schema; a migration that
 cannot be rolled back is declared in `UPGRADING.md`.
 
-## After the tag: verify the core split and Packagist
+## Historical post-tag split and Packagist checks
 
 After an authorized publication, verify the core split tree and install the core package in clean applications:
 
@@ -157,11 +157,12 @@ not evidence of a published package; `--source=packagist --with-filament` is not
 
 ## Release artifacts
 
-**Release archive guarantee:** the explicitly published core ZIP asset has checksums, validated source
-and resolved-dependency SBOMs, and a verified monorepo-to-split-to-ZIP attestation chain. GitHub's automatically
-generated source ZIP/tar.gz snapshots are separate files, not the signed release assets; GitHub may change their
-compressed bytes while preserving contents. Packagist watches the public core split repository, and Composer's GitHub VCS
-driver can deliver a GitHub-generated zipball rather than the signed release ZIP. The release-asset byte attestation
+**Deferred release design:** a future explicitly published core ZIP asset would need checksums, validated source
+and resolved-dependency SBOMs, and verified provenance. No release ZIP, split or attestation is established by this
+document. The earlier split-based design is retained below only as historical context. GitHub's automatically
+generated source ZIP/tar.gz snapshots are separate files, not signed release assets; GitHub may change their
+compressed bytes while preserving contents. Composer's GitHub VCS driver can deliver a GitHub-generated zipball
+rather than a signed release ZIP. A release-asset byte attestation
 does not authenticate that Composer zipball; verify the split tag/tree and the downloaded archive separately. See
 [GitHub archive stability](https://docs.github.com/en/repositories/working-with-files/using-files/downloading-source-code-archives#stability-of-source-code-archives)
 and [Composer VCS repositories](https://github.com/composer/composer/blob/main/doc/05-repositories.md#vcs).
@@ -180,10 +181,9 @@ with a checksum file into a new output directory. It rejects duplicate or unsafe
 dependencies or establish that a future download has the same digest. Existing output files are never overwritten.
 This local comparison does not prove the provider's identity or turn a GitHub snapshot into a signed release asset.
 
-**Publication also requires verified setup:** the split job checks the reviewed setup request, live settings and fresh
-permission and attestation probes before pushing staging refs. Missing credentials, inaccessible APIs, stale probes
-and unavailable attestation entitlement fail the job. The old final-artifact relay remains disabled. Local artifacts
-are nonrelease evidence and do not provide signatures or qualification.
+**No split or publication is authorized.** The setup request is a deferred reference, not an approval payload; the
+setup verifier blocks even when the historical checks are satisfied. Existing split producer and setup probe workflows
+are disabled. Local artifacts are nonrelease evidence and do not provide signatures or release qualification.
 
 `php bin/package-evidence.php --local-mapping MONOREPO SPLIT core|filament TAG VERSION ZIP SOURCE_SBOM OUTPUT`
 rebuilds the ZIP members from the tagged split tree after the explicit Composer version transform. Its record is
@@ -199,8 +199,8 @@ The legacy `--setup [REQUEST]` form remains supported; both forms are always str
 set, mapping, schemas and trusted attestations. It requires the configured tag key, fingerprint and a `gh` supporting
 attestation verification. A split tag is recorded as expected until its remote target is checked after publication.
 
-The release workflow and core split producer require `RELEASE_TAG_PUBLIC_KEY` and
-`RELEASE_TAG_SIGNER_FINGERPRINT` repository variables.
+The former split-based release design used `RELEASE_TAG_PUBLIC_KEY` and
+`RELEASE_TAG_SIGNER_FINGERPRINT` repository variables. No variables are requested or configured for the current work.
 They must contain the owner-approved public key and the uppercase fingerprint of the actual signing key or subkey;
 the workflow imports the key into a temporary keyring and rejects an unsigned tag or a different signer. Provisioning
 these variables requires the separate setup gate. Tag signature verification is independent of ZIP provenance.
@@ -212,16 +212,11 @@ not every possible installation. The mapping binds source tree, Composer transfo
 archive, SBOMs, lock, workflow SHA and run attempt. Provenance and SBOM attestations must be verified against the
 expected core producer identity; synthetic or unsigned local evidence is not a substitute.
 
-Before its ZIP build the split producer verifies the signed source tag, the completed release evidence gate and the
-exact monorepo package tree against its checkout. It rebuilds its own canonical ZIP, checks the downloaded artifact,
-mapping, lock and both schema-valid SBOMs, then attests that ZIP separately with provenance, each SBOM and the mapping.
-It needs `PRIVATE_RELEASE_READ_TOKEN` with read access to source contents and Actions in the core split repository, plus
-the owner-approved tag key and signer fingerprint there. The core split setup probe uses that token to read source
-metadata, Actions and `packages/core/composer.json`. For a private source, missing Contents access fails the probe;
-for a public source, a successful content read does not prove the token has private Contents permission. The probe
-records whether the source was public or private and the verifier requires that result to match its current visibility;
-after a visibility change, rerun the probe. A previous successful probe does not qualify a changed workflow payload.
-Real-run qualification is still required.
+The previous split producer and its setup probe are disabled: staging-controlled workflow code must not receive source
+credentials. Do not install `PRIVATE_RELEASE_READ_TOKEN` or dispatch those probes. The isolated trusted-producer
+candidate in [the design](docs/specs/trusted-core-producer.md) is nonrelease and disabled; its fixtures do not prove
+remote controls or live attestation. A future distribution design must resolve these boundaries and receive separate
+authorization before any remote settings or publication.
 If publication fails after a core tag push, preserve the run, attempt, candidate SHA, verified split SHA and logs.
 Compare any existing tag target with the verified split SHA; never delete, move or overwrite a public tag to conceal a
 partial run. An authorized retry must re-run the complete qualification and provenance path. Inspect any staging
@@ -273,7 +268,7 @@ The core-only report uses `azguard.package-evidence.offline-fixture.v2`; v1 is r
   is part of P8.1; do not change remote settings without owner authorization.
 - An OSV ignore needs `ignoreUntil` and a reason in `.github/osv-scanner.toml`.
 
-## Cutting a release
+## Historical release procedure (not authorized)
 
 ### Production operations acceptance
 
@@ -301,7 +296,7 @@ production Redis isolation, backup recoverability on a different engine or host 
 pending until the owners supply evidence. A failed reset, wrong configuration or failed smoke check keeps the host
 maintenance fence closed. This release checklist does not itself authorize a production restore or remote change.
 
-### Candidate qualification and publication
+### Historical candidate qualification and publication
 
 The release evidence collection, split-tree mapping and final provenance path require qualification in a real workflow
 run and independent review before publication. A successful local fixture or build is not release qualification.
@@ -388,30 +383,16 @@ the tag-stamped core archive, including prereleases. Filament archive tests are 
 
 ## Split and Packagist status — 2026-10-10
 
-The status recorded on 2026-10-10 was that split repositories and Packagist publication were deferred until the
-one-time setup below was done; consult the dated inventory for subsequent observations. The current release requires successful verification of the core split only. Missing
-`SPLIT_ENABLED=true` or `MONOREPO_SPLIT_TOKEN` fails publishing; it does not block a local annotated tag.
+The status recorded on 2026-10-10 concerned a deferred split and Packagist plan. It is historical: no core or
+Filament split, tag or publication is in the current scope. Do not enable `SPLIT_ENABLED`, provision split secrets,
+dispatch setup probes or change repository settings for the current work.
 
-## One-time setup (before enabling split)
+## Deferred setup reference
 
-1. Run `php bin/prepare-release-setup.php` and review the generated request, its observed unknowns, exact repository
-   names, ruleset bodies, workflow hashes, environment payload and token scopes. The proposed release reviewer is
-   `@academici` (user ID `3863273`), taken from `.github/CODEOWNERS`; the owner must approve the actor and confirm its
-   effective permissions. Choose the trusted public tag-signing key and its actual signing-key or subkey fingerprint.
-   The request is local and grants nothing.
-2. Only after separate owner authorization, configure the public owned `axiomasoft/azguard` mirror, release environment, rulesets, `SPLIT_ENABLED`, variables, workflows and the
-   three scoped secrets exactly as reviewed. `MONOREPO_SPLIT_TOKEN` needs contents and Actions write on the core split repository; `PRIVATE_RELEASE_READ_TOKEN` needs contents and Actions read on the source in the core split repository;
-   `RELEASE_SETUP_READ_TOKEN` is a source-repository secret with the read-only scopes listed in the request. Store no
-   token values in the request or logs. Submit the core mirror to [Packagist](https://packagist.org/packages/submit) and
-   configure webhooks only under the publication setup approval.
-3. After explicit authorization for the probe, dispatch `release-setup-probe.yml` on source `main` and approve its
-   release environment. It writes unique empty `release-setup-probe/<run>/<attempt>` branches to the core split, verifies
-   and deletes them with commit-specific leases, and dispatches the public core attestation probe on `main`. An interrupted
-   or failed cleanup can leave a probe branch: preserve the run and inspect the exact ref before any authorized cleanup.
-4. Wait for the source and core split probe runs to succeed, regenerate the local request and run `php bin/verify-release-evidence.php
-   --setup build/release/setup-request.json`. This verifier performs only reads; it verifies current payloads, the
-   environment, token metadata, a clean settings audit, recent complete probe jobs and signed public canaries with
-   pinned repository, workflow, ref, digest and predicate. Proofs older than one hour or for a different default-branch
-   commit are rejected. Select a candidate SHA only after this succeeds; refresh and rerun the authorized probes if
-   the default branches change or the proof expires before split. Each later release still needs its own qualification
-   and publication authorization.
+`php bin/prepare-release-setup.php` records read-only observations and historical configuration details as a deferred
+reference. Its current proposal contains no split targets, remote payload, environment, variable or secret to apply.
+The separate `deferred_reference` preserves the old design for review; it is not a request or authorization to apply
+it. `php bin/verify-release-evidence.php --setup=build/release/setup-request.json --read-only --strict` fails closed
+under the current no-split scope, including when the historical checks would otherwise pass. It performs no remote
+write. Any future change needs a new distribution decision, independently reviewed trust boundary, verified external
+settings and separate owner authorization.

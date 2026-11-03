@@ -80,8 +80,13 @@ it('enforces the pinned gitleaks configuration digest, product-code allowlist gu
             expect(gitleaksPolicyErrors($tmp, hash('sha256', $bad)))->toContain('gitleaks allowlist excludes product code');
         }
     } finally {
-        @unlink($tmp.'/.gitleaksignore');
-        @unlink($tmp.'/.gitleaks.toml');
-        @rmdir($tmp);
+        if (file_exists($tmp.'/.gitleaksignore')) {
+            unlink($tmp.'/.gitleaksignore');
+        }
+
+        if (file_exists($tmp.'/.gitleaks.toml')) {
+            unlink($tmp.'/.gitleaks.toml');
+        }
+        rmdir($tmp);
     }
 });

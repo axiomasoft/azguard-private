@@ -10,11 +10,13 @@ function filamentLocalSmokeViolations(array $workflow): array
     $job = $workflow['jobs']['consumer-fixture'] ?? [];
     $steps = $job['steps'] ?? [];
     $matches = array_values(array_filter($steps, static fn (array $step): bool => ($step['name'] ?? '') === 'Smoke unpublished Filament from local archives'));
+
     if (count($matches) !== 1 || isset($job['if']) || ($job['continue-on-error'] ?? false) !== false) {
         return ['missing or optional Filament smoke job'];
     }
     $step = $matches[0];
     $run = $step['run'] ?? '';
+
     if (! is_string($run) || isset($step['if']) || ($step['continue-on-error'] ?? false) !== false
         || ! str_contains($run, 'set -Eeuo pipefail')
         || ! str_contains($run, 'git diff --exit-code -- packages/core packages/filament')
@@ -24,6 +26,7 @@ function filamentLocalSmokeViolations(array $workflow): array
         || str_contains($run, '--source=packagist')) {
         return ['missing or optional local archive smoke'];
     }
+
     if (! in_array('consumer-fixture', $workflow['jobs']['all']['needs'] ?? [], true)) {
         return ['aggregate omits smoke job'];
     }

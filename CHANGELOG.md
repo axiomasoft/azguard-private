@@ -6,7 +6,8 @@ version) are documented here. Format: [Keep a Changelog](https://keepachangelog.
 
 ## [Unreleased]
 
-- The current release scope is core only; the Filament integration remains in the monorepo and is not in the current publication scope.
+- Current work is local to the monorepo: neither core nor Filament is being split, tagged or published. Earlier
+  core-only release preparation remains deferred and does not authorize remote configuration or publication.
 - The core-only offline archive rehearsal uses `azguard.package-evidence.offline-fixture.v2`; the previous v1 format is
   retained as historical evidence. Its synthetic dependency graph is not release qualification.
 - Release evidence schema `urn:azguard:release-evidence:2` records the core-only artifact and split; the earlier v1
@@ -25,7 +26,7 @@ version) are documented here. Format: [Keep a Changelog](https://keepachangelog.
 - Local package mapping can compare the tagged split tree and rebuilt ZIP members with the monorepo and record a
   nonrelease, unsigned result. The partial candidate evidence checker does not authenticate its input.
 - Release validation now requires a signed annotated tag from the owner-configured signing fingerprint.
-- Public split ZIP producers check the signed source tag, successful release gate and exact split tree before signing.
+- The former split ZIP producers and their setup probes are disabled pending an independently verified trust boundary.
 - Bind each release ZIP to its source and resolved SBOMs, consumer lock and package mapping; verify the public split
   provenance, both SBOM predicates and mapping predicate before package publication.
 - Add a nonrelease comparison of individual provider ZIP and tar.gz snapshots against a Git export, with a validated

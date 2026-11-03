@@ -1,7 +1,7 @@
 # Upgrading to 2.0
 
 The planned core release line is **2.0.0-rc.1 → 2.0.0**. The Filament package is retained for local development and
-is not in the current publication scope. Treat 1.0 as potentially consumed;
+is not in the current publication scope, and no core split or release is currently authorized. Treat 1.0 as potentially consumed;
 the historical changelog is not proof of publication. Review these changes before updating code or stored data.
 
 ## Dependencies and package versions

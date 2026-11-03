@@ -10,6 +10,7 @@ if (count($argv) !== 4) {
     fwrite(STDERR, "invalid arguments\n");
     exit(1);
 }
+
 try {
     packageVerifySignedTag($argv[1], $argv[2], $argv[3]);
 } catch (Throwable $error) {

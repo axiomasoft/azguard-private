@@ -45,10 +45,10 @@ REVIEWED_WORKFLOWS = {
     'release-setup-probe.yml': '8786c2fc34a1e241e6f053e65361dfb5d4019d9769aa795d3adb8216dad6b6c2',
     'secret-scan.yml': '405d61d500751cb018bdb433d19fda6ef804ebce4f01e4052c1975646fd0c2b3',
     'security.yml': '9e08a93af21e23b6c11e04331eb9aeb7d41965e20bc5cf932ab9ad8a68fa77d4',
-    'split.yml': '3adf927740d929f16397dc6032d8dc8650314005be63ea59eb79a64079142277',
+    'split.yml': '726b6360ba6304b23b31c15cd0267288ee3ec4cee02de4a7f91cccc29ff55ea5',
     'static-analysis.yml': '7bd5d7f4f93e78db32103a1615c0bd0bc364070077c7547d225e3e3f0f762fe4',
     'tests-nightly.yml': 'f8a9a70f743fd556b8907537fa45c959d6f55b187d98d0f3d87bd9152a98021c',
-    'tests.yml': 'a62ae3db816e78799996953ccbdb7744c7142ae2835c6db24f06a777f2431f9f',
+    'tests.yml': '411026df0df548c929ace048667c08378504b0a2334438de20e9007ff045f07d',
     'workers.yml': '634ddc2c89a314f7843468b795965adc671640d0555acde3dce52ea9be82d3fc',
     'zizmor.yml': '61d9b94bd9361c929268dd58d7572afbfeb52729c37e8c3b93c676c37e837047',
 }

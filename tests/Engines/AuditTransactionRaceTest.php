@@ -96,6 +96,7 @@ it('retries a deadlock after a grant write without publishing the aborted effect
 
     try {
         $connection->beginTransaction();
+
         if ($connection->getDriverName() === 'pgsql') {
             $connection->statement("SET LOCAL deadlock_timeout = '5s'");
         }

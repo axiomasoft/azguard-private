@@ -13,6 +13,7 @@ function trustedProducerPredicate(array $approved): object
     sort($actual);
     $sorted = $keys;
     sort($sorted);
+
     if ($actual !== $sorted) {
         throw new RuntimeException('incomplete approved producer identity');
     }
@@ -26,11 +27,13 @@ function trustedProducerPredicate(array $approved): object
             throw new RuntimeException('invalid approved '.$key);
         }
     }
+
     if (! is_string($approved['tag']) || preg_match('/\Av[0-9]+\.[0-9]+\.[0-9]+(?:-[0-9A-Za-z.-]+)?\z/', $approved['tag']) !== 1
         || ! is_string($approved['run_id']) || preg_match('/\A[1-9][0-9]*\z/', $approved['run_id']) !== 1
         || ! is_string($approved['run_attempt']) || preg_match('/\A[1-9][0-9]*\z/', $approved['run_attempt']) !== 1) {
         throw new RuntimeException('invalid candidate or run identity');
     }
+
     return (object) [
         'schema' => 'azguard.trusted-producer.v1',
         'producer_event' => 'workflow_dispatch',
@@ -53,8 +56,8 @@ function trustedProducerPredicate(array $approved): object
  * from the separately authenticated setup/qualification boundary, never from
  * the attestation or caller-provided staging tree. No workflow uses this yet.
  *
- * @param array<string, mixed> $approved
- * @param callable(list<string>, list<object>): bool $verify
+ * @param  array<string, mixed>  $approved
+ * @param  callable(list<string>, list<object>): bool  $verify
  */
 function trustedProducerVerify(string $directory, array $approved, callable $verify): void
 {
@@ -70,6 +73,7 @@ function trustedProducerVerify(string $directory, array $approved, callable $ver
     ];
     foreach ($paths as $key => $name) {
         $path = $directory.'/'.$name;
+
         if (is_link($path) || ! is_file($path) || ! hash_equals($approved[$key], (string) hash_file('sha256', $path))) {
             throw new RuntimeException('untrusted producer artifact: '.$name);
         }
@@ -85,6 +89,7 @@ function trustedProducerVerify(string $directory, array $approved, callable $ver
             $paths['dependency_sbom_sha256'] => $approved['dependency_sbom_sha256'],
             $paths['lock_sha256'] => $approved['lock_sha256'],
         ]];
+
     if (! is_array($mapping) || $mapping !== $expectedMapping) {
         throw new RuntimeException('producer mapping schema or claims mismatch');
     }
@@ -92,6 +97,7 @@ function trustedProducerVerify(string $directory, array $approved, callable $ver
     $dependencyBom = json_decode((string) file_get_contents($directory.'/'.$paths['dependency_sbom_sha256']), true, 512, JSON_THROW_ON_ERROR);
     $lock = json_decode((string) file_get_contents($directory.'/'.$paths['lock_sha256']), true, 512, JSON_THROW_ON_ERROR);
     $inventory = packageSourceInventory($directory.'/'.$paths['zip_sha256'], 'axiomasoft/azguard', $version);
+
     if (! is_array($sourceBom) || $sourceBom !== $inventory || ! is_array($dependencyBom) || ! is_array($lock)
         || ($dependencyBom['bomFormat'] ?? null) !== 'CycloneDX'
         || ! in_array($dependencyBom['specVersion'] ?? null, ['1.4', '1.5', '1.6'], true)
@@ -109,6 +115,7 @@ function trustedProducerVerify(string $directory, array $approved, callable $ver
         '--predicate-type', 'https://axiomasoft.github.io/azguard/attestations/trusted-producer/v1',
         '--format', 'json',
     ];
+
     if ($verify($command, [$predicate]) !== true) {
         throw new RuntimeException('trusted producer attestation unavailable or mismatched');
     }
@@ -117,6 +124,7 @@ function trustedProducerVerify(string $directory, array $approved, callable $ver
     foreach ($paths as $key => $name) {
         $path = $directory.'/'.$name;
         clearstatcache(true, $path);
+
         if (is_link($path) || ! is_file($path) || ! hash_equals($approved[$key], (string) hash_file('sha256', $path))) {
             throw new RuntimeException('producer artifact changed during attestation verification: '.$name);
         }
