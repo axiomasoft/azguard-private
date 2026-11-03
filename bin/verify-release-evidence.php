@@ -29,10 +29,39 @@ function candidateSourceEvidenceErrors(array $data, string $expectedSha, string 
     return [...$errors, ...releaseGateErrors($data)];
 }
 
+/** Return the setup request path, or null when a different mode is selected. */
+function releaseEvidenceSetupPath(array $args): ?string
+{
+    $mode = $args[0] ?? '';
+    if ($mode !== '--setup' && ! str_starts_with($mode, '--setup=')) {
+        return null;
+    }
+    $path = $mode === '--setup' ? null : substr($mode, strlen('--setup='));
+    if ($path === '') {
+        throw new RuntimeException('setup request path must not be empty');
+    }
+    $seen = [];
+    foreach (array_slice($args, 1) as $arg) {
+        if (in_array($arg, ['--read-only', '--strict'], true)) {
+            if (isset($seen[$arg])) {
+                throw new RuntimeException('duplicate setup option: '.$arg);
+            }
+            $seen[$arg] = true;
+        } elseif (! str_starts_with($arg, '-') && $arg !== '' && $path === null) {
+            $path = $arg;
+        } else {
+            throw new RuntimeException('invalid setup argument: '.$arg);
+        }
+    }
+
+    // Setup has always been strict and read-only; explicit flags do not relax it.
+    return $path ?? dirname(__DIR__).'/build/release/setup-request.json';
+}
+
 if (isset($_SERVER['SCRIPT_FILENAME']) && realpath($_SERVER['SCRIPT_FILENAME']) === __FILE__) {
     try {
-        if (($argc === 2 || $argc === 3) && $argv[1] === '--setup') {
-            $path = $argv[2] ?? dirname(__DIR__).'/build/release/setup-request.json';
+        $path = releaseEvidenceSetupPath(array_slice($argv, 1));
+        if ($path !== null) {
             $raw = @file_get_contents($path);
             $request = is_string($raw) ? json_decode($raw, true, 512, JSON_THROW_ON_ERROR) : null;
             if (! is_array($request)) {
@@ -98,7 +127,7 @@ if (isset($_SERVER['SCRIPT_FILENAME']) && realpath($_SERVER['SCRIPT_FILENAME']) 
             exit(0);
         }
         if ($argc !== 5 || $argv[1] !== '--candidate-source') {
-            throw new RuntimeException('usage: php bin/verify-release-evidence.php --setup [REQUEST] | --candidate-source SHA RUN-ID-ATTEMPT FILE | --candidate-artifacts SHA TAG DIST CORE-SHA FILAMENT-SHA RUN-ID-ATTEMPT');
+            throw new RuntimeException('usage: php bin/verify-release-evidence.php --setup[=REQUEST] [--read-only] [--strict] | --candidate-source SHA RUN-ID-ATTEMPT FILE | --candidate-artifacts SHA TAG DIST CORE-SHA FILAMENT-SHA RUN-ID-ATTEMPT');
         }
         $raw = @file_get_contents($argv[4]);
         $data = is_string($raw) ? json_decode($raw, true, 512, JSON_THROW_ON_ERROR) : null;

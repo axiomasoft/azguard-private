@@ -208,8 +208,9 @@ annotated signed tag separately with `git verify-tag`. `php bin/verify-release-e
 RUN-ID-ATTEMPT FILE` checks the internal consistency of an already collected release-gate record; it does not authenticate
 that record's origin. `php bin/prepare-release-setup.php` creates `build/release/setup-request.json` with dated
 read-only observations and the proposed settings and payload hashes. The proposal does not authorize remote changes.
-`php bin/verify-release-evidence.php --setup build/release/setup-request.json` uses live read-only APIs, a settings
+`php bin/verify-release-evidence.php --setup=build/release/setup-request.json --read-only --strict` uses live read-only APIs, a settings
 audit and cryptographically verified probes; it needs no candidate SHA and never dispatches workflows or writes remote.
+The legacy `--setup [REQUEST]` form remains supported; both forms are always strict and read-only.
 `--candidate-artifacts SHA TAG DIST CORE-SHA FILAMENT-SHA RUN-ID-ATTEMPT` checks the signed tag, complete artifact
 set, mapping, schemas and trusted attestations. It requires the configured tag key, fingerprint and a `gh` supporting
 attestation verification. A split tag is recorded as expected until its remote target is checked after publication.

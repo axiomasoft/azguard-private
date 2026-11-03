@@ -103,9 +103,31 @@ if ($forged === false) {
 }
 try {
     file_put_contents($forged, '{"status":"ready","attestations":true,"all_settings_verified":true}');
-    $process = proc_open([PHP_BINARY, __DIR__.'/verify-release-evidence.php', '--setup', $forged], [1 => ['file', '/dev/null', 'w'], 2 => ['file', '/dev/null', 'w']], $pipes);
-    if (! is_resource($process) || proc_close($process) === 0) {
-        throw new RuntimeException('self-asserted setup proof accepted');
+    foreach ([['--setup', $forged], ['--setup='.$forged, '--read-only', '--strict']] as $setupArgs) {
+        if (releaseEvidenceSetupPath($setupArgs) !== $forged) {
+            throw new RuntimeException('valid setup arguments rejected');
+        }
+        $process = proc_open([PHP_BINARY, __DIR__.'/verify-release-evidence.php', ...$setupArgs], [1 => ['file', '/dev/null', 'w'], 2 => ['pipe', 'w']], $pipes);
+        if (! is_resource($process)) {
+            throw new RuntimeException('cannot start setup verifier');
+        }
+        $error = stream_get_contents($pipes[2]);
+        fclose($pipes[2]);
+        if (proc_close($process) === 0 || ! is_string($error) || ! str_contains($error, 'invalid setup request identity') || str_contains($error, 'usage:')) {
+            throw new RuntimeException('self-asserted setup proof accepted or setup CLI failed to reach verification');
+        }
+    }
+    if (releaseEvidenceSetupPath(['--setup', '--strict', '--read-only']) !== dirname(__DIR__).'/build/release/setup-request.json'
+        || releaseEvidenceSetupPath(['--candidate-source']) !== null) {
+        throw new RuntimeException('setup defaults or candidate mode rejected');
+    }
+    foreach ([['--setup='], ['--setup='.$forged, '--strict', '--strict'], ['--setup='.$forged, 'other'], ['--setup', '--write']] as $badArgs) {
+        try {
+            releaseEvidenceSetupPath($badArgs);
+            throw new LogicException('invalid setup arguments accepted');
+        } catch (RuntimeException) {
+            // A malformed request must fail before any read-only API calls.
+        }
     }
 } finally {
     unlink($forged);
