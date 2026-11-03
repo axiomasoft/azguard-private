@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 require __DIR__.'/../vendor/autoload.php';
+require_once __DIR__.'/package-evidence.php';
 
 use Symfony\Component\Yaml\Yaml;
 
@@ -12,17 +13,17 @@ $job = $workflow['jobs']['inspect'] ?? [];
 $steps = $job['steps'] ?? [];
 if (array_keys($workflow['on'] ?? []) !== ['workflow_dispatch']
     || ($workflow['permissions'] ?? null) !== ['contents' => 'read']
-    || ($job['permissions'] ?? null) !== ['contents' => 'read']
+    || ($job['permissions'] ?? null) !== ['contents' => 'read', 'id-token' => 'write', 'attestations' => 'write']
     || ($job['environment'] ?? null) !== 'release-producer'
-    || count($steps) !== 3 || isset($steps[0]['if']) || isset($steps[1]['if'])
+    || count($steps) !== 6 || isset($steps[0]['if']) || isset($steps[2]['if'])
     || preg_match('/^exit 1$/m', $steps[0]['run'] ?? '') !== 1
-    || preg_match('/^exit 1$/m', $steps[2]['run'] ?? '') !== 1) {
+    || preg_match('/^exit 1$/m', $steps[3]['run'] ?? '') !== 1) {
     throw new RuntimeException('candidate workflow is not gated and disabled');
 }
-foreach ($steps as $step) {
-    if (isset($step['uses'])) {
-        throw new RuntimeException('candidate executes an external or staging action');
-    }
+if (($steps[1]['uses'] ?? null) !== 'actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803'
+    || ($steps[4]['uses'] ?? null) !== 'actions/attest@7667f588f2f73a90cea6c7ac70e78266c4f76616'
+    || ($steps[4]['with']['predicate-type'] ?? null) !== 'https://axiomasoft.github.io/azguard/attestations/trusted-producer/v1') {
+    throw new RuntimeException('unapproved candidate actions or predicate');
 }
 $directory = sys_get_temp_dir().'/azguard-workflow-candidate-'.bin2hex(random_bytes(8));
 if (! mkdir($directory.'/bin', 0700, true)) {
@@ -64,7 +65,7 @@ try {
         ['SOURCE_RUN_ID' => '0'],
         ['SOURCE_RUN_ATTEMPT' => '0'],
     ] as $bad) {
-        if ($run($steps[1]['run'], $bad) === 0 || file_exists($marker)) {
+        if ($run($steps[2]['run'], $bad) === 0 || file_exists($marker)) {
             throw new RuntimeException('untrusted workflow or input reached credentialed API');
         }
     }
@@ -79,7 +80,7 @@ try {
         ['status' => 'completed', 'conclusion' => 'failure'],
     ] as $bad) {
         file_put_contents($responsePath, json_encode([...$validRun, ...$bad], JSON_THROW_ON_ERROR));
-        if ($run($steps[1]['run'], ['FIXTURE_RESPONSE' => $responsePath]) === 0
+        if ($run($steps[2]['run'], ['FIXTURE_RESPONSE' => $responsePath]) === 0
             || ! file_exists($marker) || file_exists($marker.'-tools')) {
             throw new RuntimeException('untrusted source run reached git or signing');
         }
@@ -87,14 +88,27 @@ try {
     }
     // A valid run with absent or malformed jobs evidence must fail before Git.
     file_put_contents($responsePath, json_encode($validRun, JSON_THROW_ON_ERROR));
-    if ($run($steps[1]['run'], ['FIXTURE_RESPONSE' => $responsePath]) === 0
+    if ($run($steps[2]['run'], ['FIXTURE_RESPONSE' => $responsePath]) === 0
         || ! file_exists($marker) || file_exists($marker.'-tools')) {
         throw new RuntimeException('missing qualification gate reached git or signing');
     }
     unlink($marker);
-    if ($run($steps[2]['run']) !== 1 || file_exists($marker)) {
+    if ($run($steps[3]['run']) !== 1 || file_exists($marker)) {
         throw new RuntimeException('candidate incorrectly allows attestation');
     }
+    file_put_contents($directory.'/approved-evidence.json', '{}');
+    file_put_contents($directory.'/protected-target', 'untouched');
+    symlink($directory.'/protected-target', $directory.'/producer-verify.json');
+    if ($run("php() { return 0; }\n".$steps[5]['run']) !== 0
+        || file_get_contents($directory.'/protected-target') !== 'untouched') {
+        throw new RuntimeException('workflow verifier followed predictable symlink');
+    }
+    foreach (glob($directory.'/trusted-verify.*') ?: [] as $temporary) {
+        packageRemoveFixtureDirectory($temporary);
+    }
+    unlink($directory.'/producer-verify.json');
+    unlink($directory.'/protected-target');
+    unlink($directory.'/approved-evidence.json');
     echo "Trusted workflow candidate rejects untrusted refs and remains disabled.\n";
 } finally {
     if (is_file($directory.'/run.json')) {

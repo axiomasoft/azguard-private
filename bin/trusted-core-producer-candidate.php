@@ -14,6 +14,16 @@ require_once __DIR__.'/trusted-producer-evidence.php';
  */
 function trustedProducerInspectSource(string $repository, array $expected, array $gitTool, bool $keepControlled = false): array
 {
+    $staged = trustedProducerStageInputs(['git' => $gitTool], ['git']);
+    try {
+        return trustedProducerInspectStagedSource($repository, $expected, $staged['inputs']['git'], $keepControlled);
+    } finally {
+        packageRemoveFixtureDirectory($staged['directory']);
+    }
+}
+
+function trustedProducerInspectStagedSource(string $repository, array $expected, array $gitTool, bool $keepControlled = false): array
+{
     if (array_keys($gitTool) !== ['path', 'sha256'] || ! is_string($gitTool['path'])
         || ! str_starts_with($gitTool['path'], '/') || is_link($gitTool['path'])
         || ! is_file($gitTool['path']) || ! is_executable($gitTool['path'])
@@ -209,6 +219,52 @@ function trustedProducerOfflineCommand(array $argv, string $home): string
     return $output;
 }
 
+/** Stage approved bytes before any use; paths in the returned directory are private copies. */
+function trustedProducerStageInputs(array $inputs, array $executables): array
+{
+    $directory = sys_get_temp_dir().'/azguard-approved-inputs-'.bin2hex(random_bytes(12));
+    if (! mkdir($directory, 0700)) {
+        throw new RuntimeException('cannot create approved input workspace');
+    }
+    try {
+        foreach ($inputs as $name => $input) {
+            if (! is_string($name) || preg_match('/\A[a-z_]+\z/', $name) !== 1 || ! is_array($input)
+                || array_keys($input) !== ['path', 'sha256'] || ! is_string($input['path'])
+                || ! str_starts_with($input['path'], '/') || is_link($input['path']) || ! is_file($input['path'])
+                || ! is_string($input['sha256']) || preg_match('/\A[0-9a-f]{64}\z/', $input['sha256']) !== 1
+                || (in_array($name, $executables, true) && ! is_executable($input['path']))) {
+                throw new RuntimeException('invalid approved input: '.$name);
+            }
+            $source = @fopen($input['path'], 'rb');
+            $target = @fopen($directory.'/'.$name, 'xb');
+            if ($source === false || $target === false) {
+                if (is_resource($source)) fclose($source);
+                if (is_resource($target)) fclose($target);
+                throw new RuntimeException('cannot stage approved input');
+            }
+            try {
+                $stat = fstat($source);
+                if (! is_array($stat) || ($stat['mode'] & 0170000) !== 0100000 || stream_copy_to_stream($source, $target) === false) {
+                    throw new RuntimeException('input is not a regular file');
+                }
+            } finally {
+                fclose($source);
+                fclose($target);
+            }
+            $path = $directory.'/'.$name;
+            if (! hash_equals($input['sha256'], (string) hash_file('sha256', $path))
+                || ! chmod($path, in_array($name, $executables, true) ? 0500 : 0400)) {
+                throw new RuntimeException('approved input digest mismatch: '.$name);
+            }
+            $inputs[$name]['path'] = $path;
+        }
+        return ['directory' => $directory, 'inputs' => $inputs];
+    } catch (Throwable $error) {
+        packageRemoveFixtureDirectory($directory);
+        throw $error;
+    }
+}
+
 /**
  * Build a nonrelease candidate from an already authenticated source repository.
  * Tool paths/hashes and dependency evidence are independently approved inputs;
@@ -219,6 +275,16 @@ function trustedProducerOfflineCommand(array $argv, string $home): string
  * @return array<string, mixed>
  */
 function trustedProducerBuildOffline(string $repository, array $identity, array $inputs, string $output, array $sourceRun): array
+{
+    $staged = trustedProducerStageInputs($inputs, ['composer', 'git', 'python', 'tar', 'validator']);
+    try {
+        return trustedProducerBuildStagedOffline($repository, $identity, $staged['inputs'], $output, $sourceRun);
+    } finally {
+        packageRemoveFixtureDirectory($staged['directory']);
+    }
+}
+
+function trustedProducerBuildStagedOffline(string $repository, array $identity, array $inputs, string $output, array $sourceRun): array
 {
     if (getenv('GH_TOKEN') || getenv('GITHUB_TOKEN') || getenv('PRIVATE_RELEASE_READ_TOKEN')) {
         throw new RuntimeException('offline builder must not receive credentials');

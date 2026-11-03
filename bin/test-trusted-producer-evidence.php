@@ -74,6 +74,27 @@ try {
             ];
     };
     trustedProducerVerify($directory, $approved, $verify);
+    // Stub output exercises CLI plumbing only; it is not a cryptographic signature.
+    file_put_contents($directory.'/gh', "#!/bin/sh\ncat \"$directory/attestation.json\"\n");
+    chmod($directory.'/gh', 0700);
+    $statement = [['verificationResult' => ['statement' => ['predicate' => trustedProducerPredicate($approved)]]]];
+    file_put_contents($directory.'/attestation.json', json_encode($statement, JSON_THROW_ON_ERROR));
+    file_put_contents($directory.'/verify.json', json_encode(['directory' => $directory, 'approved' => $approved], JSON_THROW_ON_ERROR));
+    $runCli = static function () use ($directory): int {
+        $env = getenv();
+        $env['PATH'] = $directory.':/usr/bin:/bin';
+        $process = proc_open([PHP_BINARY, __DIR__.'/trusted-producer-pipeline.php', 'verify', $directory.'/verify.json'],
+            [0 => ['file', '/dev/null', 'r'], 1 => ['file', '/dev/null', 'w'], 2 => ['file', '/dev/null', 'w']], $pipes, null, $env);
+        return is_resource($process) ? proc_close($process) : throw new RuntimeException('cannot start candidate verifier');
+    };
+    if ($runCli() !== 0) {
+        throw new RuntimeException('candidate verifier failed with matching fake gh response');
+    }
+    file_put_contents($directory.'/attestation.json', '[]');
+    if ($runCli() === 0) {
+        throw new RuntimeException('candidate verifier accepted absent attestation');
+    }
+
     $reject = static function (callable $case): void {
         try {
             $case();

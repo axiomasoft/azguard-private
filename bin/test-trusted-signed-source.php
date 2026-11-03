@@ -136,6 +136,88 @@ try {
             throw new RuntimeException('non-deterministic artifact: '.$name);
         }
     }
+    mkdir($root.'/out-cli', 0700);
+    $config = ['repository' => $repo, 'identity' => $approved, 'inputs' => $inputs, 'output' => $root.'/out-cli',
+        'source_run' => $run, 'approved_output' => $root.'/approved.json', 'predicate_output' => $root.'/predicate.json'];
+    file_put_contents($root.'/config.json', json_encode($config, JSON_THROW_ON_ERROR));
+    $pipeline = proc_open([PHP_BINARY, __DIR__.'/trusted-producer-pipeline.php', 'build', $root.'/config.json'],
+        [0 => ['file', '/dev/null', 'r'], 1 => ['file', '/dev/null', 'w'], 2 => ['file', '/dev/null', 'w']], $pipes);
+    if (! is_resource($pipeline) || proc_close($pipeline) !== 0
+        || file_get_contents($root.'/out-cli/azguard-core-2.0.0.zip') !== file_get_contents($root.'/out1/azguard-core-2.0.0.zip')) {
+        throw new RuntimeException('pipeline build fixture failed');
+    }
+    $config['identity']['split_sha'] = str_repeat('f', 40);
+    $config['output'] = $root.'/out-bad-cli';
+    $config['approved_output'] = $root.'/bad-approved.json';
+    $config['predicate_output'] = $root.'/bad-predicate.json';
+    mkdir($config['output'], 0700);
+    file_put_contents($root.'/config.json', json_encode($config, JSON_THROW_ON_ERROR));
+    $pipeline = proc_open([PHP_BINARY, __DIR__.'/trusted-producer-pipeline.php', 'build', $root.'/config.json'],
+        [0 => ['file', '/dev/null', 'r'], 1 => ['file', '/dev/null', 'w'], 2 => ['file', '/dev/null', 'w']], $pipes);
+    if (! is_resource($pipeline) || proc_close($pipeline) === 0 || file_exists($root.'/bad-predicate.json')) {
+        throw new RuntimeException('pipeline accepted invalid split');
+    }
+    // Exercise the actual candidate workflow bridge with authenticated local
+    // fixtures. Its credentialed fetch and both live guards are not run here.
+    require_once __DIR__.'/../vendor/autoload.php';
+    $workflow = Symfony\Component\Yaml\Yaml::parseFile(__DIR__.'/../docs/specs/trusted-producer.candidate.yml');
+    $workflowRun = $workflow['jobs']['inspect']['steps'][2]['run'];
+    $bridge = strstr($workflowRun, '# Independently authenticated graph/config provisioning is external.');
+    if (! is_string($bridge)) {
+        throw new RuntimeException('candidate workflow build bridge missing');
+    }
+    symlink($repo, $root.'/source');
+    symlink(dirname(__DIR__), $root.'/trusted-workflow');
+    $template = ['repository' => '__SOURCE_REPOSITORY__', 'identity' => $approved, 'inputs' => $inputs,
+        'output' => $root.'/trusted-output', 'source_run' => $run,
+        'approved_output' => $root.'/approved-evidence.json', 'predicate_output' => $root.'/producer-predicate.json'];
+    $templatePath = $root.'/approved-producer.json';
+    file_put_contents($templatePath, json_encode($template, JSON_THROW_ON_ERROR));
+    $bridgeEnv = getenv();
+    $bridgeEnv = [...$bridgeEnv, 'RUNNER_TEMP' => $root, 'TRUSTED_WORKFLOW_SHA' => $approved['workflow_sha'],
+        'APPROVED_CONFIG_SHA256' => hash_file('sha256', $templatePath), 'APPROVED_LOCK_SHA256' => $inputs['lock']['sha256'],
+        'APPROVED_SBOM_SHA256' => $inputs['dependency_sbom']['sha256'], 'CANDIDATE_SHA' => $source,
+        'EXPECTED_SPLIT_SHA' => $split, 'CANDIDATE_TAG' => 'v2.0.0', 'SOURCE_RUN_ID' => '123', 'SOURCE_RUN_ATTEMPT' => '1'];
+    $runBridge = static function (string $script) use ($root, $bridgeEnv): int {
+        $process = proc_open(['bash', '-c', $script], [0 => ['file', '/dev/null', 'r'], 1 => ['file', '/dev/null', 'w'],
+            2 => ['file', '/dev/null', 'w']], $pipes, $root, $bridgeEnv);
+        return is_resource($process) ? proc_close($process) : throw new RuntimeException('cannot start workflow bridge');
+    };
+    file_put_contents($root.'/symlink-target', 'must-stay-unchanged');
+    symlink($root.'/symlink-target', $root.'/effective-producer.json');
+    if ($runBridge("set -Eeuo pipefail\nwork=\"$root\"\n".$bridge) !== 0
+        || file_get_contents($root.'/trusted-output/azguard-core-2.0.0.zip') !== file_get_contents($root.'/out1/azguard-core-2.0.0.zip')
+        || json_decode((string) file_get_contents($root.'/producer-predicate.json'), true, 512, JSON_THROW_ON_ERROR)['source_sha'] !== $source) {
+        throw new RuntimeException('workflow build bridge fixture failed');
+    }
+    if (file_get_contents($root.'/symlink-target') !== 'must-stay-unchanged') {
+        throw new RuntimeException('workflow bridge followed a predictable symlink');
+    }
+    packageRemoveFixtureDirectory($root.'/trusted-output');
+    unlink($root.'/approved-evidence.json');
+    unlink($root.'/producer-predicate.json');
+    if ($runBridge("set -Eeuo pipefail\nwork=\"$root\"\nphp() { return 127; }\n".$bridge) === 0
+        || file_exists($root.'/producer-predicate.json')) {
+        throw new RuntimeException('workflow bridge ignored a missing build command');
+    }
+    packageRemoveFixtureDirectory($root.'/trusted-output');
+    $collision = ['repository' => $repo, 'identity' => $approved, 'inputs' => $inputs, 'output' => $root.'/out-bad-cli',
+        'source_run' => $run, 'approved_output' => $root.'/dangling-evidence', 'predicate_output' => $root.'/new-predicate'];
+    symlink($root.'/nonexistent-evidence', $collision['approved_output']);
+    file_put_contents($root.'/config.json', json_encode($collision, JSON_THROW_ON_ERROR));
+    $pipeline = proc_open([PHP_BINARY, __DIR__.'/trusted-producer-pipeline.php', 'build', $root.'/config.json'],
+        [0 => ['file', '/dev/null', 'r'], 1 => ['file', '/dev/null', 'w'], 2 => ['file', '/dev/null', 'w']], $pipes);
+    if (! is_resource($pipeline) || proc_close($pipeline) === 0 || file_exists($root.'/nonexistent-evidence')) {
+        throw new RuntimeException('pipeline followed dangling evidence symlink');
+    }
+    $collision['approved_output'] = $root.'/same-evidence';
+    $collision['predicate_output'] = $root.'/./same-evidence';
+    file_put_contents($root.'/config.json', json_encode($collision, JSON_THROW_ON_ERROR));
+    $pipeline = proc_open([PHP_BINARY, __DIR__.'/trusted-producer-pipeline.php', 'build', $root.'/config.json'],
+        [0 => ['file', '/dev/null', 'r'], 1 => ['file', '/dev/null', 'w'], 2 => ['file', '/dev/null', 'w']], $pipes);
+    if (! is_resource($pipeline) || proc_close($pipeline) === 0 || file_exists($root.'/same-evidence')) {
+        throw new RuntimeException('pipeline accepted colliding output paths');
+    }
     $badIdentity = $approved;
     $badIdentity['split_sha'] = str_repeat('f', 40);
     try {

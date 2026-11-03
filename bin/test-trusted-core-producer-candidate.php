@@ -27,6 +27,30 @@ try {
     if (file_exists($marker)) {
         throw new RuntimeException('unapproved Git executable ran');
     }
+    $originalTool = $root.'/original-tool';
+    $originalLock = $root.'/original-lock';
+    file_put_contents($originalTool, "#!/bin/sh\nprintf approved\n");
+    chmod($originalTool, 0700);
+    file_put_contents($originalLock, 'approved-lock');
+    $staged = trustedProducerStageInputs([
+        'git' => ['path' => $originalTool, 'sha256' => hash_file('sha256', $originalTool)],
+        'lock' => ['path' => $originalLock, 'sha256' => hash_file('sha256', $originalLock)],
+    ], ['git']);
+    try {
+        file_put_contents($originalTool, "#!/bin/sh\ntouch $marker\n");
+        file_put_contents($originalLock, 'replaced-lock');
+        if (trustedProducerOfflineCommand([$staged['inputs']['git']['path']], $root) !== 'approved'
+            || file_get_contents($staged['inputs']['lock']['path']) !== 'approved-lock' || file_exists($marker)) {
+            throw new RuntimeException('staged inputs changed after original replacement');
+        }
+        try {
+            trustedProducerStageInputs(['lock' => ['path' => $originalLock, 'sha256' => str_repeat('f', 64)]], []);
+            throw new LogicException('mismatched staged input accepted');
+        } catch (RuntimeException) {
+        }
+    } finally {
+        packageRemoveFixtureDirectory($staged['directory']);
+    }
     $previous = getenv('UNRECOGNIZED_CREDENTIAL');
     putenv('UNRECOGNIZED_CREDENTIAL=secret-fixture');
     try {
