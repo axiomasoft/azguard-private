@@ -119,3 +119,16 @@ into a freshly initialized Git repository. It rejects alternate object stores, a
 signing key and fingerprint must be authenticated independently. The offline builder consumes this controlled repository for its entire build;
 it does not reopen the source repository. Offline tests do not qualify any remote
 environment or enable the producer.
+
+`bin/trusted-qualification-bundle.php` describes an offline-only bundle check:
+exact candidate and run claims, independently supplied manifest digest, fixed
+file set, config schema, file digests, and lock/SBOM graph agreement. Its
+callback-based fixture never establishes authenticity, and direct execution
+fails. The current release workflow uploads `release-artifacts-<attempt>` but
+does not produce an independently authenticated producer-config bundle. A
+future integration must authenticate the specific source repository, workflow,
+run ID and attempt and its successful evidence gate, obtain the exact artifact
+from that run over an authenticated GitHub API channel or verify a trusted
+attestation binding those claims to the artifact digest, and independently
+approve the producer tool configuration. No such remote proof is supplied by
+local fixtures; the live gate remains blocked.
