@@ -236,18 +236,23 @@ unqualified; a passing documentation build does not establish application securi
 
 ## Incident response
 
-1. Acknowledge the report within 2 business days and open a private advisory draft.
-2. Reproduce, classify the severity and triage critical and high reports within 3 business days.
-3. Fix in a private branch; add a failing test first.
-4. Release a patch on every supported line, then publish the advisory.
-5. Rotate any credential that could have been exposed; never rewrite a published tag.
+The [reporting and support policy](../security.md) defines the private contact, supported lines and coordinated
+disclosure process. The single maintainer targets acknowledgement within 3 business days, without a contractual SLA.
+
+1. Receive the report privately by email or a verified reporting form; open a private advisory draft where available.
+2. Reproduce and classify severity, prioritize critical/high and exploited issues, and agree the next private update.
+3. Fix under private access; a branch in a public repository does not preserve an embargo. Add a failing test first.
+4. Release a patch on each affected supported stable line, or the next prerelease for development-only issues.
+   Coordinate disclosure and mitigations with the reporter; exploitation or a delayed fix can require an earlier warning.
+5. Follow the [key compromise response](../security.md#key-compromise-response) for exposed release/signing/cache
+   credentials; never rewrite a published tag.
 
 ## Emergency release
 
 Use this checklist when a fix must ship outside the normal cadence.
 
 1. Confirm the vulnerable range and the supported lines it touches.
-2. Prepare the fix on a private branch attached to the advisory; keep the change minimal.
+2. Prepare the minimal fix with private access, using an advisory private fork where available.
 3. Run the full qualification on the exact commit that will be tagged.
 4. Tag the patch release from the protected branch; the release workflow publishes the split repositories.
 5. Verify the Packagist versions and a clean install on supported Laravel versions.

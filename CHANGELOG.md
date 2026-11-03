@@ -6,6 +6,11 @@ version) are documented here. Format: [Keep a Changelog](https://keepachangelog.
 
 ## [Unreleased]
 
+- Make the maintainer email the canonical private security contact while public advisory reporting is unverified;
+  add public Composer security-policy links, publication-aware 2.x/main support without a 1.x LTS/SLA promise,
+  coordinated disclosure and release/signing/cache key compromise guidance. Prepare the docs site's `security.txt`
+  for deployment; the live endpoint remains unverified until deployment and an HTTP check.
+
 - Align 2.0 installation, split READMEs and compatibility docs with the five supported PHP/Laravel pairs,
   Filament `^5.8.4` and exact core/plugin versions. Complete the API/SPI, cache and machine-format migration notes.
 - Auto compatibility comparison now stays within major 2, refuses a HEAD baseline and verifies a generated

@@ -74,6 +74,7 @@ const sidebar = [
     text: 'More',
     items: [
       { text: 'Comparison', link: '/comparison' },
+      { text: 'Report a vulnerability', link: '/security' },
     ],
   },
 ]

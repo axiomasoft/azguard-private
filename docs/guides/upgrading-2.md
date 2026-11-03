@@ -92,6 +92,10 @@ No published migration or historical changelog entry is rewritten by this baseli
 
 ## Qualification and rollback
 
+The current [security support policy](../security.md) targets the latest stable 2.x minor once published and
+best-effort fixes on `main`; 1.x publication/support remains unverified and no LTS or backport is promised.
+This does not establish a qualified historical upgrade or change the publication-baseline gate below.
+
 The 2026-10-30 publication inventory in `RELEASING.md` did not establish a published 1.0 artifact. It does not
 prove that 1.0 was never consumed. No published baseline-to-2.0 upgrade has been qualified by this repository's
 upgrade drill: `bash bin/upgrade-drill.sh` fails until the required baselines and executable fixtures are available.

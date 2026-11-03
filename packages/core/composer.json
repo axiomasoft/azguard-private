@@ -20,7 +20,9 @@
         }
     ],
     "support": {
+        "email": "dv.vostrikov@gmail.com",
         "issues": "https://github.com/axiomasoft/azguard/issues",
+        "security": "https://github.com/axiomasoft/azguard-private/blob/main/SECURITY.md",
         "source": "https://github.com/axiomasoft/azguard"
     },
     "require": {

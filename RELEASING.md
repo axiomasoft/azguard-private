@@ -73,6 +73,37 @@ that the comparison rejects the intentional breaks (D1–D5) and accepts the con
 
 ## Repository settings
 
+### Security channel and publication inventory 2026-11-03
+
+Read-only verification found the following; retain the timestamped observations with release evidence:
+
+- The GitHub connector reports `axiomasoft/azguard` as private and the connected account as an administrator.
+  Anonymous requests to its intended `https://github.com/axiomasoft/azguard/security/advisories/new` and
+  private-reporting status API returned HTTP 404. The connector does not expose that setting; the local `gh`
+  client has no credentials (exit 4). Enablement/public reporter access is unverified. Do not infer it from admin access.
+- The public monorepo `axiomasoft/azguard-private` exposes `SECURITY.md` (HTTP 200), tags `v0.3.0` and `v0.7.0`,
+  and one non-draft/non-prerelease release, `v0.3.0`. Both split tag/release APIs and both packages' stable/dev
+  Packagist metadata returned HTTP 404; the connector could access the private core split but not the Filament split.
+  This does not establish published 1.x or stable 2.x artifacts and does not prove non-publication/non-consumption.
+- The canonical private contact is [dv.vostrikov@gmail.com](mailto:dv.vostrikov@gmail.com), matching both Composer
+  author records. Gmail MX resolution succeeded; no mailbox delivery or vulnerability submission was tested.
+  Both `support.security` fields link to the verified public monorepo policy, not an invisible advisory form.
+- The docs site `https://axiomasoft.github.io/azguard-private/` returned HTTP 200; project and origin-root
+  `security.txt` URLs returned HTTP 404. The project asset is prepared for a later authorized deployment, not a
+  verified live endpoint. The project repository cannot serve the origin root; see [hosting status](docs/security.md#security-contact-hosting-status).
+
+Before each release, refresh the actual publication inventory, verify the reporting channel from a researcher's
+access level without submitting a report, and check the hosted `security.txt` content and expiry. Keep email
+canonical unless the intended public repository's private reporting is confirmed enabled. Settings changes,
+deployment and publication require their own authorization; the commands below are not grants.
+
+The [Security Policy](SECURITY.md) supports the latest stable 2.x minor once published and `main` on a best-effort
+basis. No published 1.x inventory or LTS commitment is established; newly verified 1.x artifacts require an explicit
+support decision. An acknowledgement within 3 business days is a target, not an SLA. Apply its severity-based
+patch/prerelease and coordinated disclosure process, including the [key compromise response](docs/security.md#key-compromise-response).
+
+### Applying repository settings (owner only)
+
 The expected settings live in `.github/rulesets/` and `.github/CODEOWNERS`; `bin/repository-settings-audit.php` compares them
 with the live repository and only reads. Applying them is an owner act.
 
@@ -83,14 +114,18 @@ gh api -X POST repos/axiomasoft/azguard-private/rulesets --input .github/ruleset
 gh api -X POST repos/axiomasoft/azguard-private/rulesets --input .github/rulesets/tag-creation.json
 # update an existing ruleset
 gh api -X PUT repos/axiomasoft/azguard-private/rulesets/<id> --input .github/rulesets/<file>.json
-# private vulnerability reporting, secret scanning and push protection
-gh api -X PUT repos/axiomasoft/azguard-private/private-vulnerability-reporting
+# secret scanning and push protection
 gh api -X PATCH repos/axiomasoft/azguard-private --input - <<'JSON'
 {"security_and_analysis": {"secret_scanning": {"status": "enabled"}, "secret_scanning_push_protection": {"status": "enabled"}}}
 JSON
 # audit
 php bin/repository-settings-audit.php --live
 ```
+
+Private vulnerability reporting is available for public repositories. Only after separate owner authorization and
+confirmation that the intended `axiomasoft/azguard` repository is public, enable its private reporting, verify
+`GET /repos/axiomasoft/azguard/private-vulnerability-reporting` returns `enabled: true` with the required permissions,
+and verify the researcher-facing form. Until then use the email in `SECURITY.md`.
 
 `main` allows no bypass actor; only the repository admin role may create `v*` tags, and no one may update or delete them.
 The `compat-baseline` label stays a triage-role decision (single maintainer).
@@ -185,7 +220,8 @@ The same script builds the files locally (`bash bin/release-artifacts.sh 2.0.0-r
 
 ## Dependency updates
 
-- A high or critical security update (Composer, npm, OSV) is triaged within 1 business day; an update forced by an
+- A high or critical security update (Composer, npm, OSV) is prioritized for triage under the best-effort
+  [Security Policy](SECURITY.md), with no separate guaranteed deadline; an update forced by an
   advisory is its own commit touching only `composer.lock` / `package-lock.json`.
 - An ordinary Dependabot update is reviewed within a week; superseded Dependabot PRs are closed.
 - Dependabot auto-merge is disabled until a required eligibility check on the updated PR has been proven. All

@@ -1,5 +1,22 @@
 # Test infrastructure references
 
+## Security reporting references
+
+Checked on 2026-11-03 for the reporting policy and release inventory:
+
+- [GitHub private reporting configuration](https://docs.github.com/en/code-security/how-tos/report-and-fix-vulnerabilities/configure-vulnerability-reporting/configure-for-a-repository):
+  the feature is for public repositories; administrator permissions do not prove researcher access or enablement.
+- [Composer support metadata](https://getcomposer.org/doc/04-schema.md#support): `support.security` links to the
+  vulnerability disclosure policy; keep the direct private contact in that accessible policy.
+- [RFC 9116 hosting and scope](https://www.rfc-editor.org/rfc/rfc9116.html#section-3): origin discovery uses
+  `/.well-known/security.txt`; a GitHub Pages project subpath does not provide the origin-root endpoint.
+- [Public monorepo tags](https://api.github.com/repos/axiomasoft/azguard-private/tags?per_page=100) and
+  [releases](https://api.github.com/repos/axiomasoft/azguard-private/releases?per_page=100): observed `v0.3.0` and
+  `v0.7.0` tags and the `v0.3.0` release, not evidence of split Composer publication. See the dated inventory in
+  [RELEASING.md](https://github.com/axiomasoft/azguard-private/blob/main/RELEASING.md#security-channel-and-publication-inventory-2026-11-03).
+
+## Disposable database infrastructure
+
 Checked on 2026-10-11 for the disposable database stand in `docker-compose.yml` and
 the `test-db-matrix` job. See the [maintainer database stand](guides/testing.md#maintainer-database-stand);
 the repository's `DEVELOPMENT.md` contains the commands and measurements.
