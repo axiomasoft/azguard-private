@@ -6,6 +6,8 @@ version) are documented here. Format: [Keep a Changelog](https://keepachangelog.
 
 ## [Unreleased]
 
+- Release setup probes support public and private source repositories and bind their visibility to the verification
+  result, requiring fresh probes after a visibility change.
 - Gate package splitting on verified release setup and disable the unverified public final-artifact relay.
   Release setup and qualification must be completed before publication. GitHub-generated snapshots and Composer
   GitHub zipballs remain separate from the signed release ZIP assets.

@@ -67,6 +67,7 @@ function releaseSetupProposal(string $root): array
 
     return [
         'source_repository' => 'axiomasoft/azguard-private',
+        'source_visibility' => 'No source visibility change is proposed. Probes bind the observed public or private visibility to the live setup verification.',
         'split_repositories' => ['axiomasoft/azguard', 'axiomasoft/azguard-filament'],
         'default_branch' => 'main',
         'split_visibility' => 'public',
@@ -236,12 +237,17 @@ function releaseSetupLiveErrors(array $request, string $root, callable $api, cal
     $fingerprint = null;
     $publicKey = null;
     $heads = [];
+    $sourcePrivate = null;
     foreach (releaseSetupPaths() as $repo => $paths) {
         $repoData = $api('repos/'.$repo);
         if (! is_array($repoData) || ($repoData['full_name'] ?? null) !== $repo || ($repoData['default_branch'] ?? null) !== 'main'
-            || ($repoData['archived'] ?? null) !== false || ($repo !== 'axiomasoft/azguard-private' && ($repoData['private'] ?? null) !== false)) {
+            || ($repoData['archived'] ?? null) !== false || ! is_bool($repoData['private'] ?? null)
+            || ($repo !== 'axiomasoft/azguard-private' && $repoData['private'] !== false)) {
             $errors[] = 'repository identity, visibility or default branch unverified: '.$repo;
             continue;
+        }
+        if ($repo === 'axiomasoft/azguard-private') {
+            $sourcePrivate = $repoData['private'];
         }
         $head = $api('repos/'.$repo.'/commits/main');
         $sha = is_array($head) ? ($head['sha'] ?? null) : null;
@@ -345,6 +351,12 @@ function releaseSetupLiveErrors(array $request, string $root, callable $api, cal
             $pages = $api('repos/'.$repo.'/actions/runs/'.$run['id'].'/attempts/'.$run['run_attempt'].'/jobs?per_page=100', true);
             $jobName = $source ? 'Verify split publication prerequisites' : 'Verify split attestation prerequisites';
             $steps = $source ? ['Verify setup read token', 'Probe split push and dispatch permissions'] : ['Verify source read access', 'Create setup probe', 'Attest setup probe'];
+            if (! $source) {
+                if ($sourcePrivate === null) {
+                    continue;
+                }
+                $steps[] = $sourcePrivate ? 'Confirm private source' : 'Confirm public source';
+            }
             if (is_array($pages) && releaseSetupProbeJobValid($pages, $run['id'], $sha, $jobName, $steps)) {
                 $validRun = true;
                 break;

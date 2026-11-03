@@ -238,10 +238,12 @@ Before its ZIP build the split producer verifies the signed source tag, the comp
 exact monorepo package tree against its checkout. It rebuilds its own canonical ZIP, checks the downloaded artifact,
 mapping, lock and both schema-valid SBOMs, then attests that ZIP separately with provenance, each SBOM and the mapping.
 It needs `PRIVATE_RELEASE_READ_TOKEN` with read access to source contents and Actions in each split repository, plus
-the owner-approved tag key and signer fingerprint there. Each split setup probe uses that token to read the private
-source's `packages/core/composer.json`, as well as repository metadata and Actions; missing Contents access fails the
-probe. The source must be private so an anonymous read cannot masquerade as token access. A previous successful probe
-does not qualify a changed workflow payload. Real-run qualification is still required.
+the owner-approved tag key and signer fingerprint there. Each split setup probe uses that token to read source
+metadata, Actions and `packages/core/composer.json`. For a private source, missing Contents access fails the probe;
+for a public source, a successful content read does not prove the token has private Contents permission. The probe
+records whether the source was public or private and the verifier requires that result to match its current visibility;
+after a visibility change, rerun both probes. A previous successful probe does not qualify a changed workflow payload.
+Real-run qualification is still required.
 The two repositories cannot be updated atomically: a failed second tag push can leave one package published even though
 the release job fails. Packagist may pick up that package before the other tag exists. Do not describe this state as a
 successful release, delete or overwrite a public tag, or assume the first push was rolled back.

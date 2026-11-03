@@ -370,7 +370,7 @@ try {
         }
         $workflow = $isSource ? 'release-setup-probe.yml' : 'attestation-setup.yml';
         $jobName = $isSource ? 'Verify split publication prerequisites' : 'Verify split attestation prerequisites';
-        $stepNames = $isSource ? ['Verify setup read token', 'Probe split push and dispatch permissions'] : ['Verify source read access', 'Create setup probe', 'Attest setup probe'];
+        $stepNames = $isSource ? ['Verify setup read token', 'Probe split push and dispatch permissions'] : ['Verify source read access', 'Confirm public source', 'Create setup probe', 'Attest setup probe'];
         $apiData['repos/'.$repository.'/actions/workflows/'.$workflow] = ['id' => 100 + $i, 'state' => 'active', 'path' => '.github/workflows/'.$workflow];
         $apiData['repos/'.$repository.'/actions/workflows/'.$workflow.'/runs?branch=main&event=workflow_dispatch&status=completed&per_page=100'] = ['workflow_runs' => [[
             'id' => 200 + $i, 'run_attempt' => 1, 'workflow_id' => 100 + $i, 'head_sha' => $head, 'head_branch' => 'main',
@@ -401,6 +401,32 @@ try {
     $errors = releaseSetupLiveErrors($request, dirname(__DIR__), $api, $attest, $audit, $now);
     if ($errors !== []) {
         throw new RuntimeException('valid setup fixture rejected: '.implode('; ', $errors));
+    }
+    $privateApiData = $apiData;
+    $privateApiData['repos/axiomasoft/azguard-private']['private'] = true;
+    $privateApi = static fn (string $endpoint, bool $paginate = false): ?array => $privateApiData[$endpoint] ?? null;
+    if (releaseSetupLiveErrors($request, dirname(__DIR__), $privateApi, $attest, $audit, $now) === []) {
+        throw new RuntimeException('public-source probe accepted after source became private');
+    }
+    foreach (['azguard' => 202, 'azguard-filament' => 203] as $split => $id) {
+        $endpoint = 'repos/axiomasoft/'.$split.'/actions/runs/'.$id.'/attempts/1/jobs?per_page=100';
+        $privateApiData[$endpoint][0]['jobs'][0]['steps'][1]['name'] = 'Confirm private source';
+    }
+    $privateApi = static fn (string $endpoint, bool $paginate = false): ?array => $privateApiData[$endpoint] ?? null;
+    if (releaseSetupLiveErrors($request, dirname(__DIR__), $privateApi, $attest, $audit, $now) !== []) {
+        throw new RuntimeException('fresh private-source probes rejected');
+    }
+    $publicAfterPrivate = $privateApiData;
+    $publicAfterPrivate['repos/axiomasoft/azguard-private']['private'] = false;
+    $publicApi = static fn (string $endpoint, bool $paginate = false): ?array => $publicAfterPrivate[$endpoint] ?? null;
+    if (releaseSetupLiveErrors($request, dirname(__DIR__), $publicApi, $attest, $audit, $now) === []) {
+        throw new RuntimeException('private-source probe accepted after source became public');
+    }
+    $unknownVisibility = $apiData;
+    unset($unknownVisibility['repos/axiomasoft/azguard-private']['private']);
+    $unknownApi = static fn (string $endpoint, bool $paginate = false): ?array => $unknownVisibility[$endpoint] ?? null;
+    if (releaseSetupLiveErrors($request, dirname(__DIR__), $unknownApi, $attest, $audit, $now) === []) {
+        throw new RuntimeException('source with unknown visibility accepted');
     }
     $falseRequest = $request;
     $falseRequest['proposal']['payloads'][0]['sha256'] = str_repeat('0', 64);
@@ -457,6 +483,7 @@ try {
     $probeEnv['GITHUB_RUN_ID'] = '123';
     $probeEnv['GITHUB_RUN_ATTEMPT'] = '1';
     $probeEnv['GH_TOKEN'] = 'fixture';
+    $probeEnv['GITHUB_OUTPUT'] = $dir.'/github-output';
     if ($run(['bash', '-c', $probeRun], $dir, $probeEnv)[0] !== 0) {
         throw new RuntimeException('local setup permission probe failed');
     }
