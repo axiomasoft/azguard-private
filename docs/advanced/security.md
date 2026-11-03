@@ -18,8 +18,8 @@ requires repository entitlement where applicable; an unavailable analysis or upl
 the release rather than substituting Zizmor or actionlint. Entitlement must be verified on
 the private repository before a release candidate.
 
-Zizmor audits `.github/workflows`, `packages/core/.github/workflows`, and
-`packages/filament/.github/workflows` with the pedantic persona at medium severity and above.
+Zizmor audits `.github/workflows` and `packages/core/.github/workflows`
+with the pedantic persona at medium severity and above.
 The reusable `secret-scan.yml` runs Gitleaks 8.30.1 on the checkout as a directory and on
 Git patches reachable from the candidate SHA, including first-parent merge diffs; it does
 not scan unrelated refs. The secondary `security.yml` history job instead scans `--all`

@@ -84,7 +84,7 @@ export default defineConfig({
   title: 'AzGuard',
   description: 'Code-first authorization for Laravel: roles as classes, permissions as enums, one decision pipeline.',
   base,
-  srcExclude: ['adr/**', '05_AI/**', 'advanced/p1-grok-disposition.md', 'advanced/p2-grok-disposition.md'],
+  srcExclude: ['adr/**', '05_AI/**'],
   head: [['link', { rel: 'icon', type: 'image/png', href: `${base}favicon.png` }]],
   themeConfig: {
     logo: '/logo.png',

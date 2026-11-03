@@ -4,7 +4,7 @@
 
 This monorepo develops AzGuard 2.0, with `2.0.0-rc.1` planned before `2.0.0`.
 The historical 1.0 changelog does not establish whether that version was published
-or consumed; treat it as potentially consumed. See [RELEASING.md](RELEASING.md#versioning-lockstep)
+or consumed; treat it as potentially consumed. See [RELEASING.md](RELEASING.md#versioning)
 for the publication evidence and qualification required before choosing a release SHA.
 
 | Path | What it is |

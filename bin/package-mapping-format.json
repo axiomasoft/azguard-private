@@ -1,6 +1,0 @@
-{
-  "schema": "azguard.package-mapping.local.v1",
-  "required": ["schema", "qualification", "monorepo_sha", "package", "exported_tree_git_sha1", "transform", "split_commit", "split_tag", "split_tag_peeled_sha", "zip_sha256", "source_sbom_sha256", "qualification_references", "workflow_sha", "run_id", "run_attempt"],
-  "qualification": "nonrelease",
-  "compatibility_fixture": "bin/package-mapping-compat.json"
-}

@@ -4,15 +4,7 @@ Migration instructions for `axiomasoft/azguard` and the monorepo's Filament inte
 
 The planned core release artifact set includes `source-core.cdx.json`, `sbom-core.cdx.json`, `resolution-core.lock`
 and `mapping-core.json` alongside the core archive and checksums. Release publication requires verified setup,
-signed tags and artifact attestations as
-described in `RELEASING.md`.
-Local mapping reports use `azguard.package-mapping.local.v1`; they deliberately contain no release qualification
-or attestation and must not be consumed as proof of either.
-Provider snapshot comparisons use `azguard.provider-archive.local.v1` and cover only the exact local ZIP or tar.gz
-bytes supplied to the command. They are unsigned and do not authenticate a provider or resolve consumer dependencies.
-The core-only offline worktree rehearsal uses `azguard.package-evidence.offline-fixture.v2`; its synthetic dependency
-graph and empty attestation list are not release evidence. The earlier v1 format is retained as historical. Use an
-empty output directory and a pre-cached pinned validator.
+signed tags and artifact attestations as described in `RELEASING.md`.
 
 ## From 1.x to 2.0
 
@@ -173,9 +165,9 @@ your code. Each line is `Find: <grep pattern> → Replace: <new form>`.
 - Find: `->bindToStorage(` or `$model->storage()` on a `Permission`, `PermissionGrant` or `RoleGrant` subclass → Replace: nothing; the models carry no storage member, ask `AzGuard::storage($id)` for the `StorageDescriptor`.
 - Find: `DatabaseSource::make()->storage($storageObject)` → Replace: `->storage('<storage id>')`; the method takes the id of a configured storage only.
 
-## Schema upgrades within 1.x
+## Schema upgrades within a major line
 
-A 1.x release changes the schema only by adding migrations; a published migration is immutable
+A minor or patch release changes the schema only by adding migrations; a published migration is immutable
 (`tests/Arch/MigrationsImmutableTest.php`). Run `php artisan migrate` after updating the packages.
 
 Irreversible steps: none so far. A migration that cannot be rolled back is listed here with the release that adds it,

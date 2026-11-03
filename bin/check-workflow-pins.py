@@ -50,23 +50,18 @@ REVIEWED_WORKFLOWS = {
     'tests-nightly.yml': 'f8a9a70f743fd556b8907537fa45c959d6f55b187d98d0f3d87bd9152a98021c',
     'tests.yml': '411026df0df548c929ace048667c08378504b0a2334438de20e9007ff045f07d',
     'workers.yml': '634ddc2c89a314f7843468b795965adc671640d0555acde3dce52ea9be82d3fc',
-    'zizmor.yml': '61d9b94bd9361c929268dd58d7572afbfeb52729c37e8c3b93c676c37e837047',
+    'zizmor.yml': '8ff0493fa73450bedaf12224a0824143f9e1efcc308bd19d10d11f8f98ec0d57',
 }
 # Set each digest only after independent review of the exact package workflow.
 # Until then these required workflows deliberately fail closed.
 REVIEWED_PACKAGE_WORKFLOWS = {
     'packages/core/.github/workflows/provenance.yml': '168075f4a2979dfdf28fcc8054e12db7cd9b510d05193fc3a227bfec5eca2615',
-    'packages/filament/.github/workflows/provenance.yml': 'd17d1c5907784c80b7f369136763724b32ed5e64ff33783279fa8c6d9eb873d5',
     'packages/core/.github/workflows/attestation-setup.yml': '391d114c659e92b0abe3f99a6f266f4f842bfb642f01d26fb5b5e0a7dd5768f8',
-    'packages/filament/.github/workflows/attestation-setup.yml': '391d114c659e92b0abe3f99a6f266f4f842bfb642f01d26fb5b5e0a7dd5768f8',
 }
 PACKAGE_WRITE_PERMISSIONS = {
     ('packages/core/.github/workflows/provenance.yml', 'provenance'): {'id-token', 'attestations'},
     ('packages/core/.github/workflows/provenance.yml', 'relay-final-artifacts'): {'id-token', 'attestations'},
-    ('packages/filament/.github/workflows/provenance.yml', 'provenance'): {'id-token', 'attestations'},
-    ('packages/filament/.github/workflows/provenance.yml', 'relay-final-artifacts'): {'id-token', 'attestations'},
     ('packages/core/.github/workflows/attestation-setup.yml', 'probe'): {'id-token', 'attestations'},
-    ('packages/filament/.github/workflows/attestation-setup.yml', 'probe'): {'id-token', 'attestations'},
 }
 UNTRUSTED = re.compile(r'\$\{\{.*?(?:\bgithub\b|\binputs\b|\benv\b)', re.I | re.S)
 # Only these action inputs are known to consume the value as data, not script.

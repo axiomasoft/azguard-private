@@ -45,7 +45,7 @@ class ResultTests(unittest.TestCase):
         self.assertFalse(self.check(scanner='zizmor'))
         record = json.loads(self.metadata.read_text())
         self.assertEqual(
-            'GitHub Actions workflows in .github/workflows, packages/core/.github/workflows, and packages/filament/.github/workflows; pedantic, medium and higher',
+            'GitHub Actions workflows in .github/workflows and packages/core/.github/workflows; pedantic, medium and higher',
             record['scope'],
         )
 

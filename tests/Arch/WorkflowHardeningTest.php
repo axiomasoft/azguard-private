@@ -35,13 +35,13 @@ it('finds no violation in root or package workflows', function (): void {
         $violations = [...$violations, ...workflowFileViolations($file)];
     }
 
-    expect($files)->toContain($root.'/packages/core/.github/workflows/provenance.yml', $root.'/packages/filament/.github/workflows/provenance.yml')
+    expect($files)->toContain($root.'/packages/core/.github/workflows/provenance.yml')
         ->and($violations)->toBe([]);
 });
 
 it('rejects an unsafe package workflow and a package omitted from the scanner', function (): void {
     $root = dirname(__DIR__, 2);
-    foreach (['core', 'filament'] as $package) {
+    foreach (['core'] as $package) {
         $path = $root."/packages/{$package}/.github/workflows/provenance.yml";
         $raw = (string) file_get_contents($path);
         // The production workflow is a fail-closed stub with no checkout.
@@ -59,11 +59,9 @@ it('rejects an unsafe package workflow and a package omitted from the scanner', 
     $workflow = Yaml::parseFile($root.'/.github/workflows/zizmor.yml');
     $run = $workflow['jobs']['zizmor']['steps'][1]['run'];
     $coversPackages = static fn (string $command): bool => str_contains($command, 'packages/core/.github/workflows/')
-        && str_contains($command, 'packages/filament/.github/workflows/');
+        && ! str_contains($command, 'packages/filament/.github/workflows/');
     expect($coversPackages($run))->toBeTrue();
-    foreach (['core', 'filament'] as $package) {
-        expect($coversPackages(str_replace("packages/{$package}/.github/workflows/", '', $run)))->toBeFalse();
-    }
+    expect($coversPackages(str_replace('packages/core/.github/workflows/', '', $run)))->toBeFalse();
 });
 
 it('runs CodeQL, secret-scan, security, zizmor, static-analysis and code-style on the same push branches as the test workflow', function (): void {
@@ -143,9 +141,10 @@ it('allows only the listed continue-on-error step and the listed write permissio
         ->and($write('release.yml', 'release', ['packages' => 'write']))->toBe(['write-permission'])
         ->and($write('release.yml', 'provenance', ['id-token' => 'write', 'attestations' => 'write']))->toBe(['write-permission'])
         ->and($write('packages/core/.github/workflows/provenance.yml', 'provenance', ['id-token' => 'write', 'attestations' => 'write']))->toBe([])
-        ->and($write('packages/filament/.github/workflows/provenance.yml', 'relay-final-artifacts', ['id-token' => 'write', 'attestations' => 'write']))->toBe([])
+        ->and($write('packages/core/.github/workflows/provenance.yml', 'relay-final-artifacts', ['id-token' => 'write', 'attestations' => 'write']))->toBe([])
         ->and($write('packages/core/.github/workflows/attestation-setup.yml', 'probe', ['id-token' => 'write', 'attestations' => 'write']))->toBe([])
-        ->and($write('packages/filament/.github/workflows/attestation-setup.yml', 'probe', ['id-token' => 'write', 'attestations' => 'write']))->toBe([])
+        ->and($write('packages/filament/.github/workflows/provenance.yml', 'relay-final-artifacts', ['id-token' => 'write', 'attestations' => 'write']))->toBe(['write-permission'])
+        ->and($write('packages/filament/.github/workflows/attestation-setup.yml', 'probe', ['id-token' => 'write', 'attestations' => 'write']))->toBe(['write-permission'])
         ->and($write('packages/core/.github/workflows/attestation-setup.yml', 'other', ['id-token' => 'write']))->toBe(['write-permission'])
         ->and($write('packages/another/.github/workflows/attestation-setup.yml', 'probe', ['id-token' => 'write']))->toBe(['write-permission'])
         ->and($write('attestation-setup.yml', 'probe', ['id-token' => 'write']))->toBe(['write-permission'])

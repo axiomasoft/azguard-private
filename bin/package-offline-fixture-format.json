@@ -1,7 +1,0 @@
-{
-  "schema": "azguard.package-evidence.offline-fixture.v1",
-  "required": ["schema", "qualification", "source", "base_commit", "version", "consumer_graph", "attestations", "split_mapping", "packages"],
-  "packages": ["core", "filament"],
-  "qualification": "nonrelease",
-  "compatibility_fixture": "bin/package-offline-fixture-compat.json"
-}

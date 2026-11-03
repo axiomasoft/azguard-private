@@ -168,7 +168,7 @@ function releaseGateErrors(array $data): array
     $scopes = [
         'codeql-actions' => 'CodeQL Actions extraction across the checked-out repository',
         'codeql-javascript-typescript' => 'CodeQL JavaScript/TypeScript extraction across the checked-out repository, including docs/.vitepress/config.ts',
-        'zizmor' => 'GitHub Actions workflows in .github/workflows, packages/core/.github/workflows, and packages/filament/.github/workflows; pedantic, medium and higher',
+        'zizmor' => 'GitHub Actions workflows in .github/workflows and packages/core/.github/workflows; pedantic, medium and higher',
         'gitleaks-worktree' => 'Gitleaks directory scan of the checked-out worktree using the pinned rules without allowlists',
         'gitleaks-history' => 'Gitleaks git patch scan of all commits reachable from the checked-out commit, including merge changes, using the pinned rules without allowlists',
     ];

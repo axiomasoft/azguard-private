@@ -38,7 +38,7 @@
         },
         "testing-kit": {
             "src": ["packages/core/src/Testing"],
-            "tests": ["Unit/Testing", "Feature/Testing", "Contracts/Plugins", "Contracts/Consumer", "Contracts/NegativeFixturesTest.php"],
+            "tests": ["Feature/Testing", "Contracts/Plugins", "Contracts/Consumer", "Contracts/NegativeFixturesTest.php"],
             "uses": ["kernel", "storage", "sources", "changes", "authorization"]
         },
         "scopes": {
@@ -90,7 +90,7 @@
         },
         "arch": {
             "src": [],
-            "tests": ["Arch", "Unit/EngineLaneGroupingTest.php", "Unit/DatabaseLaneEnvironmentTest.php"],
+            "tests": ["Arch"],
             "uses": [],
             "always": true,
             "tail": true

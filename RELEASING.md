@@ -48,7 +48,7 @@ baseline commit with `git show` and never loads baseline code. A break exits 1 w
 
 The baseline is:
 
-- **before the first stable tag** — the `candidate` sha in `compatibility.json`. The release that freezes a candidate
+- **before the first stable tag** — the `major_candidate` sha in `compatibility.json`. The release that freezes a candidate
   sets it in a commit that changes only `compatibility.json` (a commit cannot name itself);
 - **afterwards** — the newest tag `vX.Y.Z` with X ≥ 1 and no pre-release suffix that is merged into the compared commit.
   The pointer is then no longer read, and a pull request cannot change a tag.
@@ -213,10 +213,8 @@ archive, SBOMs, lock, workflow SHA and run attempt. Provenance and SBOM attestat
 expected core producer identity; synthetic or unsigned local evidence is not a substitute.
 
 The previous split producer and its setup probe are disabled: staging-controlled workflow code must not receive source
-credentials. Do not install `PRIVATE_RELEASE_READ_TOKEN` or dispatch those probes. The isolated trusted-producer
-candidate in [the design](docs/specs/trusted-core-producer.md) is nonrelease and disabled; its fixtures do not prove
-remote controls or live attestation. A future distribution design must resolve these boundaries and receive separate
-authorization before any remote settings or publication.
+credentials. Do not install `PRIVATE_RELEASE_READ_TOKEN` or dispatch those probes. A future distribution design must
+resolve these boundaries and receive separate authorization before any remote settings or publication.
 If publication fails after a core tag push, preserve the run, attempt, candidate SHA, verified split SHA and logs.
 Compare any existing tag target with the verified split SHA; never delete, move or overwrite a public tag to conceal a
 partial run. An authorized retry must re-run the complete qualification and provenance path. Inspect any staging
@@ -338,7 +336,7 @@ run and independent review before publication. A successful local fixture or bui
    Run `bash bin/test-release-preflight.sh` for isolated matching, missing,
    malformed, prerelease, and working-tree-only fixtures.
    For the first stable release the qualified candidate C is not the commit that is tagged: a commit cannot name
-   itself, so the next commit C+1 sets `candidate` in `compatibility.json` to C and changes nothing else
+   itself, so the next commit C+1 sets `major_candidate` in `compatibility.json` to C and changes nothing else
    (`git diff --name-only C C+1 -- . ':!plans'` prints only `compatibility.json`). Run `composer api:compat`,
    `bash bin/compat-drill.sh --baseline=C` and `bash bin/release-preflight.sh 2.0.0 HEAD` on C+1 and wait for its CI
    before tagging. The release run on the tag compares C+1 with C: a tag on the compared commit is never its own

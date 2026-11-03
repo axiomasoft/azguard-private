@@ -60,8 +60,8 @@
             "Composer\\Config::disableProcessTimeout",
             "@php bin/test-changed.php"
         ],
-        "test:unit": "vendor/bin/pest tests/Unit",
-        "test:feature": "vendor/bin/pest tests/Feature --exclude-group=redis",
+        "test:unit": "php -d memory_limit=1G vendor/bin/pest tests/Unit",
+        "test:feature": "php -d memory_limit=1G vendor/bin/pest tests/Feature --exclude-group=redis",
         "test:redis": "php -d memory_limit=1G vendor/bin/pest --ci --fail-on-skipped --group=redis",
         "test:replica": "bash tests/Engines/Support/replica-fixture.sh",
         "lint": "vendor/bin/pint",

@@ -1,7 +1,0 @@
-{
-  "schema": "azguard.release.setup-request.v1",
-  "required": ["schema", "candidate_sha", "remote_changes_authorized", "status", "observations", "proposal"],
-  "candidate_sha": null,
-  "remote_changes_authorized": false,
-  "compatibility_fixture": "bin/release-setup-compat.json"
-}

@@ -18,9 +18,7 @@ const WORKFLOW_WRITE_PERMISSIONS = [
     'codeql.yml' => ['analyze' => ['security-events']],
     'dependabot-auto-merge.yml' => ['auto-merge' => ['pull-requests'], 'sweep' => ['pull-requests']],
     'packages/core/.github/workflows/provenance.yml' => ['provenance' => ['id-token', 'attestations'], 'relay-final-artifacts' => ['id-token', 'attestations']],
-    'packages/filament/.github/workflows/provenance.yml' => ['provenance' => ['id-token', 'attestations'], 'relay-final-artifacts' => ['id-token', 'attestations']],
     'packages/core/.github/workflows/attestation-setup.yml' => ['probe' => ['id-token', 'attestations']],
-    'packages/filament/.github/workflows/attestation-setup.yml' => ['probe' => ['id-token', 'attestations']],
 ];
 
 /** The longest an allowlist entry may live, in days from the day it is checked. */
@@ -34,7 +32,7 @@ function workflowHardeningViolations(string $file, string $raw, array $parsed): 
 {
     $name = basename($file);
     $permissionName = $name;
-    foreach (['core', 'filament'] as $package) {
+    foreach (['core'] as $package) {
         foreach (['provenance.yml', 'attestation-setup.yml'] as $workflow) {
             $packagePath = "packages/{$package}/.github/workflows/{$workflow}";
 

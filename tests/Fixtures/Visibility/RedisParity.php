@@ -78,7 +78,7 @@ final class RedisParity
                 app()->instance('redis', $previous);
                 config($original);
                 AuditAutomaticRole::$enabled = $enabled;
-                foreach ($manager->connections() as $connection) {
+                foreach ($manager->connections() ?? [] as $connection) {
                     $connection->disconnect();
                 }
                 $manager->purge('parity');

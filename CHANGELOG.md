@@ -6,104 +6,11 @@ version) are documented here. Format: [Keep a Changelog](https://keepachangelog.
 
 ## [Unreleased]
 
-- Restore signed array-cache reads on Laravel 12.0 while rejecting malformed or unsigned values before deserialization.
-- Current work is local to the monorepo: neither core nor Filament is being split, tagged or published. Earlier
-  core-only release preparation remains deferred and does not authorize remote configuration or publication.
-- The core-only offline archive rehearsal uses `azguard.package-evidence.offline-fixture.v2`; the previous v1 format is
-  retained as historical evidence. Its synthetic dependency graph is not release qualification.
-- Release evidence schema `urn:azguard:release-evidence:2` records the core-only artifact and split; the earlier v1
-  schema remains supported for historical two-package evidence.
-
-- The release setup verifier accepts `--setup=PATH --read-only --strict` as well as the existing `--setup [PATH]` form;
-  setup verification remains read-only and strict in both forms.
-- Release setup probes support public and private source repositories and bind their visibility to the verification
-  result, requiring fresh probes after a visibility change.
-- Gate package splitting on verified release setup and disable the unverified public final-artifact relay.
-  Release setup and qualification must be completed before publication. GitHub-generated snapshots and Composer
-  GitHub zipballs remain separate from the signed release ZIP assets.
-- Release artifact builds now add a CycloneDX source file inventory for each ZIP and validate it and each resolved
-  dependency SBOM against the CycloneDX schema. Each dependency SBOM is checked against its retained audited lock and
-  describes that resolved consumer graph only.
-- Local package mapping can compare the tagged split tree and rebuilt ZIP members with the monorepo and record a
-  nonrelease, unsigned result. The partial candidate evidence checker does not authenticate its input.
-- Release validation now requires a signed annotated tag from the owner-configured signing fingerprint.
-- The former split ZIP producers and their setup probes are disabled pending an independently verified trust boundary.
-- Bind each release ZIP to its source and resolved SBOMs, consumer lock and package mapping; verify the public split
-  provenance, both SBOM predicates and mapping predicate before package publication.
-- Add a nonrelease comparison of individual provider ZIP and tar.gz snapshots against a Git export, with a validated
-  source inventory and checksums for the exact copied bytes. Provider identity and future downloads remain unproven.
-- Add an offline worktree archive rehearsal with validated fixture SBOMs, checksums and explicitly nonrelease mapping;
-  it does not resolve consumer dependencies or create attestations.
-
-- Add operator-owned restore, cache signing rotation and monitoring acceptance runbooks, with a disposable
-  SQLite/isolated Redis drill and negative controls. The drill accepts `--fixture=disposable` and `--report=build/PATH.json`
-  for a versioned JSON outcome while preserving the previous invocation forms. Host Redis isolation and alert delivery
-  still need deployment evidence.
-
-- Make the maintainer email the canonical private security contact while public advisory reporting is unverified;
-  add public Composer security-policy links, publication-aware 2.x/main support without a 1.x LTS/SLA promise,
-  coordinated disclosure and release/signing/cache key compromise guidance. Prepare the docs site's `security.txt`
-  for deployment; the live endpoint remains unverified until deployment and an HTTP check.
-
-- Align 2.0 installation, split READMEs and compatibility docs with the five supported PHP/Laravel pairs,
-  Filament `^5.8.4` and exact core/plugin versions. Complete the API/SPI, cache and machine-format migration notes.
-- Auto compatibility comparison now stays within major 2, refuses a HEAD baseline and verifies a generated
-  old-candidate-to-2.0 migration inventory. Preserve the former candidate unchanged; the new pinned candidate
-  establishes the 2.x contract without treating known major-transition breaks as same-major regressions.
-
-- The upgrade drill can dispatch reviewed fixtures for inventoried baselines, verify artifact hashes and reject missing
-  checkpoints; its report lists successful fixture logs. An empty inventory remains unavailable and nonzero. The
-  reconstructed candidate schema is a separate rehearsal and does not qualify a published upgrade.
-
-- Load bench results add an optional hashed host identity; the comparator refuses older results without it and now
-  gates stable matched p95 and throughput regressions. Rerun the baseline on the same host before comparing;
-  the old `--ratio` and `--delta-us` comparator options have been removed in favour of the fixed project policy.
-- Bench stage results may contain per-repetition worker measurements for memory and contention diagnostics; readers
-  of older result files should treat the new `measurements` field as optional.
-- Release ZIPs use canonical container metadata so the public split workflow can attest the exact archive digest.
-- Remove mutation testing workflows, commands and release gate by maintainer decision.
-
-- Development instructions identify the planned 2.0 release line and distinguish historical 1.0 notes from publication evidence.
-- Filament bulk and export preflight checks finish bounded record queries before nested authorization queries,
-  so authorized operations also work with unbuffered MySQL and MariaDB connections.
-- Qualification preflight rejects a coverage PHP fallback missing the selected database or Redis extension.
-  The trust model now describes the implemented signed-cache boundary and its remaining replay limits.
-- Filament export authorization now follows the export action class when renamed; custom callbacks named `export`
-  retain their own action permission. Custom bulk callbacks refuse non-scalar deselected keys before execution.
-- The role-assignment host example reloads records and membership from primary and explicitly qualifies actor
-  authority on primary, including when the application's read PDO still has the old membership.
-- Shared permission-set keys now include the signing namespace. Invalid entries are removed only when their
-  bytes still match the rejected value, preserving concurrent Redis replacements and separate applications.
-- Doctor reports configured Redis client serialization and compression that disable shared permission sets.
-  Redis URL and cluster options follow Laravel's option precedence, including explicit overrides to NONE
-  and fallback to the default connection when the cache connection is null or empty.
-- Worker memory qualification checks early RSS growth and queue jobs as well as the final HTTP window.
-  Its JSON report counts measured queue jobs separately from warmup.
-- Exact visibility for resources without a scope mapping ignores concrete assignments, including the `global`
-  scope alias, while retaining tenant-wide grants and the usual validation for mapped resources.
-- Shared permission-set reads now retain reconstructed factory values, detaching serialized decision-field
-  references before placing contributions in request memo storage.
-- Source contract tests offer an optional mutation fixture for checking fenced grant and revoke state, including
-  no-op writes and raw authority, and a finite-universe fixture for scalar, batch and visibility parity. Existing
-  consumers need no new methods; configure the hooks to exercise those capabilities.
-- Source parity fixtures can supply an `expected` map to detect agreement on incorrect authorization; parity
-  callbacks must return boolean decisions rather than truthy values.
-- `RelationSource` now rereads host membership for each check, so membership revoked during a request is not reused.
-  This may increase membership queries compared with request-level reuse.
-- Permission-set cache reads avoid cache-driver object deserialization before signature verification. Shared caching
-  now bypasses unsupported stores and Redis connections with client-side serialization or compression enabled;
-  use an uncompressed, non-serializing Redis connection for shared caching.
-
-Core target: **2.0.0-rc.1**, followed by **2.0.0**. The Filament package is not currently in publication scope. The 1.0.0 entry below is a historical
-release claim; publication and consumption are not established by that claim alone. Treat 1.0 as potentially
-consumed. A timestamped inventory of repository tags, releases and package publication state was recorded;
-retain the inventory snapshot with the release evidence as described in [RELEASING.md](RELEASING.md).
-The release SHA will be selected after the remaining code and qualification work.
+Core target: **2.0.0-rc.1**, followed by **2.0.0**. The Filament package is not in publication scope; current work is local to the monorepo. The 1.0.0 entry below is a historical release claim; treat 1.0 as potentially consumed and retain the timestamped inventory snapshot with release evidence as described in [RELEASING.md](RELEASING.md).
 
 ### Upgrading to 2.0
 
 - Use `SubjectAccess::onPrimary()` or `AccessRequest::onPrimary()` for sensitive authority reads on replica-default panels. Reload host records from primary and keep `StateRefresh::Check`; coordinate concurrent revokes and host effects when atomicity is required.
-
 - Enforcing Filament panels require `consistency.reads: primary` for writes and exports. The shared export download
   route is refused, including for legacy exports and other panels, because it cannot reconstruct row authorization;
   applications replacing it must reauthorize the actor, original context and every exported record before download.
@@ -132,20 +39,28 @@ The release SHA will be selected after the remaining code and qualification work
   `@phpstan-type` records. Update command snapshot consumers for option mode and repeatability; review machine-format
   fixtures and consumers against the 2.0 baseline before replacing that baseline through the release process.
 
+### Added
+
+- **core:** Machine-readable source capability matrix, with conditional semantics and doctor warnings for declared
+  visibility and stable-cache limitations, without a new mandatory source method.
+- **core:** Automatic roles can opt into exact visibility with `SelectsAutomaticRoleScopes`, an additive SPI requiring a
+  complete finite scope selection. Existing roles remain valid and unsupported exact selections still fail closed.
+- **core:** Source contract tests offer an optional mutation fixture for checking fenced grant and revoke state, including
+  no-op writes and raw authority, and a finite-universe fixture for scalar, batch and visibility parity.
+- **core:** A list field in its own JSON column (`Field::multiple()` without `inMeta()`), stored as JSON text and compared as a list.
+- **core:** `FieldSchema::$required`, `$multiple`, `$valueClass`; `PermissionManager::create(description:)`;
+  `RelationSource::make(name:)`, so two sources of one scope type can share a panel.
+- **docs:** Security and trust model with enforcement locations, proof obligations, and explicit limits
+  for cache integrity, actor attribution, replica freshness and check/use atomicity, plus operator-owned restore,
+  cache signing rotation and monitoring acceptance runbooks.
+
 ### Changed
 
-- Qualification preflight fails on dirty source trees, remote Docker endpoints, mismatched Compose configurations,
-  masked database storage and unowned Redis volumes. Replica readiness verifies cluster and upstream identity;
-  invalid lane switches or Redis prefixes fail before client probes, and report replacement is atomic.
-- CI jobs installing the development lock use PHP 8.4, matching its dependency requirements; the supported PHP
-  version matrix continues to resolve dependencies independently.
-
-- Qualification preflight emits the versioned `azguard.qualification.preflight.v1` JSON baseline, verifies SQLite migrations in memory, and checks owned test stands and server migration state. Redis namespace remains a separate runtime gate; retain the report alongside qualification evidence.
-
+- **core, filament:** Laravel 11 is no longer supported; the packages require Laravel 12 or 13 (`illuminate/*` `^12.0|^13.0`)
+  and PHP 8.3–8.5, with Filament `^5.8.4`.
+- **core:** `RelationSource` now rereads host membership for each check, so membership revoked during a request is not reused.
 - **core:** `azguard:doctor` reports a missing `catalog.build_id` in production as an error (not a warning) when the
   catalog cache file exists or a panel uses a persistent cache store; the check key and finding id are unchanged.
-- **core, filament:** Laravel 11 is no longer supported; the packages require Laravel 12 or 13 (`illuminate/*` `^12.0|^13.0`).
-  The Laravel 11 fallbacks of the contract kit and the optimize registration are removed.
 - **core:** `StorageDescriptor::$connection` is the name of the connection the storage resolved to (`string`, no longer
   `?string`); a later change of the default connection no longer moves Audit prune, migrations or doctor.
 - **core:** `DoctorContext::storages()` returns `list<StorageDescriptor>`; `DoctorContext::config()` and the
@@ -159,32 +74,41 @@ The release SHA will be selected after the remaining code and qualification work
   or the ability the relation manager declares with `$azguardRelationAbility`; reading alone no longer changes a relation.
 - **filament:** The widgets of a resource are keys of the panel, and in a panel that enforces a widget that no key
   names and no trait decides is refused with 403 when it is mounted.
+- **filament:** Export authorization follows the export action class when renamed; custom callbacks named `export`
+  retain their own action permission. Bulk and export preflight checks finish bounded record queries before nested
+  authorization queries so they work with unbuffered MySQL and MariaDB connections.
 - **api:** The manifest records return-by-reference and `@phpstan-type` definitions, and the commands snapshot records
-  each option's mode and repeatability; the compatibility baseline must be replaced for these.
+  each option's mode and repeatability; auto compatibility comparison stays within major 2, refuses a HEAD baseline and
+  verifies the generated migration inventory.
+- **ci:** Remove mutation testing workflows, commands and release gate by maintainer decision; qualification preflight,
+  worker memory checks, load bench comparator and release artifact/SBOM verification are hardened.
 
 ### Fixed
 
-- **filament:** Custom bulk actions reject inconsistent select-all and explicit-key state before invoking callbacks.
-- **core:** Automatic roles can opt into exact visibility with `SelectsAutomaticRoleScopes`, an additive SPI requiring a
-  complete finite scope selection. Existing roles remain valid and unsupported exact selections still fail closed.
-
+- **core:** Restore signed array-cache reads on Laravel 12.0 while rejecting malformed or unsigned values before deserialization.
+- **core:** Shared permission-set reads retain reconstructed factory values, detaching serialized decision-field
+  references before placing contributions in request memo storage.
+- **core:** Exact visibility for resources without a scope mapping ignores concrete assignments, including the `global`
+  scope alias, while retaining tenant-wide grants and the usual validation for mapped resources.
 - **core:** `visibleTo()` no longer lists records that `decide()` refuses: a restriction or policy that reads
   `EvaluationContext::matchingGrants()` makes the query throw `VisibilityNotSupportedException` instead of seeing an
   empty list, and a custom `resolve()` is checked even when the scope has no tenant owner.
 - **core:** `decideMany()` no longer shares a verdict between grant fields `1` and `1.0`, and accepts binary strings in fields.
 - **core:** The directory of a queryable scope offers only contexts its `resolve()` accepts.
+- **filament:** Custom bulk actions reject inconsistent select-all, explicit-key and non-scalar deselected-key state before invoking callbacks.
 - **filament:** `ViewRole` checks `view` again on every refresh; the generator imports two classes of one basename under
   different names and refuses a result PHP cannot parse; grant pages read each subject label once.
 
-### Added
+### Security
 
-- **core:** Machine-readable source capability matrix, with conditional semantics and doctor warnings for declared
-  visibility and stable-cache limitations, without a new mandatory source method.
-- **docs:** Security and trust model with enforcement locations, P2–P6 proof obligations, and explicit limits
-  for cache integrity, actor attribution, replica freshness and check/use atomicity.
-- **core:** A list field in its own JSON column (`Field::multiple()` without `inMeta()`), stored as JSON text and compared as a list.
-- **core:** `FieldSchema::$required`, `$multiple`, `$valueClass`; `PermissionManager::create(description:)`;
-  `RelationSource::make(name:)`, so two sources of one scope type can share a panel.
+- **core:** Permission-set cache reads verify a signed HMAC envelope (`SignedEnvelope` v2) before payload decoding and avoid
+  cache-driver object deserialization. Shared caching bypasses unsupported stores and Redis connections with client-side
+  serialization or compression enabled, includes the signing namespace in keys, and removes invalid entries only when
+  their bytes still match the rejected value.
+- **core:** Doctor (`cache.integrity`) reports missing namespaces/keys and configured Redis client serialization or
+  compression that disable shared permission sets, following Laravel's Redis URL and cluster option precedence.
+- **policy:** Set the maintainer email as the canonical private security contact while public advisory reporting is unverified;
+  add public Composer security-policy links, coordinated disclosure, and release/signing/cache key compromise guidance.
 
 ## [1.0.0] - 2026-10-14
 
