@@ -6,6 +6,11 @@ version) are documented here. Format: [Keep a Changelog](https://keepachangelog.
 
 ## [Unreleased]
 
+- Add operator-owned restore, cache signing rotation and monitoring acceptance runbooks, with a disposable
+  SQLite/isolated Redis drill and negative controls. The drill accepts `--fixture=disposable` and `--report=build/PATH.json`
+  for a versioned JSON outcome while preserving the previous invocation forms. Host Redis isolation and alert delivery
+  still need deployment evidence.
+
 - Make the maintainer email the canonical private security contact while public advisory reporting is unverified;
   add public Composer security-policy links, publication-aware 2.x/main support without a 1.x LTS/SLA promise,
   coordinated disclosure and release/signing/cache key compromise guidance. Prepare the docs site's `security.txt`

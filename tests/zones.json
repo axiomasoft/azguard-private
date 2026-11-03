@@ -90,7 +90,7 @@
         },
         "arch": {
             "src": [],
-            "tests": ["Arch"],
+            "tests": ["Arch", "Unit/EngineLaneGroupingTest.php", "Unit/DatabaseLaneEnvironmentTest.php"],
             "uses": [],
             "always": true,
             "tail": true

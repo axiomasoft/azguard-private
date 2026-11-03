@@ -236,6 +236,32 @@ unqualified; a passing documentation build does not establish application securi
 
 ## Incident response
 
+### Operational key compromise
+
+The incident owner fences traffic and workers if authority integrity is uncertain, inventories affected deployments
+and preserves protected logs without copying secret values into tickets. For an exposed cache signing key, assume
+accepted authority may have been forged: revoke access to the leaked secret, issue a new key/ID, remove the leaked
+ID from **all** verification sets immediately and move every instance to a new namespace/generation. Unlike a
+planned rotation, do not allow an overlap for the compromised key. Restart workers, warm from trusted primary
+sources, check expected allow/deny identities and production Doctor, and reopen only after deployment evidence
+shows no instance still accepts the old key. Expiring Redis entries or resetting state alone does not revoke a signer.
+
+If Redis credentials leaked, rotate/restrict those credentials, verify ACL/TLS/network isolation and inspect
+deletion, replay and availability effects. HMAC prevents an unkeyed Redis writer from forging accepted authority,
+but neither encrypts cached payloads nor restores availability. If backend/database/source or secret delivery is
+compromised, signatures cannot establish correct authority: recover that trust boundary and reconcile grants first.
+
+For `MONOREPO_SPLIT_TOKEN`, registry, deploy or release-signing compromise, revoke the credential at its issuer,
+pause affected publishing, inventory reachable repository/package/tag changes and review provenance for the exact
+SHAs. Prepare a replacement with the minimum required destinations and permissions; applying remote settings or
+registering a token needs its separate owner gate. A local runbook or dry run grants no publication authority.
+Supersede a suspect published artifact with a new authorized release; never overwrite a tag. Follow the
+[key compromise policy](../security.md#key-compromise-response) and preserve the incident record.
+
+Use the [restore and rotation runbooks](./operations.md#manual-database-changes-and-restores) for the concrete
+recovery order. The disposable drill uses generated test keys; it does not validate secret-manager revocation,
+production ACL changes or split-token registration.
+
 The [reporting and support policy](../security.md) defines the private contact, supported lines and coordinated
 disclosure process. The single maintainer targets acknowledgement within 3 business days, without a contractual SLA.
 

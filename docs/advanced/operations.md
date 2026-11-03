@@ -2,6 +2,12 @@
 
 ## Deployment checklist
 
+The host deployment owner records the application SHA, dependency lock hash, database/storage/panel inventory,
+cache namespace and generation, key IDs (never key bytes), backup ID, monitoring owner and rollback pair before
+starting. These steps require the host's normal deployment authorization. They do not provision Redis or alerts.
+Fence ingress, scheduled writers and queue/Octane workers at the host before migrations or recovery. Laravel
+maintenance mode alone does not stop queue workers, bypass requests or another application writing the same database.
+
 ```bash
 php artisan migrate --force
 php artisan azguard:catalog:cache          # static catalogs of all panels → bootstrap/cache/azguard.php
@@ -14,6 +20,7 @@ php artisan azguard:doctor --production    # also checks the catalog cache and t
   an error when the catalog cache file exists or a panel uses a persistent cache store, and as a warning otherwise:
   use an immutable id such as the commit SHA or the image digest.
 - **Rollback.** After a code rollback, run `azguard:catalog:cache` again or `azguard:catalog:clear`.
+  Keep traffic fenced until compatible configuration, signing keys, primary smoke checks and production Doctor pass.
 - **CI.** Run `php artisan azguard:doctor` in CI. It exits with `1` on errors and checks the configuration,
   panels, storages, sources, plugins and morph aliases.
 
@@ -108,7 +115,9 @@ is used concurrently.
   to the job explicitly. Request-only tenant and assignment scope resolvers receive an empty `Request` outside HTTP;
   absent values resolve to global when optional and deny when required. A carried panel id is only a hint.
 - **Actor in jobs.** Wrap changes in `AzGuard::actingAs($user or 'reason', …)` so events and the audit journal
-  record who made them.
+  record who made them. A string actor is trusted backend attribution, not proof that a user is authorized.
+  Authenticate/reload user actors and authorize actor, target, role, tenant and scope in a host service before a
+  change. Retried jobs must revalidate that policy; never trust actor or panel IDs supplied by an HTTP caller.
 
 The repository's disposable archive consumer exercises one Octane/RoadRunner worker and one queue worker:
 `bash bin/worker-smoke.sh smoke` sends 1,000 requests and 1,000 jobs. `memory` runs 200 warmup requests and jobs followed
@@ -155,19 +164,126 @@ After a restore or manual grant-table change, **reset every affected panel befor
 php artisan azguard:state:reset admin --force  # repeat for each affected panel in production
 ```
 
-Quiesce requests, writers and workers first. Restore the consistent database backup together with its compatible
-code and dependency lock, and restore or reset external authorization sources according to their own contracts.
-Run the command against the primary for every affected panel; it starts a new incarnation and raises the epoch.
-Invalidate external caches and restart long-running workers, then run Doctor and check representative allow and deny
-decisions before reopening traffic. Verify the restored audit history against the backup and account for the new
-`panel.touched` reset event; changes made after the backup are not recovered by the restore. A failed reset or
-verification keeps traffic closed. A major downgrade is a restoration of a compatible code, lock and backup pair,
-not a reverse 2.0-to-1.x migration.
+Use this order; a failure at any step leaves the host maintenance fence closed:
 
-To drop every cached permission set at once, raise `cache.generation`. During key rotation, coordinate signing keys
+1. Stop ingress, all writers and workers, and verify that none can bypass the fence. Record the incident owner,
+   affected panels/connections/external sources and the recovery point. Take a forensic copy if needed. Restore-test
+   a consistent backup on a disposable `*_test` database before changing production. Use the database vendor's
+   consistent snapshot/restore tools; copying an open SQLite file can omit WAL data. The drill uses `VACUUM INTO`
+   for its snapshot and closes all connections before replacing its disposable SQLite file.
+2. Restore the complete compatible snapshot, code, lock, schema, identity map and source configuration. Recover
+   external authority sources under their own contracts. Verify backup hashes and sorted authority/audit inventories.
+   Account for lost post-backup writes; do not merge grants from an unrelated snapshot. A major downgrade restores
+   a compatible code/lock/database pair, rather than running a reverse 2.0-to-1.x migration.
+3. Confirm each configured writer connection targets the restored **primary** and run the reset above for **every**
+   affected panel. Record exit 0 and the new incarnation; verify the epoch advanced relative to restored state.
+   Unknown panel, wrong connection, open writer transaction or reset failure stops recovery. Reset starts its own
+   root transaction; a wrapper on another connection does not make recovery atomic. Retain the new `panel.touched`
+   audit entry attributed to `azguard:state:reset` separately from the restored audit inventory.
+4. Rotate the affected external namespace or raise each panel's `cache.generation` (`azguard.defaults.cache.generation`
+   unless overridden by the provider). Restart/recycle all workers with the compatible configuration, rebuild the
+   catalog, and warm through the host's read-only primary authorization smoke path. Warm raw permission sets, never
+   store final decisions. A cache clear alone cannot replace the state reset.
+5. Run `php artisan azguard:doctor --production --json`, save output and exit status, then check explicit expected
+   allow and deny identities: ordinary user, revoked user, outsider, foreign tenant, foreign assignment scope and a
+   failed source. Load sensitive host records from primary, use primary authority and `StateRefresh::Check`. Check
+   the affected panels and restored audit counts/hashes, plus monitoring delivery. Doctor exit 0 can contain warnings;
+   record their disposition, especially `cache.redis`. Doctor does not test network controls or alert delivery.
+6. Only the host recovery owner opens ingress and starts ordinary workers after all previous evidence passes.
+   If configuration, reset, warmup, smoke, Doctor or inventory checks fail, keep maintenance, preserve logs and repair
+   or restore the rehearsed rollback pair. Do not automatically run `artisan up` in a failed command's cleanup.
+
+To drop every cached permission set at once, raise every affected panel's `cache.generation`. During key rotation, coordinate signing keys
 across instances and follow the bounded previous-key verification procedure in [cache configuration](../reference/configuration.md).
 Invalidate the affected cache namespace, restart workers and verify decisions before traffic resumes; rehearse the
 compatible signing configuration and generation for the rollback pair without exposing signing material.
+
+## Redis isolation and signing rollout
+
+The platform owner supplies a dedicated Laravel Redis cache store and credentials for authority. Use a distinct
+physical cache prefix and `AZGUARD_CACHE_NAMESPACE` for each application/environment. Restrict the credential to
+that physical prefix, the necessary commands and the private service network; use TLS with certificate/hostname
+verification outside a local isolated drill. Set a finite panel TTL (at most 3600 seconds), an immutable build ID,
+`AZGUARD_CACHE_KEY_ID` and a secret of at least 32 decoded bytes in `AZGUARD_CACHE_SIGNING_KEY`. Store key bytes in
+the host secret manager, separate from Redis credentials and Redis contents. Without a dedicated signing key the
+runtime can derive from `APP_KEY`; production should deliver an explicit key so rotation is independent.
+
+Disable PhpRedis serialization and compression on this connection. File and other unsupported stores bypass shared
+permission-set caching. The host must configure its store, connection and prefix: there is no package-provisioned
+Redis, ACL, TLS certificate or automatic alert. The production `cache.redis` warning requires deployment evidence.
+Verify the allowed credential can GET/SET/expire its own disposable canary key and cannot access a different
+application prefix; retain only redacted results. Verify TLS failure on an untrusted certificate and denied access
+from an unauthorized network location. Invalid-envelope compare-and-delete uses `EVAL`; if ACL denies it, cleanup
+is best effort and source reload still handles the miss. Never grant administrative Redis commands for that reason.
+
+For a planned, uncompromised rotation, choose a fixed UTC deadline, for example
+`2026-12-01T12:30:00.000000Z`, covering the rollout plus the maximum entry TTL and clock skew budget:
+
+1. Deliver the new secret to **all** readers first. Keep the old active ID/key and add the new ID/key to
+   `azguard.cache.previous_keys` with a finite `valid_until`. Despite its name, this map is the additional
+   verification-key set. No writer switches yet. Rebuild host cached configuration and restart/recycle every
+   instance; verify the deployment inventory, not just one pod.
+2. Switch active `key_id`/`signing_key` together to the new pair. Remove the new ID from `previous_keys`, and put
+   the old pair there with the agreed finite UTC deadline. Never list the active ID twice. Keep namespace/generation
+   stable for this overlap; verify new writes carry the new ID, old entries work only before the deadline, and
+   malformed/unsigned entries miss and reload from primary. A source reload failure must deny.
+3. Retire all old writers before the deadline. At the exact `valid_until` instant the old signature is rejected,
+   even if its entry TTL has not expired. Remove the old key from all configs, restart workers and verify a cold
+   authoritative reload. Raise generation or change namespace when immediate invalidation is required. Do not enable
+   an unsigned fallback, extend a deadline indefinitely or log secrets while investigating misses.
+4. For rollback within a non-compromise window, rehearse compatible code with the new active key, or pre-deliver
+   both verification pairs before switching writers back. Never restore a retired compromised key or lower a
+   generation to recover an old cache. See [compromise response](./security.md#operational-key-compromise).
+
+### Retiring persistent entries
+
+Old persistent entries may have no expiry. Changing generation/namespace stops using them but does not reclaim
+memory. A namespace is hashed into permission-set keys; it is **not** a selectable physical Redis prefix. Inventory
+the full client prefix plus store prefix from the old configuration. Move active writers to a different dedicated
+physical prefix before retiring one. If a prefix is shared with other workloads, do not guess which keys are yours.
+
+On the separately authorized host Redis endpoint, first perform a read-only `SCAN MATCH <retired-prefix>* COUNT 100`
+inventory, retaining cursor checkpoints, counts and a protected key-list digest. A cursor is not a snapshot: deduplicate
+results and repeat the inventory after all old writers stop. Confirm every returned key begins with the exact retired
+prefix and inspect `PTTL` (`-1` means persistent, `-2` means already gone). Review the dry run before mutation.
+Then process at most 100 reviewed keys per batch, applying `EXPIRE <exact-key> 300` only when its current TTL is `-1`;
+alternatively delete exact reviewed keys in a separately approved batch. Recheck counts and TTLs after each batch;
+stop on an unexpected prefix, growing inventory, Redis error or new writer. Keep a rollback/cold-load capacity budget.
+Never use global `FLUSHDB`/`FLUSHALL`, `KEYS *`, or Laravel `cache:clear` against a shared store. The isolated Redis
+fixture exercises SCAN, persistent-entry expiry and an untouched foreign-prefix canary.
+
+## Disposable production runbook drill
+
+From the repository with locked development dependencies, PHP SQLite/PhpRedis and Docker available:
+
+```bash
+bash bin/production-runbook-drill.sh --fixture=disposable --report=build/runbooks/drill.json
+```
+
+The command creates a Testbench reference application, file-backed `authority_test.sqlite` snapshot, random signed
+cache namespace and its own Redis 7.4 container with `--network none`, port 0 and a private Unix socket. It accepts
+no production DSN, host, port or credentials and clears inherited service environment. Container removal runs on
+failure too; removal failure is nonzero. It retains source SHA, working diff, versions/image ID, command exits,
+Doctor output, fixture results and Redis logs under `build/production-runbook-drill/run.*`. Review a working diff
+alongside the SHA when qualifying an uncommitted tree. Secrets and payloads are never evidence.
+
+`--fixture=disposable` explicitly selects the only permitted fixture. The previous no-argument and `redis` forms
+remain valid. `--report` accepts a project-relative JSON path below `build/`; traversal and symlink escapes are
+rejected. Without it, the JSON is saved as `result.json` in the run's evidence directory. The report's
+`schema_version: 1` records `fixture`, `mode` (`redis` or `array`), `status` (`passed` or `failed`), final numeric
+`exit`, `source_sha`, `evidence_dir` and existing `logs`. It is written after cleanup, including on failures;
+setup failure before report initialization may leave no report. Automation must require both exit 0 and
+`status: passed`, and retain the referenced logs. An array-mode report does not qualify Redis transport.
+
+`bash bin/production-runbook-drill.sh --self-test` runs the same local fixtures with an array store and no Docker.
+It does not qualify Redis transport. The fixture executes the catalog cache/clear, production Doctor and forced
+state-reset commands above; tests restored-token collision before reset, failure keeping the maintenance fence
+closed, key overlap/expiry/removal, unsigned rejection, representative denials and monitoring-response rejection.
+The maintenance flag models the host fence; it does not test a load balancer or a real production worker shutdown.
+Vendor restore commands, morph migrations, the 1,000-job worker smoke and release publication have their own
+rehearsals; the local drill does not qualify them. Actual TLS/ACL/network isolation, primary topology, backups and
+alert receipt require the named deployment owners' evidence in the repository's `RELEASING.md`, under
+“Production operations acceptance”.
 
 ## Dedicated connection
 
@@ -179,19 +295,23 @@ replica can be used with `consistency(reads: Reads::Default)` if replica lag is 
 
 Denials caused by errors (`source_error`, `policy_error`, `hook_error`, …) are logged with the component and
 a stable `code`. Alert on them: they mean a broken source or policy, not a user without access.
-`azguard:explain user:42 posts.update` reproduces a single decision with secrets redacted.
+`azguard:explain` can reproduce a single decision with an explicit host identity and scope. Its output is protected
+diagnostic data, even with secret redaction; follow the [observability runbook](./observability.md).
 
 ## Observability
 
-AzGuard has no metrics API in 1.0. Each signal is available from a surface that already exists (see [Decision observability](./observability.md) for the bounded after-hook counter adapter and alert rules); a first-class metrics hook is
-a 1.1 candidate (see `ROADMAP.md`).
+Use the existing after hook and host metrics exporter (see [Decision observability](./observability.md)) to count
+bounded failure kinds. Event tracing needs separate privacy controls.
 
 | Signal | Where to read it |
 |---|---|
-| Deny and error rates | A listener on the `access.decided` event; its payload keys are in [Machine formats](/reference/formats). The payload carries no grant or meta data, so it can be logged as is |
+| Deny and error rates | The bounded after-hook counter. `access.decided` tracing is optional and includes identity/context; do not log its payload as is |
 | Grants per operation and change duration | A change participant (the Changes SPI, [Hooks and plugins](/advanced/hooks-and-plugins)) that measures around the transaction |
 | Panel-state lock wait and deadlocks | Database metrics: `pg_stat_activity` and `pg_locks` on PostgreSQL, `performance_schema.data_lock_waits` and the InnoDB deadlock counter on MySQL and MariaDB. The retry policy surfaces the exceptions it gives up on |
 | Cache invalidation latency | The state token comparison and the metrics of the cache store |
 | Consistency and read mode | The `consistency` keys of the configuration and the `consistency.reads` finding of `azguard:doctor` |
 
-Panel-level locking is unchanged before 1.0: measure the lock wait first, then decide whether finer locking is needed.
+Measure panel lock waits before changing the host's concurrency policy. A captured visibility Builder, cursor or
+pagination result can outlive a revoke. Reload a concrete sensitive record from primary and check again; strict
+check/use atomicity requires the host effect and revoke paths to share a transaction/lock/fence protocol on
+coordinated connections. An ordinary transaction on a separate connection provides no such guarantee.

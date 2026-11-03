@@ -243,6 +243,34 @@ The same script builds the files locally (`bash bin/release-artifacts.sh 2.0.0-r
 
 ## Cutting a release
 
+### Production operations acceptance
+
+Before qualifying a release candidate, retain
+`bash bin/production-runbook-drill.sh --fixture=disposable --report=build/runbooks/drill.json` evidence for the exact tree:
+source SHA plus any working diff, PHP/Laravel/Testbench/Pest and Redis image versions, command exits, restore/reset,
+rotation, denial and monitoring fixture results. The drill owns a disposable SQLite `*_test.sqlite` database and
+a network-disabled Redis container; it never accepts production endpoints. `--self-test` is local array-store
+evidence only. Missing Docker/PhpRedis/image access, skipped fixtures, timeout or nonzero exits are incomplete
+qualification. The coordinator's final qualification runs the required closure/matrix on the final candidate.
+
+For each host deployment, the deployment record must name the responsible people and link their actual evidence:
+
+| Owner | Required evidence before traffic |
+|---|---|
+| Application/deployment | Exact SHA/lock/config/build ID; all panels, storages, namespaces/generations and signing key IDs; worker restart inventory; primary allow/deny smoke checks and production Doctor output with warning dispositions |
+| Database/recovery | Compatible restore-tested backup ID/hash, recovery point and authority/audit inventory; traffic/writer fence; successful reset/new incarnation and epoch for every affected panel; rehearsed rollback pair |
+| Platform/Redis | Dedicated store/credentials and environment prefix/namespace; finite TTL; TLS certificate validation, ACL own-prefix/foreign-prefix probes and network isolation results; bounded retirement inventory if old persistent entries remain |
+| Monitoring/on-call | Installed adapter/exporter and alert rule revisions; observed contract and transient signals, scrape/telemetry absence checks; redacted notification receipt with receiver and timestamps |
+| Security/release | Signing rotation/compromise owner, retired-key rejection and current verification-key inventory; separate owner authorization for remote settings, token registration and exact publication destinations |
+
+Use [Operations](docs/advanced/operations.md), [Security](docs/advanced/security.md#operational-key-compromise) and
+[Observability](docs/advanced/observability.md#operator-monitoring-acceptance). A successful local drill does not prove
+production Redis isolation, backup recoverability on a different engine or host alert delivery. Record those as
+pending until the owners supply evidence. A failed reset, wrong configuration or failed smoke check keeps the host
+maintenance fence closed. This release checklist does not itself authorize a production restore or remote change.
+
+### Candidate qualification and publication
+
 The release evidence collection, split-tree mapping and final provenance path require qualification in a real workflow
 run and independent review before publication. A successful local fixture or build is not release qualification.
 

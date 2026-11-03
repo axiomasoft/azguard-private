@@ -38,3 +38,52 @@ sum(rate(azguard_decisions_total{outcome="transient"}[5m])) > 0
 ```
 
 To opt an API endpoint into the reference HTTP mapping, call `DecisionResponder::authorize($decision)` after deciding. It returns normally for allow, throws a generic 403 for ordinary denial, 503 with `Retry-After` for transient failure, and 500 for contract failure. Render exceptions without exposing their internal reason or an explanation; production debug output must be disabled. The exception's reason is available to trusted server-side reporting. This opt-in does not alter Gate or Filament defaults.
+
+## Operator monitoring acceptance
+
+The application owner installs the hook on every relevant panel and exposes the host's counter/exporter. The
+monitoring owner configures scraping, recording/alert rules, routing and an on-call receiver. This page does not
+install any of them. Keep `outcome` in `allow|deny|transient|contract`, `reason` in the closed decision-reason enum,
+and `source` in a reviewed fixed map plus `other`. Correlation IDs belong only in protected, redacted logs with
+host retention controls. Do not log `access.decided` or `explain` payloads wholesale: they can include identities,
+scope, source topology and trace details even when signing secrets are redacted.
+
+Before admitting traffic, use a disposable test identity and the same installed adapter in staging to cause one
+source/transient failure and one contract failure. Confirm both deny, the default HTTP/Filament response stays
+generic 403, and internal failure reason/component/exception text do not appear in the body. Where the host opted
+into `DecisionResponder`, verify its chosen 503/500 behavior separately. Never disable a production source or grant
+test authority in production to generate these events. The monitoring owner can use a separately approved canary
+or monitoring-system test notification for production routing.
+
+For each kind, capture a counter baseline, inject the staging event, wait at least two scrape intervals, and query
+the actual monitoring API over a window covering that event. With `PROMETHEUS_URL` set to the approved read-only
+monitoring endpoint, run from a repository checkout (the PHP verifier is a repository fixture, not a Composer API):
+
+```bash
+set -euo pipefail
+curl --fail --silent --show-error --connect-timeout 5 --max-time 15 --get "${PROMETHEUS_URL:?}/api/v1/query" \
+  --data-urlencode 'query=sum(increase(azguard_decisions_total{outcome="contract"}[5m]))' \
+  --output contract-query.json
+php tests/Fixtures/Operations/monitoring-check.php < contract-query.json
+curl --fail --silent --show-error --connect-timeout 5 --max-time 15 --get "$PROMETHEUS_URL/api/v1/query" \
+  --data-urlencode 'query=sum(increase(azguard_decisions_total{outcome="transient"}[5m]))' \
+  --output transient-query.json
+php tests/Fixtures/Operations/monitoring-check.php < transient-query.json
+```
+
+Use the host's approved credential delivery, CA and bounded curl timeouts; do not put bearer tokens in a shared
+command transcript. Stop if curl fails; never validate an old output file after a failed download. The verifier
+requires a successful vector response with exactly one finite positive sample; errors, missing series, NaN and
+zero fail. The drill tests those negative cases with synthetic API responses, not a deployed Prometheus service.
+A positive query proves an observed signal, not alert routing or receipt: save the alert rule revision, firing
+alert and received test notification timestamps, receiver/owner and redacted evidence link separately.
+
+Configure the two alert expressions above plus scrape/exporter absence and telemetry delivery failure alerts.
+Ordinary denials alone must not page as source outages. Investigate `contract` as an application/plugin defect and
+`transient` as source availability or consistency churn. Keep access denied during investigation, check primary
+connectivity and deployment/config changes, and use protected correlation logs without retrying with weaker scopes
+or an authorization bypass. Monitor Redis latency/evictions and database lock waits through host instrumentation.
+
+The deployment gate in the repository's `RELEASING.md` (“Production operations acceptance”) requires an application and
+monitoring owner plus actual notification evidence. Markdown, a local fixture, Doctor exit 0 and a generic 403 are
+each insufficient to claim a configured production alert.
