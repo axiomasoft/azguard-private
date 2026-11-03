@@ -443,7 +443,7 @@ try {
     $setupWorkflow = Symfony\Component\Yaml\Yaml::parseFile(dirname(__DIR__).'/.github/workflows/release-setup-probe.yml');
     $probeRun = $setupWorkflow['jobs']['probe']['steps'][1]['run'];
     mkdir($dir.'/setup-bin');
-    file_put_contents($dir.'/setup-bin/gh', "#!/usr/bin/env bash\nif [[ \"\$*\" == *\"\${FIXTURE_FAIL_REPO:-not-a-repo}\"* ]]; then exit 1; fi\nif [[ \"\$1\" == api ]]; then printf 'true\\n'; fi\nexit 0\n");
+    file_put_contents($dir.'/setup-bin/gh', "#!/usr/bin/env bash\nif [[ \"\$*\" == *\"\${FIXTURE_FAIL_REPO:-not-a-repo}\"* ]]; then exit 1; fi\nif [[ \"\$*\" == *'/contents/'* && \"\${FIXTURE_DENY_CONTENTS:-0}\" == 1 ]]; then exit 1; fi\nif [[ \"\$*\" == *'/contents/'* && \"\${FIXTURE_BAD_CONTENTS:-0}\" == 1 ]]; then printf 'false\\n'; exit 0; fi\nif [[ \"\$1\" == api ]]; then printf 'true\\n'; fi\nexit 0\n");
     chmod($dir.'/setup-bin/gh', 0700);
     $probeConfig = $dir.'/probe-gitconfig';
     foreach (['azguard', 'azguard-filament'] as $splitRepo) {
@@ -474,15 +474,25 @@ try {
             throw new RuntimeException('failed setup probe left a temporary ref');
         }
     }
-    $publicProbe = Symfony\Component\Yaml\Yaml::parseFile(dirname(__DIR__).'/packages/core/.github/workflows/attestation-setup.yml');
-    $readProbe = $publicProbe['jobs']['probe']['steps'][0]['run'];
     unset($probeEnv['FIXTURE_FAIL_REPO']);
-    if ($run(['bash', '-c', $readProbe], $dir, $probeEnv)[0] !== 0) {
-        throw new RuntimeException('source read probe fixture failed');
-    }
-    $probeEnv['GH_TOKEN'] = '';
-    if ($run(['bash', '-c', $readProbe], $dir, $probeEnv)[0] === 0) {
-        throw new RuntimeException('source read probe accepted missing token');
+    foreach (['core', 'filament'] as $package) {
+        $publicProbe = Symfony\Component\Yaml\Yaml::parseFile(dirname(__DIR__).'/packages/'.$package.'/.github/workflows/attestation-setup.yml');
+        $readProbe = $publicProbe['jobs']['probe']['steps'][0]['run'];
+        if ($run(['bash', '-c', $readProbe], $dir, $probeEnv)[0] !== 0) {
+            throw new RuntimeException($package.' source read probe fixture failed');
+        }
+        foreach (['FIXTURE_DENY_CONTENTS', 'FIXTURE_BAD_CONTENTS'] as $failure) {
+            $badProbeEnv = $probeEnv;
+            $badProbeEnv[$failure] = '1';
+            if ($run(['bash', '-c', $readProbe], $dir, $badProbeEnv)[0] === 0) {
+                throw new RuntimeException($package.' source read probe accepted '.$failure);
+            }
+        }
+        $badProbeEnv = $probeEnv;
+        $badProbeEnv['GH_TOKEN'] = '';
+        if ($run(['bash', '-c', $readProbe], $dir, $badProbeEnv)[0] === 0) {
+            throw new RuntimeException($package.' source read probe accepted missing token');
+        }
     }
 } finally {
     $run(['gpgconf', '--kill', 'gpg-agent'], $dir, $env);

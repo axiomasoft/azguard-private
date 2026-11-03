@@ -23,8 +23,9 @@ jobs:
         run: |
           set -Eeuo pipefail
           [[ -n "$GH_TOKEN" ]] || { echo '::error::Source read token unavailable.'; exit 1; }
-          gh api repos/axiomasoft/azguard-private --jq '.full_name == "axiomasoft/azguard-private"' | grep -qx true
+          gh api repos/axiomasoft/azguard-private --jq '.full_name == "axiomasoft/azguard-private" and .private == true' | grep -qx true
           gh api 'repos/axiomasoft/azguard-private/actions/runs?per_page=1' --jq '.total_count | type == "number"' | grep -qx true
+          gh api repos/axiomasoft/azguard-private/contents/packages/core/composer.json --jq '.type == "file" and .path == "packages/core/composer.json" and (.sha | type == "string" and length == 40)' | grep -qx true
       - name: Create setup probe
         run: |
           set -Eeuo pipefail
