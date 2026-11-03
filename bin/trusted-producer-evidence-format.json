@@ -4,7 +4,7 @@
   "title": "Candidate trusted producer predicate",
   "type": "object",
   "additionalProperties": false,
-  "required": ["schema", "producer_event", "workflow_sha", "source_sha", "split_sha", "tag", "run_id", "run_attempt", "zip_sha256", "source_sbom_sha256", "dependency_sbom_sha256", "mapping_sha256"],
+  "required": ["schema", "producer_event", "workflow_sha", "source_sha", "split_sha", "tag", "run_id", "run_attempt", "zip_sha256", "source_sbom_sha256", "dependency_sbom_sha256", "lock_sha256", "mapping_sha256"],
   "properties": {
     "schema": {"const": "azguard.trusted-producer.v1"},
     "producer_event": {"const": "workflow_dispatch"},
@@ -17,6 +17,7 @@
     "zip_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
     "source_sbom_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
     "dependency_sbom_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "lock_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
     "mapping_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
   }
 }

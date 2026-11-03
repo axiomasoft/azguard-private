@@ -13,6 +13,7 @@ try {
         'zip_sha256' => 'azguard-core-2.0.0-rc.1.zip',
         'source_sbom_sha256' => 'source-core.cdx.json',
         'dependency_sbom_sha256' => 'sbom-core.cdx.json',
+        'lock_sha256' => 'resolution-core.lock',
         'mapping_sha256' => 'mapping-core.json',
     ];
     $approved = [
@@ -20,10 +21,30 @@ try {
         'split_sha' => str_repeat('c', 40), 'tag' => 'v2.0.0-rc.1',
         'run_id' => '123', 'run_attempt' => '2',
     ];
-    foreach ($files as $key => $name) {
-        file_put_contents($directory.'/'.$name, 'fixture-'.$name);
+    $zip = new ZipArchive;
+    if ($zip->open($directory.'/'.$files['zip_sha256'], ZipArchive::CREATE) !== true) {
+        throw new RuntimeException('cannot create ZIP fixture');
+    }
+    $zip->addFromString('composer.json', json_encode(['name' => 'axiomasoft/azguard', 'version' => '2.0.0-rc.1'], JSON_THROW_ON_ERROR));
+    $zip->close();
+    $source = packageSourceInventory($directory.'/'.$files['zip_sha256'], 'axiomasoft/azguard', '2.0.0-rc.1');
+    $dependency = ['bomFormat' => 'CycloneDX', 'specVersion' => '1.5', 'version' => 1,
+        'metadata' => ['component' => ['type' => 'library', 'name' => 'axiomasoft/azguard', 'version' => '2.0.0-rc.1', 'purl' => 'pkg:composer/axiomasoft/azguard@2.0.0-rc.1']], 'components' => []];
+    $lock = ['packages' => [['name' => 'axiomasoft/azguard', 'version' => '2.0.0-rc.1']]];
+    foreach (['source_sbom_sha256' => $source, 'dependency_sbom_sha256' => $dependency, 'lock_sha256' => $lock] as $key => $value) {
+        file_put_contents($directory.'/'.$files[$key], json_encode($value, JSON_THROW_ON_ERROR));
+    }
+    foreach (array_slice($files, 0, 4, true) as $key => $name) {
         $approved[$key] = hash_file('sha256', $directory.'/'.$name);
     }
+    $mapping = ['schema' => 'azguard.trusted-offline-build.v1', 'qualification' => 'nonrelease',
+        'workflow_sha' => $approved['workflow_sha'], 'source_sha' => $approved['source_sha'], 'split_sha' => $approved['split_sha'],
+        'tag' => $approved['tag'], 'run_id' => $approved['run_id'], 'run_attempt' => $approved['run_attempt'], 'files' => []];
+    foreach (array_slice($files, 0, 4, true) as $key => $name) {
+        $mapping['files'][$name] = $approved[$key];
+    }
+    file_put_contents($directory.'/'.$files['mapping_sha256'], json_encode($mapping, JSON_THROW_ON_ERROR));
+    $approved['mapping_sha256'] = hash_file('sha256', $directory.'/'.$files['mapping_sha256']);
     $schema = json_decode((string) file_get_contents(__DIR__.'/trusted-producer-evidence-format.json'), true, 512, JSON_THROW_ON_ERROR);
     $verify = static function (array $command, array $predicates) use ($approved, $schema): bool {
         $expected = (object) ['schema' => 'azguard.trusted-producer.v1', 'producer_event' => 'workflow_dispatch', ...$approved];
@@ -80,6 +101,40 @@ try {
         $reject(static fn () => trustedProducerVerify($directory, $approved, $verify));
         file_put_contents($path, $original);
     }
+    foreach ($files as $key => $name) {
+        $path = $directory.'/'.$name;
+        $original = (string) file_get_contents($path);
+        $reject(static fn () => trustedProducerVerify($directory, $approved, static function () use ($path): bool {
+            file_put_contents($path, 'replaced during verification');
+            return true;
+        }));
+        file_put_contents($path, $original);
+    }
+    // Recompute approved hashes to show semantic validation rejects consistently
+    // signed but false claims rather than merely catching a changed digest.
+    foreach (['source_sha', 'split_sha', 'tag', 'run_id', 'run_attempt', 'schema'] as $claim) {
+        $badMapping = $mapping;
+        $badMapping[$claim] = 'wrong';
+        file_put_contents($directory.'/'.$files['mapping_sha256'], json_encode($badMapping, JSON_THROW_ON_ERROR));
+        $bad = $approved;
+        $bad['mapping_sha256'] = hash_file('sha256', $directory.'/'.$files['mapping_sha256']);
+        $reject(static fn () => trustedProducerVerify($directory, $bad, static fn (): bool => true));
+    }
+    file_put_contents($directory.'/'.$files['mapping_sha256'], json_encode($mapping, JSON_THROW_ON_ERROR));
+    foreach (['source_sbom_sha256', 'dependency_sbom_sha256', 'lock_sha256'] as $key) {
+        $path = $directory.'/'.$files[$key];
+        $original = (string) file_get_contents($path);
+        file_put_contents($path, '{}');
+        $bad = $approved;
+        $bad[$key] = hash_file('sha256', $path);
+        $badMapping = $mapping;
+        $badMapping['files'][$files[$key]] = $bad[$key];
+        file_put_contents($directory.'/'.$files['mapping_sha256'], json_encode($badMapping, JSON_THROW_ON_ERROR));
+        $bad['mapping_sha256'] = hash_file('sha256', $directory.'/'.$files['mapping_sha256']);
+        $reject(static fn () => trustedProducerVerify($directory, $bad, static fn (): bool => true));
+        file_put_contents($path, $original);
+    }
+    file_put_contents($directory.'/'.$files['mapping_sha256'], json_encode($mapping, JSON_THROW_ON_ERROR));
     $bad = $approved;
     unset($bad['workflow_sha']);
     $reject(static fn () => trustedProducerVerify($directory, $bad, $verify));

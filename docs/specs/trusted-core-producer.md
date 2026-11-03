@@ -96,10 +96,26 @@ uses an injected verifier and therefore is not a real `gh attestation verify`.
 The setup gate remains blocked until the producer and verifier are integrated,
 independently reviewed and the external controls have been verified.
 
-`bin/trusted-core-producer-candidate.php` exposes only an offline source/split
-inspection function; direct execution always fails. Its test injects a signature
-verifier and uses a disposable Git repository. Production activation must supply
-the real signed-tag verifier and run Git in an isolated, freshly initialized
-repository with controlled Git configuration and hooks; neither the callback nor
-the local fixture establishes a trusted signer or environment. Do not feed Git a
+`bin/trusted-core-producer-candidate.php` provides offline source/split inspection
+and a deterministic core ZIP and SBOM candidate builder; direct execution always
+fails. The builder requires independently approved tool and evidence digests, a
+pre-resolved dependency lock and SBOM, and a signed-tag verifier. It emits a
+nonrelease mapping and predicate binding the approved workflow, source, split,
+run and artifact hashes. The independently approved inputs and trusted public key are caller
+responsibilities; the source verifier runs in a separate sanitized process. An
+injected attestation test callback is not an artifact signature. A
+separate fixture tests a locally signed tag with a disposable key. Production
+activation still requires the real signed-tag verifier, actual dependency
+resolution and attestation integration, independently approved identities and
+verified environment controls. Run Git in an isolated, freshly initialized
+repository with controlled Git configuration and hooks. Do not feed Git a
 staging-controlled `.git/config` while any secret is available.
+
+
+Security review blocker: source inspection uses a separate verifier process with
+an allowlisted environment and copies loose objects, validated pack/index pairs and only the requested tag,
+using a loose ref in preference to an exact match in packed refs
+into a freshly initialized Git repository. It rejects alternate object stores, and never loads the source repository configuration or hooks. The public
+signing key and fingerprint must be authenticated independently. The offline builder consumes this controlled repository for its entire build;
+it does not reopen the source repository. Offline tests do not qualify any remote
+environment or enable the producer.
