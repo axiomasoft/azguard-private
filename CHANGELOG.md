@@ -6,6 +6,23 @@ version) are documented here. Format: [Keep a Changelog](https://keepachangelog.
 
 ## [Unreleased]
 
+- Gate package splitting on verified release setup and disable the unverified public final-artifact relay.
+  Release setup and qualification must be completed before publication. GitHub-generated snapshots and Composer
+  GitHub zipballs remain separate from the signed release ZIP assets.
+- Release artifact builds now add a CycloneDX source file inventory for each ZIP and validate it and each resolved
+  dependency SBOM against the CycloneDX schema. Each dependency SBOM is checked against its retained audited lock and
+  describes that resolved consumer graph only.
+- Local package mapping can compare the tagged split tree and rebuilt ZIP members with the monorepo and record a
+  nonrelease, unsigned result. The partial candidate evidence checker does not authenticate its input.
+- Release validation now requires a signed annotated tag from the owner-configured signing fingerprint.
+- Public split ZIP producers check the signed source tag, successful release gate and exact split tree before signing.
+- Bind each release ZIP to its source and resolved SBOMs, consumer lock and package mapping; verify the public split
+  provenance, both SBOM predicates and mapping predicate before package publication.
+- Add a nonrelease comparison of individual provider ZIP and tar.gz snapshots against a Git export, with a validated
+  source inventory and checksums for the exact copied bytes. Provider identity and future downloads remain unproven.
+- Add an offline worktree archive rehearsal with validated fixture SBOMs, checksums and explicitly nonrelease mapping;
+  it does not resolve consumer dependencies or create attestations.
+
 - Add operator-owned restore, cache signing rotation and monitoring acceptance runbooks, with a disposable
   SQLite/isolated Redis drill and negative controls. The drill accepts `--fixture=disposable` and `--report=build/PATH.json`
   for a versioned JSON outcome while preserving the previous invocation forms. Host Redis isolation and alert delivery

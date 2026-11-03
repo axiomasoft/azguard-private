@@ -1,0 +1,17 @@
+{
+  "bomFormat": "CycloneDX",
+  "specVersion": "1.5",
+  "version": 1,
+  "metadata": {
+    "component": {
+      "type": "library",
+      "name": "axiomasoft/azguard",
+      "version": "2.0.0-rc.1",
+      "purl": "pkg:composer/axiomasoft/azguard@2.0.0-rc.1"
+    }
+  },
+  "components": [
+    {"type": "file", "name": "composer.json", "hashes": [{"alg": "SHA-256", "content": "81622421b55c2fcd6668ba20c7a58326e1ef7bc0f3d03fe58d76ca8988d16a65"}]},
+    {"type": "file", "name": "src/example.php", "hashes": [{"alg": "SHA-256", "content": "0682c5f2076f099c34cfdd15a9e063849ed437a49677e6fcc5b4198c76575be5"}]}
+  ]
+}

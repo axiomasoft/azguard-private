@@ -1,0 +1,36 @@
+name: Attestation setup probe
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    name: Verify split attestation prerequisites
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      id-token: write
+      attestations: write
+      artifact-metadata: write
+    steps:
+      - name: Verify source read access
+        env:
+          GH_TOKEN: ${{ secrets.PRIVATE_RELEASE_READ_TOKEN }}
+        run: |
+          set -Eeuo pipefail
+          [[ -n "$GH_TOKEN" ]] || { echo '::error::Source read token unavailable.'; exit 1; }
+          gh api repos/axiomasoft/azguard-private --jq '.full_name == "axiomasoft/azguard-private"' | grep -qx true
+          gh api 'repos/axiomasoft/azguard-private/actions/runs?per_page=1' --jq '.total_count | type == "number"' | grep -qx true
+      - name: Create setup probe
+        run: |
+          set -Eeuo pipefail
+          mkdir -p dist
+          printf 'azguard-attestation-setup-v1\n' > dist/probe.txt
+      - name: Attest setup probe
+        uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
+        with:
+          subject-path: dist/probe.txt

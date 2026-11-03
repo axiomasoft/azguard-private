@@ -62,7 +62,7 @@ if [[ "$1" == workflow && "$2" == run ]]; then
     [[ "$*" == "workflow run provenance.yml --repo axiomasoft/azguard --ref release-candidate/v2.0.0-rc.1/123/2 -f candidate=$(git -C "$SPLIT_FIXTURE/work" rev-parse HEAD) -f run_id=123 -f run_attempt=2" ]]
     exit
 fi
-[[ ( $# == 13 || $# == 17 ) && "$1" == attestation && "$2" == verify && "$4" == --repo && "$6" == --signer-workflow && "$8" == --signer-digest && "${10}" == --source-digest && "${12}" == --source-ref ]] || exit 1
+[[ ( $# == 15 || $# == 17 ) && "$1" == attestation && "$2" == verify && "$4" == --repo && "$6" == --signer-workflow && "$8" == --signer-digest && "${10}" == --source-digest && "${12}" == --source-ref ]] || exit 1
 repo="${5#axiomasoft/}"
 [[ "$repo" == azguard || "$repo" == azguard-filament ]] || exit 1
 package=core
@@ -80,6 +80,7 @@ if [[ $# == 17 ]]; then
     [[ "$(sha256sum "$3" | cut -d' ' -f1)" == "$(<"$SPLIT_FIXTURE/$subject.digest")${BAD_FINAL_DIGEST:-}" ]]
     jq -n --arg sha "${BAD_PREDICATE_SHA:-$(git -C "$SPLIT_FIXTURE/work" rev-parse HEAD)}" --arg run "${BAD_PREDICATE_RUN:-123}" --arg attempt "${BAD_PREDICATE_ATTEMPT:-2}" '[{verificationResult:{statement:{predicate:{candidate:$sha,run_id:$run,run_attempt:$attempt}}}}]'
 else
+    [[ "${14}" == --predicate-type && "${15}" == https://slsa.dev/provenance/v1 ]]
     [[ "$(sha256sum "$3" | cut -d' ' -f1)" == "$(<"$SPLIT_FIXTURE/$package.digest")" ]]
 fi
 SH
@@ -133,10 +134,10 @@ reject() {
         python3 -c 'import pathlib,sys; print(pathlib.Path(sys.argv[1]).read_text())' "$tmp/output" >&2
         exit 1
     fi
-    if [[ ${EXPECT_STAGING_CLEANUP:-0} == 1 ]]; then
+    if [[ ${EXPECT_STAGING_PRESERVED:-0} == 1 ]]; then
         for repo in azguard azguard-filament; do
-            if git --git-dir="$tmp/remotes/$repo.git" show-ref --verify --quiet refs/heads/release-candidate/v2.0.0-rc.1/123/2; then
-                printf 'failed provenance verification did not clean staging branch in %s\n' "$repo" >&2
+            if ! git --git-dir="$tmp/remotes/$repo.git" show-ref --verify --quiet refs/heads/release-candidate/v2.0.0-rc.1/123/2; then
+                printf 'failed provenance verification unexpectedly deleted staging branch in %s\n' "$repo" >&2
                 exit 1
             fi
         done
@@ -159,8 +160,8 @@ for variable in BAD_FINAL_SIGNER BAD_FINAL_COMMIT BAD_FINAL_REF BAD_FINAL_DIGEST
     if verify_final >"$tmp/output" 2>&1; then echo "final attestation accepted invalid $variable" >&2; exit 1; fi
     python3 -c 'import pathlib,sys; assert "public final artifact attestation verification failed: sbom-core.cdx.json" in pathlib.Path(sys.argv[1]).read_text()' "$tmp/output"
     for repo in azguard azguard-filament; do
-        if git --git-dir="$tmp/remotes/$repo.git" show-ref --verify --quiet refs/heads/release-candidate/v2.0.0-rc.1/123/2; then
-            echo "failed final provenance left staging branch in $repo" >&2
+        if ! git --git-dir="$tmp/remotes/$repo.git" show-ref --verify --quiet refs/heads/release-candidate/v2.0.0-rc.1/123/2; then
+            echo "failed final provenance unexpectedly deleted staging branch in $repo" >&2
             exit 1
         fi
     done
@@ -183,15 +184,15 @@ python3 -c 'import pathlib,sys; assert "public final artifact attestation verifi
 restore_staging
 checksums
 
-export BAD_SIGNER=-wrong EXPECT_STAGING_CLEANUP=1
+export BAD_SIGNER=-wrong EXPECT_STAGING_PRESERVED=1
 reject 'public split attestation verification failed: core'
-unset BAD_SIGNER EXPECT_STAGING_CLEANUP
-export BAD_COMMIT=0 EXPECT_STAGING_CLEANUP=1
+unset BAD_SIGNER EXPECT_STAGING_PRESERVED
+export BAD_COMMIT=0 EXPECT_STAGING_PRESERVED=1
 reject 'public split attestation verification failed: core'
-unset BAD_COMMIT EXPECT_STAGING_CLEANUP
-export BAD_REF=-wrong EXPECT_STAGING_CLEANUP=1
+unset BAD_COMMIT EXPECT_STAGING_PRESERVED
+export BAD_REF=-wrong EXPECT_STAGING_PRESERVED=1
 reject 'public split attestation verification failed: core'
-unset BAD_REF EXPECT_STAGING_CLEANUP
+unset BAD_REF EXPECT_STAGING_PRESERVED
 # Changing ZIP container bytes while retaining the same files and updating the
 # manifest must still fail the attestation subject digest verification.
 python3 - "$tmp/dist/azguard-core-2.0.0-rc.1.zip" <<'PY'
@@ -206,7 +207,9 @@ checksums
 
 # Run the real relay fetch step with a fake API and artifact download.
 root="$(cd "$(dirname "$verifier")/.." && pwd)"
-php -r 'require $argv[1]."/vendor/autoload.php"; $w=Symfony\Component\Yaml\Yaml::parseFile($argv[1]."/packages/core/.github/workflows/provenance.yml"); echo $w["jobs"]["relay-final-artifacts"]["steps"][0]["run"];' "$root" > "$tmp/relay-step.sh"
+php -r 'require $argv[1]."/vendor/autoload.php"; $w=Symfony\Component\Yaml\Yaml::parseFile($argv[1]."/packages/core/.github/workflows/provenance.yml"); echo $w["jobs"]["relay-final-artifacts"]["steps"][0]["run"];' "$root" > "$tmp/relay-guard.sh"
+if bash "$tmp/relay-guard.sh" >"$tmp/output" 2>&1; then echo 'unverified relay guard succeeded' >&2; exit 1; fi
+php -r 'require $argv[1]."/vendor/autoload.php"; $w=Symfony\Component\Yaml\Yaml::parseFile($argv[1]."/packages/core/.github/workflows/provenance.yml"); echo $w["jobs"]["relay-final-artifacts"]["steps"][1]["run"];' "$root" > "$tmp/relay-step.sh"
 mkdir "$tmp/relay" "$tmp/relay-temp"
 export FIXTURE_CANDIDATE="$sha" CANDIDATE="$sha" RELEASE_RUN_ID=123 RELEASE_RUN_ATTEMPT=2 GITHUB_REF=refs/heads/release-candidate/v2.0.0-rc.1/123/2 RUNNER_TEMP="$tmp/relay-temp" RELAY_FIXTURE=1
 run_relay() { rm -rf "$tmp/relay/dist"; (cd "$tmp/relay" && bash "$tmp/relay-step.sh"); }

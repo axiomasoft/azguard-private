@@ -195,11 +195,21 @@ jobs:
         env:
           TAG: ${{ github.ref_name }}
           TAGGED_SHA: ${{ github.sha }}
+          RELEASE_TAG_PUBLIC_KEY: ${{ vars.RELEASE_TAG_PUBLIC_KEY }}
+          RELEASE_TAG_SIGNER_FINGERPRINT: ${{ vars.RELEASE_TAG_SIGNER_FINGERPRINT }}
         run: |
           set -Eeuo pipefail
           test "$(git cat-file -t "refs/tags/${TAG}")" = tag || { echo "::error::${TAG} is a lightweight tag: release tags are annotated."; exit 1; }
           test "$(git rev-parse "refs/tags/${TAG}^{commit}")" = "${TAGGED_SHA}" || { echo "::error::${TAG} does not resolve to the candidate SHA ${TAGGED_SHA}."; exit 1; }
           test "$(git rev-parse HEAD)" = "${TAGGED_SHA}" || { echo "::error::checkout does not match the candidate SHA ${TAGGED_SHA}."; exit 1; }
+          [[ "$RELEASE_TAG_SIGNER_FINGERPRINT" =~ ^([0-9A-F]{40}|[0-9A-F]{64})$ && -n "$RELEASE_TAG_PUBLIC_KEY" ]] || { echo '::error::Configure the trusted release tag key and signing fingerprint.'; exit 1; }
+          export GNUPGHOME="$(mktemp -d)"
+          trap 'rm -rf "$GNUPGHOME"' EXIT
+          chmod 700 "$GNUPGHOME"
+          printf '%s\n' "$RELEASE_TAG_PUBLIC_KEY" | gpg --batch --quiet --import
+          git verify-tag --raw "refs/tags/${TAG}" 2> "$GNUPGHOME/status" || { echo '::error::Tag signature verification failed.'; exit 1; }
+          mapfile -t signatures < <(awk '$1 == "[GNUPG:]" && $2 == "VALIDSIG" {print $3}' "$GNUPGHOME/status")
+          [[ ${#signatures[@]} == 1 && "${signatures[0]}" == "$RELEASE_TAG_SIGNER_FINGERPRINT" ]] || { echo '::error::Tag signer does not match the trusted fingerprint.'; exit 1; }
 
       - name: Require the tagged commit to be reachable from main
         env:
@@ -331,7 +341,7 @@ jobs:
           set -Eeuo pipefail
           tag_sha="$(git rev-parse --verify "refs/tags/${GITHUB_REF_NAME}^{commit}")"
           php bin/collect-release-evidence.php "$RUNNER_TEMP/release-evidence" "$GITHUB_SHA" "$GITHUB_REF_NAME" "$tag_sha" "$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT" > "$RUNNER_TEMP/release-evidence.json"
-          php bin/release-gate.php "$RUNNER_TEMP/release-evidence.json"
+          php bin/verify-release-evidence.php --candidate-source "$GITHUB_SHA" "$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT" "$RUNNER_TEMP/release-evidence.json"
 
   split:
     name: Split validated packages
@@ -339,6 +349,7 @@ jobs:
     uses: $/.github/workflows/split.yml
     secrets:
       MONOREPO_SPLIT_TOKEN: ${{ secrets.MONOREPO_SPLIT_TOKEN }}
+      RELEASE_SETUP_READ_TOKEN: ${{ secrets.RELEASE_SETUP_READ_TOKEN }}
     permissions:
       contents: read
 
@@ -375,7 +386,15 @@ jobs:
         id: verify
         env:
           GH_TOKEN: ${{ secrets.MONOREPO_SPLIT_TOKEN }}
-        run: bash bin/verify-release-split.sh "$GITHUB_SHA" "$GITHUB_REF_NAME" dist --dispatch-final
+        run: bash bin/verify-release-split.sh "$GITHUB_SHA" "$GITHUB_REF_NAME" dist
+      - name: Verify final artifact attestations and mapping
+        env:
+          GH_TOKEN: ${{ secrets.MONOREPO_SPLIT_TOKEN }}
+          CORE_SHA: ${{ steps.verify.outputs.core_sha }}
+          FILAMENT_SHA: ${{ steps.verify.outputs.filament_sha }}
+          RELEASE_TAG_PUBLIC_KEY: ${{ vars.RELEASE_TAG_PUBLIC_KEY }}
+          RELEASE_TAG_SIGNER_FINGERPRINT: ${{ vars.RELEASE_TAG_SIGNER_FINGERPRINT }}
+        run: php bin/verify-release-evidence.php --candidate-artifacts "$GITHUB_SHA" "$GITHUB_REF_NAME" dist "$CORE_SHA" "$FILAMENT_SHA" "$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT"
 
   publish-packages:
     name: Publish verified package tags
@@ -422,6 +441,15 @@ jobs:
               [[ "$existing" == "$expected"$'\t'"refs/tags/$GITHUB_REF_NAME" ]]
             fi
           done
+          # Read each final tag back after both pushes. These tags are lightweight,
+          # so their direct object IDs are their peeled commit IDs.
+          for entry in "azguard:$CORE_SHA" "azguard-filament:$FILAMENT_SHA"; do
+            repo="${entry%%:*}"
+            expected="${entry#*:}"
+            url="https://x-access-token@github.com/axiomasoft/$repo.git"
+            actual="$(git ls-remote --refs --tags "$url" "refs/tags/$GITHUB_REF_NAME")"
+            [[ "$actual" == "$expected"$'\t'"refs/tags/$GITHUB_REF_NAME" ]] || { echo "::error::Published split tag does not resolve to the verified commit: $repo"; exit 1; }
+          done
           # Delete only the staging refs whose exact commits were verified.
           for entry in "azguard:$CORE_SHA" "azguard-filament:$FILAMENT_SHA"; do
             repo="${entry%%:*}"
@@ -466,6 +494,8 @@ jobs:
           files: |
             dist/*.zip
             dist/*.cdx.json
+            dist/*.lock
+            dist/mapping-*.json
             dist/SHA256SUMS
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

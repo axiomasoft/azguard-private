@@ -1,0 +1,9 @@
+{
+  "kind": "azguard.source-inventory",
+  "version": 1,
+  "document_format": "CycloneDX JSON 1.5",
+  "subject": "Composer package name and version from the ZIP composer.json",
+  "components": "Sorted regular ZIP files; each has one SHA-256 hash of uncompressed bytes",
+  "compatibility_fixture": "bin/package-evidence-compat.json",
+  "qualification": "Does not by itself prove schema validation, dependency resolution, source mapping or attestation"
+}

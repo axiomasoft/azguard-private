@@ -1,0 +1,7 @@
+{
+  "schema": "azguard.package-evidence.v1",
+  "required": ["schema", "qualification", "monorepo_sha", "package", "package_name", "exported_tree_git_sha1", "transform", "split_commit", "split_tag", "split_tag_peeled_sha", "split_tag_state", "artifacts", "workflow", "qualification_references"],
+  "artifact_kinds": ["zip", "source_sbom", "resolved_sbom", "resolution_lock"],
+  "split_tag_state": "expected",
+  "compatibility_fixture": "bin/package-build-manifest-compat.json"
+}

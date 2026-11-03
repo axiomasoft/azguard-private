@@ -16,6 +16,8 @@ on:
     secrets:
       MONOREPO_SPLIT_TOKEN:
         required: true
+      RELEASE_SETUP_READ_TOKEN:
+        required: true
 
 permissions:
   contents: read
@@ -37,23 +39,31 @@ jobs:
           - { dir: filament, name: azguard-filament }
 
     steps:
-      - name: Require package publishing configuration
-        env:
-          SPLIT_ENABLED: ${{ vars.SPLIT_ENABLED }}
-          MONOREPO_SPLIT_TOKEN: ${{ secrets.MONOREPO_SPLIT_TOKEN }}
-        run: |
-          set -Eeuo pipefail
-          if [[ "$SPLIT_ENABLED" != 'true' || -z "$MONOREPO_SPLIT_TOKEN" ]]; then
-            echo '::error::Complete RELEASING.md setup: SPLIT_ENABLED=true and MONOREPO_SPLIT_TOKEN are required.'
-            exit 1
-          fi
-
       - name: Checkout
         uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
         with:
           ref: ${{ github.sha }}
           fetch-depth: 0
           persist-credentials: false
+
+      - name: Prepare setup verifier dependencies
+        uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # 2.40.0
+        with:
+          php-version: '8.4'
+          extensions: mbstring, pdo, pdo_sqlite, sqlite3, zip
+          tools: composer:v2
+          coverage: none
+      - name: Install locked verifier dependencies
+        run: composer install --no-scripts --no-plugins --no-interaction --no-progress --prefer-dist
+
+      - name: Require verified release setup
+        env:
+          GH_TOKEN: ${{ secrets.RELEASE_SETUP_READ_TOKEN }}
+        run: |
+          set -Eeuo pipefail
+          [[ -n "$GH_TOKEN" ]] || { echo '::error::Release setup read token is required.'; exit 1; }
+          php bin/prepare-release-setup.php
+          php bin/verify-release-evidence.php --setup build/release/setup-request.json
 
       - name: Split packages/${{ matrix.package.dir }} -> ${{ matrix.package.name }}
         env:

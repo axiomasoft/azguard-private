@@ -173,20 +173,72 @@ document is exit `3` or `1`, never green; retry later. `bash bin/test-split-veri
 
 ## Release artifacts
 
+**Release archive guarantee:** the explicitly published core and Filament ZIP assets have checksums, validated source
+and resolved-dependency SBOMs, and a verified monorepo-to-split-to-ZIP attestation chain. GitHub's automatically
+generated source ZIP/tar.gz snapshots are separate files, not the signed release assets; GitHub may change their
+compressed bytes while preserving contents. Packagist watches the public split repositories, and Composer's GitHub VCS
+driver can deliver a GitHub-generated zipball rather than the signed release ZIP. The release-asset byte attestation
+does not authenticate that Composer zipball; verify the split tag/tree and the downloaded archive separately. See
+[GitHub archive stability](https://docs.github.com/en/repositories/working-with-files/using-files/downloading-source-code-archives#stability-of-source-code-archives)
+and [Composer VCS repositories](https://github.com/composer/composer/blob/main/doc/05-repositories.md#vcs).
+
+For a downloaded provider-generated ZIP or tar.gz, a local comparison is available:
+
+```bash
+python3 bin/provider-archive-evidence.py --repository /path/to/repository --commit <full-commit-sha> \
+  --archive /path/to/snapshot.zip --kind zip --out build/provider-snapshot
+```
+
+Use `--kind tar.gz` for a gzip tarball. The tool checks the exported Git tree, file hashes, executable bits and
+symlinks without extracting the untrusted archive, validates a CycloneDX source inventory, and copies the exact bytes
+with a checksum file into a new output directory. It rejects duplicate or unsafe paths and limits compressed input to
+256 MiB. Its mapping is explicitly `nonrelease-unsigned`: it does not authenticate the provider, resolve consumer
+dependencies or establish that a future download has the same digest. Existing output files are never overwritten.
+This local comparison does not prove the provider's identity or turn a GitHub snapshot into a signed release asset.
+
+**Publication also requires verified setup:** the split job checks the reviewed setup request, live settings and fresh
+permission and attestation probes before pushing staging refs. Missing credentials, inaccessible APIs, stale probes
+and unavailable attestation entitlement fail the job. The old final-artifact relay remains disabled. Local artifacts
+are nonrelease evidence and do not provide signatures or qualification.
+
+`php bin/package-evidence.php --local-mapping MONOREPO SPLIT core|filament TAG VERSION ZIP SOURCE_SBOM OUTPUT`
+rebuilds the ZIP members from the tagged split tree after the explicit Composer version transform. Its record is
+`nonrelease`, with no signature or CI qualification. It checks neither a signed tag nor a dependency graph; verify an
+annotated signed tag separately with `git verify-tag`. `php bin/verify-release-evidence.php --candidate-source SHA
+RUN-ID-ATTEMPT FILE` checks the internal consistency of an already collected release-gate record; it does not authenticate
+that record's origin. `php bin/prepare-release-setup.php` creates `build/release/setup-request.json` with dated
+read-only observations and the proposed settings and payload hashes. The proposal does not authorize remote changes.
+`php bin/verify-release-evidence.php --setup build/release/setup-request.json` uses live read-only APIs, a settings
+audit and cryptographically verified probes; it needs no candidate SHA and never dispatches workflows or writes remote.
+`--candidate-artifacts SHA TAG DIST CORE-SHA FILAMENT-SHA RUN-ID-ATTEMPT` checks the signed tag, complete artifact
+set, mapping, schemas and trusted attestations. It requires the configured tag key, fingerprint and a `gh` supporting
+attestation verification. A split tag is recorded as expected until its remote target is checked after publication.
+
+The release workflow and both public split producers require `RELEASE_TAG_PUBLIC_KEY` and
+`RELEASE_TAG_SIGNER_FINGERPRINT` repository variables.
+They must contain the owner-approved public key and the uppercase fingerprint of the actual signing key or subkey;
+the workflow imports the key into a temporary keyring and rejects an unsigned tag or a different signer. Provisioning
+these variables requires the separate setup gate. Tag signature verification is independent of ZIP provenance.
+
 The `artifacts` job of `release.yml` runs `bin/release-artifacts.sh <version> <outdir>`: the two package archives
-(`azguard-core-<v>.zip`, `azguard-filament-<v>.zip`), a CycloneDX SBOM of each package's production dependencies
-(`sbom-core.cdx.json`, `sbom-filament.cdx.json`, made with the pinned `syft`) and `SHA256SUMS`. After the split, the
-provenance job compares each public split tree to the candidate and rebuilds the archive to compare its contents. It
-also verifies a public attestation of each exact ZIP against the split repository, workflow identity, staging branch and split
-commit. The staging branch is `release-candidate/<tag>/<run-id>/<attempt>`; package tags are pushed only after both
-split mappings and final attestations succeed. The package trees carry the public branch-triggered producers, and the release builder and producers normalize
-ZIP metadata identically. After mapping succeeds, the core split workflow retrieves the exact artifact from the private
-release run using a read-only `PRIVATE_RELEASE_READ_TOKEN` configured in the public core repository. The release dispatch
-uses `MONOREPO_SPLIT_TOKEN`, which must also be permitted to dispatch that workflow. The public workflow checks the
-private run identity, candidate SHA, tag, attempt, and manifest before attesting the actual SBOM and manifest digests.
-Its custom predicate describes a relay of files from the private run; it does not claim that the public workflow built
-them. The private job verifies those subjects against the public workflow identity and split commit before publication.
-Each production SBOM resolution and each test matrix lock is also scanned by OSV before it can qualify the release.
+(`azguard-core-<v>.zip`, `azguard-filament-<v>.zip`), a CycloneDX source file inventory for each ZIP
+(`source-core.cdx.json`, `source-filament.cdx.json`), and an SBOM for each independently resolved consumer graph
+(`sbom-core.cdx.json`, `sbom-filament.cdx.json`, made with the pinned `syft`). The latter describes the specific
+resolved graph, not all possible consumer installations. All four SBOMs must pass the pinned CycloneDX schema validator,
+and `SHA256SUMS` includes both ZIPs, all four SBOMs, `resolution-core.lock` / `resolution-filament.lock` and the
+two `mapping-*.json` files. Each resolved SBOM is compared with its audited consumer lock; the source inventory is
+checked against actual ZIP bytes. Each mapping binds the source tree, explicit Composer transform, expected split
+commit and tag, ZIP, SBOMs, lock, workflow SHA and run attempt. The release job verifies the actual ZIP's public
+attestations against the split repository, workflow, staging branch, split commit and each predicate type, including
+exact comparison of both SBOM predicates and the mapping predicate. The staging branch is
+`release-candidate/<tag>/<run-id>/<attempt>`. Each production resolution and each test matrix lock must also pass OSV
+before release qualification.
+
+Before its ZIP build the split producer verifies the signed source tag, the completed release evidence gate and the
+exact monorepo package tree against its checkout. It rebuilds its own canonical ZIP, checks the downloaded artifact,
+mapping, lock and both schema-valid SBOMs, then attests that ZIP separately with provenance, each SBOM and the mapping.
+It needs `PRIVATE_RELEASE_READ_TOKEN` with read access to source contents and Actions in each split repository, plus
+the owner-approved tag key and signer fingerprint there. Real-run qualification is still required.
 The two repositories cannot be updated atomically: a failed second tag push can leave one package published even though
 the release job fails. Packagist may pick up that package before the other tag exists. Do not describe this state as a
 successful release, delete or overwrite a public tag, or assume the first push was rolled back.
@@ -212,11 +264,21 @@ attestation entitlement is assumed. Verify downloads with a `gh` version support
 
 ```bash
 sha256sum -c SHA256SUMS
-gh attestation verify azguard-core-<v>.zip --repo axiomasoft/azguard --signer-workflow axiomasoft/azguard/.github/workflows/provenance.yml --signer-digest <split-commit> --source-digest <split-commit> --source-ref refs/heads/release-candidate/v<version>/<run-id>/<attempt>
-gh attestation verify sbom-core.cdx.json --repo axiomasoft/azguard --signer-workflow axiomasoft/azguard/.github/workflows/provenance.yml --signer-digest <split-commit> --source-digest <split-commit> --source-ref refs/heads/release-candidate/v<version>/<run-id>/<attempt> --predicate-type https://axiomasoft.github.io/azguard/attestations/release-artifact-relay/v1
+gh attestation verify azguard-core-<v>.zip --repo axiomasoft/azguard --signer-workflow axiomasoft/azguard/.github/workflows/provenance.yml --signer-digest <split-commit> --source-digest <split-commit> --source-ref refs/heads/release-candidate/v<version>/<run-id>/<attempt> --predicate-type https://slsa.dev/provenance/v1
+gh attestation verify azguard-core-<v>.zip --repo axiomasoft/azguard --signer-workflow axiomasoft/azguard/.github/workflows/provenance.yml --signer-digest <split-commit> --source-digest <split-commit> --source-ref refs/heads/release-candidate/v<version>/<run-id>/<attempt> --predicate-type https://cyclonedx.org/bom --format json
+gh attestation verify azguard-core-<v>.zip --repo axiomasoft/azguard --signer-workflow axiomasoft/azguard/.github/workflows/provenance.yml --signer-digest <split-commit> --source-digest <split-commit> --source-ref refs/heads/release-candidate/v<version>/<run-id>/<attempt> --predicate-type https://axiomasoft.github.io/azguard/attestations/package-mapping/v1 --format json
 ```
 
-The same script builds the files locally (`bash bin/release-artifacts.sh 2.0.0-rc.1 /tmp/out`).
+The same script builds a local nonrelease rehearsal (`bash bin/release-artifacts.sh 2.0.0-rc.1 /tmp/out`) from
+committed `HEAD`, even if the worktree has changes. Its mapping reports that SHA and must not be used to qualify
+uncommitted work. The release workflow additionally rejects modified or untracked package input.
+
+To exercise the current worktree without network resolution, run
+`php bin/package-evidence.php --source=worktree --version=2.0.0-rc.1 --out=build/package-evidence --offline-fixture`.
+The output directory must be empty and the pinned CycloneDX validator must already be cached and hash-verified. The
+command compares two independent ZIP builds from each copied worktree snapshot, records the explicit `.github`
+exclusion, validates source and synthetic fixture SBOMs and writes checksums. Its `evidence.json` is `nonrelease`, has
+no attestation or split mapping, and labels the dependency graph synthetic: no consumer resolution or audit ran.
 
 ## Dependency updates
 
@@ -319,13 +381,13 @@ run and independent review before publication. A successful local fixture or bui
    baseline.
 4. After explicit owner approval, publish the planned release candidate from the qualified candidate C:
    ```bash
-   git tag -a v2.0.0-rc.1 <qualified-candidate-C> -m "AzGuard 2.0.0-rc.1"
+   git tag -s v2.0.0-rc.1 <qualified-candidate-C> -m "AzGuard 2.0.0-rc.1"
    git push origin v2.0.0-rc.1
    ```
    The subsequent stable release needs its own qualification and approval. For a first stable tag,
    use the baseline-only commit C+1 described above, never C:
    ```bash
-   git tag -a v2.0.0 <qualified-baseline-commit-C+1> -m "AzGuard 2.0.0"
+   git tag -s v2.0.0 <qualified-baseline-commit-C+1> -m "AzGuard 2.0.0"
    git push origin v2.0.0
    ```
    If a stable baseline tag already exists, tag the qualified candidate itself instead.
@@ -364,11 +426,26 @@ one-time setup below was done; consult the dated inventory for subsequent observ
 
 ## One-time setup (before enabling split)
 
-1. Create two empty repos under the `axiomasoft` org: `azguard` and
-   `azguard-filament`. They are **read-only mirrors** — never push to them by hand.
-2. Create a fine-grained PAT (or a deploy setup) with push access to both and
-   add it as the `MONOREPO_SPLIT_TOKEN` repository secret.
-3. Submit each mirror to [Packagist](https://packagist.org/packages/submit) and
-   enable the GitHub service hook so new tags auto-update.
-4. Create the repository variable `SPLIT_ENABLED=true` only after steps 1–3 are
-   complete; this enables the guarded `split` job on future release tags.
+1. Run `php bin/prepare-release-setup.php` and review the generated request, its observed unknowns, exact repository
+   names, ruleset bodies, workflow hashes, environment payload and token scopes. The proposed release reviewer is
+   `@academici` (user ID `3863273`), taken from `.github/CODEOWNERS`; the owner must approve the actor and confirm its
+   effective permissions. Choose the trusted public tag-signing key and its actual signing-key or subkey fingerprint.
+   The request is local and grants nothing.
+2. Only after separate owner authorization, configure the public owned `axiomasoft/azguard` and
+   `axiomasoft/azguard-filament` mirrors, release environment, rulesets, `SPLIT_ENABLED`, variables, workflows and the
+   three scoped secrets exactly as reviewed. `MONOREPO_SPLIT_TOKEN` needs contents and Actions write on both split
+   repositories; `PRIVATE_RELEASE_READ_TOKEN` needs contents and Actions read on the source in each split repository;
+   `RELEASE_SETUP_READ_TOKEN` is a source-repository secret with the read-only scopes listed in the request. Store no
+   token values in the request or logs. Submit the mirrors to [Packagist](https://packagist.org/packages/submit) and
+   configure webhooks only under the publication setup approval.
+3. After explicit authorization for the probe, dispatch `release-setup-probe.yml` on source `main` and approve its
+   release environment. It writes unique empty `release-setup-probe/<run>/<attempt>` branches to each split, verifies
+   and deletes them with commit-specific leases, and dispatches each public attestation probe on `main`. An interrupted
+   or failed cleanup can leave a probe branch: preserve the run and inspect the exact ref before any authorized cleanup.
+4. Wait for all three probe runs to succeed, regenerate the local request and run `php bin/verify-release-evidence.php
+   --setup build/release/setup-request.json`. This verifier performs only reads; it verifies current payloads, the
+   environment, token metadata, a clean settings audit, recent complete probe jobs and signed public canaries with
+   pinned repository, workflow, ref, digest and predicate. Proofs older than one hour or for a different default-branch
+   commit are rejected. Select a candidate SHA only after this succeeds; refresh and rerun the authorized probes if
+   the default branches change or the proof expires before split. Each later release still needs its own qualification
+   and publication authorization.

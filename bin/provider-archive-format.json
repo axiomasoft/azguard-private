@@ -1,0 +1,6 @@
+{
+  "schema": "azguard.provider-archive.local.v1",
+  "required": ["schema", "qualification", "commit", "tree_git_sha1", "archive_kind", "archive_sha256", "source_sbom_sha256", "resolved_dependency_sbom", "qualification_references", "provider_identity_verified", "limitation"],
+  "qualification": "nonrelease-unsigned",
+  "compatibility_fixture": "bin/provider-archive-compat.json"
+}

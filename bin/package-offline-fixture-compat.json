@@ -1,0 +1,44 @@
+{
+  "schema": "azguard.package-evidence.offline-fixture.v1",
+  "qualification": "nonrelease",
+  "source": "worktree",
+  "base_commit": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "version": "2.0.0-rc.1",
+  "consumer_graph": "synthetic-offline-fixture; no consumer resolution or advisory audit performed",
+  "attestations": [],
+  "split_mapping": "not performed",
+  "packages": {
+    "core": {
+      "package_name": "axiomasoft/azguard",
+      "source_worktree_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "export_exclusions": [".github"],
+      "composer_transform": {"operation": "set-version", "value": "2.0.0-rc.1", "before_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc", "after_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"},
+      "zip": "azguard-core-2.0.0-rc.1.zip",
+      "zip_sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+      "source_sbom": "source-core.cdx.json",
+      "source_sbom_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+      "resolved_sbom": "sbom-core.cdx.json",
+      "resolved_sbom_sha256": "1111111111111111111111111111111111111111111111111111111111111111",
+      "resolution_lock": "resolution-core.lock",
+      "resolution_lock_sha256": "2222222222222222222222222222222222222222222222222222222222222222",
+      "rebuild_matches": true,
+      "split_commit": null
+    },
+    "filament": {
+      "package_name": "axiomasoft/azguard-filament",
+      "source_worktree_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "export_exclusions": [".github"],
+      "composer_transform": {"operation": "set-version", "value": "2.0.0-rc.1", "before_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc", "after_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"},
+      "zip": "azguard-filament-2.0.0-rc.1.zip",
+      "zip_sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+      "source_sbom": "source-filament.cdx.json",
+      "source_sbom_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+      "resolved_sbom": "sbom-filament.cdx.json",
+      "resolved_sbom_sha256": "1111111111111111111111111111111111111111111111111111111111111111",
+      "resolution_lock": "resolution-filament.lock",
+      "resolution_lock_sha256": "2222222222222222222222222222222222222222222222222222222222222222",
+      "rebuild_matches": true,
+      "split_commit": null
+    }
+  }
+}

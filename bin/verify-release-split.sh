@@ -8,24 +8,16 @@ if ! command -v gh >/dev/null 2>&1 || ! gh attestation verify --help >/dev/null 
   exit 1
 fi
 staging="release-candidate/$tag/$GITHUB_RUN_ID/$GITHUB_RUN_ATTEMPT"
-staging_branch="$staging"
-SPLIT_TOKEN="${SPLIT_TOKEN:-${GH_TOKEN:-}}"
-tracked_remotes=()
 [[ "$(git rev-parse HEAD)" == "$sha" ]] || { echo 'checkout does not match candidate SHA' >&2; exit 1; }
 [[ "$(git rev-parse "refs/tags/$tag^{commit}")" == "$sha" ]] || { echo 'tag does not resolve to candidate SHA' >&2; exit 1; }
 (cd "$dist" && sha256sum --check SHA256SUMS)
 tmp="$(mktemp -d)"
 cleanup_staging() {
-    local status=$?
-    if (( status != 0 )); then
-        for remote in "${tracked_remotes[@]}"; do
-            git push "https://x-access-token:${SPLIT_TOKEN}@github.com/${remote}.git" ":refs/heads/${staging_branch}" >/dev/null 2>&1 || true
-        done
-    fi
+    # A failed check has not proved ownership of every remote ref. Preserve the
+    # branches for the separately authorized recovery described in RELEASING.md.
     rm -rf "$tmp"
 }
 trap cleanup_staging EXIT
-tracked_remotes=("axiomasoft/azguard" "axiomasoft/azguard-filament")
 for package in core filament; do
     repo=azguard
     [[ "$package" == filament ]] && repo=azguard-filament
@@ -64,7 +56,7 @@ PY
             --repo "axiomasoft/$repo" \
             --signer-workflow "axiomasoft/$repo/.github/workflows/provenance.yml" \
             --signer-digest "$split_sha" --source-digest "$split_sha" \
-            --source-ref "refs/heads/$staging"; then
+            --source-ref "refs/heads/$staging" --predicate-type https://slsa.dev/provenance/v1; then
             verified=true
             break
         fi
@@ -73,6 +65,9 @@ PY
     [[ "$verified" == true ]] || { echo "public split attestation verification failed: $package" >&2; exit 1; }
 done
 
+if [[ -n ${GITHUB_OUTPUT:-} ]]; then
+    printf 'core_sha=%s\nfilament_sha=%s\n' "$core_split_sha" "$filament_split_sha" >> "$GITHUB_OUTPUT"
+fi
 if [[ ${4:-} == --dispatch-final ]]; then
     gh workflow run provenance.yml --repo axiomasoft/azguard --ref "$staging" \
         -f "candidate=$sha" -f "run_id=$GITHUB_RUN_ID" -f "run_attempt=$GITHUB_RUN_ATTEMPT"
@@ -92,7 +87,4 @@ if [[ ${4:-} == --dispatch-final ]]; then
         done
         [[ "$verified" == true ]] || { echo "public final artifact attestation verification failed: $artifact" >&2; exit 1; }
     done
-    if [[ -n ${GITHUB_OUTPUT:-} ]]; then
-        printf 'core_sha=%s\nfilament_sha=%s\n' "$core_split_sha" "$filament_split_sha" >> "$GITHUB_OUTPUT"
-    fi
 fi
