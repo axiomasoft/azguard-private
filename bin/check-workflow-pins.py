@@ -41,21 +41,32 @@ REVIEWED_WORKFLOWS = {
     'docs-deploy.yml': '15efe0198116c95ea5205fc336f8eef90139efc68e157b00d1259c1dece6d5bf',
     'docs.yml': '4ae6826bdb0d02c9df13a82b4865c85bc21811b0f296412c8f02018422ba22d6',
     'pr-check.yml': 'b72cad5c81a8fe3d9692fd65af390ace4a63c705f7219dc6f8b5f929fd0bb493',
-    'release.yml': '5583f04692309b8faa76bc650fba150699538c7b7d4fb2138a7fa99da431e7a7',
+    'release.yml': '878dddf80df5155e3d94a9e24366310ac32a6f2d3fecb37342ca18b38d5cf43e',
+    'release-setup-probe.yml': '8786c2fc34a1e241e6f053e65361dfb5d4019d9769aa795d3adb8216dad6b6c2',
     'secret-scan.yml': '405d61d500751cb018bdb433d19fda6ef804ebce4f01e4052c1975646fd0c2b3',
     'security.yml': '9e08a93af21e23b6c11e04331eb9aeb7d41965e20bc5cf932ab9ad8a68fa77d4',
-    'split.yml': '44098f68ec5a8db29afba6ccab2ca91b2539dbc0d9622ba6da59051b1a912d11',
+    'split.yml': '3adf927740d929f16397dc6032d8dc8650314005be63ea59eb79a64079142277',
     'static-analysis.yml': '7bd5d7f4f93e78db32103a1615c0bd0bc364070077c7547d225e3e3f0f762fe4',
     'tests-nightly.yml': 'f8a9a70f743fd556b8907537fa45c959d6f55b187d98d0f3d87bd9152a98021c',
-    'tests.yml': '4cb5fd74142231f2710791ef5e8f4b5adfe9c3a5328843093e4288fc4eb08840',
+    'tests.yml': 'a62ae3db816e78799996953ccbdb7744c7142ae2835c6db24f06a777f2431f9f',
     'workers.yml': '634ddc2c89a314f7843468b795965adc671640d0555acde3dce52ea9be82d3fc',
     'zizmor.yml': '61d9b94bd9361c929268dd58d7572afbfeb52729c37e8c3b93c676c37e837047',
 }
 # Set each digest only after independent review of the exact package workflow.
 # Until then these required workflows deliberately fail closed.
 REVIEWED_PACKAGE_WORKFLOWS = {
-    'packages/core/.github/workflows/provenance.yml': '5d927ba9ef7e699543b204b5749eeb7bdf00952cb42ae389e4fcdbf5c28332ac',
-    'packages/filament/.github/workflows/provenance.yml': '5d927ba9ef7e699543b204b5749eeb7bdf00952cb42ae389e4fcdbf5c28332ac',
+    'packages/core/.github/workflows/provenance.yml': '168075f4a2979dfdf28fcc8054e12db7cd9b510d05193fc3a227bfec5eca2615',
+    'packages/filament/.github/workflows/provenance.yml': 'd17d1c5907784c80b7f369136763724b32ed5e64ff33783279fa8c6d9eb873d5',
+    'packages/core/.github/workflows/attestation-setup.yml': '391d114c659e92b0abe3f99a6f266f4f842bfb642f01d26fb5b5e0a7dd5768f8',
+    'packages/filament/.github/workflows/attestation-setup.yml': '391d114c659e92b0abe3f99a6f266f4f842bfb642f01d26fb5b5e0a7dd5768f8',
+}
+PACKAGE_WRITE_PERMISSIONS = {
+    ('packages/core/.github/workflows/provenance.yml', 'provenance'): {'id-token', 'attestations'},
+    ('packages/core/.github/workflows/provenance.yml', 'relay-final-artifacts'): {'id-token', 'attestations'},
+    ('packages/filament/.github/workflows/provenance.yml', 'provenance'): {'id-token', 'attestations'},
+    ('packages/filament/.github/workflows/provenance.yml', 'relay-final-artifacts'): {'id-token', 'attestations'},
+    ('packages/core/.github/workflows/attestation-setup.yml', 'probe'): {'id-token', 'attestations'},
+    ('packages/filament/.github/workflows/attestation-setup.yml', 'probe'): {'id-token', 'attestations'},
 }
 UNTRUSTED = re.compile(r'\$\{\{.*?(?:\bgithub\b|\binputs\b|\benv\b)', re.I | re.S)
 # Only these action inputs are known to consume the value as data, not script.
@@ -74,6 +85,9 @@ REVIEWED_RUNS = {
     ('release.yml', 'validate', '11304bf0fcbccfddb7306b4af5beaa5f8d1d0e2130781ad755a5f4792be09680'): {'TAG', 'TAGGED_SHA'},
     ('release.yml', 'validate', 'b630d6f8922cfa92d2d800e473ba4b233a18d2f895e99d275b9e06680fe5d80c'): {'TAGGED_SHA'},
     ('release.yml', 'validate', '5913c5f5011094899d980d03e64ee6179f91653ab30c3da98f9bd3bba0af9421'): {'TAG', 'TAGGED_SHA'},
+    # Full workflow reviewed at 878dddf80df5155e3d94a9e24366310ac32a6f2d3fecb37342ca18b38d5cf43e:
+    # the annotated-tag check treats both values as quoted data and validates the signer.
+    ('release.yml', 'validate', '8a1d28ddd692ad261b03e0fdb00075b5526914d38c5d9af448b5d9d2e214eaaf'): {'TAG', 'TAGGED_SHA'},
     ('bench.yml', 'bench', '836383ae1fbf4b725d9c7b0375601884902fff4f1a9510872b199caf77a795e9'): {'TIER'},
     ('workers.yml', 'worker', '78051647250c4c30636dfc866d1c0eec6ce72adc9879cac59d60df1acab4dd95'): {'WORKER_EVENT', 'WORKER_MEMORY'},
     ('dependabot-auto-merge.yml', 'auto-merge', 'ed305084cd8b31a50d22da4295e95763771a6146013ddb30f2bee050fa36b167'): {'PR_URL'},
@@ -219,7 +233,7 @@ def check_unreviewed(workflow, jobs, errors):
                     errors.append(f'{job_id}: unreviewed action environment')
 
 
-def check_workflow(text, filename):
+def check_workflow(text, filename, *, package=False):
     errors = []
     try:
         workflow = yaml.load(text, Loader=Loader)
@@ -230,8 +244,10 @@ def check_workflow(text, filename):
         jobs = workflow.get('jobs')
         if not isinstance(jobs, dict):
             raise ValueError('jobs must be a mapping')
-        reviewed = hashlib.sha256(text.encode()).hexdigest() == REVIEWED_WORKFLOWS.get(filename)
-        if not reviewed and filename in REVIEWED_WORKFLOWS:
+        snapshots = REVIEWED_PACKAGE_WORKFLOWS if package else REVIEWED_WORKFLOWS
+        digest = snapshots.get(filename)
+        reviewed = isinstance(digest, str) and hashlib.sha256(text.encode()).hexdigest() == digest
+        if not reviewed and filename in snapshots and not package:
             errors.append('reviewed workflow changed: full review and digest update required')
         if not reviewed:
             check_unreviewed(workflow, jobs, errors)
@@ -254,7 +270,8 @@ def check_workflow(text, filename):
             if not isinstance(permissions, dict):
                 errors.append(f'{job_id}: permissions must be a mapping')
             else:
-                allowed = WRITE_PERMISSIONS.get((filename, job_id), set()) if reviewed else set()
+                permission_policy = PACKAGE_WRITE_PERMISSIONS if package else WRITE_PERMISSIONS
+                allowed = permission_policy.get((filename, job_id), set()) if reviewed else set()
                 for permission, level in permissions.items():
                     if level not in ('read', 'write', 'none') or (level == 'write' and permission not in allowed):
                         errors.append(f'{job_id}: forbidden permission {permission}: {level}')
@@ -278,7 +295,10 @@ def check_workflow(text, filename):
                                                   and value == '${{ github.sha }}')
                             release_artifact = (action == 'actions/download-artifact' and key == 'name'
                                                 and value == 'release-artifacts-${{ github.run_attempt }}')
-                            if untrusted(value) and (action, key) not in DATA_INPUTS and not candidate_checkout and not release_artifact:
+                            consumer_artifact = (filename == 'tests.yml' and job_id == 'consumer-matrix'
+                                                 and ref == 'actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333'
+                                                 and key == 'pattern' and value == 'consumer-*-${{ github.run_attempt }}')
+                            if untrusted(value) and (action, key) not in DATA_INPUTS and not candidate_checkout and not release_artifact and not consumer_artifact:
                                 errors.append(f'{job_id}: untrusted expression in action input {key}')
                 if untrusted(node.get('shell')):
                     errors.append(f'{job_id}: untrusted expression in shell')
@@ -310,13 +330,18 @@ def check_package_workflows(root):
                 raise ValueError('workflow and jobs must be mappings')
             if digest is None or hashlib.sha256(text.encode()).hexdigest() != digest:
                 errors.append((path, 'package workflow requires independent review and digest update'))
+            # A trusted snapshot is a review boundary, not a substitute for checking
+            # action inputs, shell interpolation, environment and permissions. Apply
+            # the same fail-closed structural checks used for root workflows.
+            errors.extend((path, error) for error in check_workflow(text, name, package=True))
             if workflow.get('permissions') != {'contents': 'read'}:
                 errors.append((path, 'root permissions must be contents: read'))
             for job_id, job in workflow['jobs'].items():
                 if not isinstance(job, dict):
                     raise ValueError(f'{job_id}: job must be a mapping')
                 permissions = job.get('permissions', {'contents': 'read'})
-                allowed = {'id-token', 'attestations'} if job_id in {'provenance', 'relay-final-artifacts'} else set()
+                reviewed = isinstance(digest, str) and hashlib.sha256(text.encode()).hexdigest() == digest
+                allowed = PACKAGE_WRITE_PERMISSIONS.get((name, job_id), set()) if reviewed else set()
                 if not isinstance(permissions, dict) or any(
                     level not in ('read', 'none') and not (permission in allowed and level == 'write')
                     for permission, level in permissions.items()

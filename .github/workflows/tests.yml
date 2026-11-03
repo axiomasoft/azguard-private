@@ -367,6 +367,16 @@ jobs:
       - name: Qualify archives with both dependency policies
         run: bash bin/consumer-matrix.sh --source="$GITHUB_SHA" --pair='${{ matrix.php }}-${{ matrix.laravel }}' --output="$RUNNER_TEMP/consumer"
 
+      # Internal integration coverage only: the Filament archive is never a release artifact.
+      - name: Smoke unpublished Filament from local archives
+        run: |
+          set -Eeuo pipefail
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          git diff --exit-code -- packages/core packages/filament
+          for policy in lowest latest; do
+            bash bin/consumer-fixture.sh --source=archive --with-filament --laravel="$LARAVEL" --version=2.0.0-rc.1 --policy="$policy" --dist="$RUNNER_TEMP/filament-smoke/$policy/dist" --evidence="$RUNNER_TEMP/filament-smoke/$policy/evidence"
+          done
+
       - name: Retain consumer evidence
         if: always()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2

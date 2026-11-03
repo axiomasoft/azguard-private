@@ -45,8 +45,8 @@ php artisan azguard:install --panel=Admin --migrate
 Add `HasAzGuard` and `AzGuardSubject` to your `User` model and register a morph alias. Then follow the
 **[quick start](docs/getting-started/quick-start.md)**.
 
-For Filament: `composer require axiomasoft/azguard-filament`. See the
-[Filament guide](docs/guides/filament.md).
+The Filament integration remains in this monorepo and is not in the current publication scope. See the
+[Filament guide](docs/guides/filament.md) for its development usage.
 
 ## Features
 
@@ -83,11 +83,13 @@ For Filament: `composer require axiomasoft/azguard-filament`. See the
 | [`axiomasoft/azguard`](packages/core) | The core: panels, sources, decisions, storage, Laravel integration, CLI, testing kit |
 | [`axiomasoft/azguard-filament`](packages/filament) | Filament 5 plugin: resource/page/widget authorization, list filtering, grant editors |
 
-This repository is the development monorepo. The packages are split into read-only repositories on release.
+This repository is the development monorepo. Only the core package is in the current publication scope;
+the Filament package is retained for development and is outside the current publication scope.
 
 ## Requirements
 
-The 2.0 line supports PHP 8.3/8.4 with Laravel 12, and PHP 8.3/8.4/8.5 with Laravel 13.
+The 2.0 line supports PHP 8.3–8.5 and Laravel 12 or 13: PHP 8.3/8.4 with Laravel 12, and PHP 8.3/8.4/8.5
+with Laravel 13.
 The Filament plugin requires Filament `^5.8.4` and the exact same AzGuard core version (`self.version`).
 CI resolves lowest and latest dependencies for each of these five pairs on SQLite. Server lanes use
 MySQL 8, MariaDB 10.11, PostgreSQL 16 and Redis 7; these lanes do not represent every platform cross-product.

@@ -7,7 +7,7 @@ trap 'rm -rf "$tmp"' EXIT
 php -r '
     foreach (["8.3-12","8.3-13","8.4-12","8.4-13","8.5-13"] as $pair)
         foreach (["lowest","latest"] as $policy)
-            foreach (["core","filament","core-only","relocated-audit"] as $composition) {
+            foreach (["core","core-only","relocated-audit"] as $composition) {
                 $id="$pair-$policy-$composition"; $dir=$argv[1]."/".$id; mkdir($dir);
                 file_put_contents("$dir/result.json",json_encode(["id"=>$id,"result"=>"success","qualification"=>"nonrelease","version"=>"2.0.0-rc.1","source"=>["mode"=>"worktree","commit"=>"test","tree"=>"test"]]));
                 file_put_contents("$dir/run.log","test\n"); file_put_contents("$dir/composer.lock","{}\n"); file_put_contents("$dir/consumer-composer.json","{}\n");
@@ -25,6 +25,7 @@ mv "$tmp/omitted.json" "$tmp/8.3-12-lowest-core/result.json"
 printf '%s\n' '{"repositories":[{"type":"path","url":"../package"}]}' > "$tmp/8.3-12-lowest-core/consumer-composer.json"
 if bash "$root/bin/consumer-matrix.sh" --verify="$tmp" >/dev/null 2>&1; then echo 'Path repository accepted' >&2; exit 1; fi
 if bash "$root/bin/consumer-fixture.sh" --policy=unknown >/dev/null 2>&1; then echo 'Unknown policy accepted' >&2; exit 1; fi
+if bash "$root/bin/consumer-fixture.sh" --source=packagist --version=2.0.0 --with-filament >/dev/null 2>&1; then echo 'Unpublished Filament accepted from Packagist' >&2; exit 1; fi
 git clone --quiet --no-hardlinks "$root" "$tmp/repo"
 cp "$root/bin/consumer-matrix.sh" "$tmp/repo/bin/consumer-matrix.sh"
 printf 'dirty\n' > "$tmp/repo/untracked-test-file"
@@ -50,13 +51,13 @@ if PATH="$tmp/bin:$PATH" MATRIX_TEST_VERSION_FILE="$tmp/version" bash "$root/bin
     echo 'Injected archive failure accepted' >&2; exit 1
 fi
 [[ "$(<"$tmp/version")" == 2.0.0-rc.1 ]]
-php -r '$j=json_decode(file_get_contents($argv[1]),true,512,JSON_THROW_ON_ERROR); if ($j["version"] !== "2.0.0-rc.1" || count($j["rows"]) !== 40) exit(1);' "$tmp/report/matrix.json"
+php -r '$j=json_decode(file_get_contents($argv[1]),true,512,JSON_THROW_ON_ERROR); if ($j["version"] !== "2.0.0-rc.1" || count($j["rows"]) !== 30) exit(1);' "$tmp/report/matrix.json"
 # The coordinator supplies a relative report path; it must resolve from the caller's directory.
 if (cd "$tmp" && PATH="$tmp/bin:$PATH" MATRIX_TEST_VERSION_FILE="$tmp/relative-version" bash "$root/bin/consumer-matrix.sh" --source=worktree --version=2.0.0-rc.1 --deps=lowest,latest --report=relative/matrix.json --pair="$php_pair" >"$tmp/relative-cli.log" 2>&1); then
     echo 'Injected archive failure accepted for relative report' >&2; exit 1
 fi
 [[ "$(<"$tmp/relative-version")" == 2.0.0-rc.1 ]]
-php -r '$j=json_decode(file_get_contents($argv[1]),true,512,JSON_THROW_ON_ERROR); if ($j["version"] !== "2.0.0-rc.1" || count($j["rows"]) !== 40) exit(1);' "$tmp/relative/matrix.json"
+php -r '$j=json_decode(file_get_contents($argv[1]),true,512,JSON_THROW_ON_ERROR); if ($j["version"] !== "2.0.0-rc.1" || count($j["rows"]) !== 30) exit(1);' "$tmp/relative/matrix.json"
 if bash "$root/bin/consumer-matrix.sh" --source=worktree --deps=lowest,unknown --report="$tmp/invalid.json" >/dev/null 2>&1; then echo 'Unknown dependency policy accepted' >&2; exit 1; fi
 if bash "$root/bin/consumer-matrix.sh" >"$tmp/usage.log" 2>&1; then echo 'Missing source accepted' >&2; exit 1; fi
 usage_text="$(<"$tmp/usage.log")"

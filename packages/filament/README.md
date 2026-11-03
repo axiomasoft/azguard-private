@@ -11,15 +11,14 @@ Supported pairs are PHP 8.3/8.4 with Laravel 12 and PHP 8.3/8.4/8.5 with Laravel
 lowest and latest dependencies in CI. SQL visibility that cannot represent an authorization rule fails closed;
 filtering a paginated collection afterwards does not implement authorization.
 
-```bash
-composer require axiomasoft/azguard-filament
-```
+This package is retained in the monorepo for development and is not in the current publication scope. The root Composer path
+repository resolves it locally; do not use the package name as a public installation instruction.
 
 ```php
 ->plugin(AzGuardPlugin::make()->guardPanel('admin'))
 ```
 
-Guide: <https://github.com/axiomasoft/azguard-private/blob/main/docs/guides/filament.md>. This is a read-only split of the
-[monorepo](https://github.com/axiomasoft/azguard-private). Open issues and pull requests there. MIT license.
+Guide: <https://github.com/axiomasoft/azguard-private/blob/main/docs/guides/filament.md>.
+Development happens in the [monorepo](https://github.com/axiomasoft/azguard-private). MIT license.
 
 Existing installations: [upgrading to 2.0](https://github.com/axiomasoft/azguard-private/blob/main/docs/guides/upgrading-2.md).

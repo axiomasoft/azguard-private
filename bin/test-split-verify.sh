@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Offline harness of bin/split-verify.sh: a temporary monorepo, two bare split repositories made with `git subtree split`,
+# Offline harness of bin/split-verify.sh: a temporary monorepo, one bare split repository made with `git subtree split`,
 # and recorded Packagist documents served through file:// URLs. No network, nothing outside the temporary directory.
 set -Eeuo pipefail
 
@@ -30,11 +30,10 @@ make_split() {
 }
 
 core_sha="$(make_split core "${work}/core.git")"
-filament_sha="$(make_split filament "${work}/filament.git")"
 
 run() {
     SPLIT_MONOREPO="${mono}" SPLIT_ALLOWLIST="${work}/allowlist.txt" bash "${script}" v1.0.0 \
-        --remote-core="${work}/core.git" --remote-filament="${work}/filament.git" "$@"
+        --remote-core="${work}/core.git" "$@"
 }
 
 : >"${work}/allowlist.txt"
@@ -55,18 +54,16 @@ expect_status() {
 packagist="${work}/packagist"
 mkdir -p "${packagist}/axiomasoft"
 write_packagist() {
-    local core_ref="$1" filament_ref="$2" require="$3"
+    local core_ref="$1"
     cat >"${packagist}/axiomasoft/azguard.json" <<JSON
 {"packages":{"axiomasoft/azguard":[{"name":"axiomasoft/azguard","version":"1.0.0","version_normalized":"1.0.0.0","source":{"type":"git","reference":"${core_ref}"},"require":{"php":"^8.3"}}]}}
-JSON
-    cat >"${packagist}/axiomasoft/azguard-filament.json" <<JSON
-{"packages":{"axiomasoft/azguard-filament":[{"name":"axiomasoft/azguard-filament","version":"1.0.0","version_normalized":"1.0.0.0","source":{"type":"git","reference":"${filament_ref}"},"require":{"axiomasoft/azguard":"${require}"}}]}}
 JSON
 }
 
 # 1. Identical trees pass.
 expect_status 0 'identical trees' run --skip-packagist
 grep -q "monorepo $(git -C "${mono}" rev-parse v1.0.0^{commit}) -> split ${core_sha}" "${work}/out.txt" || { echo 'FAIL: the mapping line is missing' >&2; exit 1; }
+expect_status 2 'Filament split option is not accepted' run --remote-filament="${work}/filament.git" --skip-packagist
 
 # 2. A stray file in a split tag fails; the allowlist admits it.
 stray="${work}/stray"
@@ -85,30 +82,28 @@ git -C "${work}/core.git" "${git_config[@]}" tag -f -a v1.0.0 "${core_sha}" -m '
 
 # 3. A split tag with changed content fails.
 changed="${work}/changed"
-git clone --quiet --branch main "${work}/filament.git" "${changed}"
-echo '<?php // altered' >"${changed}/src/B.php"
+git clone --quiet --branch main "${work}/core.git" "${changed}"
+echo '<?php // altered' >"${changed}/src/A.php"
 git -C "${changed}" "${git_config[@]}" commit --quiet -am 'fixture: altered file'
 git -C "${changed}" push --quiet origin HEAD:refs/heads/altered
-git -C "${work}/filament.git" "${git_config[@]}" tag -f -a v1.0.0 "$(git -C "${changed}" rev-parse HEAD)" -m 'AzGuard 1.0.0' >/dev/null
+git -C "${work}/core.git" "${git_config[@]}" tag -f -a v1.0.0 "$(git -C "${changed}" rev-parse HEAD)" -m 'AzGuard 1.0.0' >/dev/null
 expect_status 1 'an altered file in the split tag' run --skip-packagist
-git -C "${work}/filament.git" "${git_config[@]}" tag -f -a v1.0.0 "${filament_sha}" -m 'AzGuard 1.0.0' >/dev/null
+git -C "${work}/core.git" "${git_config[@]}" tag -f -a v1.0.0 "${core_sha}" -m 'AzGuard 1.0.0' >/dev/null
 
 # 4. A missing split tag fails.
 git -C "${work}/core.git" tag -d v1.0.0 >/dev/null
 expect_status 1 'a missing split tag' run --skip-packagist
 git -C "${work}/core.git" "${git_config[@]}" tag -a v1.0.0 "${core_sha}" -m 'AzGuard 1.0.0'
 
-# 5. Packagist: matching references pass; a wrong reference, a wrong core requirement and a missing version fail.
+# 5. Packagist: matching references pass; a wrong reference and a missing version fail.
 export SPLIT_PACKAGIST_BASE="file://${packagist}"
-write_packagist "${core_sha}" "${filament_sha}" '1.0.0'
+write_packagist "${core_sha}"
 expect_status 0 'matching Packagist documents' run
-write_packagist "$(printf 'f%.0s' {1..40})" "${filament_sha}" '1.0.0'
+write_packagist "$(printf 'f%.0s' {1..40})"
 expect_status 1 'a Packagist reference that is not the split commit' run
-write_packagist "${core_sha}" "${filament_sha}" '1.0.1'
-expect_status 1 'a Filament package that requires another core version' run
-rm -f "${packagist}/axiomasoft/azguard-filament.json"
+rm -f "${packagist}/axiomasoft/azguard.json"
 expect_status 3 'an unreachable Packagist document' run
-write_packagist "${core_sha}" "${filament_sha}" '1.0.0'
+write_packagist "${core_sha}"
 sed -i 's/"version":"1.0.0"/"version":"0.9.0"/; s/"version_normalized":"1.0.0.0"/"version_normalized":"0.9.0.0"/' "${packagist}/axiomasoft/azguard.json"
 expect_status 1 'a version Packagist does not list' run
 

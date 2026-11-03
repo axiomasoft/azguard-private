@@ -3,8 +3,8 @@
 #
 #   bash bin/release-artifacts.sh <version> <outdir>
 #
-# Writes to <outdir>: azguard-core-<version>.zip, azguard-filament-<version>.zip, sbom-core.cdx.json,
-# sbom-filament.cdx.json and SHA256SUMS. The release workflow runs the same script, so a local run reproduces the build.
+# Writes the core archive, source and dependency SBOMs, lock, mapping and SHA256SUMS.
+# Filament is not a release artifact. The release workflow runs this same script.
 # The archive builder is the one of bin/consumer-fixture.sh (build_archives): a copy of the package with the version set
 # in the copy only, then `composer archive`. The SBOM is made from a temporary project that requires the archive alone
 # with --no-dev, so it holds the package and its production dependencies and no development tool.
@@ -22,6 +22,10 @@ version="$1"
 out="$2"
 mkdir -p "${out}"
 out="$(cd "${out}" && pwd)"
+if [[ -n "$(find "${out}" -mindepth 1 -maxdepth 1 -print -quit)" ]]; then
+    echo "error: output directory must be empty" >&2
+    exit 1
+fi
 
 work="$(mktemp -d)"
 trap 'rm -r -f "${work}"' EXIT
@@ -60,7 +64,6 @@ build_archive() {
 # The production SBOM of a package: a project that requires the archives with --no-dev, scanned by the pinned syft.
 build_sbom() {
     local package="$1" name="axiomasoft/azguard"
-    [[ "${package}" == filament ]] && name="axiomasoft/azguard-filament"
     local project="${work}/sbom-${package}"
     mkdir -p "${project}"
     cat >"${project}/composer.json" <<JSON
@@ -107,17 +110,15 @@ PY
 }
 
 log "version ${version}, output ${out}"
-for package in core filament; do
+for package in core; do
     build_archive "${package}"
 done
-# The Filament archive requires the core archive of the same version: both are in the artifact repository.
-for package in core filament; do
+for package in core; do
     build_sbom "${package}"
 done
 
-for package in core filament; do
+for package in core; do
     name=axiomasoft/azguard
-    [[ "${package}" != filament ]] || name=axiomasoft/azguard-filament
     php "${root}/bin/package-evidence.php" --source-sbom "${out}/azguard-${package}-${version}.zip" "${name}" "${version}" "${out}/source-${package}.cdx.json"
     php "${root}/bin/package-evidence.php" --check-source-sbom "${out}/azguard-${package}-${version}.zip" "${name}" "${version}" "${out}/source-${package}.cdx.json"
     for bom in "${out}/source-${package}.cdx.json" "${out}/sbom-${package}.cdx.json"; do
@@ -126,10 +127,10 @@ for package in core filament; do
     done
 done
 
-for package in core filament; do
+for package in core; do
     php "${root}/bin/package-evidence.php" --build-manifest "${package}" "${version}" "${out}" "${out}/mapping-${package}.json"
 done
-(cd "${out}" && sha256sum "azguard-core-${version}.zip" "azguard-filament-${version}.zip" source-core.cdx.json source-filament.cdx.json sbom-core.cdx.json sbom-filament.cdx.json resolution-core.lock resolution-filament.lock mapping-core.json mapping-filament.json >SHA256SUMS)
+(cd "${out}" && sha256sum "azguard-core-${version}.zip" source-core.cdx.json sbom-core.cdx.json resolution-core.lock mapping-core.json >SHA256SUMS)
 (cd "${out}" && sha256sum --strict --check SHA256SUMS)
 log "artifacts:"
 ls -1 "${out}" | sed 's/^/  /'

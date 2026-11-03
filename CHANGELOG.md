@@ -1,10 +1,16 @@
 # Changelog
 
-All notable changes to `axiomasoft/azguard` and `axiomasoft/azguard-filament` (released together under one
+All notable changes to `axiomasoft/azguard` and the monorepo's `axiomasoft/azguard-filament` integration (developed under one
 version) are documented here. Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Versioning:
 [SemVer](https://semver.org/spec/v2.0.0.html). The section of a version is its GitHub release notes.
 
 ## [Unreleased]
+
+- The current release scope is core only; the Filament integration remains in the monorepo and is not in the current publication scope.
+- The core-only offline archive rehearsal uses `azguard.package-evidence.offline-fixture.v2`; the previous v1 format is
+  retained as historical evidence. Its synthetic dependency graph is not release qualification.
+- Release evidence schema `urn:azguard:release-evidence:2` records the core-only artifact and split; the earlier v1
+  schema remains supported for historical two-package evidence.
 
 - The release setup verifier accepts `--setup=PATH --read-only --strict` as well as the existing `--setup [PATH]` form;
   setup verification remains read-only and strict in both forms.
@@ -86,7 +92,7 @@ version) are documented here. Format: [Keep a Changelog](https://keepachangelog.
   now bypasses unsupported stores and Redis connections with client-side serialization or compression enabled;
   use an uncompressed, non-serializing Redis connection for shared caching.
 
-Target: **2.0.0-rc.1**, followed by **2.0.0** for both packages. The 1.0.0 entry below is a historical
+Core target: **2.0.0-rc.1**, followed by **2.0.0**. The Filament package is not currently in publication scope. The 1.0.0 entry below is a historical
 release claim; publication and consumption are not established by that claim alone. Treat 1.0 as potentially
 consumed. A timestamped inventory of repository tags, releases and package publication state was recorded;
 retain the inventory snapshot with the release evidence as described in [RELEASING.md](RELEASING.md).

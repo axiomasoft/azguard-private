@@ -2,15 +2,14 @@
 # Verifies a release after the split: each split repository tag holds exactly the subtree of the monorepo tag, and
 # Packagist serves that version from the split commit. Read-only.
 #
-#   bash bin/split-verify.sh <tag> [--repo-core=axiomasoft/azguard] [--repo-filament=axiomasoft/azguard-filament]
-#                            [--remote-core=<url|path>] [--remote-filament=<url|path>] [--skip-packagist]
+#   bash bin/split-verify.sh <tag> [--repo-core=axiomasoft/azguard] [--remote-core=<url|path>] [--skip-packagist]
 #
 # Tree identity: `git rev-parse <tag>:packages/<dir>` must equal the tree of the split tag. When it does not, the
 # differing entries are listed; entries of the split side that appear in `.github/split-allowlist.txt` (one path per line,
 # `#` comments, empty by default) are ignored. The mapping `monorepo <sha> -> split <sha>` is printed per package.
 # Packagist: `$SPLIT_PACKAGIST_BASE/<vendor>/<name>.json` (default https://repo.packagist.org/p2) must list the version
-# with `source.reference` equal to the split commit and, for the Filament package, a `require` of the core on the same
-# version. `SPLIT_ALLOWLIST` overrides the allowlist path and `SPLIT_MONOREPO` the repository whose tag is verified.
+# with `source.reference` equal to the split commit. `SPLIT_ALLOWLIST` overrides the allowlist path and
+# `SPLIT_MONOREPO` the repository whose tag is verified. Filament is not published by this release.
 #
 # Exit codes: 0 verified, 1 mismatch, 2 usage, 3 Packagist unreachable (never green).
 set -Eeuo pipefail
@@ -21,22 +20,18 @@ monorepo="${SPLIT_MONOREPO:-${root}}"
 
 tag=""
 repo_core="axiomasoft/azguard"
-repo_filament="axiomasoft/azguard-filament"
 remote_core=""
-remote_filament=""
 skip_packagist=0
 
 usage() {
-    echo "usage: split-verify.sh <tag> [--repo-core=<owner/name>] [--repo-filament=<owner/name>] [--remote-core=<url|path>] [--remote-filament=<url|path>] [--skip-packagist]" >&2
+    echo "usage: split-verify.sh <tag> [--repo-core=<owner/name>] [--remote-core=<url|path>] [--skip-packagist]" >&2
     exit 2
 }
 
 for arg in "$@"; do
     case "${arg}" in
         --repo-core=?*) repo_core="${arg#*=}" ;;
-        --repo-filament=?*) repo_filament="${arg#*=}" ;;
         --remote-core=?*) remote_core="${arg#*=}" ;;
-        --remote-filament=?*) remote_filament="${arg#*=}" ;;
         --skip-packagist) skip_packagist=1 ;;
         --*) usage ;;
         *) [[ -z "${tag}" ]] && tag="${arg}" || usage ;;
@@ -46,7 +41,6 @@ done
 [[ "${tag}" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?$ ]] || usage
 version="${tag#v}"
 remote_core="${remote_core:-https://github.com/${repo_core}.git}"
-remote_filament="${remote_filament:-https://github.com/${repo_filament}.git}"
 allowlist="${SPLIT_ALLOWLIST:-${root}/.github/split-allowlist.txt}"
 packagist_base="${SPLIT_PACKAGIST_BASE:-https://repo.packagist.org/p2}"
 
@@ -146,25 +140,14 @@ verify_packagist() {
     else
         log "${name}: Packagist ${version} points to the split commit"
     fi
-    if [[ "${dir}" == filament ]]; then
-        local core_require
-        core_require="$(python3 -c 'import json,sys; print(json.loads(sys.argv[1])["require"].get("axiomasoft/azguard",""))' "${entry}")"
-        if [[ "${core_require}" != "${version}" ]]; then
-            fail "${name}: Packagist ${version} requires axiomasoft/azguard ${core_require:-nothing}, expected ${version}"
-        else
-            log "${name}: requires axiomasoft/azguard ${version}"
-        fi
-    fi
 }
 
 verify_package core "${remote_core}" "axiomasoft/azguard"
-verify_package filament "${remote_filament}" "axiomasoft/azguard-filament"
 
 if ((skip_packagist)); then
     log "Packagist check skipped"
 else
     verify_packagist core "axiomasoft/azguard" "axiomasoft/azguard"
-    verify_packagist filament "axiomasoft/azguard-filament" "axiomasoft/azguard-filament"
 fi
 
 if ((status == 0)); then

@@ -6,9 +6,8 @@
 - resource lists show only the records the user may view;
 - you get read-only role pages and editors for grants and dynamic permissions.
 
-```bash
-composer require axiomasoft/azguard-filament
-```
+The package is retained in the monorepo for development and is not in the current publication scope. The monorepo's root Composer
+path repository resolves it locally; these instructions describe the development integration, not a public install.
 
 A Filament panel and an AzGuard panel are different things. The plugin names the AzGuard panel (the "guard
 panel") that holds the permissions of a Filament panel.

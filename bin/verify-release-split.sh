@@ -18,15 +18,13 @@ cleanup_staging() {
     rm -rf "$tmp"
 }
 trap cleanup_staging EXIT
-for package in core filament; do
+for package in core; do
     repo=azguard
-    [[ "$package" == filament ]] && repo=azguard-filament
     git init -q "$tmp/$package"
     git -C "$tmp/$package" fetch --quiet --depth=1 "https://github.com/axiomasoft/$repo.git" "refs/heads/$staging:refs/heads/$staging"
     [[ "$(git rev-parse "$sha:packages/$package")" == "$(git -C "$tmp/$package" rev-parse "refs/heads/$staging^{tree}")" ]] || { echo "split tree mismatch: $package" >&2; exit 1; }
     split_sha="$(git -C "$tmp/$package" rev-parse "refs/heads/$staging^{commit}")"
     [[ "$package" != core ]] || core_split_sha="$split_sha"
-    [[ "$package" != filament ]] || filament_split_sha="$split_sha"
     git -C "$tmp/$package" checkout --quiet --detach "$split_sha"
     cp -a "$tmp/$package" "$tmp/copy-$package"
     rm -rf "$tmp/copy-$package/.git"
@@ -66,12 +64,12 @@ PY
 done
 
 if [[ -n ${GITHUB_OUTPUT:-} ]]; then
-    printf 'core_sha=%s\nfilament_sha=%s\n' "$core_split_sha" "$filament_split_sha" >> "$GITHUB_OUTPUT"
+    printf 'core_sha=%s\n' "$core_split_sha" >> "$GITHUB_OUTPUT"
 fi
 if [[ ${4:-} == --dispatch-final ]]; then
     gh workflow run provenance.yml --repo axiomasoft/azguard --ref "$staging" \
         -f "candidate=$sha" -f "run_id=$GITHUB_RUN_ID" -f "run_attempt=$GITHUB_RUN_ATTEMPT"
-    for artifact in sbom-core.cdx.json sbom-filament.cdx.json SHA256SUMS; do
+    for artifact in sbom-core.cdx.json SHA256SUMS; do
         verified=false
         for attempt in {1..20}; do
             if gh attestation verify "$dist/$artifact" --repo axiomasoft/azguard \

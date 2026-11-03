@@ -23,7 +23,7 @@ if [[ -n "$verify" ]]; then
         $expected=[];
         foreach (["8.3-12","8.3-13","8.4-12","8.4-13","8.5-13"] as $pair)
             foreach (["lowest","latest"] as $policy)
-                foreach (["core","filament","core-only","relocated-audit"] as $composition)
+                foreach (["core","core-only","relocated-audit"] as $composition)
                     $expected["$pair-$policy-$composition"]=true;
         $source=null; $version=null; $seen=[];
         foreach (glob($argv[1]."/*/result.json") as $file) {
@@ -93,7 +93,7 @@ else
     git -C "$root" archive "$source_ref" | tar -xf - -C "$tmp/source"
 fi
 php -r '
-    $rows=[]; foreach (["8.3-12","8.3-13","8.4-12","8.4-13","8.5-13"] as $p) foreach (["lowest","latest"] as $d) foreach (["core","filament","core-only","relocated-audit"] as $c) $rows[]=["id"=>"$p-$d-$c","result"=>"pending"];
+    $rows=[]; foreach (["8.3-12","8.3-13","8.4-12","8.4-13","8.5-13"] as $p) foreach (["lowest","latest"] as $d) foreach (["core","core-only","relocated-audit"] as $c) $rows[]=["id"=>"$p-$d-$c","result"=>"pending"];
     file_put_contents($argv[1],json_encode(["qualification"=>"nonrelease","version"=>$argv[5],"source"=>["mode"=>$argv[2],"commit"=>$argv[3],"tree"=>$argv[4]],"rows"=>$rows],JSON_PRETTY_PRINT|JSON_UNESCAPED_SLASHES)."\n");
 ' "$report" "$source_ref" "$commit" "$tree" "$version"
 pairs=(8.3-12 8.3-13 8.4-12 8.4-13 8.5-13)
@@ -109,12 +109,12 @@ for current in "${pairs[@]}"; do
     fi
     [[ "$actual" == "$php_version" ]] || { echo "PHP $php_version required for $current, found $actual" >&2; exit 1; }
     for policy in lowest latest; do
-        for composition in core filament core-only relocated-audit; do
+        for composition in core core-only relocated-audit; do
             id="$current-$policy-$composition" row="$output/$current-$policy-$composition"
             [[ ! -e "$row" ]] || { echo "Refusing to overwrite evidence: $row" >&2; exit 1; }
             mkdir -p "$row" "$tmp/dist"
             args=("--laravel=$laravel" "--version=$version" "--policy=$policy" "--source-root=$tmp/source" "--dist=$tmp/dist" "--evidence=$row")
-            case "$composition" in filament) args+=(--with-filament);; core-only|relocated-audit) args+=("$composition");; esac
+            case "$composition" in core-only|relocated-audit) args+=("$composition");; esac
             # The first row also proves installation with a fresh, isolated Composer cache.
             mkdir -p "$tmp/cache-$id"
             COMPOSER_CACHE_DIR="$tmp/cache-$id" bash "$root/bin/consumer-fixture.sh" "${args[@]}" >"$row/run.log" 2>&1 || { echo "Failed: $id (see $row/run.log)" >&2; exit 1; }

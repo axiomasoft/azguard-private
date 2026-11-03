@@ -27,6 +27,8 @@ use Symfony\Component\Yaml\Yaml;
 
 const EVIDENCE_SCHEMA = 'urn:azguard:release-evidence:1';
 
+const EVIDENCE_CORE_SCHEMA = 'urn:azguard:release-evidence:2';
+
 const EVIDENCE_WORKFLOWS = ['release', 'tests', 'nightly', 'compatibility', 'static', 'style', 'docs', 'security', 'zizmor'];
 
 const EVIDENCE_ARTIFACTS = ['core_archive', 'filament_archive', 'sbom_core', 'sbom_filament'];
@@ -46,9 +48,11 @@ function evidenceViolations(array $evidence, string $repo = 'axiomasoft/azguard-
     $violations = [];
     $show = static fn (mixed $value): string => is_scalar($value) ? (string) $value : get_debug_type($value);
 
-    if (($evidence['schema'] ?? null) !== EVIDENCE_SCHEMA) {
-        $violations[] = 'E1 schema: expected '.EVIDENCE_SCHEMA.', got '.$show($evidence['schema'] ?? null);
+    $schema = $evidence['schema'] ?? null;
+    if (! in_array($schema, [EVIDENCE_SCHEMA, EVIDENCE_CORE_SCHEMA], true)) {
+        $violations[] = 'E1 schema: expected '.EVIDENCE_SCHEMA.' or '.EVIDENCE_CORE_SCHEMA.', got '.$show($schema);
     }
+    $coreOnly = $schema === EVIDENCE_CORE_SCHEMA;
 
     if (! is_string($evidence['version'] ?? null) || preg_match(EVIDENCE_SEMVER, $evidence['version']) !== 1) {
         $violations[] = 'E2 version: expected SemVer, got '.$show($evidence['version'] ?? null);
@@ -89,7 +93,7 @@ function evidenceViolations(array $evidence, string $repo = 'axiomasoft/azguard-
         }
     }
 
-    foreach (EVIDENCE_ARTIFACTS as $name) {
+    foreach ($coreOnly ? ['core_archive', 'sbom_core'] : EVIDENCE_ARTIFACTS as $name) {
         $digest = $evidence['artifacts'][$name] ?? null;
 
         if (! is_string($digest) || preg_match('/^[0-9a-f]{64}$/', $digest) !== 1) {
@@ -97,7 +101,7 @@ function evidenceViolations(array $evidence, string $repo = 'axiomasoft/azguard-
         }
     }
 
-    foreach (['core', 'filament'] as $name) {
+    foreach ($coreOnly ? ['core'] : ['core', 'filament'] as $name) {
         $split = $evidence['split'][$name] ?? null;
 
         if (! is_array($split) || ! is_string($split['tag_sha'] ?? null) || preg_match('/^[0-9a-f]{40}$/', $split['tag_sha']) !== 1) {
@@ -107,6 +111,16 @@ function evidenceViolations(array $evidence, string $repo = 'axiomasoft/azguard-
         if (! is_array($split) || ($split['tree_identical'] ?? null) !== true) {
             $violations[] = "E8 split.{$name}.tree_identical: expected true, got ".$show(is_array($split) ? ($split['tree_identical'] ?? null) : null);
         }
+    }
+
+    $artifacts = is_array($evidence['artifacts'] ?? null) ? $evidence['artifacts'] : [];
+    $splits = is_array($evidence['split'] ?? null) ? $evidence['split'] : [];
+    $packagist = is_array($evidence['packagist'] ?? null) ? $evidence['packagist'] : [];
+    if ($coreOnly && (array_key_exists('filament_archive', $artifacts) || array_key_exists('sbom_filament', $artifacts) || array_key_exists('filament', $splits) || array_key_exists('filament', $packagist))) {
+        $violations[] = 'E10 scope: core-only evidence must not contain Filament artifacts, split or Packagist entry';
+    }
+    if ($coreOnly && (! is_string($evidence['packagist']['core'] ?? null) || $evidence['packagist']['core'] === '')) {
+        $violations[] = 'E10 scope: core-only evidence requires a core Packagist entry';
     }
 
     foreach (['toolchain', 'packagist', 'benchmarks', 'settings_audit'] as $field) {
@@ -165,7 +179,7 @@ function evidenceLiveViolations(array $evidence, callable $run, callable $tagTar
         $violations[] = 'L3 tag: expected v'.($evidence['version'] ?? '').' to point to '.$commit.', got '.($target ?? 'none');
     }
 
-    foreach (EVIDENCE_ARTIFACTS as $name) {
+    foreach (($evidence['schema'] ?? null) === EVIDENCE_CORE_SCHEMA ? ['core_archive', 'sbom_core'] : EVIDENCE_ARTIFACTS as $name) {
         $digest = (string) ($evidence['artifacts'][$name] ?? '');
 
         if ($digest !== '' && ! $attested($digest)) {

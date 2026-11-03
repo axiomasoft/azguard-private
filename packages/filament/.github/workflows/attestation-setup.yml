@@ -1,4 +1,4 @@
-name: Attestation setup probe
+name: Split attestation setup unavailable
 
 on:
   workflow_dispatch:
@@ -6,42 +6,18 @@ on:
 permissions:
   contents: read
 
+defaults:
+  run:
+    shell: bash
+
 jobs:
   probe:
-    name: Verify split attestation prerequisites
+    name: Trusted producer control required
     runs-on: ubuntu-latest
-    timeout-minutes: 10
-    permissions:
-      contents: read
-      id-token: write
-      attestations: write
-      artifact-metadata: write
+    timeout-minutes: 5
     steps:
-      - name: Verify source read access
-        id: source
-        env:
-          GH_TOKEN: ${{ secrets.PRIVATE_RELEASE_READ_TOKEN }}
+      - name: Block untrusted setup
         run: |
           set -Eeuo pipefail
-          [[ -n "$GH_TOKEN" ]] || { echo '::error::Source read token unavailable.'; exit 1; }
-          source_private="$(gh api repos/axiomasoft/azguard-private --jq 'if .full_name == "axiomasoft/azguard-private" and (.private | type) == "boolean" then .private | tostring else "invalid" end')"
-          [[ "$source_private" == true || "$source_private" == false ]] || exit 1
-          gh api 'repos/axiomasoft/azguard-private/actions/runs?per_page=1' --jq '.total_count | type == "number"' | grep -qx true
-          gh api repos/axiomasoft/azguard-private/contents/packages/core/composer.json --jq '.type == "file" and .path == "packages/core/composer.json" and (.sha | type == "string" and length == 40)' | grep -qx true
-          [[ "$(gh api repos/axiomasoft/azguard-private --jq 'if .full_name == "axiomasoft/azguard-private" and (.private | type) == "boolean" then .private | tostring else "invalid" end')" == "$source_private" ]] || exit 1
-          printf 'private=%s\n' "$source_private" >> "$GITHUB_OUTPUT"
-      - name: Confirm public source
-        if: steps.source.outputs.private == 'false'
-        run: echo 'Source was public during the authenticated read probe.'
-      - name: Confirm private source
-        if: steps.source.outputs.private == 'true'
-        run: echo 'Source was private during the authenticated read probe.'
-      - name: Create setup probe
-        run: |
-          set -Eeuo pipefail
-          mkdir -p dist
-          printf 'azguard-attestation-setup-v1\n' > dist/probe.txt
-      - name: Attest setup probe
-        uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
-        with:
-          subject-path: dist/probe.txt
+          echo '::error::Attestation setup is disabled until independently trusted producer control is implemented and verified.'
+          exit 1

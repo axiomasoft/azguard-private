@@ -1,6 +1,6 @@
 # Installation
 
-For 2.0, use PHP 8.3/8.4 with Laravel 12 or PHP 8.3/8.4/8.5 with Laravel 13. Laravel 11 is unsupported.
+For 2.0, use PHP 8.3/8.4 with Laravel 12 or PHP 8.3/8.4/8.5 with Laravel 13. Other Laravel majors are unsupported.
 The [compatibility policy](../reference/compatibility.md#supported-platforms) records the five CI pairs and server lanes.
 For an existing installation, follow [upgrading to 2.0](../guides/upgrading-2.md) before running migrations.
 
@@ -85,15 +85,10 @@ If your code authorizes inside `DB::transaction()`, give AzGuard its own connect
 AZGUARD_DB_CONNECTION=azguard
 ```
 
-## Optional: Filament
+## Filament development
 
-Use Filament `^5.8.4`. The plugin requires the exact same AzGuard core version through Composer `self.version`;
-update both AzGuard packages together, including prerelease versions.
-
-```bash
-composer require axiomasoft/azguard-filament
-```
-
+The Filament integration is retained in the monorepo but is not in the current publication scope. Local development uses the root
+Composer path repository. It requires Filament `^5.8.4` and the same core version via `self.version`.
 See the [Filament guide](/guides/filament).
 
 Next: [Quick start](/getting-started/quick-start).

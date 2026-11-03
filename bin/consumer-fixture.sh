@@ -66,6 +66,10 @@ if [[ "${mode}" != "full" ]] && ((with_filament)); then
 fi
 
 if [[ "${source}" == "packagist" ]]; then
+    if ((with_filament)); then
+        echo "error: the Filament package is not published; use --source=archive for local integration tests" >&2
+        exit 2
+    fi
     if ((version_given == 0)); then
         echo "error: --source=packagist needs --version=<released version>" >&2
         exit 2
@@ -115,9 +119,9 @@ build_archives() {
     mkdir -p "${dist}"
     find "${dist}" -maxdepth 1 -type f -name 'axiomasoft-*.zip' -delete
 
-    local package copy packages=(core filament)
-    if [[ "${mode}" != "full" ]]; then
-        packages=(core)
+    local package copy packages=(core)
+    if ((with_filament)); then
+        packages+=(filament)
     fi
     for package in "${packages[@]}"; do
         copy="${work}/pkg-${package}"

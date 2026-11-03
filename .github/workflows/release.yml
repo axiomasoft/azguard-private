@@ -273,9 +273,6 @@ jobs:
       - name: Core archive in a clean Laravel app
         run: bash bin/consumer-fixture.sh --laravel="$LARAVEL" --version="${GITHUB_REF_NAME#v}"
 
-      - name: Core and Filament archives in a clean Laravel app
-        run: bash bin/consumer-fixture.sh --laravel="$LARAVEL" --version="${GITHUB_REF_NAME#v}" --with-filament
-
       - name: Core archive without module roots in a clean Laravel app
         run: bash bin/consumer-fixture.sh core-only --laravel="$LARAVEL" --version="${GITHUB_REF_NAME#v}"
 
@@ -362,7 +359,6 @@ jobs:
       contents: read
     outputs:
       core_sha: ${{ steps.verify.outputs.core_sha }}
-      filament_sha: ${{ steps.verify.outputs.filament_sha }}
     steps:
       - name: Checkout candidate
         uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
@@ -391,15 +387,15 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.MONOREPO_SPLIT_TOKEN }}
           CORE_SHA: ${{ steps.verify.outputs.core_sha }}
-          FILAMENT_SHA: ${{ steps.verify.outputs.filament_sha }}
           RELEASE_TAG_PUBLIC_KEY: ${{ vars.RELEASE_TAG_PUBLIC_KEY }}
           RELEASE_TAG_SIGNER_FINGERPRINT: ${{ vars.RELEASE_TAG_SIGNER_FINGERPRINT }}
-        run: php bin/verify-release-evidence.php --candidate-artifacts "$GITHUB_SHA" "$GITHUB_REF_NAME" dist "$CORE_SHA" "$FILAMENT_SHA" "$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT"
+        run: php bin/verify-release-evidence.php --candidate-artifacts "$GITHUB_SHA" "$GITHUB_REF_NAME" dist "$CORE_SHA" "$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT"
 
   publish-packages:
     name: Publish verified package tags
     needs: [gate, split, provenance]
     runs-on: ubuntu-latest
+    environment: release
     timeout-minutes: 15
     permissions:
       contents: read
@@ -408,18 +404,17 @@ jobs:
         env:
           SPLIT_TOKEN: ${{ secrets.MONOREPO_SPLIT_TOKEN }}
           CORE_SHA: ${{ needs.provenance.outputs.core_sha }}
-          FILAMENT_SHA: ${{ needs.provenance.outputs.filament_sha }}
         run: |
           set -Eeuo pipefail
           [[ "$GITHUB_REF_NAME" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?$ ]]
           [[ "$GITHUB_RUN_ID" =~ ^[0-9]+$ && "$GITHUB_RUN_ATTEMPT" =~ ^[0-9]+$ ]]
-          [[ "$CORE_SHA" =~ ^[0-9a-f]{40}$ && "$FILAMENT_SHA" =~ ^[0-9a-f]{40}$ && -n "$SPLIT_TOKEN" ]]
+          [[ "$CORE_SHA" =~ ^[0-9a-f]{40}$ && -n "$SPLIT_TOKEN" ]]
           askpass="$(mktemp)"
           trap 'rm -f "$askpass"' EXIT
           printf '#!/bin/sh\nprintf "%%s\\n" "$SPLIT_TOKEN"\n' > "$askpass"
           chmod 700 "$askpass"
           export GIT_ASKPASS="$askpass" GIT_TERMINAL_PROMPT=0
-          for entry in "azguard:$CORE_SHA" "azguard-filament:$FILAMENT_SHA"; do
+          for entry in "azguard:$CORE_SHA"; do
             repo="${entry%%:*}"
             expected="${entry#*:}"
             url="https://x-access-token@github.com/axiomasoft/$repo.git"
@@ -430,7 +425,7 @@ jobs:
             existing="$(git ls-remote --refs --tags "$url" "refs/tags/$GITHUB_REF_NAME")"
             [[ -z "$existing" || "$existing" == "$expected"$'\t'"refs/tags/$GITHUB_REF_NAME" ]] || { echo "::error::Existing $repo tag differs from verified split commit"; exit 1; }
           done
-          for entry in "azguard:$CORE_SHA" "azguard-filament:$FILAMENT_SHA"; do
+          for entry in "azguard:$CORE_SHA"; do
             repo="${entry%%:*}"
             expected="${entry#*:}"
             url="https://x-access-token@github.com/axiomasoft/$repo.git"
@@ -441,9 +436,9 @@ jobs:
               [[ "$existing" == "$expected"$'\t'"refs/tags/$GITHUB_REF_NAME" ]]
             fi
           done
-          # Read each final tag back after both pushes. These tags are lightweight,
+          # Read the final tag back after pushing. This tag is lightweight,
           # so their direct object IDs are their peeled commit IDs.
-          for entry in "azguard:$CORE_SHA" "azguard-filament:$FILAMENT_SHA"; do
+          for entry in "azguard:$CORE_SHA"; do
             repo="${entry%%:*}"
             expected="${entry#*:}"
             url="https://x-access-token@github.com/axiomasoft/$repo.git"
@@ -451,7 +446,7 @@ jobs:
             [[ "$actual" == "$expected"$'\t'"refs/tags/$GITHUB_REF_NAME" ]] || { echo "::error::Published split tag does not resolve to the verified commit: $repo"; exit 1; }
           done
           # Delete only the staging refs whose exact commits were verified.
-          for entry in "azguard:$CORE_SHA" "azguard-filament:$FILAMENT_SHA"; do
+          for entry in "azguard:$CORE_SHA"; do
             repo="${entry%%:*}"
             expected="${entry#*:}"
             url="https://x-access-token@github.com/axiomasoft/$repo.git"

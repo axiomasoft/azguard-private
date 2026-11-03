@@ -1,7 +1,8 @@
 # Compatibility promise
 
-AzGuard follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html). `axiomasoft/azguard` and
-`axiomasoft/azguard-filament` are released together under one version. Within a major version, code written against a
+AzGuard follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html). The current publication scope is
+`axiomasoft/azguard`; `axiomasoft/azguard-filament` remains in the monorepo and is not in the current publication scope.
+Within a major version, code written against a
 supported contract keeps working after `composer update`. A change that breaks a supported contract waits for the next
 major version.
 

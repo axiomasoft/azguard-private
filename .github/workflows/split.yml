@@ -1,15 +1,14 @@
 name: Split packages
 
-# Publishes the monorepo's packages to their standalone, read-only repositories
-# after the release workflow validates a tag. Packagist watches those repos (via webhook) and picks up
-# the new version automatically. The split repos are what users `composer require`.
+# Publishes the core package to its standalone, read-only repository after validation.
+# Filament remains in the monorepo and is not distributed by this workflow.
 # The public release requires the one-time setup in RELEASING.md. Missing setup fails
 # the workflow instead of silently creating a release without its Composer packages.
 #
 # One-time setup (see RELEASING.md):
-#   1. Create the two target repos under the org (azguard, azguard-filament).
-#   2. Add a MONOREPO_SPLIT_TOKEN secret with push access to them.
-#   3. Submit each split repo to Packagist and enable the GitHub webhook.
+#   1. Prepare the core target repo under the org (azguard).
+#   2. Add a MONOREPO_SPLIT_TOKEN secret with push access to it.
+#   3. Submit the core split repo to Packagist and enable the GitHub webhook.
 
 on:
   workflow_call:
@@ -36,7 +35,6 @@ jobs:
       matrix:
         package:
           - { dir: core, name: azguard }
-          - { dir: filament, name: azguard-filament }
 
     steps:
       - name: Checkout
@@ -74,7 +72,7 @@ jobs:
           set -Eeuo pipefail
           [[ "$GITHUB_REF_NAME" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?$ ]]
           [[ "$GITHUB_RUN_ID" =~ ^[0-9]+$ && "$GITHUB_RUN_ATTEMPT" =~ ^[0-9]+$ ]]
-          [[ "$PACKAGE:$REPOSITORY" == core:azguard || "$PACKAGE:$REPOSITORY" == filament:azguard-filament ]]
+          [[ "$PACKAGE:$REPOSITORY" == core:azguard ]]
           [[ "$(git rev-parse HEAD)" == "$GITHUB_SHA" ]]
           split_sha="$(git subtree split --prefix="packages/$PACKAGE" "$GITHUB_SHA")"
           [[ "$split_sha" =~ ^[0-9a-f]{40}$ ]]

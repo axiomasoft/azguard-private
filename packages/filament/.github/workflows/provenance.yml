@@ -1,23 +1,8 @@
-name: Public split provenance
+name: Filament provenance disabled
 
+# Filament is not published. No staging ref can invoke a producer here.
 on:
-  push:
-    branches:
-      - 'release-candidate/**'
   workflow_dispatch:
-    inputs:
-      candidate:
-        description: Private release candidate SHA
-        required: true
-        type: string
-      run_id:
-        description: Private release workflow run ID
-        required: true
-        type: string
-      run_attempt:
-        description: Private release workflow attempt
-        required: true
-        type: string
 
 permissions:
   contents: read
@@ -27,138 +12,12 @@ defaults:
     shell: bash
 
 jobs:
-  provenance:
-    if: github.event_name == 'push'
+  blocked:
+    name: Block unpublished Filament provenance
     runs-on: ubuntu-latest
-    timeout-minutes: 15
-    permissions:
-      contents: read
-      id-token: write
-      attestations: write
-      artifact-metadata: write
     steps:
-      - name: Checkout split commit
-        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
-        with:
-          ref: ${{ github.sha }}
-          persist-credentials: false
-      - name: Setup PHP
-        uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # 2.40.0
-        with:
-          php-version: '8.3'
-          extensions: zip
-          tools: composer:v2
-          coverage: none
-      - name: Verify qualified source and split tree
-        env:
-          GH_TOKEN: ${{ secrets.PRIVATE_RELEASE_READ_TOKEN }}
-          RELEASE_TAG_PUBLIC_KEY: ${{ vars.RELEASE_TAG_PUBLIC_KEY }}
-          RELEASE_TAG_SIGNER_FINGERPRINT: ${{ vars.RELEASE_TAG_SIGNER_FINGERPRINT }}
-        run: bash .github/verify-release-source.sh
-      - name: Build canonical package ZIP
+      - name: Block unpublished package
         run: |
           set -Eeuo pipefail
-          [[ "$GITHUB_REF" =~ ^refs/heads/release-candidate/(v[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?)/[0-9]+/[0-9]+$ ]]
-          tag="${BASH_REMATCH[1]}"
-          [[ "$(git rev-parse HEAD)" == "$GITHUB_SHA" ]]
-          cp -a . "$RUNNER_TEMP/package"
-          rm -rf "$RUNNER_TEMP/package/.git"
-          php -r '$p=$argv[1]; $j=json_decode(file_get_contents($p),true,512,JSON_THROW_ON_ERROR); $j["version"]=$argv[2]; file_put_contents($p,json_encode($j,JSON_PRETTY_PRINT|JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE)."\n");' "$RUNNER_TEMP/package/composer.json" "${tag#v}"
-          mkdir "$RUNNER_TEMP/built" dist
-          composer archive --format=zip --dir="$RUNNER_TEMP/built" --working-dir="$RUNNER_TEMP/package" --no-interaction
-          files=("$RUNNER_TEMP/built/"*.zip)
-          [[ ${#files[@]} == 1 && -f "${files[0]}" ]]
-          cp "${files[0]}" dist/package.zip
-          python3 .github/canonicalize-release-zip.py dist/package.zip
-      - name: Verify final ZIP, SBOMs and mapping
-        env:
-          GH_TOKEN: ${{ secrets.PRIVATE_RELEASE_READ_TOKEN }}
-        run: bash .github/verify-release-artifacts.sh
-      - name: Attest split ZIP
-        uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
-        with:
-          subject-path: dist/package.zip
-      - name: Attest source SBOM for split ZIP
-        uses: actions/attest@508db95dd578ae2727ebd6217d5ba78e4fbda05d # v4.2.1
-        with:
-          subject-path: dist/package.zip
-          sbom-path: dist/source.cdx.json
-      - name: Attest resolved SBOM for split ZIP
-        uses: actions/attest@508db95dd578ae2727ebd6217d5ba78e4fbda05d # v4.2.1
-        with:
-          subject-path: dist/package.zip
-          sbom-path: dist/resolved.cdx.json
-      - name: Attest package mapping for split ZIP
-        uses: actions/attest@508db95dd578ae2727ebd6217d5ba78e4fbda05d # v4.2.1
-        with:
-          subject-path: dist/package.zip
-          predicate-type: https://axiomasoft.github.io/azguard/attestations/package-mapping/v1
-          predicate-path: dist/mapping.json
-
-  relay-final-artifacts:
-    if: github.event_name == 'workflow_dispatch'
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
-    permissions:
-      contents: read
-      id-token: write
-      attestations: write
-    steps:
-      - name: Block unverified final artifact relay
-        run: |
-          echo '::error::The final artifact relay is disabled until mapping and SBOM evidence are verified.'
+          echo '::error::Filament provenance is disabled because the package is not published.'
           exit 1
-      - name: Fetch and validate private release artifacts
-        env:
-          GH_TOKEN: ${{ secrets.PRIVATE_RELEASE_READ_TOKEN }}
-          CANDIDATE: ${{ inputs.candidate }}
-          RELEASE_RUN_ID: ${{ inputs.run_id }}
-          RELEASE_RUN_ATTEMPT: ${{ inputs.run_attempt }}
-        run: |
-          set -Eeuo pipefail
-          [[ "$GITHUB_REF" =~ ^refs/heads/release-candidate/(v[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?)/([0-9]+)/([0-9]+)$ ]]
-          tag="${BASH_REMATCH[1]}"
-          [[ "${BASH_REMATCH[3]}" == "$RELEASE_RUN_ID" && "${BASH_REMATCH[4]}" == "$RELEASE_RUN_ATTEMPT" ]]
-          [[ "$CANDIDATE" =~ ^[0-9a-f]{40}$ && "$RELEASE_RUN_ID" =~ ^[0-9]+$ && "$RELEASE_RUN_ATTEMPT" =~ ^[0-9]+$ ]]
-          gh api "repos/axiomasoft/azguard-private/actions/runs/$RELEASE_RUN_ID/attempts/$RELEASE_RUN_ATTEMPT" > "$RUNNER_TEMP/run.json"
-          jq -e --arg sha "$CANDIDATE" --arg tag "$tag" --argjson run "$RELEASE_RUN_ID" --argjson attempt "$RELEASE_RUN_ATTEMPT" \
-            '.id == $run and .head_sha == $sha and .head_branch == $tag and .event == "push" and (.path == ".github/workflows/release.yml" or .path == (".github/workflows/release.yml@" + $tag) or .path == (".github/workflows/release.yml@refs/tags/" + $tag)) and .run_attempt == $attempt and .repository.full_name == "axiomasoft/azguard-private" and (.status == "in_progress" or (.status == "completed" and .conclusion == "success"))' "$RUNNER_TEMP/run.json" > /dev/null
-          # The release itself is waiting for this relay. Check its completed
-          # prerequisites, not the conclusion of the still-running workflow.
-          gh api --paginate --slurp "repos/axiomasoft/azguard-private/actions/runs/$RELEASE_RUN_ID/attempts/$RELEASE_RUN_ATTEMPT/jobs?per_page=100" > "$RUNNER_TEMP/jobs.json"
-          jq -e --arg sha "$CANDIDATE" --argjson run "$RELEASE_RUN_ID" '
-            (map(.jobs | length) | add) as $count |
-            (map(.jobs[]) ) as $jobs |
-            (length > 0 and all(.[]; .total_count == $count)) and
-            ($jobs | all(.[]; (.id | type == "number" and . > 0)) and length == (map(.id) | unique | length)) and
-            all([
-              ["Validate before release", "Require an annotated tag"],
-              ["Consumer archives · L12", "Core archive in a clean Laravel app"],
-              ["Consumer archives · L13", "Core archive in a clean Laravel app"],
-              ["Release artifacts", "Build the archives, the SBOMs and SHA256SUMS"],
-              ["Release evidence gate", "Evaluate release evidence"],
-              ["Split validated packages / Split azguard", "Split packages/core -> azguard"],
-              ["Split validated packages / Split azguard-filament", "Split packages/filament -> azguard-filament"]
-            ][]; . as [$name, $step] |
-              [$jobs[] | select(.name == $name)] as $matching |
-              ($matching | length == 1) and
-              ($matching[0] | .run_id == $run and .head_sha == $sha and .status == "completed" and .conclusion == "success" and
-                ([.steps[]? | select(.name == $step)] | length == 1 and .[0].status == "completed" and .[0].conclusion == "success"))
-            )' "$RUNNER_TEMP/jobs.json" > /dev/null || { echo '::error::Private release prerequisites are missing, ambiguous, or unsuccessful.'; exit 1; }
-          gh run download "$RELEASE_RUN_ID" --repo axiomasoft/azguard-private --name "release-artifacts-$RELEASE_RUN_ATTEMPT" --dir dist
-          version="${tag#v}"
-          cd dist
-          printf '%s\n' "azguard-core-$version.zip" "azguard-filament-$version.zip" sbom-core.cdx.json sbom-filament.cdx.json | sort > "$RUNNER_TEMP/expected"
-          awk '{print $2}' SHA256SUMS | sort > "$RUNNER_TEMP/actual"
-          diff -u "$RUNNER_TEMP/expected" "$RUNNER_TEMP/actual"
-          sha256sum --strict --check SHA256SUMS
-          jq -n --arg candidate "$CANDIDATE" --arg run "$RELEASE_RUN_ID" --arg attempt "$RELEASE_RUN_ATTEMPT" '{candidate:$candidate,run_id:$run,run_attempt:$attempt,meaning:"Files retrieved from the named private release run; this workflow did not build them."}' > "$RUNNER_TEMP/relay-predicate.json"
-      - name: Attest retrieved final artifact digests
-        uses: actions/attest@508db95dd578ae2727ebd6217d5ba78e4fbda05d # v4.2.1
-        with:
-          subject-path: |
-            dist/sbom-core.cdx.json
-            dist/sbom-filament.cdx.json
-            dist/SHA256SUMS
-          predicate-type: https://axiomasoft.github.io/azguard/attestations/release-artifact-relay/v1
-          predicate-path: ${{ runner.temp }}/relay-predicate.json

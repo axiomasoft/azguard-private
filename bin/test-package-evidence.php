@@ -8,29 +8,47 @@ require __DIR__.'/package-evidence.php';
 
 use Symfony\Component\Yaml\Yaml;
 
+function disabledProducer(array $workflow): bool
+{
+    // Exact shape prevents an added job, trigger, environment, expression or step
+    // from reading a secret or doing work before the unconditional failure.
+    $serialized = json_encode($workflow, JSON_THROW_ON_ERROR);
+    if (str_contains($serialized, '${{') || str_contains(strtolower($serialized), 'secrets.')
+        || array_diff(array_keys($workflow), ['name', 'on', 'permissions', 'defaults', 'jobs']) !== []
+        || array_keys($workflow['on'] ?? []) !== ['workflow_dispatch']
+        || $workflow['on']['workflow_dispatch'] !== null
+        || ($workflow['permissions'] ?? null) !== ['contents' => 'read']
+        || ($workflow['defaults'] ?? null) !== ['run' => ['shell' => 'bash']]
+        || array_keys($workflow['jobs'] ?? []) !== ['blocked']) {
+        return false;
+    }
+    $job = $workflow['jobs']['blocked'];
+    if (! is_array($job) || array_diff(array_keys($job), ['name', 'runs-on', 'steps']) !== []
+        || ($job['runs-on'] ?? null) !== 'ubuntu-latest' || ! is_array($job['steps'] ?? null)
+        || count($job['steps']) !== 1 || ! is_array($job['steps'][0] ?? null)) {
+        return false;
+    }
+    $step = $job['steps'][0];
+    return array_diff(array_keys($step), ['name', 'run']) === []
+        && is_string($step['name'] ?? null)
+        && is_string($step['run'] ?? null)
+        && preg_match("~\\Aset -Eeuo pipefail\\necho '[^'\\n]*'\\nexit 1\\n?\\z~", $step['run']) === 1;
+}
+
 function guardsHold(array $split, array $core, array $filament): bool
 {
     $steps = $split['jobs']['split']['steps'] ?? [];
     $guard = $steps[3] ?? [];
     $script = $guard['run'] ?? '';
 
-    return ($guard['name'] ?? null) === 'Require verified release setup'
+    return ($split['jobs']['split']['strategy']['matrix']['package'] ?? null) === [['dir' => 'core', 'name' => 'azguard']]
+        && ($guard['name'] ?? null) === 'Require verified release setup'
         && ! isset($guard['if'])
         && is_string($script)
         && str_contains($script, 'php bin/prepare-release-setup.php')
         && str_contains($script, 'php bin/verify-release-evidence.php --setup build/release/setup-request.json')
-        && relayBlocked($core)
-        && relayBlocked($filament);
-}
-
-function relayBlocked(array $workflow): bool
-{
-    $guard = $workflow['jobs']['relay-final-artifacts']['steps'][0] ?? [];
-
-    return ($guard['name'] ?? null) === 'Block unverified final artifact relay'
-        && ! isset($guard['if'])
-        && is_string($guard['run'] ?? null)
-        && preg_match('/^exit 1$/m', $guard['run']) === 1;
+        && disabledProducer($core)
+        && disabledProducer($filament);
 }
 
 $root = dirname(__DIR__);
@@ -40,17 +58,54 @@ $filament = Yaml::parseFile($root.'/packages/filament/.github/workflows/provenan
 if (! guardsHold($split, $core, $filament)) {
     throw new RuntimeException('release evidence guard is missing');
 }
-$unsafe = $core;
-$unsafe['jobs']['relay-final-artifacts']['steps'][0]['run'] = 'true';
-if (guardsHold($split, $unsafe, $filament)) {
-    throw new RuntimeException('enabled relay was accepted');
+foreach ([$core, $filament] as $workflow) {
+    $unsafe = $workflow;
+    $unsafe['on']['push'] = ['branches' => ['release-candidate/**']];
+    if (disabledProducer($unsafe)) {
+        throw new RuntimeException('producer enabled on push was accepted');
+    }
+    $unsafe = $workflow;
+    $unsafe['jobs']['blocked']['steps'][0]['env']['TOKEN'] = '${{ secrets.PRIVATE_RELEASE_READ_TOKEN }}';
+    if (disabledProducer($unsafe)) {
+        throw new RuntimeException('producer with a secret was accepted');
+    }
+    $unsafe = $workflow;
+    $unsafe['jobs']['blocked']['steps'][0]['run'] = "set -Eeuo pipefail\necho '\${{ secrets.PRIVATE_RELEASE_READ_TOKEN }}'\nexit 1\n";
+    if (disabledProducer($unsafe)) {
+        throw new RuntimeException('producer with a secret expression before failure was accepted');
+    }
+    $unsafe = $workflow;
+    $unsafe['jobs']['blocked']['steps'][0]['run'] = "set -Eeuo pipefail\necho 'test'\nexit 0\n";
+    if (disabledProducer($unsafe)) {
+        throw new RuntimeException('producer that can succeed was accepted');
+    }
+    $unsafe = $workflow;
+    $unsafe['jobs']['blocked']['steps'][0]['run'] = "set -Eeuo pipefail\ncurl https://example.invalid\nexit 1\n";
+    if (disabledProducer($unsafe)) {
+        throw new RuntimeException('producer with work before failure was accepted');
+    }
+    $unsafe = $workflow;
+    $unsafe['permissions']['id-token'] = 'write';
+    if (disabledProducer($unsafe)) {
+        throw new RuntimeException('producer with signing permission was accepted');
+    }
+    $unsafe = $workflow;
+    $unsafe['jobs']['blocked']['steps'][] = ['run' => 'true'];
+    if (disabledProducer($unsafe)) {
+        throw new RuntimeException('producer with an extra step was accepted');
+    }
 }
 $unsafe = $split;
 $unsafe['jobs']['split']['steps'][3]['run'] = 'true';
 if (guardsHold($unsafe, $core, $filament)) {
     throw new RuntimeException('missing split guard was accepted');
 }
-echo "Unverified release setup is blocked.\n";
+$unsafe = $split;
+$unsafe['jobs']['split']['strategy']['matrix']['package'][] = ['dir' => 'filament', 'name' => 'azguard-filament'];
+if (guardsHold($unsafe, $core, $filament)) {
+    throw new RuntimeException('unpublished Filament split was accepted');
+}
+echo "Unverified release setup and untrusted producers are blocked.\n";
 
 $directory = sys_get_temp_dir().'/azguard-inventory-'.bin2hex(random_bytes(8));
 mkdir($directory);
@@ -244,8 +299,7 @@ try {
         copy(__DIR__.'/'.$file, $runner.'/verified-release-source/bin/'.$file);
     }
     copy(dirname(__DIR__).'/.github/security-tools.lock', $runner.'/verified-release-source/.github/security-tools.lock');
-    $subjects = ['azguard-core-2.0.0.zip', 'azguard-filament-2.0.0.zip', 'source-core.cdx.json', 'source-filament.cdx.json',
-        'sbom-core.cdx.json', 'sbom-filament.cdx.json', 'resolution-core.lock', 'resolution-filament.lock', 'mapping-core.json', 'mapping-filament.json'];
+    $subjects = ['azguard-core-2.0.0.zip', 'source-core.cdx.json', 'sbom-core.cdx.json', 'resolution-core.lock', 'mapping-core.json'];
     foreach ($subjects as $file) {
         $input = $directory.'/built/'.$file;
         if (is_file($input)) {
@@ -401,7 +455,7 @@ try {
     }
     $root = dirname(__DIR__);
     $before = [];
-    foreach (['core', 'filament'] as $package) {
+    foreach (['core'] as $package) {
         $before[$package] = packageWorktreeDigest($root.'/packages/'.$package);
     }
     $out = $fixtureRoot.'/out';
@@ -411,15 +465,19 @@ try {
         throw new RuntimeException('offline worktree fixture did not complete as nonrelease: '.$error);
     }
     $data = json_decode((string) file_get_contents($out.'/evidence.json'), true, 512, JSON_THROW_ON_ERROR);
-    $format = json_decode((string) file_get_contents(__DIR__.'/package-offline-fixture-format.json'), true, 512, JSON_THROW_ON_ERROR);
-    $compatible = json_decode((string) file_get_contents(__DIR__.'/package-offline-fixture-compat.json'), true, 512, JSON_THROW_ON_ERROR);
+    $format = json_decode((string) file_get_contents(__DIR__.'/package-offline-fixture-v2-format.json'), true, 512, JSON_THROW_ON_ERROR);
+    $compatible = json_decode((string) file_get_contents(__DIR__.'/package-offline-fixture-v2-compat.json'), true, 512, JSON_THROW_ON_ERROR);
     if (array_keys($data) !== $format['required'] || array_keys($compatible) !== $format['required']
+        || ($data['schema'] ?? null) !== $format['schema'] || ($compatible['schema'] ?? null) !== $format['schema']
         || ($data['qualification'] ?? null) !== 'nonrelease' || ($data['source'] ?? null) !== 'worktree'
         || ($data['attestations'] ?? null) !== [] || ($data['split_mapping'] ?? null) !== 'not performed'
         || ! str_contains($data['consumer_graph'] ?? '', 'synthetic') || array_keys($data['packages']) !== $format['packages']) {
         throw new RuntimeException('offline fixture format or qualification mismatch');
     }
-    foreach (['core', 'filament'] as $package) {
+    if (glob($out.'/*filament*') !== []) {
+        throw new RuntimeException('offline core-only fixture produced a Filament artifact');
+    }
+    foreach (['core'] as $package) {
         $record = $data['packages'][$package];
         $zip = $out.'/'.$record['zip'];
         $bom = json_decode((string) file_get_contents($out.'/'.$record['source_sbom']), true, 512, JSON_THROW_ON_ERROR);

@@ -258,7 +258,7 @@ function packageOfflineFixture(string $root, string $version, string $out): void
         }
         $mappings = [];
         $files = [];
-        foreach (['core' => 'axiomasoft/azguard', 'filament' => 'axiomasoft/azguard-filament'] as $package => $name) {
+        foreach (['core' => 'axiomasoft/azguard'] as $package => $name) {
             $source = $root.'/packages/'.$package;
             $sourceDigest = packageWorktreeDigest($source);
             $snapshot = $work.'/snapshot-'.$package;
@@ -346,7 +346,7 @@ function packageOfflineFixture(string $root, string $version, string $out): void
                 'rebuild_matches' => true, 'split_commit' => null];
             array_push($files, $zipName, $sourceName, $resolvedName, $lockName);
         }
-        $evidence = ['schema' => 'azguard.package-evidence.offline-fixture.v1', 'qualification' => 'nonrelease',
+        $evidence = ['schema' => 'azguard.package-evidence.offline-fixture.v2', 'qualification' => 'nonrelease',
             'source' => 'worktree', 'base_commit' => $base, 'version' => $version,
             'consumer_graph' => 'synthetic-offline-fixture; no consumer resolution or advisory audit performed',
             'attestations' => [], 'split_mapping' => 'not performed', 'packages' => $mappings];

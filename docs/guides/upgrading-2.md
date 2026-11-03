@@ -1,14 +1,15 @@
 # Upgrading to 2.0
 
-The next release line is **2.0.0-rc.1 → 2.0.0** for both packages. Treat 1.0 as potentially consumed;
+The planned core release line is **2.0.0-rc.1 → 2.0.0**. The Filament package is retained for local development and
+is not in the current publication scope. Treat 1.0 as potentially consumed;
 the historical changelog is not proof of publication. Review these changes before updating code or stored data.
 
 ## Dependencies and package versions
 
 Upgrade Laravel 11 applications first. Supported pairs are PHP 8.3/8.4 with Laravel 12 and PHP 8.3/8.4/8.5
 with Laravel 13. The plugin requires Filament `^5.8.4`. Composer `self.version` binds the plugin to the exact
-core version, including the prerelease suffix; update them together. For an RC evaluation, select
-`axiomasoft/azguard:2.0.0-rc.1` and `axiomasoft/azguard-filament:2.0.0-rc.1` explicitly. A development path
+core version, including the prerelease suffix; update local development identities together. For a core RC evaluation,
+select `axiomasoft/azguard:2.0.0-rc.1` explicitly once the RC is published. A development path
 repository must assign both packages the same version; the monorepo's `2.0.0` path override is a local solver
 identity, not evidence of a stable release. The root development lock does not constrain your application's lock.
 

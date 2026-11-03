@@ -1,18 +1,18 @@
 # Upgrading
 
-Migration instructions for `axiomasoft/azguard` and `axiomasoft/azguard-filament`.
+Migration instructions for `axiomasoft/azguard` and the monorepo's Filament integration. Filament is outside the current publication scope; its notes apply to development and any independently obtained historical installation.
 
-Release tooling now adds `source-core.cdx.json` and `source-filament.cdx.json` to the checksum set and validates
-CycloneDX documents. It also adds `resolution-core.lock` and `resolution-filament.lock` for the checked consumer
-graphs, plus `mapping-core.json` and `mapping-filament.json`. Consumers of the release artifact list must handle
-these additional files. Release publication requires verified setup, signed tags and artifact attestations as
+The planned core release artifact set includes `source-core.cdx.json`, `sbom-core.cdx.json`, `resolution-core.lock`
+and `mapping-core.json` alongside the core archive and checksums. Release publication requires verified setup,
+signed tags and artifact attestations as
 described in `RELEASING.md`.
 Local mapping reports use `azguard.package-mapping.local.v1`; they deliberately contain no release qualification
 or attestation and must not be consumed as proof of either.
 Provider snapshot comparisons use `azguard.provider-archive.local.v1` and cover only the exact local ZIP or tar.gz
 bytes supplied to the command. They are unsigned and do not authenticate a provider or resolve consumer dependencies.
-The offline worktree rehearsal uses `azguard.package-evidence.offline-fixture.v1`; its synthetic dependency graph and
-empty attestation list are not release evidence. Use an empty output directory and a pre-cached pinned validator.
+The core-only offline worktree rehearsal uses `azguard.package-evidence.offline-fixture.v2`; its synthetic dependency
+graph and empty attestation list are not release evidence. The earlier v1 format is retained as historical. Use an
+empty output directory and a pre-cached pinned validator.
 
 ## From 1.x to 2.0
 

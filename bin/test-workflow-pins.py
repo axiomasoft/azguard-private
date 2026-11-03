@@ -144,6 +144,17 @@ jobs:
         text = (pins.ROOT / '.github/workflows/compatibility.yml').read_text()
         self.assertTrue(pins.check_workflow(text.replace('HEAD "$LABELS"', 'HEAD "$LABELS"; bash "$LABELS"'), 'compatibility.yml'))
 
+    def test_release_tag_check_receipt_is_bound_to_exact_script(self):
+        text = (pins.ROOT / '.github/workflows/release.yml').read_text()
+        needle = 'test "$(git rev-parse HEAD)" = "${TAGGED_SHA}"'
+        unsafe = text.replace(needle, 'test "$(git rev-parse HEAD^{commit})" = "${TAGGED_SHA}"', 1)
+        self.assertNotEqual(text, unsafe)
+        # Even with the entire changed workflow provisionally reviewed, a changed
+        # script using untrusted environment must receive its own review receipt.
+        with mock.patch.dict(pins.REVIEWED_WORKFLOWS, {'release.yml': hashlib.sha256(unsafe.encode()).hexdigest()}):
+            self.assertIn('validate: unreviewed use of untrusted environment',
+                          pins.check_workflow(unsafe, 'release.yml'))
+
     def test_release_prerelease_input(self):
         text = BASE.replace('      - run: echo safe', '      - uses: softprops/action-gh-release@' + 'a' * 40 + '\n        with:\n          prerelease: ${{ contains(github.ref_name, \'-\') }}')
         self.check_bad(text)
@@ -169,6 +180,27 @@ jobs:
         unsafe = text.replace('github.run_attempt', 'github.event.pull_request.title')
         self.assertTrue(any('untrusted expression in action input name' in error
                             for error in pins.check_workflow(unsafe, 'test.yml')))
+
+    def test_consumer_artifact_pattern_is_exact_and_scoped(self):
+        action = 'actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333'
+        text = BASE.replace('  test:', '  consumer-matrix:').replace(
+            '      - run: echo safe', '      - uses: ' + action +
+            '\n        with:\n          pattern: consumer-*-${{ github.run_attempt }}')
+        def has_pattern_error(workflow, filename='tests.yml'):
+            return any('untrusted expression in action input pattern' in error
+                       for error in pins.check_workflow(workflow, filename))
+
+        self.assertFalse(has_pattern_error(text))
+        for unsafe in (
+            text.replace('github.run_attempt', 'github.event.pull_request.title'),
+            text.replace('consumer-*-', 'consumer-other-'),
+            text.replace('  consumer-matrix:', '  another-job:'),
+            text.replace(action, 'actions/download-artifact@' + 'a' * 40),
+            text.replace('actions/download-artifact@', 'other/download-artifact@'),
+        ):
+            with self.subTest(unsafe=unsafe):
+                self.assertTrue(has_pattern_error(unsafe))
+        self.assertTrue(has_pattern_error(text, 'other.yml'))
 
     def test_release_replacement_and_unreviewed_privileges_are_rejected(self):
         replacement = '''
@@ -293,6 +325,44 @@ jobs:
                             self.assertTrue(any(p == path and expected in error
                                                 for p, error in pins.check_package_workflows(root)))
                         path.write_text(BASE)
+
+    def test_package_snapshot_does_not_bypass_untrusted_input_checks(self):
+        name = 'packages/core/.github/workflows/attestation-setup.yml'
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            path = root / name
+            path.parent.mkdir(parents=True, exist_ok=True)
+            unsafe_workflows = (
+                BASE.replace('echo safe', 'echo ${{ github.event.issue.title }}'),
+                BASE.replace('echo safe', 'echo ${{ inputs.command }}'),
+                BASE.replace('      - run: echo safe',
+                             '      - env:\n          BASH_ENV: "${{ inputs.script }}"\n        run: echo safe'),
+                BASE.replace('      - run: echo safe',
+                             '      - uses: actions/github-script@' + 'a' * 40 +
+                             '\n        with:\n          script: ${{ inputs.code }}'),
+            )
+            for unsafe in unsafe_workflows:
+                with self.subTest(unsafe=unsafe):
+                    path.write_text(unsafe)
+                    with mock.patch.object(pins, 'REVIEWED_PACKAGE_WORKFLOWS',
+                                           {name: hashlib.sha256(unsafe.encode()).hexdigest()}):
+                        self.assertTrue(pins.check_package_workflows(root))
+
+    def test_package_probe_permissions_are_path_and_job_specific(self):
+        permitted = 'packages/core/.github/workflows/attestation-setup.yml'
+        text = BASE.replace('  test:', '  probe:').replace(
+            'runs-on: ubuntu-latest',
+            'runs-on: ubuntu-latest\n    permissions: {contents: read, id-token: write, attestations: write}')
+        with mock.patch.object(pins, 'REVIEWED_PACKAGE_WORKFLOWS',
+                               {permitted: hashlib.sha256(text.encode()).hexdigest()}):
+            self.assertEqual([], pins.check_workflow(text, permitted, package=True))
+            for unsafe_name, unsafe_text in (
+                (permitted, text.replace('  probe:', '  other:')),
+                (permitted, text.replace('attestations: write', 'contents: write')),
+                ('packages/another/.github/workflows/attestation-setup.yml', text),
+            ):
+                with self.subTest(name=unsafe_name, text=unsafe_text):
+                    self.assertTrue(pins.check_workflow(unsafe_text, unsafe_name, package=True))
 
     def test_unknown_package_workflows_are_rejected(self):
         with tempfile.TemporaryDirectory() as directory:

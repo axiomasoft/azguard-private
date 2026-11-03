@@ -54,9 +54,13 @@ function packageAttestationPredicatesMatch(string $verified, array $expected): b
 /** Enforce exact names and hashes; never let a checksum file choose paths to read. */
 function packageVerifyChecksums(string $dist, string $version): void
 {
-    $names = ['azguard-core-'.$version.'.zip', 'azguard-filament-'.$version.'.zip',
-        'source-core.cdx.json', 'source-filament.cdx.json', 'sbom-core.cdx.json', 'sbom-filament.cdx.json',
-        'resolution-core.lock', 'resolution-filament.lock', 'mapping-core.json', 'mapping-filament.json'];
+    $names = ['azguard-core-'.$version.'.zip', 'source-core.cdx.json', 'sbom-core.cdx.json',
+        'resolution-core.lock', 'mapping-core.json'];
+    $entries = scandir($dist);
+    $allowed = [...$names, 'SHA256SUMS'];
+    if (! is_array($entries) || array_diff($entries, ['.', '..', ...$allowed]) !== []) {
+        throw new RuntimeException('unexpected release artifact');
+    }
     $path = $dist.'/SHA256SUMS';
     if (is_link($path) || ! is_file($path)) {
         throw new RuntimeException('missing checksum file');
@@ -138,10 +142,10 @@ function packageVerifySignedTag(string $root, string $tag, string $sha): void
  * Validate source, actual artifacts and attestations. $verify is injectable
  * only for local tests; the CLI always calls gh with fixed trust constraints.
  */
-function packageVerifyAttestations(string $root, string $sha, string $tag, string $dist, string $core, string $filament, string $run, callable $verify): void
+function packageVerifyAttestations(string $root, string $sha, string $tag, string $dist, string $core, string $run, callable $verify): void
 {
     if (! preg_match('/\A[0-9a-f]{40}\z/', $sha) || ! preg_match('/\Av[0-9]+\.[0-9]+\.[0-9]+(?:-[0-9A-Za-z.-]+)?\z/', $tag)
-        || ! preg_match('/\A[0-9a-f]{40}\z/', $core) || ! preg_match('/\A[0-9a-f]{40}\z/', $filament)
+        || ! preg_match('/\A[0-9a-f]{40}\z/', $core)
         || ! preg_match('/\A([1-9][0-9]*)-([1-9][0-9]*)\z/', $run, $match)) {
         throw new RuntimeException('invalid candidate identity');
     }
@@ -150,7 +154,7 @@ function packageVerifyAttestations(string $root, string $sha, string $tag, strin
     $version = substr($tag, 1);
     packageVerifySignedTag($root, $tag, $sha);
     packageVerifyChecksums($dist, $version);
-    foreach (['core' => $core, 'filament' => $filament] as $package => $splitSha) {
+    foreach (['core' => $core] as $package => $splitSha) {
         $computed = trim(packageEvidenceCommand(['git', '-C', $root, 'subtree', 'split', '--prefix=packages/'.$package, $sha]));
         if ($computed !== $splitSha) {
             throw new RuntimeException('split commit mismatch');
@@ -164,7 +168,7 @@ function packageVerifyAttestations(string $root, string $sha, string $tag, strin
             }
             packageEvidenceCommand(['bash', dirname(__DIR__).'/bin/security-tools.sh', 'cyclonedx-cli', '--', 'validate', '--input-file', $dist.'/'.$file, '--input-format', 'json', '--input-version', 'v'.str_replace('.', '_', $spec), '--fail-on-errors']);
         }
-        $repo = $package === 'core' ? 'axiomasoft/azguard' : 'axiomasoft/azguard-filament';
+        $repo = 'axiomasoft/azguard';
         $zip = $dist.'/azguard-'.$package.'-'.$version.'.zip';
         $base = ['gh', 'attestation', 'verify', $zip, '--repo', $repo, '--signer-workflow', $repo.'/.github/workflows/provenance.yml',
             '--signer-digest', $splitSha, '--source-digest', $splitSha,

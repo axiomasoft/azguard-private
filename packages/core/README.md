@@ -13,7 +13,7 @@ php artisan azguard:install --panel=Admin --migrate
 ```
 
 Documentation: <https://github.com/axiomasoft/azguard-private/tree/main/docs>. Filament 5 plugin:
-[`axiomasoft/azguard-filament`](https://github.com/axiomasoft/azguard-filament).
+`axiomasoft/azguard-filament`, retained in the monorepo for development and outside the current publication scope.
 Before updating an existing installation, read the
 [2.0 upgrade guide](https://github.com/axiomasoft/azguard-private/blob/main/docs/guides/upgrading-2.md) and
 [compatibility policy](https://github.com/axiomasoft/azguard-private/blob/main/docs/reference/compatibility.md).

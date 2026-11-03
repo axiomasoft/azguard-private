@@ -33,13 +33,6 @@ function releaseSetupPaths(): array
             '.github/verify-release-artifacts.sh' => 'packages/core/.github/verify-release-artifacts.sh',
             '.github/canonicalize-release-zip.py' => 'packages/core/.github/canonicalize-release-zip.py',
         ],
-        'axiomasoft/azguard-filament' => [
-            '.github/workflows/provenance.yml' => 'packages/filament/.github/workflows/provenance.yml',
-            '.github/workflows/attestation-setup.yml' => 'packages/filament/.github/workflows/attestation-setup.yml',
-            '.github/verify-release-source.sh' => 'packages/filament/.github/verify-release-source.sh',
-            '.github/verify-release-artifacts.sh' => 'packages/filament/.github/verify-release-artifacts.sh',
-            '.github/canonicalize-release-zip.py' => 'packages/filament/.github/canonicalize-release-zip.py',
-        ],
     ];
 }
 
@@ -68,13 +61,14 @@ function releaseSetupProposal(string $root): array
     return [
         'source_repository' => 'axiomasoft/azguard-private',
         'source_visibility' => 'No source visibility change is proposed. Probes bind the observed public or private visibility to the live setup verification.',
-        'split_repositories' => ['axiomasoft/azguard', 'axiomasoft/azguard-filament'],
+        'split_repositories' => ['axiomasoft/azguard'],
         'default_branch' => 'main',
         'split_visibility' => 'public',
+        'producer_trust_status' => 'BLOCKED: a split-repository staging ref can alter workflow code. Do not configure a private source-read secret in the split repository or dispatch the setup probe until independently verified trusted producer control exists.',
         'distribution_policy' => [
             'guarantee' => 'The explicitly published release ZIP assets have checksums, validated SBOMs and verified split provenance.',
             'github_snapshots' => 'Provider-generated source ZIP/tar.gz snapshots are separate and their bytes are not claimed to have release-asset attestations.',
-            'composer_delivery' => 'Packagist points Composer at the split repositories; the GitHub VCS driver can supply a GitHub-generated zipball, distinct from the signed release asset.',
+            'composer_delivery' => 'Only the core package is planned for publication. Packagist points Composer at the core split repository; its GitHub-generated zipball is distinct from the signed release asset. The Filament package is not currently published.',
             'references' => ['https://docs.github.com/en/repositories/working-with-files/using-files/downloading-source-code-archives', 'https://getcomposer.org/doc/05-repositories.md'],
         ],
         'environment' => ['repository' => 'axiomasoft/azguard-private', 'name' => 'release',
@@ -83,12 +77,11 @@ function releaseSetupProposal(string $root): array
             'reviewer_login' => 'academici', 'basis' => '.github/CODEOWNERS; owner must review this proposed actor and permissions'],
         'variables' => ['RELEASE_TAG_PUBLIC_KEY', 'RELEASE_TAG_SIGNER_FINGERPRINT', 'SPLIT_ENABLED'],
         'secrets' => [
-            ['name' => 'MONOREPO_SPLIT_TOKEN', 'configured_in' => 'axiomasoft/azguard-private', 'repositories' => ['axiomasoft/azguard', 'axiomasoft/azguard-filament'], 'permissions' => ['contents' => 'write', 'actions' => 'write']],
-            ['name' => 'PRIVATE_RELEASE_READ_TOKEN', 'configured_in' => ['axiomasoft/azguard', 'axiomasoft/azguard-filament'], 'repositories' => ['axiomasoft/azguard-private'], 'permissions' => ['contents' => 'read', 'actions' => 'read']],
-            ['name' => 'RELEASE_SETUP_READ_TOKEN', 'configured_in' => 'axiomasoft/azguard-private', 'repositories' => ['axiomasoft/azguard-private', 'axiomasoft/azguard', 'axiomasoft/azguard-filament'], 'permissions' => ['administration' => 'read', 'actions' => 'read', 'contents' => 'read', 'secrets' => 'read', 'variables' => 'read', 'security_events' => 'read', 'metadata' => 'read']],
+            ['name' => 'MONOREPO_SPLIT_TOKEN', 'configured_in' => 'axiomasoft/azguard-private', 'repositories' => ['axiomasoft/azguard'], 'permissions' => ['contents' => 'write', 'actions' => 'write']],
+            ['name' => 'RELEASE_SETUP_READ_TOKEN', 'configured_in' => 'axiomasoft/azguard-private', 'repositories' => ['axiomasoft/azguard-private', 'axiomasoft/azguard'], 'permissions' => ['administration' => 'read', 'actions' => 'read', 'contents' => 'read', 'secrets' => 'read', 'variables' => 'read', 'security_events' => 'read', 'metadata' => 'read']],
         ],
         'payloads' => $payloads, 'rulesets_and_checks' => $rulesets,
-        'setup_probe' => 'After explicit setup authorization, dispatch release-setup-probe.yml on main; it creates and deletes unique empty probe refs and dispatches both split attestation probes.',
+        'setup_probe' => 'Blocked pending independently verified trusted producer control. Do not dispatch, install a private source-read token in the split repository, or enable release based on this proposal.',
     ];
 }
 
@@ -227,10 +220,15 @@ function releaseSetupProbeJobValid(array $pages, int $run, string $sha, string $
  */
 function releaseSetupLiveErrors(array $request, string $root, callable $api, callable $verifyAttestation, callable $audit, int $now): array
 {
+    // Staging refs can alter workflow code before a producer validates itself. A
+    // future implementation must verify independent trusted control rather than
+    // accepting a self-reported proof or a successful setup probe.
+    $producerTrustError = 'trusted producer control is not established; release setup is blocked';
     $errors = releaseSetupRequestErrors($request, $root);
     if ($errors !== []) {
-        return $errors;
+        return [$producerTrustError, ...$errors];
     }
+    $errors[] = $producerTrustError;
     if (! $audit()) {
         $errors[] = 'source settings audit unavailable or failed';
     }
@@ -277,12 +275,6 @@ function releaseSetupLiveErrors(array $request, string $root, callable $api, cal
         } else {
             $fingerprint = $value;
             $publicKey = $keyValue;
-        }
-        if ($repo !== 'axiomasoft/azguard-private') {
-            $secret = $api('repos/'.$repo.'/actions/secrets/PRIVATE_RELEASE_READ_TOKEN');
-            if (! is_array($secret) || ($secret['name'] ?? null) !== 'PRIVATE_RELEASE_READ_TOKEN') {
-                $errors[] = 'source read secret missing: '.$repo;
-            }
         }
     }
     if ($fingerprint === null || $publicKey === null || ! releaseSetupKeyMatches($publicKey, $fingerprint)) {

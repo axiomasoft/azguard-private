@@ -279,7 +279,7 @@ try {
     $artifactDir = $dir.'/artifacts';
     mkdir($artifactDir);
     $splitIds = [];
-    foreach (['core' => 'axiomasoft/azguard', 'filament' => 'axiomasoft/azguard-filament'] as $package => $name) {
+    foreach (['core' => 'axiomasoft/azguard'] as $package => $name) {
         $packageDir = $dir.'/build-'.$package;
         $buildDir = $dir.'/zip-'.$package;
         mkdir($packageDir);
@@ -304,8 +304,7 @@ try {
         $splitIds[$package] = $mapping['split_commit'];
         file_put_contents($artifactDir.'/mapping-'.$package.'.json', json_encode($mapping, JSON_THROW_ON_ERROR));
     }
-    $files = ['azguard-core-2.0.0.zip', 'azguard-filament-2.0.0.zip', 'source-core.cdx.json', 'source-filament.cdx.json',
-        'sbom-core.cdx.json', 'sbom-filament.cdx.json', 'resolution-core.lock', 'resolution-filament.lock', 'mapping-core.json', 'mapping-filament.json'];
+    $files = ['azguard-core-2.0.0.zip', 'source-core.cdx.json', 'sbom-core.cdx.json', 'resolution-core.lock', 'mapping-core.json'];
     $writeChecksums = static function () use ($artifactDir, $files): void {
         $lines = '';
         foreach ($files as $file) {
@@ -323,7 +322,7 @@ try {
         $fakeVerify = static function (array $command, array $expected) use (&$calls, $splitIds): bool {
             $calls++;
             $repo = $command[5] ?? '';
-            $package = $repo === 'axiomasoft/azguard' ? 'core' : ($repo === 'axiomasoft/azguard-filament' ? 'filament' : '');
+            $package = $repo === 'axiomasoft/azguard' ? 'core' : '';
             if ($package === '' || ($command[7] ?? null) !== $repo.'/.github/workflows/provenance.yml'
                 || ($command[9] ?? null) !== $splitIds[$package] || ($command[11] ?? null) !== $splitIds[$package]
                 || ($command[13] ?? null) !== 'refs/heads/release-candidate/v2.0.0/123/1'
@@ -334,8 +333,8 @@ try {
             $responses = array_map(static fn (mixed $predicate): array => ['verificationResult' => ['statement' => ['predicate' => $predicate]]], $items);
             return packageAttestationPredicatesMatch(json_encode($responses, JSON_THROW_ON_ERROR), $expected);
         };
-        packageVerifyAttestations($repo, $sha, 'v2.0.0', $artifactDir, $splitIds['core'], $splitIds['filament'], '123-1', $fakeVerify);
-        if ($calls !== 6) {
+        packageVerifyAttestations($repo, $sha, 'v2.0.0', $artifactDir, $splitIds['core'], '123-1', $fakeVerify);
+        if ($calls !== 3) {
             throw new RuntimeException('missing required attestation type');
         }
         $reject = static function (callable $test): void {
@@ -346,12 +345,15 @@ try {
             }
             throw new RuntimeException('invalid artifact evidence accepted');
         };
-        $reject(static fn () => packageVerifyAttestations($repo, $sha, 'v2.0.0', $artifactDir, $splitIds['core'], $splitIds['filament'], '123-2', $fakeVerify));
-        $reject(static fn () => packageVerifyAttestations($repo, $sha, 'v2.0.0', $artifactDir, $splitIds['core'], $splitIds['filament'], '123-1', static fn (): bool => false));
+        file_put_contents($artifactDir.'/azguard-filament-2.0.0.zip', 'unpublished');
+        $reject(static fn () => packageVerifyAttestations($repo, $sha, 'v2.0.0', $artifactDir, $splitIds['core'], '123-1', $fakeVerify));
+        unlink($artifactDir.'/azguard-filament-2.0.0.zip');
+        $reject(static fn () => packageVerifyAttestations($repo, $sha, 'v2.0.0', $artifactDir, $splitIds['core'], '123-2', $fakeVerify));
+        $reject(static fn () => packageVerifyAttestations($repo, $sha, 'v2.0.0', $artifactDir, $splitIds['core'], '123-1', static fn (): bool => false));
         $source = $artifactDir.'/source-core.cdx.json';
         file_put_contents($source, '{}');
         $writeChecksums();
-        $reject(static fn () => packageVerifyAttestations($repo, $sha, 'v2.0.0', $artifactDir, $splitIds['core'], $splitIds['filament'], '123-1', $fakeVerify));
+        $reject(static fn () => packageVerifyAttestations($repo, $sha, 'v2.0.0', $artifactDir, $splitIds['core'], '123-1', $fakeVerify));
         if (packageAttestationPredicatesMatch('[{"verificationResult":{"statement":{"predicate":{"v":1}}}}]', [(object) ['v' => '1']])) {
             throw new RuntimeException('predicate comparison accepted different types');
         }
@@ -410,6 +412,10 @@ try {
     $request = ['schema' => 'azguard.release.setup-request.v1', 'candidate_sha' => null, 'remote_changes_authorized' => false,
         'status' => 'reviewable proposal; applied settings and entitlements are not proven',
         'observations' => $observations, 'proposal' => releaseSetupProposal(dirname(__DIR__))];
+    if ($request['proposal']['split_repositories'] !== ['axiomasoft/azguard']
+        || isset(releaseSetupPaths()['axiomasoft/azguard-filament'])) {
+        throw new RuntimeException('setup proposal includes an unpublished Filament split');
+    }
     $setupFormat = json_decode((string) file_get_contents(__DIR__.'/release-setup-format.json'), true, 512, JSON_THROW_ON_ERROR);
     $setupFixture = json_decode((string) file_get_contents(__DIR__.'/release-setup-compat.json'), true, 512, JSON_THROW_ON_ERROR);
     if ($setupFormat['schema'] !== $request['schema'] || array_keys($setupFixture) !== $setupFormat['required']
@@ -420,81 +426,100 @@ try {
     $api = static fn (string $endpoint, bool $paginate = false): ?array => $apiData[$endpoint] ?? null;
     $attest = static fn (string $repository, string $head): bool => isset($setupHeads[$repository]) && $setupHeads[$repository] === $head;
     $audit = static fn (): bool => true;
-    $errors = releaseSetupLiveErrors($request, dirname(__DIR__), $api, $attest, $audit, $now);
+    $trustBlock = 'trusted producer control is not established; release setup is blocked';
+    $actualErrors = releaseSetupLiveErrors($request, dirname(__DIR__), $api, $attest, $audit, $now);
+    if (! in_array($trustBlock, $actualErrors, true)) {
+        throw new RuntimeException('setup accepted without trusted producer control');
+    }
+    // Isolate other negative checks without ever allowing the actual gate to pass.
+    $liveErrors = static fn (...$args): array => array_values(array_diff(releaseSetupLiveErrors(...$args), [$trustBlock]));
+    $errors = $liveErrors($request, dirname(__DIR__), $api, $attest, $audit, $now);
     if ($errors !== []) {
         throw new RuntimeException('valid setup fixture rejected: '.implode('; ', $errors));
     }
     $privateApiData = $apiData;
     $privateApiData['repos/axiomasoft/azguard-private']['private'] = true;
     $privateApi = static fn (string $endpoint, bool $paginate = false): ?array => $privateApiData[$endpoint] ?? null;
-    if (releaseSetupLiveErrors($request, dirname(__DIR__), $privateApi, $attest, $audit, $now) === []) {
+    if ($liveErrors($request, dirname(__DIR__), $privateApi, $attest, $audit, $now) === []) {
         throw new RuntimeException('public-source probe accepted after source became private');
     }
-    foreach (['azguard' => 202, 'azguard-filament' => 203] as $split => $id) {
+    foreach (['azguard' => 202] as $split => $id) {
         $endpoint = 'repos/axiomasoft/'.$split.'/actions/runs/'.$id.'/attempts/1/jobs?per_page=100';
         $privateApiData[$endpoint][0]['jobs'][0]['steps'][1]['name'] = 'Confirm private source';
     }
     $privateApi = static fn (string $endpoint, bool $paginate = false): ?array => $privateApiData[$endpoint] ?? null;
-    if (releaseSetupLiveErrors($request, dirname(__DIR__), $privateApi, $attest, $audit, $now) !== []) {
+    if ($liveErrors($request, dirname(__DIR__), $privateApi, $attest, $audit, $now) !== []) {
         throw new RuntimeException('fresh private-source probes rejected');
     }
     $publicAfterPrivate = $privateApiData;
     $publicAfterPrivate['repos/axiomasoft/azguard-private']['private'] = false;
     $publicApi = static fn (string $endpoint, bool $paginate = false): ?array => $publicAfterPrivate[$endpoint] ?? null;
-    if (releaseSetupLiveErrors($request, dirname(__DIR__), $publicApi, $attest, $audit, $now) === []) {
+    if ($liveErrors($request, dirname(__DIR__), $publicApi, $attest, $audit, $now) === []) {
         throw new RuntimeException('private-source probe accepted after source became public');
     }
     $unknownVisibility = $apiData;
     unset($unknownVisibility['repos/axiomasoft/azguard-private']['private']);
     $unknownApi = static fn (string $endpoint, bool $paginate = false): ?array => $unknownVisibility[$endpoint] ?? null;
-    if (releaseSetupLiveErrors($request, dirname(__DIR__), $unknownApi, $attest, $audit, $now) === []) {
+    if ($liveErrors($request, dirname(__DIR__), $unknownApi, $attest, $audit, $now) === []) {
         throw new RuntimeException('source with unknown visibility accepted');
     }
     $falseRequest = $request;
     $falseRequest['proposal']['payloads'][0]['sha256'] = str_repeat('0', 64);
-    if (releaseSetupLiveErrors($falseRequest, dirname(__DIR__), $api, $attest, $audit, $now) === []) {
+    if ($liveErrors($falseRequest, dirname(__DIR__), $api, $attest, $audit, $now) === []) {
         throw new RuntimeException('altered setup request accepted');
     }
     $falseRequest = $request;
     $falseRequest['proposal']['distribution_policy']['github_snapshots'] = 'provider snapshots are signed release assets';
-    if (releaseSetupLiveErrors($falseRequest, dirname(__DIR__), $api, $attest, $audit, $now) === []) {
+    if ($liveErrors($falseRequest, dirname(__DIR__), $api, $attest, $audit, $now) === []) {
         throw new RuntimeException('false provider snapshot claim accepted');
+    }
+    $falseRequest = $request;
+    $falseRequest['proposal']['split_repositories'][] = 'axiomasoft/azguard-filament';
+    if ($liveErrors($falseRequest, dirname(__DIR__), $api, $attest, $audit, $now) === []) {
+        throw new RuntimeException('setup request accepted unpublished Filament split');
     }
     $badApiData = $apiData;
     $jobEndpoint = 'repos/axiomasoft/azguard/actions/runs/202/attempts/1/jobs?per_page=100';
     $badApiData[$jobEndpoint][0]['total_count'] = 2;
     $badApi = static fn (string $endpoint, bool $paginate = false): ?array => $badApiData[$endpoint] ?? null;
-    if (releaseSetupLiveErrors($request, dirname(__DIR__), $badApi, $attest, $audit, $now) === []) {
+    if ($liveErrors($request, dirname(__DIR__), $badApi, $attest, $audit, $now) === []) {
         throw new RuntimeException('partial setup job proof accepted');
     }
     $badApiData = $apiData;
     $badApiData[$jobEndpoint][0]['jobs'][0]['steps'][0]['conclusion'] = 'skipped';
     $badApi = static fn (string $endpoint, bool $paginate = false): ?array => $badApiData[$endpoint] ?? null;
-    if (releaseSetupLiveErrors($request, dirname(__DIR__), $badApi, $attest, $audit, $now) === []) {
+    if ($liveErrors($request, dirname(__DIR__), $badApi, $attest, $audit, $now) === []) {
         throw new RuntimeException('skipped setup proof accepted');
     }
     $badApiData = $apiData;
     $badApiData[$jobEndpoint][0]['jobs'][0]['head_sha'] = str_repeat('f', 40);
     $badApi = static fn (string $endpoint, bool $paginate = false): ?array => $badApiData[$endpoint] ?? null;
-    if (releaseSetupLiveErrors($request, dirname(__DIR__), $badApi, $attest, $audit, $now) === []
-        || releaseSetupLiveErrors($request, dirname(__DIR__), $api, static fn (): bool => false, $audit, $now) === []
-        || releaseSetupLiveErrors($request, dirname(__DIR__), $api, $attest, $audit, $now + 7200) === []) {
+    if ($liveErrors($request, dirname(__DIR__), $badApi, $attest, $audit, $now) === []
+        || $liveErrors($request, dirname(__DIR__), $api, static fn (): bool => false, $audit, $now) === []
+        || $liveErrors($request, dirname(__DIR__), $api, $attest, $audit, $now + 7200) === []) {
         throw new RuntimeException('foreign, untrusted or stale setup proof accepted');
     }
     $badApiData = $apiData;
     $badApiData['repos/axiomasoft/azguard-private/environments/release']['protection_rules'][0]['reviewers'][0]['reviewer']['id'] = 999;
     $badApiData['repos/axiomasoft/azguard-private/actions/variables/SPLIT_ENABLED']['value'] = 'false';
     $badApi = static fn (string $endpoint, bool $paginate = false): ?array => $badApiData[$endpoint] ?? null;
-    if (releaseSetupLiveErrors($request, dirname(__DIR__), $badApi, $attest, $audit, $now) === []) {
+    if ($liveErrors($request, dirname(__DIR__), $badApi, $attest, $audit, $now) === []) {
         throw new RuntimeException('wrong release reviewer and disabled split accepted');
     }
     $setupWorkflow = Symfony\Component\Yaml\Yaml::parseFile(dirname(__DIR__).'/.github/workflows/release-setup-probe.yml');
-    $probeRun = $setupWorkflow['jobs']['probe']['steps'][1]['run'];
+    $setupSteps = $setupWorkflow['jobs']['probe']['steps'];
+    if (($setupSteps[0]['name'] ?? '') !== 'Require independently trusted producer' || $run(['bash', '-c', $setupSteps[0]['run']], $dir, $env)[0] === 0) {
+        throw new RuntimeException('source setup workflow guard did not fail closed');
+    }
+    $probeRun = $setupSteps[2]['run'];
+    if (str_contains($setupSteps[1]['run'], 'azguard-filament') || str_contains($probeRun, 'azguard-filament')) {
+        throw new RuntimeException('setup probe addresses the unpublished Filament split');
+    }
     mkdir($dir.'/setup-bin');
     file_put_contents($dir.'/setup-bin/gh', "#!/usr/bin/env bash\nif [[ \"\$*\" == *\"\${FIXTURE_FAIL_REPO:-not-a-repo}\"* ]]; then exit 1; fi\nif [[ \"\$*\" == *'/contents/'* && \"\${FIXTURE_DENY_CONTENTS:-0}\" == 1 ]]; then exit 1; fi\nif [[ \"\$*\" == *'/contents/'* && \"\${FIXTURE_BAD_CONTENTS:-0}\" == 1 ]]; then printf 'false\\n'; exit 0; fi\nif [[ \"\$1\" == api ]]; then printf 'true\\n'; fi\nexit 0\n");
     chmod($dir.'/setup-bin/gh', 0700);
     $probeConfig = $dir.'/probe-gitconfig';
-    foreach (['azguard', 'azguard-filament'] as $splitRepo) {
+    foreach (['azguard'] as $splitRepo) {
         $remote = $dir.'/'.$splitRepo.'.git';
         $must(['git', 'init', '--bare', '-q', $remote], $dir, $env);
         $must(['git', 'config', '--file', $probeConfig, 'url.file://'.$remote.'.insteadOf', 'https://x-access-token@github.com/axiomasoft/'.$splitRepo.'.git'], $dir, $env);
@@ -509,40 +534,22 @@ try {
     if ($run(['bash', '-c', $probeRun], $dir, $probeEnv)[0] !== 0) {
         throw new RuntimeException('local setup permission probe failed');
     }
-    foreach (['azguard', 'azguard-filament'] as $splitRepo) {
+    foreach (['azguard'] as $splitRepo) {
         if ($run(['git', '--git-dir='.$dir.'/'.$splitRepo.'.git', 'show-ref', '--verify', 'refs/heads/release-setup-probe/123/1'], $dir, $env)[0] === 0) {
             throw new RuntimeException('setup probe left a temporary ref');
         }
     }
-    $probeEnv['FIXTURE_FAIL_REPO'] = 'azguard-filament';
+    $probeEnv['FIXTURE_FAIL_REPO'] = 'azguard';
     if ($run(['bash', '-c', $probeRun], $dir, $probeEnv)[0] === 0) {
         throw new RuntimeException('setup probe ignored dispatch failure');
     }
-    foreach (['azguard', 'azguard-filament'] as $splitRepo) {
+    foreach (['azguard'] as $splitRepo) {
         if ($run(['git', '--git-dir='.$dir.'/'.$splitRepo.'.git', 'show-ref', '--verify', 'refs/heads/release-setup-probe/123/1'], $dir, $env)[0] === 0) {
             throw new RuntimeException('failed setup probe left a temporary ref');
         }
     }
     unset($probeEnv['FIXTURE_FAIL_REPO']);
-    foreach (['core', 'filament'] as $package) {
-        $publicProbe = Symfony\Component\Yaml\Yaml::parseFile(dirname(__DIR__).'/packages/'.$package.'/.github/workflows/attestation-setup.yml');
-        $readProbe = $publicProbe['jobs']['probe']['steps'][0]['run'];
-        if ($run(['bash', '-c', $readProbe], $dir, $probeEnv)[0] !== 0) {
-            throw new RuntimeException($package.' source read probe fixture failed');
-        }
-        foreach (['FIXTURE_DENY_CONTENTS', 'FIXTURE_BAD_CONTENTS'] as $failure) {
-            $badProbeEnv = $probeEnv;
-            $badProbeEnv[$failure] = '1';
-            if ($run(['bash', '-c', $readProbe], $dir, $badProbeEnv)[0] === 0) {
-                throw new RuntimeException($package.' source read probe accepted '.$failure);
-            }
-        }
-        $badProbeEnv = $probeEnv;
-        $badProbeEnv['GH_TOKEN'] = '';
-        if ($run(['bash', '-c', $readProbe], $dir, $badProbeEnv)[0] === 0) {
-            throw new RuntimeException($package.' source read probe accepted missing token');
-        }
-    }
+    $must([PHP_BINARY, __DIR__.'/test-release-setup-source-read.php'], $dir, $env);
 } finally {
     $run(['gpgconf', '--kill', 'gpg-agent'], $dir, $env);
     $iterator = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($dir, FilesystemIterator::SKIP_DOTS), RecursiveIteratorIterator::CHILD_FIRST);

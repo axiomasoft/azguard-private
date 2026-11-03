@@ -5,7 +5,6 @@ set -Eeuo pipefail
 tag="${BASH_REMATCH[1]}" run_id="${BASH_REMATCH[3]}" attempt="${BASH_REMATCH[4]}" version="${BASH_REMATCH[1]#v}"
 case "${GITHUB_REPOSITORY:-}" in
   axiomasoft/azguard) package=core ;;
-  axiomasoft/azguard-filament) package=filament ;;
   *) echo 'untrusted split repository' >&2; exit 1 ;;
 esac
 [[ -n "${GH_TOKEN:-}" && -n "${RUNNER_TEMP:-}" && -f dist/package.zip && ! -L dist/package.zip ]] || { echo 'producer prerequisites unavailable' >&2; exit 1; }
@@ -15,7 +14,7 @@ bundle="$RUNNER_TEMP/release-bundle"
 [[ ! -e "$bundle" ]] || { echo 'release bundle destination already exists' >&2; exit 1; }
 gh run download "$run_id" --repo axiomasoft/azguard-private --name "release-artifacts-$attempt" --dir "$bundle"
 [[ -f "$bundle/SHA256SUMS" && ! -L "$bundle/SHA256SUMS" ]] || exit 1
-printf '%s\n' "azguard-core-$version.zip" "azguard-filament-$version.zip" source-core.cdx.json source-filament.cdx.json sbom-core.cdx.json sbom-filament.cdx.json resolution-core.lock resolution-filament.lock mapping-core.json mapping-filament.json | LC_ALL=C sort > "$RUNNER_TEMP/expected-subjects"
+printf '%s\n' "azguard-core-$version.zip" source-core.cdx.json sbom-core.cdx.json resolution-core.lock mapping-core.json | LC_ALL=C sort > "$RUNNER_TEMP/expected-subjects"
 awk '{print $2}' "$bundle/SHA256SUMS" | LC_ALL=C sort > "$RUNNER_TEMP/actual-subjects"
 diff -u "$RUNNER_TEMP/expected-subjects" "$RUNNER_TEMP/actual-subjects"
 while IFS= read -r file; do [[ -f "$bundle/$file" && ! -L "$bundle/$file" ]] || exit 1; done < "$RUNNER_TEMP/expected-subjects"

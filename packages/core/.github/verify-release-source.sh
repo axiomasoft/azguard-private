@@ -5,7 +5,6 @@ set -Eeuo pipefail
 tag="${BASH_REMATCH[1]}" run_id="${BASH_REMATCH[3]}" attempt="${BASH_REMATCH[4]}"
 case "${GITHUB_REPOSITORY:-}" in
   axiomasoft/azguard) package=core ;;
-  axiomasoft/azguard-filament) package=filament ;;
   *) echo 'untrusted split repository' >&2; exit 1 ;;
 esac
 [[ "${GITHUB_SHA:-}" =~ ^[0-9a-f]{40}$ && "$(git rev-parse HEAD)" == "$GITHUB_SHA" ]] || { echo 'split checkout mismatch' >&2; exit 1; }

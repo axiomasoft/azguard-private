@@ -102,7 +102,7 @@ if (isset($_SERVER['SCRIPT_FILENAME']) && realpath($_SERVER['SCRIPT_FILENAME']) 
             echo "Current setup prerequisites verified read-only; candidate qualification and publication remain separate.\n";
             exit(0);
         }
-        if ($argc === 8 && $argv[1] === '--candidate-artifacts') {
+        if ($argc === 7 && $argv[1] === '--candidate-artifacts') {
             $verify = static function (array $command, array $expected): bool {
                 $setting = getenv('AZGUARD_ATTEST_RETRIES');
                 $retries = is_string($setting) && preg_match('/\A(?:[1-9]|1[0-9]|20)\z/', $setting) ? (int) $setting : 20;
@@ -122,12 +122,12 @@ if (isset($_SERVER['SCRIPT_FILENAME']) && realpath($_SERVER['SCRIPT_FILENAME']) 
                 }
                 return false;
             };
-            packageVerifyAttestations(dirname(__DIR__), $argv[2], $argv[3], $argv[4], $argv[5], $argv[6], $argv[7], $verify);
+            packageVerifyAttestations(dirname(__DIR__), $argv[2], $argv[3], $argv[4], $argv[5], $argv[6], $verify);
             echo "Candidate artifacts and trusted attestations verified; split tag publication remains a separate check.\n";
             exit(0);
         }
         if ($argc !== 5 || $argv[1] !== '--candidate-source') {
-            throw new RuntimeException('usage: php bin/verify-release-evidence.php --setup[=REQUEST] [--read-only] [--strict] | --candidate-source SHA RUN-ID-ATTEMPT FILE | --candidate-artifacts SHA TAG DIST CORE-SHA FILAMENT-SHA RUN-ID-ATTEMPT');
+            throw new RuntimeException('usage: php bin/verify-release-evidence.php --setup[=REQUEST] [--read-only] [--strict] | --candidate-source SHA RUN-ID-ATTEMPT FILE | --candidate-artifacts SHA TAG DIST CORE-SHA RUN-ID-ATTEMPT');
         }
         $raw = @file_get_contents($argv[4]);
         $data = is_string($raw) ? json_decode($raw, true, 512, JSON_THROW_ON_ERROR) : null;

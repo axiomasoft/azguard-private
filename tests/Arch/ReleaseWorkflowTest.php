@@ -27,8 +27,8 @@ const RELEASE_CALLED = [
     'workers' => 'workers.yml',
 ];
 
-/** The consumer-archive steps of `validate` and of the tests.yml consumer job: default, Filament, core-only, relocation. */
-const RELEASE_CONSUMER_MODES = ['default' => '/consumer-fixture\.sh (?!core-only|relocated-audit)(?!.*--with-filament)/', 'filament' => '/consumer-fixture\.sh .*--with-filament/', 'core-only' => '/consumer-fixture\.sh core-only/', 'relocated-audit' => '/consumer-fixture\.sh relocated-audit/'];
+/** Core consumer-archive steps of the release validation job. */
+const RELEASE_CONSUMER_MODES = ['default' => '/consumer-fixture\.sh (?!core-only|relocated-audit)(?!.*--with-filament)/', 'core-only' => '/consumer-fixture\.sh core-only/', 'relocated-audit' => '/consumer-fixture\.sh relocated-audit/'];
 
 /** The only step allowed to continue on error: an upload, not a check. */
 const RELEASE_CONTINUE_ON_ERROR = ['tests.yml' => ['coverage' => ['Upload coverage to Codecov']]];
@@ -178,7 +178,7 @@ function releaseViolations(array $workflows): array
     sort($expected);
 
     if ($needs('gate') !== $expected || ($jobs['gate']['if'] ?? null) !== 'always()'
-        || ! str_contains(releaseRuns($jobs['gate'] ?? []), 'bin/release-gate.php')) {
+        || ! str_contains(releaseRuns($jobs['gate'] ?? []), 'bin/verify-release-evidence.php --candidate-source')) {
         $violations[] = 'release.yml: gate must always evaluate every prerequisite';
     }
     $expected[] = 'gate';
@@ -195,14 +195,20 @@ function releaseViolations(array $workflows): array
     $publish = $jobs['publish-packages'] ?? [];
     $publishSteps = releaseSteps($publish);
 
+    if (($publish['environment'] ?? null) !== 'release') {
+        $violations[] = 'release.yml: package tag publication must use the release environment';
+    }
+
     if ($needs('publish-packages') !== ['gate', 'provenance', 'split']
         || isset($publish['if'])
         || str_contains(releaseRuns($workflows['split.yml']['jobs']['split'] ?? []), 'refs/tags/')
         || array_filter($splitSteps, static fn (array $step): bool => isset($step['with']['tag'])) !== []
         || ($jobs['provenance']['outputs']['core_sha'] ?? null) !== '${{ steps.verify.outputs.core_sha }}'
-        || ($jobs['provenance']['outputs']['filament_sha'] ?? null) !== '${{ steps.verify.outputs.filament_sha }}'
         || ($publishSteps[0]['env']['CORE_SHA'] ?? null) !== '${{ needs.provenance.outputs.core_sha }}'
-        || ($publishSteps[0]['env']['FILAMENT_SHA'] ?? null) !== '${{ needs.provenance.outputs.filament_sha }}') {
+        || isset($publishSteps[0]['env']['FILAMENT_SHA'])
+        || isset($jobs['provenance']['outputs']['filament_sha'])
+        || str_contains(releaseRuns($publish), 'azguard-filament')
+        || ($workflows['split.yml']['jobs']['split']['strategy']['matrix']['package'] ?? null) !== [['dir' => 'core', 'name' => 'azguard']]) {
         $violations[] = 'release.yml: package tags must follow verified provenance';
     }
     $expected[] = 'split';
@@ -220,7 +226,7 @@ function releaseViolations(array $workflows): array
     if (preg_match('/composer (analyse|lint|test)\b|vendor\/bin\/(pest|phpstan|pint)/', $validate) === 1) {
         $violations[] = 'release.yml: validate repeats a called workflow';
     }
-    foreach (['release.yml validate-consumers' => $jobs['validate-consumers'] ?? [], 'tests.yml consumer-fixture' => $workflows['tests.yml']['jobs']['consumer-fixture'] ?? []] as $where => $job) {
+    foreach (['release.yml validate-consumers' => $jobs['validate-consumers'] ?? []] as $where => $job) {
         $runs = releaseRuns($job);
 
         if (($job['strategy']['matrix']['laravel'] ?? null) !== [12, 13]) {
@@ -236,6 +242,17 @@ function releaseViolations(array $workflows): array
         if (str_contains($runs, '--laravel=13') || str_contains($runs, '--laravel=12')) {
             $violations[] = "{$where}: the Laravel major must come from the matrix";
         }
+    }
+
+    $consumer = $workflows['tests.yml']['jobs']['consumer-fixture'] ?? [];
+    $expectedPairs = [
+        ['php' => '8.3', 'laravel' => '12'], ['php' => '8.3', 'laravel' => '13'],
+        ['php' => '8.4', 'laravel' => '12'], ['php' => '8.4', 'laravel' => '13'],
+        ['php' => '8.5', 'laravel' => '13'],
+    ];
+    if (($consumer['strategy']['matrix']['include'] ?? null) !== $expectedPairs
+        || ! str_contains(releaseRuns($consumer), 'bin/consumer-matrix.sh --source=')) {
+        $violations[] = 'tests.yml consumer-fixture: exact supported pairs and consumer-matrix qualification required';
     }
 
     if (! str_contains($validate, 'bin/release-preflight.sh')) {
@@ -292,8 +309,8 @@ function releaseViolations(array $workflows): array
     $provenanceSteps = releaseSteps($provenance);
     $verify = array_search(true, array_map(static fn (array $step): bool => str_contains((string) ($step['run'] ?? ''), 'bin/verify-release-split.sh'), $provenanceSteps), true);
 
-    if ($verify === false || ! str_contains((string) ($provenanceSteps[$verify]['run'] ?? ''), '--dispatch-final')) {
-        $violations[] = 'release.yml: split verification must dispatch and verify final attestations';
+    if ($verify === false || ! str_contains(releaseRuns($provenance), 'bin/verify-release-evidence.php --candidate-artifacts')) {
+        $violations[] = 'release.yml: split verification must verify final attestations';
     }
 
     if (! str_contains($artifactUses, 'actions/upload-artifact@')) {
@@ -445,7 +462,8 @@ it('rejects a moved tag even if it is annotated', function (): void {
         $steps = releaseSteps(releaseWorkflows()['release.yml']['jobs']['validate']);
         $guard = array_values(array_filter($steps, static fn (array $step): bool => ($step['name'] ?? '') === 'Require an annotated tag'))[0]['run'];
 
-        expect($run(['bash', '-c', $guard], ['TAG' => 'v1.2.3', 'TAGGED_SHA' => $sha])->isSuccessful())->toBeTrue();
+        // An annotated tag without a configured trusted signer must fail closed.
+        expect($run(['bash', '-c', $guard], ['TAG' => 'v1.2.3', 'TAGGED_SHA' => $sha, 'RELEASE_TAG_PUBLIC_KEY' => '', 'RELEASE_TAG_SIGNER_FINGERPRINT' => ''])->isSuccessful())->toBeFalse();
         $mismatch = $run(['bash', '-c', $guard], ['TAG' => 'v1.2.3', 'TAGGED_SHA' => str_repeat('a', 40)]);
         expect($mismatch->isSuccessful())->toBeFalse()
             ->and($mismatch->getOutput())->toContain('does not resolve to the candidate SHA');
@@ -590,6 +608,11 @@ it('reports a broken release graph', function (Closure $break, string $violation
 
         return $w;
     }, 'release.yml: package tags must follow verified provenance'],
+    'package tags without release environment' => [static function (array $w): array {
+        unset($w['release.yml']['jobs']['publish-packages']['environment']);
+
+        return $w;
+    }, 'release.yml: package tag publication must use the release environment'],
     'split publishes a tag early' => [static function (array $w): array {
         $w['split.yml']['jobs']['split']['steps'][] = ['run' => 'git push origin HEAD:refs/tags/v1.0.0'];
 
@@ -656,15 +679,15 @@ it('reports a broken release graph', function (Closure $break, string $violation
         return $w;
     }, 'release.yml validate-consumers: the consumer archives must run on Laravel 12 and 13'],
     'tests.yml consumer job on Laravel 13 only' => [static function (array $w): array {
-        $w['tests.yml']['jobs']['consumer-fixture']['strategy']['matrix']['laravel'] = [13];
+        $w['tests.yml']['jobs']['consumer-fixture']['strategy']['matrix']['include'] = [['php' => '8.4', 'laravel' => '13']];
 
         return $w;
-    }, 'tests.yml consumer-fixture: the consumer archives must run on Laravel 12 and 13'],
-    'tests.yml consumer job without the relocation rehearsal' => [static function (array $w): array {
-        $w['tests.yml']['jobs']['consumer-fixture']['steps'] = array_values(array_filter($w['tests.yml']['jobs']['consumer-fixture']['steps'], static fn (array $s): bool => ! str_contains((string) ($s['run'] ?? ''), 'relocated-audit')));
+    }, 'tests.yml consumer-fixture: exact supported pairs and consumer-matrix qualification required'],
+    'tests.yml consumer job without matrix qualification' => [static function (array $w): array {
+        $w['tests.yml']['jobs']['consumer-fixture']['steps'] = array_values(array_filter($w['tests.yml']['jobs']['consumer-fixture']['steps'], static fn (array $s): bool => ! str_contains((string) ($s['run'] ?? ''), 'consumer-matrix.sh')));
 
         return $w;
-    }, 'tests.yml consumer-fixture: no relocated-audit consumer archive step'],
+    }, 'tests.yml consumer-fixture: exact supported pairs and consumer-matrix qualification required'],
     'validate-consumers without the core-only archive' => [static function (array $w): array {
         $w['release.yml']['jobs']['validate-consumers']['steps'] = array_values(array_filter($w['release.yml']['jobs']['validate-consumers']['steps'], static fn (array $s): bool => ! str_contains((string) ($s['run'] ?? ''), 'core-only')));
 
@@ -680,13 +703,13 @@ it('reports a broken release graph', function (Closure $break, string $violation
 
         return $w;
     }, 'release.yml: validate has no guard for reachable from main'],
-    'provenance without final attestation dispatch' => [static function (array $w): array {
+    'provenance without final attestation verification' => [static function (array $w): array {
         foreach ($w['release.yml']['jobs']['provenance']['steps'] as &$step) {
-            $step['run'] = str_replace(' --dispatch-final', '', $step['run'] ?? '');
+            $step['run'] = str_replace('bin/verify-release-evidence.php --candidate-artifacts', 'true', $step['run'] ?? '');
         }
 
         return $w;
-    }, 'release.yml: split verification must dispatch and verify final attestations'],
+    }, 'release.yml: split verification must verify final attestations'],
     'provenance with unnecessary permissions' => [static function (array $w): array {
         $w['release.yml']['jobs']['provenance']['permissions']['attestations'] = 'write';
 
