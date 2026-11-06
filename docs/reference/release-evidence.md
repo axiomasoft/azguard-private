@@ -1,15 +1,21 @@
 # Release evidence
 
-Every release candidate has one evidence file, `release-evidence/v<version>.yml`, at the root of the repository (outside
+The current work does not publish or split either package. The core-only receipt format described below is retained
+for local evidence and a separately authorized future release; it does not establish a current publication plan.
+Each release candidate has an evidence file, `release-evidence/v<version>.yml`, at the root of the repository (outside
 `packages/`, so it is never part of a split archive). It binds one commit to the workflow runs, local runs and artifacts
 that qualified it. `bin/release-evidence.php` validates it, offline for the shape and with `--live` against GitHub.
+Use `urn:azguard:release-evidence:2` for core-only evidence. It requires `artifacts.core_archive`,
+`artifacts.sbom_core`, `split.core`, and a nonempty `packagist.core`; it rejects the Filament archive, SBOM,
+split and Packagist fields. The historical
+`urn:azguard:release-evidence:1` continues to require both packages; do not fabricate Filament evidence.
 
-## Example
+## Core-only example
 
 Every value below is a placeholder.
 
 ```yaml
-schema: urn:azguard:release-evidence:1
+schema: urn:azguard:release-evidence:2
 version: 1.0.0-rc.1
 commit: 0000000000000000000000000000000000000000        # the commit the tag points to
 candidate: 0000000000000000000000000000000000000000     # the qualified candidate
@@ -32,11 +38,10 @@ workflows:                    # every value: https://github.com/axiomasoft/azgua
   zizmor: <url>
 local:
   - {command: <command>, exit: 0, summary: <counts>, log: <path>}
-artifacts: {core_archive: <sha256>, filament_archive: <sha256>, sbom_core: <sha256>, sbom_filament: <sha256>}
+artifacts: {core_archive: <sha256>, sbom_core: <sha256>}
 split:
   core: {repo: axiomasoft/azguard, tag_sha: <40-hex>, tree_identical: true}
-  filament: {repo: axiomasoft/azguard-filament, tag_sha: <40-hex>, tree_identical: true}
-packagist: {core: <version seen>, filament: <version seen>}
+packagist: {core: <version seen>}
 benchmarks: {reference_host: <id>, comparison: <path>}
 settings_audit: <path to the output of repository-settings-audit --live --json>
 owner_approval: {actor: <github login>, timestamp: <UTC>}   # optional until the release decision

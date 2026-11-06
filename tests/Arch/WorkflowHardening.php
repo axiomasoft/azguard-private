@@ -13,11 +13,12 @@ const WORKFLOW_CONTINUE_ON_ERROR = ['tests.yml' => ['coverage' => ['Upload cover
 
 /** W6: job-level write permissions, knowledge/supply-chain#permissions. Workflow => job => permission keys that may be `write`. */
 const WORKFLOW_WRITE_PERMISSIONS = [
-    'release.yml' => ['release' => ['contents'], 'artifacts' => ['id-token', 'attestations']],
+    'release.yml' => ['release' => ['contents'], 'codeql' => ['security-events']],
     'docs-deploy.yml' => ['deploy' => ['pages', 'id-token']],
     'codeql.yml' => ['analyze' => ['security-events']],
-    'dependabot-auto-merge.yml' => ['auto-merge' => ['contents', 'pull-requests']],
-    'pr-check.yml' => ['size' => ['pull-requests']],
+    'dependabot-auto-merge.yml' => ['auto-merge' => ['pull-requests'], 'sweep' => ['pull-requests']],
+    'packages/core/.github/workflows/provenance.yml' => ['provenance' => ['id-token', 'attestations'], 'relay-final-artifacts' => ['id-token', 'attestations']],
+    'packages/core/.github/workflows/attestation-setup.yml' => ['probe' => ['id-token', 'attestations']],
 ];
 
 /** The longest an allowlist entry may live, in days from the day it is checked. */
@@ -30,11 +31,22 @@ const ZIZMOR_ALLOWLIST_MAX_DAYS = 180;
 function workflowHardeningViolations(string $file, string $raw, array $parsed): array
 {
     $name = basename($file);
+    $permissionName = $name;
+    foreach (['core'] as $package) {
+        foreach (['provenance.yml', 'attestation-setup.yml'] as $workflow) {
+            $packagePath = "packages/{$package}/.github/workflows/{$workflow}";
+
+            if ($file === $packagePath || str_ends_with($file, '/'.$packagePath)) {
+                $permissionName = $packagePath;
+            }
+        }
+    }
     $violations = [];
     $jobs = is_array($parsed['jobs'] ?? null) ? $parsed['jobs'] : [];
 
     foreach (explode("\n", $raw) as $index => $line) {
-        if (preg_match('/^\s*(?:-\s*)?uses:\s*(\S+)(.*)$/', $line, $match) !== 1 || str_starts_with($match[1], './')) {
+        if (preg_match('/^\s*(?:-\s*)?uses:\s*(\S+)(.*)$/', $line, $match) !== 1 || str_starts_with($match[1], './')
+            || preg_match('#^\$/\.github/workflows/[A-Za-z0-9_-]+\.yml$#', $match[1]) === 1) {
             continue;
         }
 
@@ -57,7 +69,8 @@ function workflowHardeningViolations(string $file, string $raw, array $parsed): 
     }
 
     foreach (workflowTriggerNames($parsed) as $trigger) {
-        if (in_array($trigger, ['pull_request_target', 'workflow_run'], true)) {
+        if (in_array($trigger, ['pull_request_target', 'workflow_run'], true)
+            && ! ($trigger === 'pull_request_target' && $name === 'dependabot-auto-merge.yml' && workflowReviewedDependabot($raw))) {
             $violations[] = 'dangerous-trigger '.$name.':on.'.$trigger;
         }
     }
@@ -77,7 +90,7 @@ function workflowHardeningViolations(string $file, string $raw, array $parsed): 
             $violations[] = 'continue-on-error '.$jobLocator;
         }
 
-        foreach (workflowWriteViolations($name, (string) $jobId, $job['permissions'] ?? null) as $permission) {
+        foreach (workflowWriteViolations($permissionName, (string) $jobId, $job['permissions'] ?? null) as $permission) {
             $violations[] = 'write-permission '.$jobLocator.'.permissions.'.$permission;
         }
 
@@ -108,6 +121,25 @@ function workflowHardeningViolations(string $file, string $raw, array $parsed): 
     }
 
     return $violations;
+}
+
+/** Delegate the privileged trigger to the existing complete-workflow policy. */
+function workflowReviewedDependabot(string $raw): bool
+{
+    $code = 'import importlib.util,sys; p=importlib.util.spec_from_file_location("pins",sys.argv[1]); m=importlib.util.module_from_spec(p); p.loader.exec_module(m); sys.exit(bool(m.check_workflow(sys.stdin.read(),"dependabot-auto-merge.yml")))';
+    $process = proc_open(['python3', '-B', '-c', $code, dirname(__DIR__, 2).'/bin/check-workflow-pins.py'], [0 => ['pipe', 'r'], 1 => ['pipe', 'w'], 2 => ['pipe', 'w']], $pipes);
+
+    if (! is_resource($process)) {
+        return false;
+    }
+    fwrite($pipes[0], $raw);
+    fclose($pipes[0]);
+    stream_get_contents($pipes[1]);
+    fclose($pipes[1]);
+    stream_get_contents($pipes[2]);
+    fclose($pipes[2]);
+
+    return proc_close($process) === 0;
 }
 
 /**

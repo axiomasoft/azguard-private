@@ -23,7 +23,6 @@ updates:
           - 'larastan/*'
           - 'laravel/pint'
           - 'rector/rector'
-          - 'infection/infection'
     ignore:
       - dependency-name: 'laravel/framework'
         update-types: ['version-update:semver-major']

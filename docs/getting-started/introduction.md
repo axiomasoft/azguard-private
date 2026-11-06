@@ -59,6 +59,6 @@ $user->can('update', $post);                         // the same decision throug
 | PHP | 8.3, 8.4, 8.5 (8.5 with Laravel 13) |
 | Laravel | 12, 13 |
 | Databases (tested in CI) | SQLite, MySQL 8, MariaDB 10.11, PostgreSQL 16 |
-| Filament (optional) | 5.x, via `axiomasoft/azguard-filament` |
+| Filament development | `^5.8.4`, via the monorepo development package `axiomasoft/azguard-filament`, matching the core version |
 
 Next: [Installation](/getting-started/installation).

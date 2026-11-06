@@ -1,0 +1,13 @@
+{
+  "schema": "azguard.provider-archive.local.v1",
+  "qualification": "nonrelease-unsigned",
+  "commit": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "tree_git_sha1": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+  "archive_kind": "zip",
+  "archive_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+  "source_sbom_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+  "resolved_dependency_sbom": null,
+  "qualification_references": [],
+  "provider_identity_verified": false,
+  "limitation": "Only these bytes were checked; future provider downloads may differ."
+}

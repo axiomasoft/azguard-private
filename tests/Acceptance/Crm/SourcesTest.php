@@ -14,7 +14,7 @@ it('R44 a failing source denies after a valid DB grant or admin in either source
     $sources = [World::database(), new FailingSource];
     $panel = World::compile(sources: $reverse ? array_reverse($sources) : $sources);
     $user = $admin ? 3 : 1;
-    World::assertDecision(World::decide($panel, user: $user), false, DecisionReason::SourceError, 'sources');
+    World::assertDecision(World::decide($panel, user: $user), false, DecisionReason::SourceError, FailingSource::class);
     $panel = World::compile();
     World::assertDecision(World::decide($panel, user: $user), true, $admin ? DecisionReason::SuperAdmin : DecisionReason::Granted);
 })->with([false, true])->with([false, true]);

@@ -44,10 +44,11 @@ final readonly class PrepareStage
     }
 
     /** @return array{AccessRequest,PanelCatalog,EvaluationFrame,?Decision} */
-    public function prepareSuperAdmin(Panel $panel, SubjectRef $subject, AccessScope $scope, Trace $trace, DateTimeImmutable $now, ?Model $model = null): array
+    public function prepareSuperAdmin(Panel $panel, SubjectRef $subject, AccessScope $scope, Trace $trace, DateTimeImmutable $now, ?Model $model = null, bool $primaryRequested = false): array
     {
         $request = AccessRequest::for($subject, PermissionKey::of($panel->id(), 'superadmin.qualify'))->inScope($scope);
         $request = $model === null ? $request : $request->withSubjectModel($model);
+        $request = $primaryRequested ? $request->onPrimary() : $request;
         [$catalog, , $frame, $denial] = $this->prepareRequest($panel, $request, null, $trace, $now, qualificationOnly: true);
 
         if ($denial === null) {
@@ -98,7 +99,7 @@ final readonly class PrepareStage
         $frame = new EvaluationFrame(
             selectedPanel: $panel, selectedScope: AccessScope::in($request->tenant() ?? TenantRef::global(), $request->context()),
             token: CodeStateToken::of($panel->id(), $this->registry->buildId(), $this->registry->fingerprint($panel->id())),
-            decisionNow: $now, selectedActor: $actor, subject: $subject, actorSubject: $actorModel, selectedResource: $request->resource(), batchInputs: $batch,
+            decisionNow: $now, selectedActor: $actor, subject: $subject, actorSubject: $actorModel, selectedResource: $request->resource(), batchInputs: $batch, primaryRequested: $request->requiresPrimary(),
         );
 
         [$frame, $boundaryDenial] = $this->boundary->resolve($request, $frame, $trace, false);

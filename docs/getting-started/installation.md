@@ -1,5 +1,12 @@
 # Installation
 
+For 2.0, use PHP 8.3/8.4 with Laravel 12 or PHP 8.3/8.4/8.5 with Laravel 13. Other Laravel majors are unsupported.
+The [compatibility policy](../reference/compatibility.md#supported-platforms) records the five CI pairs and server lanes.
+For an existing installation, follow [upgrading to 2.0](../guides/upgrading-2.md) before running migrations.
+
+The current work is local to the monorepo; neither package is being split or published. The Composer command below
+applies only to a separately published core version, if available, and does not install the current checkout.
+
 ```bash
 composer require axiomasoft/azguard
 php artisan azguard:install --migrate --panel=Admin
@@ -36,14 +43,12 @@ public function boot(): void
 }
 ```
 
-Without the alias, `azguard:doctor` reports:
-
-```
-panels.valid error: Panel admin accepts App\Models\User without a morph alias
-```
-
-The first check then throws `InvalidIdentityException`. Every model you pass as a scope or tenant needs an
-alias too, for example `Team` or `Organization`.
+Without the alias, Doctor's `morph.identity` check warns in production when a model uses its class name;
+`azguard_doctor.strict_morph_identity=true` promotes this finding to an error. An enforced-map violation,
+invalid alias or collision is an error. Doctor does not enable global morph-map enforcement or migrate stored rows.
+An identity check rejects class names that do not satisfy the alias grammar. Every model you pass as a scope or
+tenant needs an alias too, for example `Team` or `Organization`. Migrate existing stored identities before renaming
+an alias; see the [upgrade guide](../guides/upgrading-2.md#morph-identities).
 
 ## 2. Make the model a subject
 
@@ -83,12 +88,10 @@ If your code authorizes inside `DB::transaction()`, give AzGuard its own connect
 AZGUARD_DB_CONNECTION=azguard
 ```
 
-## Optional: Filament
+## Filament development
 
-```bash
-composer require axiomasoft/azguard-filament
-```
-
+The Filament integration is retained in the monorepo but is not in the current publication scope. Local development uses the root
+Composer path repository. It requires Filament `^5.8.4` and the same core version via `self.version`.
 See the [Filament guide](/guides/filament).
 
 Next: [Quick start](/getting-started/quick-start).

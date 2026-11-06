@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace AzGuardBench\Load;
 
+use Filament\Resources\Resource;
 use Illuminate\Database\Eloquent\Model;
 use RuntimeException;
 
@@ -76,6 +77,18 @@ final class Catalog
 
         if (! class_exists($class)) {
             throw new RuntimeException("The bench catalog has no class [{$class}]; call Catalog::load() first.");
+        }
+
+        return $class;
+    }
+
+    /** @return class-string<resource> */
+    public static function resource(string $name): string
+    {
+        $class = self::class($name);
+
+        if (! is_subclass_of($class, Resource::class)) {
+            throw new RuntimeException("[{$class}] is not a Filament resource.");
         }
 
         return $class;
@@ -186,6 +199,79 @@ PHP;
         PHP_WRAP;
         $enumList = implode(', ', $enums);
         $roleList = implode(', ', $roles);
+        $files['FilamentUser'] = "final class FilamentUser extends \\Illuminate\\Foundation\\Auth\\User implements \\AzGuard\\Contracts\\AzGuardSubject\n{\n    use \\AzGuard\\Concerns\\HasAzGuard;\n    protected \$table = 'users';\n    public \$timestamps = false;\n    protected \$guarded = [];\n}\n";
+        $files['HeavyPostPolicy'] = <<<'PHP'
+use AzGuard\Contracts\Authorization\EvaluationContext;
+use AzGuard\Contracts\Authorization\FiltersAccessQueries;
+use AzGuard\Kernel\Decision\AccessPredicate as P;
+use AzGuard\Kernel\Decision\AccessRequest;
+use AzGuard\Kernel\Decision\Grant;
+use AzGuard\Kernel\Decision\RoleContribution;
+use AzGuard\Policies\Decides;
+use Illuminate\Database\Eloquent\Model;
+
+final class HeavyPostPolicy implements FiltersAccessQueries
+{
+    #[Decides(PostPermission::View)]
+    public function view(Model $user, ?Model $post = null): bool
+    {
+        return $post === null || (string) $post->user_id === (string) $user->getKey();
+    }
+    public function predicate(AccessRequest $request, string $resourceType, EvaluationContext $context, Grant|RoleContribution|null $contribution = null): P
+    {
+        $allow = P::all(...array_fill(0, 16, P::eq('user_id', $request->subject()->id())));
+        return P::partition($allow, P::not($allow), P::deny());
+    }
+}
+PHP;
+        $files['FilamentBenchPanelProvider'] = <<<'PHP'
+final class FilamentBenchPanelProvider extends \AzGuard\Panels\PanelProvider
+{
+    public static function getId(): string { return 'filament-bench'; }
+    public function panel(\AzGuard\Panels\PanelBuilder $panel): \AzGuard\Panels\PanelBuilder
+    {
+        return $panel->for(FilamentUser::class)->permissions([PostPermission::class, \AzGuard\Sources\Database\DatabaseSource::make()])
+            ->policies([\AzGuard\Policies\PolicyBinding::for(PostPermission::View, HeavyPostPolicy::class)])->cache(store: config('bench.cache_store'));
+    }
+}
+PHP;
+        $files['PostResource'] = <<<'PHP'
+final class PostResource extends \Filament\Resources\Resource
+{
+    use \AzGuard\Filament\Concerns\AuthorizesResource;
+    protected static ?string $model = Post::class;
+    protected static ?string $slug = 'posts';
+}
+PHP;
+        $files['FilamentBenchProvider'] = <<<'PHP'
+final class FilamentBenchProvider extends \Filament\PanelProvider
+{
+    public function panel(\Filament\Panel $panel): \Filament\Panel
+    {
+        return $panel->id('bench-ui')->path('bench-ui')->default()->authGuard('web')->resources([PostResource::class])
+            ->plugin(\AzGuard\Filament\AzGuardPlugin::make()->guardPanel('filament-bench')->enforce());
+    }
+}
+PHP;
+        $files['ChurnPanelProvider'] = "final class ChurnPanelProvider extends \\AzGuard\\Panels\\PanelProvider\n{\n    public static function getId(): string { return 'churn'; }\n    public function panel(\\AzGuard\\Panels\\PanelBuilder \$panel): \\AzGuard\\Panels\\PanelBuilder\n    { return \$panel->for(User::class)->permissions([{$enumList}, \\AzGuard\\Sources\\Database\\DatabaseSource::make()])->cache(store: config('bench.cache_store'), ttl: 2); }\n}\n";
+        foreach ([100, 500] as $permissionCount) {
+            $cases = implode(', ', array_map(static function (int $index): string {
+                [$g, $p] = explode('.', self::name($index));
+
+                return 'G'.substr($g, 1).'Permission::P'.substr($p, 1);
+            }, range(0, $permissionCount - 1)));
+            $autoRoles = [];
+            for ($i = 1; $i <= 100; $i++) {
+                $name = "Auto{$permissionCount}R{$i}Role";
+                $files[$name] = "#[\\AzGuard\\Roles\\Attributes\\Role('auto-{$i}')]\nfinal class {$name} extends \\AzGuard\\Roles\\BaseRole implements \\AzGuard\\Roles\\GrantedAutomatically\n{\n    public function permissions(): array { return [{$cases}]; }\n    public function appliesTo(\\Illuminate\\Database\\Eloquent\\Model \$subject, \\AzGuard\\Kernel\\Identity\\AccessScope \$scope): bool { return true; }\n}\n";
+                $autoRoles[] = $name.'::class';
+            }
+            foreach ([1, 10, 100] as $count) {
+                $autoList = implode(', ', array_slice($autoRoles, 0, $count));
+                $provider = "Automatic{$count}x{$permissionCount}PanelProvider";
+                $files[$provider] = "final class {$provider} extends \\AzGuard\\Panels\\PanelProvider\n{\n    public static function getId(): string { return 'automatic-{$count}-{$permissionCount}'; }\n    public function panel(\\AzGuard\\Panels\\PanelBuilder \$panel): \\AzGuard\\Panels\\PanelBuilder\n    { return \$panel->for(User::class)->permissions([{$enumList}])->roles([{$autoList}])->cache(store: config('bench.cache_store')); }\n}\n";
+            }
+        }
         $files['BenchPanelProvider'] = <<<PHP
 use AzGuard\\Panels\\PanelBuilder;
 use AzGuard\\Panels\\PanelProvider;

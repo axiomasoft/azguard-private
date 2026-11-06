@@ -1,0 +1,23 @@
+name: Split attestation setup unavailable
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  probe:
+    name: Trusted producer control required
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Block untrusted setup
+        run: |
+          set -Eeuo pipefail
+          echo '::error::Attestation setup is disabled until independently trusted producer control is implemented and verified.'
+          exit 1

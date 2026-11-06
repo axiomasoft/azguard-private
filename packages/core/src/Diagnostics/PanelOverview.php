@@ -7,6 +7,7 @@ namespace AzGuard\Diagnostics;
 use AzGuard\Attributes\Api;
 use AzGuard\AzGuard;
 use AzGuard\Contracts\Sources\SourceDescription;
+use AzGuard\Diagnostics\Internal\Checks\PanelsSources;
 use AzGuard\Kernel\Identity\TenantRef;
 use AzGuard\Panels\Internal\PanelRecipe;
 use AzGuard\Panels\Internal\PanelRegistry;
@@ -20,7 +21,9 @@ use BackedEnum;
  * and the panels page of the Filament package print it. It only reads.
  *
  *
- * @phpstan-type Sources array{sources: list<array{id: string, label: string, class: string, capabilities: list<string>, dynamic: bool}>, named: list<array{name: string, origin: string}>, plugins: list<string>}
+ * @phpstan-import-type CapabilityCell from SourceDescription
+ *
+ * @phpstan-type Sources array{sources: list<array{id: string, label: string, class: string, capabilities: list<string>, dynamic: bool, volatility: ?string, matrix: array<string, CapabilityCell>}>, named: list<array{name: string, origin: string}>, plugins: list<string>}
  * @phpstan-type Entry array{id: string, label: string, default: bool, prefix: ?string, tenants: string, subjects: list<string>, writer: ?string, storage: ?string, plugins: list<string>, settings?: array<string, array{value: bool|int|string|null, origin: string}>, sources?: Sources, schema?: array<string, mixed>}
  */
 #[Api(since: '1.0')]
@@ -109,6 +112,8 @@ final readonly class PanelOverview
             }
         }
 
+        $automaticRoles = PanelsSources::unqueryableAutomaticRoles($this->registry, $panel->id());
+
         return [
             'sources' => array_map(static fn (SourceDescription $source): array => [
                 'id' => $source->id,
@@ -116,6 +121,8 @@ final readonly class PanelOverview
                 'class' => $source->class,
                 'capabilities' => array_map(class_basename(...), $source->capabilities),
                 'dynamic' => $source->dynamic,
+                'volatility' => $source->volatility?->value,
+                'matrix' => PanelsSources::matrixFor($source, $automaticRoles),
             ], $panel->sources()),
             'named' => $named,
             'plugins' => $panel->pluginIds(),

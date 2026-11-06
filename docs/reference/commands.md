@@ -27,6 +27,11 @@ azguard:doctor [--panel [PANEL]] [--storage [STORAGE]] [--production] [--json]
 | `--production` | Check a production deployment: catalog cache and build id |
 | `--json` | Print the findings as JSON |
 
+Production checks report invalid shared-cache signing and memory limits as errors. Redis deployments also receive a
+warning to verify TLS, ACLs, application separation and network controls externally; a namespace or prefix alone
+does not prove these guarantees. Unsupported stores use the authoritative source, and shared TTL is capped at 3600
+seconds. The doctor only reads configuration and does not print cache credentials.
+
 ### `azguard:install`
 
 Install AzGuard: publish the configuration, choose the storage, create the first panel, migrate and check.

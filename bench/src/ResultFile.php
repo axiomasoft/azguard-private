@@ -83,6 +83,11 @@ final class ResultFile
                         $checks .= '- '.(($check['ok'] ?? false) === true ? 'PASS' : 'FAIL').' '.$text($profile['id'] ?? '').'/'.$text($stage['name'] ?? '').': '.$text($check['name'] ?? '').' ('.$text($check['detail'] ?? '').")\n";
                     }
                 }
+                foreach (is_array($stage['measurements'] ?? null) ? $stage['measurements'] : [] as $rep => $workers) {
+                    if (is_array($workers) && $workers !== []) {
+                        $checks .= '- MEASURE '.$text($profile['id'] ?? '').'/'.$text($stage['name'] ?? '').' rep '.($rep + 1).': '.json_encode($workers, JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR)."\n";
+                    }
+                }
             }
         }
 

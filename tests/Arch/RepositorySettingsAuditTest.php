@@ -83,6 +83,13 @@ it('flags a required context that no workflow job produces', function (): void {
     expect(array_filter($violations, static fn (string $line): bool => str_starts_with($line, 'S7 ')))->not->toBe([]);
 });
 
+it('expands only static matrix job names and leaves unknown checks missing', function (): void {
+    $names = auditWorkflowJobNames(__DIR__.'/Fixtures/RepositorySettings/Workflows');
+
+    expect($names)->toBe(['Analyze (actions)', 'Analyze (javascript-typescript)', 'Dollar ($1)'])
+        ->and($names)->not->toContain('Analyze (php)', 'excluded (actions)', 'dynamic (${{ github.ref }})');
+});
+
 it('keeps main.json equal to required-checks.json', function (): void {
     $main = auditReadJson(auditRoot().'/.github/rulesets/main.json');
     $checks = array_values(array_filter($main['rules'], static fn (array $rule): bool => $rule['type'] === 'required_status_checks'))[0]['parameters']['required_status_checks'];

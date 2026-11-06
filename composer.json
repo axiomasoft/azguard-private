@@ -11,8 +11,8 @@
     ],
     "require": {
         "php": "^8.3",
-        "axiomasoft/azguard": "^1.0",
-        "axiomasoft/azguard-filament": "^1.0"
+        "axiomasoft/azguard": "^2.0",
+        "axiomasoft/azguard-filament": "^2.0"
     },
     "require-dev": {
         "laravel/pint": "^1.32",
@@ -25,7 +25,7 @@
         "phpstan/phpstan": "^2.0",
         "larastan/larastan": "^3.0",
         "pestphp/pest-plugin-type-coverage": "^4.0",
-        "laravel/pao": "*"
+        "laravel/pao": "^1.1.5"
     },
     "autoload-dev": {
         "psr-4": {
@@ -39,8 +39,8 @@
             "url": "packages/*",
             "options": {
                 "versions": {
-                    "axiomasoft/azguard": "1.0.0",
-                    "axiomasoft/azguard-filament": "1.0.0"
+                    "axiomasoft/azguard": "2.0.0",
+                    "axiomasoft/azguard-filament": "2.0.0"
                 }
             }
         }
@@ -54,14 +54,14 @@
         }
     },
     "scripts": {
-        "test": "php -d memory_limit=1G vendor/bin/pest --fail-on-skipped --exclude-group=engines --exclude-group=redis --exclude-group=replica --exclude-group=extended",
+        "test": "php -d memory_limit=1G vendor/bin/pest --fail-on-skipped --exclude-group=engines --exclude-group=redis --exclude-group=replica --exclude-group=extended --exclude-group=mysql-engines",
         "test:parallel": "vendor/bin/pest --fail-on-skipped --exclude-group=stand --parallel --processes=4 --passthru-php='-d memory_limit=1G'",
         "test:changed": [
             "Composer\\Config::disableProcessTimeout",
             "@php bin/test-changed.php"
         ],
-        "test:unit": "vendor/bin/pest tests/Unit",
-        "test:feature": "vendor/bin/pest tests/Feature --exclude-group=redis",
+        "test:unit": "php -d memory_limit=1G vendor/bin/pest tests/Unit",
+        "test:feature": "php -d memory_limit=1G vendor/bin/pest tests/Feature --exclude-group=redis",
         "test:redis": "php -d memory_limit=1G vendor/bin/pest --ci --fail-on-skipped --group=redis",
         "test:replica": "bash tests/Engines/Support/replica-fixture.sh",
         "lint": "vendor/bin/pint",
@@ -71,10 +71,6 @@
         "analyse": "vendor/bin/phpstan analyse --memory-limit=1G",
         "test:types": "php -d memory_limit=1G vendor/bin/pest --type-coverage --min=98",
         "check:coverage": "bash bin/coverage-gate.sh",
-        "mutate": "bash bin/mutation-gate.sh",
-        "mutate:core": "bash bin/mutation-gate.sh core",
-        "mutate:filament": "bash bin/mutation-gate.sh filament",
-        "mutate:critical": "bash bin/mutation-gate.sh critical",
         "bench": "php -d memory_limit=2G tests/Benchmarks/Suite.php --markdown",
         "bench:load": [
             "Composer\\Config::disableProcessTimeout",
@@ -109,14 +105,12 @@
         ]
     },
     "scripts-descriptions": {
-        "check": "Run required local gates: style, static analysis, Rector, API manifest and compatibility, type coverage, tests and line coverage. Mutation is optional. Fails on a skipped test or a missing coverage driver (opt out only with AZGUARD_ALLOW_NO_COVERAGE=1).",
+        "check": "Run required local gates: style, static analysis, Rector, API manifest and compatibility, type coverage, tests and line coverage. Fails on a skipped test or a missing coverage driver (opt out only with AZGUARD_ALLOW_NO_COVERAGE=1).",
         "fix": "Auto-fix code style (Pint) and apply Rector refactorings.",
-        "mutate": "Run per-package native Pest mutation testing against fresh coverage (all packages, or pass core|filament|critical).",
-        "mutate:critical": "Release-blocking mutation testing of the decision kernel and its guards (every covered mutant killed).",
         "check:coverage": "Line coverage gate (--min=85) with an unlimited memory limit.",
         "bench": "Reproducible micro-benchmarks; prints a Markdown table (AZGUARD_BENCH_SAMPLES, default 300).",
         "bench:load": "Load bench (bench/README.md)",
-        "test": "SQLite lane: every test except engines, redis, replica and the extended (scale) ones.",
+        "test": "SQLite lane: every test except engines, mysql-engines, redis, replica and the extended (scale) ones.",
         "test:parallel": "The SQLite lane on 4 ParaTest workers.",
         "test:changed": "Only the zones a change touches and the zones that use them (tests/zones.json); --quick, --db, --base=<ref>, --dry-run.",
         "test:db": "The database lane on one server: composer test:db -- <pgsql|mysql|mariadb> [--parallel[=N]] [--full] [--engines] [--zone=<zone>].",

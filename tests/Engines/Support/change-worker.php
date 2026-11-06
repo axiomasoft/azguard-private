@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 require dirname(__DIR__, 3).'/vendor/autoload.php';
 
+use AzGuard\Audit\AuditPlugin;
 use AzGuard\Changes\Change;
 use AzGuard\Changes\ChangeResult;
 use AzGuard\Changes\GrantDetails;
@@ -17,8 +18,10 @@ use AzGuard\Tests\Fixtures\Changes\HostFencePipe;
 use AzGuard\Tests\Fixtures\Crm\CrmWorld;
 use AzGuard\Tests\Fixtures\Crm\Models\Organization;
 use AzGuard\Tests\Fixtures\Crm\Models\User;
+use AzGuard\Tests\Fixtures\Events\EventWorld;
 use AzGuard\Tests\TestCase;
 use Illuminate\Database\Eloquent\Relations\Relation;
+use Illuminate\Database\Events\TransactionBeginning;
 use Illuminate\Support\Carbon;
 
 /*
@@ -32,6 +35,11 @@ $app = $test->createApplication();
 Relation::morphMap(['crm.user' => User::class, 'crm.organization' => Organization::class], false);
 Carbon::setTestNow('2026-10-06T12:00:00Z');
 $connection = CrmWorld::storage()->connection();
+
+if ($options['lock_timeout'] ?? false) {
+    $connection->statement($connection->getDriverName() === 'pgsql'
+        ? "SET lock_timeout = '1s'" : 'SET innodb_lock_wait_timeout = 1');
+}
 $wait = static function (string $file): void {
     $deadline = microtime(true) + 20;
     while (! file_exists($file)) {
@@ -43,6 +51,11 @@ $wait = static function (string $file): void {
 };
 $id = $connection->selectOne($connection->getDriverName() === 'pgsql' ? 'select pg_backend_pid() as id' : 'select connection_id() as id')->id;
 $report = ['connection_id' => (int) $id, 'pipes' => 0, 'status' => null, 'effects' => null, 'removed' => null, 'version' => null, 'incarnation' => null, 'error' => null, 'message' => null, 'fingerprint' => null];
+$report['attempts'] = 0;
+$connection->getEventDispatcher()->listen(TransactionBeginning::class,
+    static function () use (&$report): void {
+        $report['attempts']++;
+    });
 
 if (isset($options['id_file'])) {
     // Write then rename: the parent polls for the file, so it must never see it created but still empty.
@@ -74,13 +87,13 @@ try {
         exit(0);
     }
 
-    if (($options['deadlock'] ?? false) && $connection->getDriverName() === 'pgsql') {
+    if ((($options['deadlock'] ?? false) || ($options['deadlock_after'] ?? false)) && $connection->getDriverName() === 'pgsql') {
         $connection->statement("SET deadlock_timeout = '100ms'");
     }
     $hold = static function (Change $change, Closure $next) use ($options, $wait, &$report, $connection): ChangeResult {
         $report['pipes']++;
 
-        if (isset($options['ready']) && $report['pipes'] === 1) {
+        if (isset($options['ready']) && $report['pipes'] === 1 && ! ($options['deadlock_after'] ?? false)) {
             touch($options['ready']);
         }
 
@@ -93,10 +106,23 @@ try {
             $connection->table('crm_active_build')->where('id', 1)->lockForUpdate()->first();
         }
 
-        return $next($change);
+        $result = $next($change);
+
+        if (($options['deadlock_after'] ?? false) && $report['pipes'] === 1) {
+            $report['aborted_event_id'] = $result->effects[0]->eventId;
+            touch($options['ready']);
+            $connection->table('crm_active_build')->where('id', 1)->lockForUpdate()->first();
+        }
+
+        return $result;
     };
     $pipes = ($options['fence'] ?? false) ? [$hold, HostFencePipe::class] : [$hold];
-    $panel = ($options['dynamic'] ?? false) ? ChangeWorld::dynamicPanel($pipes) : ChangeWorld::panel($pipes);
+
+    if ($options['audit'] ?? false) {
+        EventWorld::listen();
+    }
+    $configure = ($options['audit'] ?? false) ? static fn ($builder) => $builder->plugins([AuditPlugin::make()]) : null;
+    $panel = ($options['dynamic'] ?? false) ? ChangeWorld::dynamicPanel($pipes) : ChangeWorld::panel($pipes, $configure);
     $report['fingerprint'] = app(PanelRegistry::class)->fingerprint('crm');
 
     if ($options['fence'] ?? false) {
@@ -143,4 +169,7 @@ try {
     $report['message'] = $error->getMessage();
 }
 
+if ($options['audit'] ?? false) {
+    $report['event_ids'] = array_map(static fn ($event): string => $event->eventId, EventWorld::events());
+}
 echo json_encode($report, JSON_THROW_ON_ERROR);

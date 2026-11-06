@@ -27,6 +27,8 @@ use AzGuard\Sources\Database\DatabaseSource;
 use AzGuard\Sources\Internal\PanelSources;
 use AzGuard\Tenancy\TenantPolicy;
 use Closure;
+use Illuminate\Container\Container as LaravelContainer;
+use Illuminate\Contracts\Container\Container;
 use Illuminate\Database\Eloquent\Model;
 use UnitEnum;
 
@@ -148,6 +150,12 @@ final readonly class Panel
     public function attachedSources(): array
     {
         return $this->resolved === null ? [] : array_column($this->resolved->all(), 'source');
+    }
+
+    /** @internal The panel assembly container, or the application container for a manually constructed panel. */
+    public function sourceContainer(): Container
+    {
+        return $this->resolved?->container() ?? LaravelContainer::getInstance();
     }
 
     /**

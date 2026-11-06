@@ -2,7 +2,7 @@ name: Security
 
 on:
   push:
-    branches: [main, 'feat/**', 'fix/**']
+    branches: [main, 'feat/**', 'fix/**', 'hotfix/**']
   pull_request:
     branches: [main]
   schedule:
@@ -19,10 +19,31 @@ defaults:
     shell: bash
 
 concurrency:
-  group: security-${{ github.ref }}
-  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+  group: security-${{ github.ref_type == 'tag' && github.run_id || github.ref }}
+  cancel-in-progress: ${{ github.ref_type == 'branch' && github.ref != 'refs/heads/main' }}
 
 jobs:
+  workflow-pins:
+    name: Workflow reference and privilege policy
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+        with:
+          persist-credentials: false
+      - name: Check workflows and policy fixtures
+        run: |
+          set -Eeuo pipefail
+          tmp="$(mktemp -d)"
+          trap 'rm -rf "$tmp"' EXIT
+          curl -fsSL --retry 3 https://files.pythonhosted.org/packages/54/ed/79a089b6be93607fa5cdaedf301d7dfb23af5f25c398d5ead2525b063e17/pyyaml-6.0.2.tar.gz -o "$tmp/pyyaml.tar.gz"
+          echo 'd584d9ec91ad65861cc08d42e834324ef890a082e591037abe114850ff7bbc3e  '"$tmp/pyyaml.tar.gz" | sha256sum -c -
+          tar -xzf "$tmp/pyyaml.tar.gz" -C "$tmp"
+          export PYTHONPATH="$tmp/pyyaml-6.0.2/lib" PYTHONDONTWRITEBYTECODE=1
+          /usr/bin/python3 bin/check-workflow-pins.py
+          /usr/bin/python3 bin/test-workflow-pins.py
+          /usr/bin/python3 bin/test-dependabot-policy.py
+
   composer-audit:
     name: Composer audit
     runs-on: ubuntu-latest
@@ -40,10 +61,7 @@ jobs:
           coverage: none
 
       - name: Audit locked dependencies
-        run: composer audit --locked --format=plain
-
-      - name: Abandoned production packages
-        run: composer audit --locked --no-dev --abandoned=fail --format=plain
+        run: composer audit --locked --abandoned=fail --format=plain
 
   osv:
     name: OSV scan
@@ -86,7 +104,7 @@ jobs:
       - name: Setup PHP
         uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # 2.40.0
         with:
-          php-version: '8.3'
+          php-version: '8.4'
           tools: composer:v2
           coverage: none
 
@@ -140,7 +158,12 @@ jobs:
           persist-credentials: false
 
       - name: Scan the full history
-        run: bash bin/security-tools.sh gitleaks -- git --log-opts=--all --redact --config=.gitleaks.toml .
+        run: |
+          set -Eeuo pipefail
+          test "$(git rev-parse --is-shallow-repository)" = false
+          ignore_dir="$(mktemp -d "$RUNNER_TEMP/gitleaks-ignore.XXXXXX")"
+          trap 'rm -rf "$ignore_dir"' EXIT
+          bash bin/security-tools.sh gitleaks -- git --no-banner --redact --ignore-gitleaks-allow --gitleaks-ignore-path="$ignore_dir" --timeout 600 --config=.gitleaks.toml --log-opts="--all --full-history --diff-merges=first-parent" .
 
       - name: Prove the gate detects a synthetic secret
         run: bash bin/test-security-gates.sh
@@ -148,7 +171,7 @@ jobs:
   all:
     name: Security · all gates
     if: always()
-    needs: [composer-audit, osv, npm-audit, licenses, composer-policy, semgrep, secrets]
+    needs: [workflow-pins, composer-audit, osv, npm-audit, licenses, composer-policy, semgrep, secrets]
     runs-on: ubuntu-latest
     steps:
       - name: Fail unless every required job succeeded

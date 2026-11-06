@@ -1,0 +1,122 @@
+#!/usr/bin/env bash
+# Offline negative fixtures for the matrix contract; no dependency installation.
+set -Eeuo pipefail
+root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+tmp="$(mktemp -d)"
+trap 'rm -rf "$tmp"' EXIT
+php -r '
+    foreach (["8.3-12","8.3-13","8.4-12","8.4-13","8.5-13"] as $pair)
+        foreach (["lowest","latest"] as $policy)
+            foreach (["core","core-only","relocated-audit"] as $composition) {
+                $id="$pair-$policy-$composition"; $dir=$argv[1]."/".$id; mkdir($dir);
+                file_put_contents("$dir/result.json",json_encode(["id"=>$id,"result"=>"success","qualification"=>"nonrelease","version"=>"2.0.0-rc.1","source"=>["mode"=>"worktree","commit"=>"test","tree"=>"test"]]));
+                file_put_contents("$dir/run.log","test\n"); file_put_contents("$dir/composer.lock","{}\n"); file_put_contents("$dir/consumer-composer.json","{}\n");
+                file_put_contents("$dir/package.zip","fixture\n"); file_put_contents("$dir/package.zip.list","composer.json\n"); file_put_contents("$dir/package.zip.manifest.json","{}\n");
+                file_put_contents("$dir/archives.sha256",hash_file("sha256","$dir/package.zip")."  ./package.zip\n");
+            }
+' "$tmp"
+bash "$root/bin/consumer-matrix.sh" --verify="$tmp" >/dev/null
+php -r '$f=$argv[1]; $r=json_decode(file_get_contents($f),true,512,JSON_THROW_ON_ERROR); $r["version"]="2.0.0-rc.2"; file_put_contents($f,json_encode($r));' "$tmp/8.3-12-lowest-core/result.json"
+if bash "$root/bin/consumer-matrix.sh" --verify="$tmp" >/dev/null 2>&1; then echo 'Mixed versions accepted' >&2; exit 1; fi
+php -r '$f=$argv[1]; $r=json_decode(file_get_contents($f),true,512,JSON_THROW_ON_ERROR); $r["version"]="2.0.0-rc.1"; file_put_contents($f,json_encode($r));' "$tmp/8.3-12-lowest-core/result.json"
+mv "$tmp/8.3-12-lowest-core/result.json" "$tmp/omitted.json"
+if bash "$root/bin/consumer-matrix.sh" --verify="$tmp" >/dev/null 2>&1; then echo 'Omitted row accepted' >&2; exit 1; fi
+mv "$tmp/omitted.json" "$tmp/8.3-12-lowest-core/result.json"
+printf '%s\n' '{"repositories":[{"type":"path","url":"../package"}]}' > "$tmp/8.3-12-lowest-core/consumer-composer.json"
+if bash "$root/bin/consumer-matrix.sh" --verify="$tmp" >/dev/null 2>&1; then echo 'Path repository accepted' >&2; exit 1; fi
+if bash "$root/bin/consumer-fixture.sh" --policy=unknown >/dev/null 2>&1; then echo 'Unknown policy accepted' >&2; exit 1; fi
+if bash "$root/bin/consumer-fixture.sh" --source=packagist --version=2.0.0 --with-filament >/dev/null 2>&1; then echo 'Unpublished Filament accepted from Packagist' >&2; exit 1; fi
+git clone --quiet --no-hardlinks "$root" "$tmp/repo"
+cp "$root/bin/consumer-matrix.sh" "$tmp/repo/bin/consumer-matrix.sh"
+printf 'dirty\n' > "$tmp/repo/untracked-test-file"
+if bash "$tmp/repo/bin/consumer-matrix.sh" --source="$(git -C "$tmp/repo" rev-parse HEAD)" --output="$tmp/output" >/dev/null 2>&1; then
+    echo 'Dirty release source accepted' >&2; exit 1
+fi
+# Exercise the acceptance CLI only up to archive creation, without running its matrix.
+mkdir -p "$tmp/bin"
+printf '#!/usr/bin/env bash\nexit 0\n' > "$tmp/bin/curl"
+cat > "$tmp/bin/composer" <<'SH'
+#!/usr/bin/env bash
+for arg in "$@"; do
+    case "$arg" in
+        --working-dir=*) php -r '$j=json_decode(file_get_contents($argv[1]."/composer.json"),true,512,JSON_THROW_ON_ERROR); file_put_contents(getenv("MATRIX_TEST_VERSION_FILE"),$j["version"]);' "${arg#*=}" ;;
+    esac
+done
+exit 42
+SH
+chmod +x "$tmp/bin/curl" "$tmp/bin/composer"
+php_pair="$(php -r 'echo PHP_MAJOR_VERSION.".".PHP_MINOR_VERSION;')"
+case "$php_pair" in 8.3|8.4) php_pair="$php_pair-12" ;; 8.5) php_pair="$php_pair-13" ;; *) echo "Unsupported test PHP: $php_pair" >&2; exit 1 ;; esac
+# Exact-SHA snapshots must restore the export-ignored fixture from that commit.
+# A disposable repository and stub consumer exercise the actual matrix CLI
+# without installing dependencies or accessing the network.
+git clone --quiet --no-hardlinks "$root" "$tmp/snapshot-repo"
+cp "$root/bin/consumer-matrix.sh" "$tmp/snapshot-repo/bin/consumer-matrix.sh"
+cat > "$tmp/snapshot-repo/bin/consumer-fixture.sh" <<'SH'
+#!/usr/bin/env bash
+set -euo pipefail
+for arg in "$@"; do
+    case "$arg" in
+        --source-root=*) cp "${arg#*=}/tests/Fixtures/Console/commands.json" "$MATRIX_CAPTURE" ;;
+    esac
+done
+exit 42
+SH
+printf '%s\n' '{"fixture":"first commit"}' > "$tmp/snapshot-repo/tests/Fixtures/Console/commands.json"
+git -C "$tmp/snapshot-repo" add -- bin/consumer-matrix.sh bin/consumer-fixture.sh tests/Fixtures/Console/commands.json
+git -C "$tmp/snapshot-repo" -c core.hooksPath=/dev/null -c user.name=Fixture -c user.email=fixture@example.invalid commit --quiet -m 'fixture snapshot one'
+first_sha="$(git -C "$tmp/snapshot-repo" rev-parse HEAD)"
+if MATRIX_CAPTURE="$tmp/capture-first.json" bash "$tmp/snapshot-repo/bin/consumer-matrix.sh" --source="$first_sha" --output="$tmp/snapshot-first" --pair="$php_pair" >"$tmp/snapshot-first.log" 2>&1; then
+    echo 'Injected consumer failure accepted for exact SHA' >&2; exit 1
+fi
+cmp "$tmp/capture-first.json" <(git -C "$tmp/snapshot-repo" show "$first_sha:tests/Fixtures/Console/commands.json")
+printf '%s\n' '{"fixture":"second commit"}' > "$tmp/snapshot-repo/tests/Fixtures/Console/commands.json"
+git -C "$tmp/snapshot-repo" add -- tests/Fixtures/Console/commands.json
+git -C "$tmp/snapshot-repo" -c core.hooksPath=/dev/null -c user.name=Fixture -c user.email=fixture@example.invalid commit --quiet -m 'fixture snapshot two'
+second_sha="$(git -C "$tmp/snapshot-repo" rev-parse HEAD)"
+if MATRIX_CAPTURE="$tmp/capture-second.json" bash "$tmp/snapshot-repo/bin/consumer-matrix.sh" --source="$second_sha" --output="$tmp/snapshot-second" --pair="$php_pair" >"$tmp/snapshot-second.log" 2>&1; then
+    echo 'Injected consumer failure accepted for second SHA' >&2; exit 1
+fi
+cmp "$tmp/capture-second.json" <(git -C "$tmp/snapshot-repo" show "$second_sha:tests/Fixtures/Console/commands.json")
+if cmp -s "$tmp/capture-first.json" "$tmp/capture-second.json"; then echo 'Distinct commits produced the same fixture' >&2; exit 1; fi
+printf '%s\n' '{"fixture":"dirty worktree"}' > "$tmp/snapshot-repo/tests/Fixtures/Console/commands.json"
+if MATRIX_CAPTURE="$tmp/capture-dirty.json" bash "$tmp/snapshot-repo/bin/consumer-matrix.sh" --source="$second_sha" --output="$tmp/snapshot-dirty" --pair="$php_pair" >"$tmp/snapshot-dirty.log" 2>&1; then
+    echo 'Dirty fixture accepted for exact SHA' >&2; exit 1
+fi
+[[ ! -e "$tmp/capture-dirty.json" ]] || { echo 'Dirty fixture was consumed' >&2; exit 1; }
+git -C "$tmp/snapshot-repo" restore -- tests/Fixtures/Console/commands.json
+git -C "$tmp/snapshot-repo" rm --quiet -- tests/Fixtures/Console/commands.json
+git -C "$tmp/snapshot-repo" -c core.hooksPath=/dev/null -c user.name=Fixture -c user.email=fixture@example.invalid commit --quiet -m 'fixture missing'
+missing_sha="$(git -C "$tmp/snapshot-repo" rev-parse HEAD)"
+if MATRIX_CAPTURE="$tmp/capture-missing.json" bash "$tmp/snapshot-repo/bin/consumer-matrix.sh" --source="$missing_sha" --output="$tmp/snapshot-missing" --pair="$php_pair" >"$tmp/snapshot-missing.log" 2>&1; then
+    echo 'Missing committed fixture accepted' >&2; exit 1
+fi
+grep -Fq 'Missing or unsafe fixture in selected commit' "$tmp/snapshot-missing.log"
+[[ ! -e "$tmp/capture-missing.json" ]] || { echo 'Consumer ran with missing fixture' >&2; exit 1; }
+ln -s unrelated.json "$tmp/snapshot-repo/tests/Fixtures/Console/commands.json"
+git -C "$tmp/snapshot-repo" add -- tests/Fixtures/Console/commands.json
+git -C "$tmp/snapshot-repo" -c core.hooksPath=/dev/null -c user.name=Fixture -c user.email=fixture@example.invalid commit --quiet -m 'fixture symlink'
+symlink_sha="$(git -C "$tmp/snapshot-repo" rev-parse HEAD)"
+if MATRIX_CAPTURE="$tmp/capture-symlink.json" bash "$tmp/snapshot-repo/bin/consumer-matrix.sh" --source="$symlink_sha" --output="$tmp/snapshot-symlink" --pair="$php_pair" >"$tmp/snapshot-symlink.log" 2>&1; then
+    echo 'Committed symlink fixture accepted' >&2; exit 1
+fi
+grep -Fq 'Missing or unsafe fixture in selected commit' "$tmp/snapshot-symlink.log"
+[[ ! -e "$tmp/capture-symlink.json" ]] || { echo 'Consumer ran with symlink fixture' >&2; exit 1; }
+if PATH="$tmp/bin:$PATH" MATRIX_TEST_VERSION_FILE="$tmp/version" bash "$root/bin/consumer-matrix.sh" --source=worktree --version=2.0.0-rc.1 --deps=lowest,latest --report="$tmp/report/matrix.json" --pair="$php_pair" >"$tmp/cli.log" 2>&1; then
+    echo 'Injected archive failure accepted' >&2; exit 1
+fi
+[[ "$(<"$tmp/version")" == 2.0.0-rc.1 ]]
+php -r '$j=json_decode(file_get_contents($argv[1]),true,512,JSON_THROW_ON_ERROR); if ($j["version"] !== "2.0.0-rc.1" || count($j["rows"]) !== 30) exit(1);' "$tmp/report/matrix.json"
+# The coordinator supplies a relative report path; it must resolve from the caller's directory.
+if (cd "$tmp" && PATH="$tmp/bin:$PATH" MATRIX_TEST_VERSION_FILE="$tmp/relative-version" bash "$root/bin/consumer-matrix.sh" --source=worktree --version=2.0.0-rc.1 --deps=lowest,latest --report=relative/matrix.json --pair="$php_pair" >"$tmp/relative-cli.log" 2>&1); then
+    echo 'Injected archive failure accepted for relative report' >&2; exit 1
+fi
+[[ "$(<"$tmp/relative-version")" == 2.0.0-rc.1 ]]
+php -r '$j=json_decode(file_get_contents($argv[1]),true,512,JSON_THROW_ON_ERROR); if ($j["version"] !== "2.0.0-rc.1" || count($j["rows"]) !== 30) exit(1);' "$tmp/relative/matrix.json"
+if bash "$root/bin/consumer-matrix.sh" --source=worktree --deps=lowest,unknown --report="$tmp/invalid.json" >/dev/null 2>&1; then echo 'Unknown dependency policy accepted' >&2; exit 1; fi
+if bash "$root/bin/consumer-matrix.sh" >"$tmp/usage.log" 2>&1; then echo 'Missing source accepted' >&2; exit 1; fi
+usage_text="$(<"$tmp/usage.log")"
+for option in --version=VERSION --deps=lowest,latest --report=FILE; do
+    [[ "$usage_text" == *"$option"* ]] || { echo "Missing usage option: $option" >&2; exit 1; }
+done
+echo 'Matrix negative fixtures passed.'

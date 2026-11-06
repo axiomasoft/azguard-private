@@ -6,7 +6,10 @@ use AzGuard\Tests\Fixtures\Filament\FilamentFixture;
 use AzGuard\Tests\Fixtures\Filament\GateWorld;
 use AzGuard\Tests\Fixtures\Filament\Models\Order;
 use AzGuard\Tests\Fixtures\Filament\Models\User;
+use AzGuard\Tests\Fixtures\Filament\Pages\ReportsPage;
+use AzGuard\Tests\Fixtures\Filament\RelationManagers\ProductsRelationManager;
 use AzGuard\Tests\Fixtures\Filament\Resources\Pages\ListOrders;
+use AzGuard\Tests\Fixtures\Filament\Widgets\OrderCountWidget;
 use Filament\Actions\Action;
 use Filament\Actions\BulkAction;
 use Filament\Actions\ImportAction;
@@ -109,6 +112,79 @@ it('does not save an inline column whose application enabled it with disabled(fa
     Livewire::test(ListOrders::class)->call('updateTableColumnState', 'number', '1', 'HACKED');
 
     expect(Order::query()->findOrFail(1)->getAttribute('number'))->not->toBe('HACKED');
+});
+
+it('does not run a hidden or disabled custom record action through a direct Livewire call', function (string $visibility): void {
+    $action = Action::make('edit')->action(static fn (Order $record) => $record->update(['number' => 'HACKED']));
+    FilamentFixture::$recordActions = [$visibility === 'hidden' ? $action->hidden() : $action->disabled()];
+
+    Livewire::test(ListOrders::class)->call('mountAction', 'edit', [], ['table' => true, 'recordKey' => '1']);
+
+    expect(Order::query()->findOrFail(1)->number)->toBe('A-1');
+})->with(['hidden', 'disabled']);
+
+it('does not invoke a mounted custom action after its permission is revoked', function (): void {
+    GateWorld::grant(['orders.update']);
+    FilamentFixture::$recordActions = [Action::make('edit')->requiresConfirmation()->action(static fn (Order $record) => $record->update(['number' => 'HACKED']))];
+    $page = Livewire::test(ListOrders::class)->call('mountAction', 'edit', [], ['table' => true, 'recordKey' => '1']);
+    GateWorld::revoke('orders.update');
+
+    $page->call('callMountedAction');
+
+    expect(Order::query()->findOrFail(1)->number)->toBe('A-1');
+});
+
+it('does not invoke a record action with a forged key hidden from the resource query', function (): void {
+    GateWorld::grant(['orders.update']);
+    FilamentFixture::$recordActions = [Action::make('edit')->action(static fn (Order $record) => $record->update(['number' => 'HACKED']))];
+
+    Livewire::test(ListOrders::class)->call('mountAction', 'edit', [], ['table' => true, 'recordKey' => '3']);
+
+    expect(Order::query()->findOrFail(3)->number)->toBe('S-3');
+});
+
+it('rechecks widget permission on a direct call after it becomes hidden', function (): void {
+    GateWorld::grant(['widgets.order-count']);
+    $widget = Livewire::test(OrderCountWidget::class);
+    GateWorld::revoke('widgets.order-count');
+    $widget->call('deleteOrder')->assertForbidden();
+
+    expect(Order::query()->whereKey(1)->exists())->toBeTrue();
+});
+
+it('allows a widget call when both the widget and the concrete record are authorized', function (): void {
+    GateWorld::grant(['widgets.order-count', 'orders.delete']);
+
+    Livewire::test(OrderCountWidget::class)->call('deleteOrder')->assertSuccessful();
+
+    expect(Order::query()->whereKey(1)->exists())->toBeFalse();
+});
+
+it('rechecks page access on a direct call after permission is revoked', function (): void {
+    FilamentFixture::$memberPermissions = [];
+    $this->bootFilament();
+    GateWorld::seed();
+    app()->bind(Authenticatable::class, User::class);
+    GateWorld::serve(GateWorld::grant(['orders.view_any', 'orders.view']));
+    GateWorld::grant(['pages.reports', 'orders.delete']);
+    $page = Livewire::test(ReportsPage::class);
+    GateWorld::revoke('pages.reports');
+
+    $page->call('deleteOrder')->assertForbidden();
+
+    expect(Order::query()->whereKey(1)->exists())->toBeTrue();
+});
+
+it('refuses a mounted relation action after the owner update permission is revoked', function (): void {
+    GateWorld::grant(['orders.update', 'products.view_any', 'products.view']);
+    $owner = Order::query()->findOrFail(1);
+    $manager = Livewire::test(ProductsRelationManager::class, ['ownerRecord' => $owner, 'pageClass' => ListOrders::class])
+        ->call('mountAction', 'detach', [], ['table' => true, 'recordKey' => '1'])->assertSuccessful();
+    GateWorld::revoke('orders.update');
+
+    $manager->call('callMountedAction');
+
+    expect($owner->products()->whereKey(1)->exists())->toBeTrue();
 });
 
 /** The smallest importer that lets an ImportAction be built. */

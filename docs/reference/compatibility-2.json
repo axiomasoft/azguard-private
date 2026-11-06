@@ -1,0 +1,232 @@
+{
+    "schema": "urn:azguard:major-migration:1",
+    "major": 2,
+    "baseline": "8a9c86f94a566a7366355804bc47f36f5f9e5125",
+    "target": "f70d82e293a5c0b0e09cd198eadfb220ea0fe620",
+    "rationale": "Start the 2.0 compatibility line at the committed P6 surface, before P7 documentation changes. Preserve the former candidate and every old-to-2.0 delta as migration inventory; subsequent 2.x breaks remain blocking. This is not evidence of a published upgrade.",
+    "breaks": [
+        {
+            "rule": "contracts.changed",
+            "artifact": "api.core",
+            "locator": "AzGuard\\Contracts\\Sources\\SourceDescription#contracts",
+            "baseline": [],
+            "current": [
+                "@phpstan-type CapabilityCell array{status: 'supported'|'unsupported'|'conditional', basis: 'static_declaration', reason: string, test_reference: string}"
+            ]
+        },
+        {
+            "rule": "contracts.changed",
+            "artifact": "api.core",
+            "locator": "AzGuard\\Diagnostics\\PanelOverview#contracts",
+            "baseline": [
+                "@phpstan-type Sources array{sources: list<array{id: string, label: string, class: string, capabilities: list<string>, dynamic: bool}>, named: list<array{name: string, origin: string}>, plugins: list<string>}",
+                "@phpstan-type Entry array{id: string, label: string, default: bool, prefix: ?string, tenants: string, subjects: list<string>, writer: ?string, storage: ?string, plugins: list<string>, settings?: array<string, array{value: bool|int|string|null, origin: string}>, sources?: Sources, schema?: array<string, mixed>}"
+            ],
+            "current": [
+                "@phpstan-import-type CapabilityCell from SourceDescription",
+                "@phpstan-type Sources array{sources: list<array{id: string, label: string, class: string, capabilities: list<string>, dynamic: bool, volatility: ?string, matrix: array<string, CapabilityCell>}>, named: list<array{name: string, origin: string}>, plugins: list<string>}",
+                "@phpstan-type Entry array{id: string, label: string, default: bool, prefix: ?string, tenants: string, subjects: list<string>, writer: ?string, storage: ?string, plugins: list<string>, settings?: array<string, array{value: bool|int|string|null, origin: string}>, sources?: Sources, schema?: array<string, mixed>}"
+            ]
+        },
+        {
+            "rule": "constant.value_changed",
+            "artifact": "api.core",
+            "locator": "AzGuard\\Panels\\PanelSettings::DEFAULTS",
+            "baseline": {
+                "resource_prefix": true,
+                "cache.store": null,
+                "cache.ttl": 3600,
+                "cache.generation": 1,
+                "consistency.reads": "primary",
+                "consistency.state_refresh": "request",
+                "trace_decisions": false
+            },
+            "current": {
+                "resource_prefix": true,
+                "cache.store": null,
+                "cache.ttl": 300,
+                "cache.generation": 1,
+                "consistency.reads": "primary",
+                "consistency.state_refresh": "request",
+                "trace_decisions": false
+            }
+        },
+        {
+            "rule": "format.changed",
+            "artifact": "config-defaults",
+            "locator": "azguard/defaults/cache/ttl",
+            "baseline": 3600,
+            "current": 300
+        }
+    ],
+    "additions": [
+        {
+            "rule": "parameter.added_optional",
+            "artifact": "api.core",
+            "locator": "AzGuard\\Concerns\\SubjectAccess::__construct()$primaryRequested",
+            "current": "false"
+        },
+        {
+            "rule": "member.added",
+            "artifact": "api.core",
+            "locator": "AzGuard\\Concerns\\SubjectAccess::onPrimary()",
+            "current": "public onPrimary(): self"
+        },
+        {
+            "rule": "member.added",
+            "artifact": "api.core",
+            "locator": "AzGuard\\Contracts\\Sources\\SourceDescription::$matrix",
+            "current": "properties"
+        },
+        {
+            "rule": "member.added",
+            "artifact": "api.core",
+            "locator": "AzGuard\\Contracts\\Sources\\SourceDescription::$volatility",
+            "current": "properties"
+        },
+        {
+            "rule": "parameter.added_optional",
+            "artifact": "api.core",
+            "locator": "AzGuard\\Contracts\\Sources\\SourceDescription::__construct()$volatility",
+            "current": "NULL"
+        },
+        {
+            "rule": "member.added",
+            "artifact": "api.core",
+            "locator": "AzGuard\\Kernel\\Decision\\AccessRequest::onPrimary()",
+            "current": "public onPrimary(): self"
+        },
+        {
+            "rule": "member.added",
+            "artifact": "api.core",
+            "locator": "AzGuard\\Kernel\\Decision\\AccessRequest::requiresPrimary()",
+            "current": "public requiresPrimary(): bool"
+        },
+        {
+            "rule": "type.added",
+            "artifact": "api.core",
+            "locator": "AzGuard\\Roles\\SelectsAutomaticRoleScopes",
+            "current": "spi-implement"
+        },
+        {
+            "rule": "member.added",
+            "artifact": "api.core",
+            "locator": "AzGuard\\Testing\\Contracts\\SourceContractTests::azguardFenceMutation()",
+            "current": "protected azguardFenceMutation(AzGuard\\Contracts\\Sources\\Source $source, AzGuard\\Panels\\Panel $panel): ?callable"
+        },
+        {
+            "rule": "member.added",
+            "artifact": "api.core",
+            "locator": "AzGuard\\Testing\\Contracts\\SourceContractTests::azguardQueryParity()",
+            "current": "protected azguardQueryParity(): ?array"
+        },
+        {
+            "rule": "member.added",
+            "artifact": "api.core",
+            "locator": "AzGuard\\Testing\\Contracts\\SourceContractTests::fencedAuthorityChangesItsStateOnlyOnMutation()",
+            "current": "public fencedAuthorityChangesItsStateOnlyOnMutation(): void"
+        },
+        {
+            "rule": "member.added",
+            "artifact": "api.core",
+            "locator": "AzGuard\\Testing\\Contracts\\SourceContractTests::sourceVisibilityMatchesScalarAndBatch()",
+            "current": "public sourceVisibilityMatchesScalarAndBatch(): void"
+        },
+        {
+            "rule": "format.added",
+            "artifact": "config-defaults",
+            "locator": "azguard/cache",
+            "current": {
+                "max_memo_entries": 1024,
+                "max_state_entries": 1024,
+                "namespace": null,
+                "signing_key": null,
+                "key_id": "active",
+                "previous_keys": []
+            }
+        },
+        {
+            "rule": "format.added",
+            "artifact": "config-defaults",
+            "locator": "environment/AZGUARD_CACHE_KEY_ID",
+            "current": "AZGUARD_CACHE_KEY_ID"
+        },
+        {
+            "rule": "format.added",
+            "artifact": "config-defaults",
+            "locator": "environment/AZGUARD_CACHE_NAMESPACE",
+            "current": "AZGUARD_CACHE_NAMESPACE"
+        },
+        {
+            "rule": "format.added",
+            "artifact": "config-defaults",
+            "locator": "environment/AZGUARD_CACHE_SIGNING_KEY",
+            "current": "AZGUARD_CACHE_SIGNING_KEY"
+        },
+        {
+            "rule": "format.added",
+            "artifact": "doctor-checks",
+            "locator": "checks/cache.integrity",
+            "current": {
+                "key": "cache.integrity",
+                "finding_ids": {
+                    "literal": [
+                        "cache.memory",
+                        "cache.redis",
+                        "cache.signing",
+                        "cache.transport",
+                        "cache.ttl"
+                    ],
+                    "uses_key": false
+                }
+            }
+        },
+        {
+            "rule": "format.added",
+            "artifact": "doctor-checks",
+            "locator": "checks/morph.identity",
+            "current": {
+                "key": "morph.identity",
+                "finding_ids": {
+                    "literal": [],
+                    "uses_key": true
+                }
+            }
+        },
+        {
+            "rule": "format.added",
+            "artifact": "doctor-checks",
+            "locator": "checks/panels.sources/finding_ids/literal/panels.sources.cache",
+            "current": "panels.sources.cache"
+        },
+        {
+            "rule": "format.added",
+            "artifact": "doctor-checks",
+            "locator": "checks/panels.sources/finding_ids/literal/panels.sources.visibility",
+            "current": "panels.sources.visibility"
+        },
+        {
+            "rule": "format.added",
+            "artifact": "serializable-types",
+            "locator": "types/AzGuard\\Filament\\Internal\\Exports\\ChecksPrepareCsvExport",
+            "current": {
+                "fqcn": "AzGuard\\Filament\\Internal\\Exports\\ChecksPrepareCsvExport",
+                "kinds": [
+                    "__serialize"
+                ]
+            }
+        },
+        {
+            "rule": "artifact.added",
+            "artifact": "source-capabilities",
+            "locator": "source-capabilities",
+            "current": "format"
+        },
+        {
+            "rule": "artifact.added",
+            "artifact": "source-capabilities.fixture",
+            "locator": "source-capabilities.fixture",
+            "current": "format"
+        }
+    ]
+}

@@ -111,7 +111,7 @@ it('compiles booted panels with the defaults of the configuration and reports th
         ->and($cabinet->toArray())->toBe([
             'resource_prefix' => ['value' => 'cabinet', 'origin' => 'default'],
             'cache.store' => ['value' => null, 'origin' => 'default'],
-            'cache.ttl' => ['value' => 3600, 'origin' => 'default'],
+            'cache.ttl' => ['value' => 300, 'origin' => 'default'],
             'cache.generation' => ['value' => 1, 'origin' => 'default'],
             'consistency.reads' => ['value' => 'primary', 'origin' => 'default'],
             'consistency.state_refresh' => ['value' => 'request', 'origin' => 'default'],

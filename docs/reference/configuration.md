@@ -28,7 +28,7 @@ A panel setting is resolved from these layers. The first layer that sets it wins
 | `defaults.models.permission` | `…\Permission` | Model of dynamic permissions |
 | `defaults.resource_prefix` | `true` | Prefix of full permission names: `true` uses the panel id (`admin.posts.view`), `false` uses no prefix, and a string is set per panel with `resourcePrefix()` |
 | `defaults.cache.store` | `null` | Laravel cache store for permission sets. With `null`, sets are memoized for the current request or job only |
-| `defaults.cache.ttl` | `3600` | Seconds a set stays in the store |
+| `defaults.cache.ttl` | `300` | Requested lifetime in seconds; shared entries are capped at 3600 seconds and the nearest grant expiry |
 | `defaults.cache.generation` | `1` | Part of every cache key. Raise it to drop all cached sets |
 | `defaults.consistency.reads` | `primary` | `Reads::Primary` reads grants from the write connection. `Reads::Default` uses the read replica and accepts replica lag |
 | `defaults.consistency.state_refresh` | `request` | `StateRefresh::Request` re-reads the state version once per request or job. `StateRefresh::Check` re-reads it before every check |
@@ -39,6 +39,12 @@ A panel setting is resolved from these layers. The first layer that sets it wins
 | `decision_sets.max_subjects` | `500` | Most distinct subjects of one `decideMany()`. Its reads share one snapshot. A larger set throws `DecisionSetTooLargeException` and is never split silently (see [Consistency](/advanced/consistency#decisionset)) |
 | `schedule.enabled` | `true` | Register scheduled pruning of expired grants |
 | `schedule.prune_expired` | `daily` | A scheduler frequency method name (`hourly`, `daily`, `weekly`), a cron expression, or `null` |
+| `cache.namespace` | `env('AZGUARD_CACHE_NAMESPACE')` | Explicit stable application and environment identifier required for shared permission-set caching |
+| `cache.signing_key` | `env('AZGUARD_CACHE_SIGNING_KEY')` | Dedicated secret of at least 32 bytes, or `null` to use Laravel's `APP_KEY` |
+| `cache.key_id` | `env('AZGUARD_CACHE_KEY_ID', 'active')` | Identifier of the active signing key |
+| `cache.previous_keys` | `[]` | Map of old key identifiers to `key` and UTC `valid_until`, for bounded rotation |
+| `cache.max_memo_entries` | `1024` | Maximum permission sets retained per request or job, from 1 to 1024 |
+| `cache.max_state_entries` | `1024` | Maximum source states retained per request or job, from 1 to 1024 |
 | `catalog.build_id` | `env('AZGUARD_BUILD_ID')` | Names the deployed build. Cached catalogs of another build are never used. Set it to the commit hash on every deploy |
 | `catalog.cache_path` | `null` | File for `azguard:catalog:cache`. The default is `bootstrap/cache/azguard.php` |
 | `storages.default.connection` | `env('AZGUARD_DB_CONNECTION')` | Database connection of the AzGuard tables (`null` is the default connection). See [Checks inside transactions](/concepts/decisions#checks-inside-database-transactions) |
@@ -61,6 +67,24 @@ A panel setting is resolved from these layers. The first layer that sets it wins
 |---|---|
 | `AZGUARD_DB_CONNECTION` | `storages.default.connection` |
 | `AZGUARD_BUILD_ID` | `catalog.build_id` |
+| `AZGUARD_CACHE_NAMESPACE` | `cache.namespace` |
+| `AZGUARD_CACHE_SIGNING_KEY` | `cache.signing_key` |
+| `AZGUARD_CACHE_KEY_ID` | `cache.key_id` |
+
+Permission-set caching supports Laravel's array store and Redis with Predis or PhpRedis without client-side
+serialization or compression. Other stores and Redis connections with those options enabled bypass the shared
+permission-set cache and reload the authoritative source; request-local memoization remains available. This avoids
+constructing objects in a cache driver before the signature can be checked.
+
+Shared permission sets use signed, finite-lived envelopes; without valid signing material and a namespace, the shared
+path is disabled and doctor reports `cache.signing`. To rotate, deploy the new key and id together, allow the old id
+and secret with a finite UTC `valid_until`, and remove it after the rollout. Keep keys secret and use a distinct
+namespace per application and environment; the namespace also separates physical permission-set keys within a shared
+Laravel cache prefix. Changing it causes cold cache reads. Old unsigned entries are ignored. Revision and epoch fencing still control
+freshness; a valid same-key entry can be replayed until expiry while its source revision remains unchanged.
+
+Invalid Redis entries are removed with an atomic compare-and-delete script (`EVAL`), preserving concurrent replacements.
+If the Redis ACL denies scripting, cleanup is best effort and the authoritative source still handles the cache miss.
 
 ## Panel settings (`PanelBuilder`)
 

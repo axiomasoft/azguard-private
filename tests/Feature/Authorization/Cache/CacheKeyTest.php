@@ -57,3 +57,14 @@ it('isolates every authority identity component while canonicalizing scope order
     $otherBuild[0] = CodeStateToken::of('admin', 'build:b', 'fp');
     expect(PermissionSetCache::key(...$code))->not->toBe(PermissionSetCache::key(...$otherBuild));
 });
+
+it('isolates physical keys by signing namespace with identical authority inputs', function (): void {
+    $tuple = [StateToken::of('store', 'admin', 'inc', 1, 1, 'fp'), SubjectRef::of('user', 1),
+        TenantRef::global(), [AccessScope::in(TenantRef::global())], 'source', 'primary', 'authority', 1];
+    config(['azguard.cache.namespace' => 'application-a']);
+    $first = PermissionSetCache::key(...$tuple);
+    config(['azguard.cache.namespace' => 'application-b']);
+    expect(PermissionSetCache::key(...$tuple))->not->toBe($first);
+    config(['azguard.cache.namespace' => 'application-a']);
+    expect(PermissionSetCache::key(...$tuple))->toBe($first);
+});

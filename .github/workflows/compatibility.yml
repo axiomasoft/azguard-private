@@ -22,8 +22,8 @@ defaults:
     shell: bash
 
 concurrency:
-  group: compatibility-${{ github.ref }}
-  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+  group: compatibility-${{ github.ref_type == 'tag' && github.run_id || github.ref }}
+  cancel-in-progress: ${{ github.ref_type == 'branch' && github.ref != 'refs/heads/main' }}
 
 jobs:
   compare:

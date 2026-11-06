@@ -65,6 +65,7 @@ final readonly class PanelSources
     private function __construct(
         private string $panel,
         private array $sources,
+        private Container $container,
     ) {}
 
     /**
@@ -131,6 +132,7 @@ final readonly class PanelSources
 
                 if ($source instanceof DatabaseSource) {
                     $source->bindPanel($panel);
+                    self::bindDatabase($source, $container);
                 }
 
                 if ($source instanceof RelationSource) {
@@ -168,7 +170,13 @@ final readonly class PanelSources
             }
         }
 
-        return new self($panel, $sources);
+        return new self($panel, $sources, $container);
+    }
+
+    /** @internal The container used to assemble this panel, without resolving scoped services. */
+    public function container(): Container
+    {
+        return $this->container;
     }
 
     public function panel(): string
@@ -238,7 +246,7 @@ final readonly class PanelSources
 
         foreach ($this->sources as $attached) {
             $source = $attached['source'];
-            $descriptions[] = $source instanceof DescribesSchema
+            $description = $source instanceof DescribesSchema
                 ? self::described($panel, $source)
                 : new SourceDescription(
                     id: $source->id(),
@@ -246,6 +254,15 @@ final readonly class PanelSources
                     capabilities: self::capabilities($source),
                     dynamic: $source instanceof ProvidesPermissions && $source->isDynamic(),
                 );
+            $descriptions[] = new SourceDescription(
+                id: $description->id,
+                class: $description->class,
+                capabilities: $description->capabilities,
+                dynamic: $description->dynamic,
+                label: $description->label,
+                fields: $description->fields,
+                volatility: $source instanceof ProvidesGrants || $source instanceof ProvidesRoleGrants ? $source->volatility() : null,
+            );
         }
 
         return $descriptions;
@@ -326,7 +343,20 @@ final readonly class PanelSources
             return;
         }
 
-        $container->scoped($abstract, static fn (Container $container): Source => $container->make(SourceManager::class)->make($name, $panel));
+        $container->scoped($abstract, static function (Container $container) use ($name, $panel): Source {
+            $source = $container->make(SourceManager::class)->make($name, $panel);
+
+            if ($source instanceof DatabaseSource) {
+                self::bindDatabase($source, $container);
+            }
+
+            return $source;
+        });
+    }
+
+    private static function bindDatabase(DatabaseSource $source, Container $container): void
+    {
+        $source->bindServices($container);
     }
 
     private static function abstract(string $panel, string $name): string

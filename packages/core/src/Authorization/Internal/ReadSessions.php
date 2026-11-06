@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace AzGuard\Authorization\Internal;
 
 use AzGuard\Panels\Panel;
+use AzGuard\Panels\Reads;
 use AzGuard\Sources\Database\DatabaseSource;
 use AzGuard\Storage\Internal\StorageReadSession;
 use Closure;
@@ -25,8 +26,8 @@ final class ReadSessions
     }
 
     /** @param Closure(): StorageReadSession $open */
-    public function get(DatabaseSource $source, Panel $panel, Closure $open): StorageReadSession
+    public function get(DatabaseSource $source, Panel $panel, Reads $reads, Closure $open): StorageReadSession
     {
-        return $this->sessions[spl_object_id($source)."\0".$panel->id()."\0".$panel->settings()->reads()->value] ??= $open();
+        return $this->sessions[spl_object_id($source)."\0".$panel->id()."\0".$reads->value] ??= $open();
     }
 }

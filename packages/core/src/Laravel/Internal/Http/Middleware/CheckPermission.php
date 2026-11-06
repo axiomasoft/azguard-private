@@ -29,7 +29,8 @@ use UnitEnum;
  * from the user of the default guard. The user is the one of the guards of that panel. An enum case is written
  * `Enum::Case` and reaches the resolver as the enum; a string is taken as written. A guest is denied. A denial is
  * an `AuthorizationException` with the status and message of the matching `#[CheckPermission]` of the action, by
- * default 403 and the standard message, and never carries an explanation of the decision.
+ * default 403 and the standard message. The response carries the stable reason code internally, but no decision
+ * explanation; the host renderer controls what is exposed publicly.
  */
 final readonly class CheckPermission
 {

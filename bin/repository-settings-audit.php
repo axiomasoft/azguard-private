@@ -137,7 +137,7 @@ function settingsAuditViolations(array $expected, array $listing, array $details
     return $violations;
 }
 
-/** @return list<string> literal job names of the workflows of a directory (matrix names are skipped) */
+/** @return list<string> literal job names and statically resolvable matrix job names */
 function auditWorkflowJobNames(string $directory): array
 {
     $names = [];
@@ -148,6 +148,47 @@ function auditWorkflowJobNames(string $directory): array
 
             if (! str_contains($name, '${{')) {
                 $names[] = $name;
+
+                continue;
+            }
+
+            $matrix = $job['strategy']['matrix'] ?? null;
+
+            if (! is_array($matrix) || isset($matrix['include']) || isset($matrix['exclude'])) {
+                continue;
+            }
+            preg_match_all('/\$\{\{\s*matrix\.([A-Za-z_][A-Za-z0-9_-]*)\s*\}\}/', $name, $matches);
+            $axes = array_unique($matches[1]);
+
+            if ($axes === []) {
+                continue;
+            }
+            $expanded = [$name];
+            foreach ($axes as $axis) {
+                $values = $matrix[$axis] ?? null;
+
+                if (! is_array($values) || ! array_is_list($values) || $values === [] || count($expanded) * count($values) > 256) {
+                    $expanded = [];
+
+                    break;
+                }
+                $next = [];
+                foreach ($expanded as $item) {
+                    foreach ($values as $value) {
+                        if (! is_string($value) || str_contains($value, '${{')) {
+                            $next = [];
+
+                            break 2;
+                        }
+                        $next[] = preg_replace_callback('/\$\{\{\s*matrix\.'.preg_quote($axis, '/').'\s*\}\}/', static fn (): string => $value, $item);
+                    }
+                }
+                $expanded = $next;
+            }
+            foreach ($expanded as $resolved) {
+                if (is_string($resolved) && ! str_contains($resolved, '${{')) {
+                    $names[] = $resolved;
+                }
             }
         }
     }

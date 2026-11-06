@@ -11,13 +11,13 @@ bash bin/consumer-fixture.sh                      # core archive, Laravel 13
 bash bin/consumer-fixture.sh --with-filament      # core and Filament archives
 bash bin/consumer-fixture.sh core-only            # the core archive without modules/ (no Scopes, Audit, DevTools)
 bash bin/consumer-fixture.sh relocated-audit      # Audit moved to its own archive in an application with journal rows
-bash bin/consumer-fixture.sh --laravel=12 --version=1.0.0 --keep
+bash bin/consumer-fixture.sh --laravel=12 --version=2.0.0-rc.1 --keep
 ```
 
 | Option | Meaning |
 |:--|:--|
 | `--laravel=N` | Laravel major version of the fixture application (default `13`) |
-| `--version=V` | Version stamped into the **copies** of the package manifests (default `1.0.0`) |
+| `--version=V` | Version stamped into the **copies** of the package manifests (default `2.0.0-rc.1`) |
 | `--with-filament` | Also install `axiomasoft/azguard-filament` |
 | `--keep` | Keep the temporary directory and print its path |
 | `core-only` | Build the core archive without `modules/` (module providers and PSR-4 roots removed), install it and run `fixtures/consumer/core-only`: migrate, `azguard:doctor`, one grant, one check, no module command registered. Does not combine with `--with-filament` |
@@ -59,8 +59,7 @@ Nothing of this is a package in the repository: no `packages/audit`, no split co
 
 ## CI
 
-The `consumer-fixture` job in `.github/workflows/tests.yml` runs the core, core + Filament and core-only variants on PHP 8.4
-and Laravel 13; the core-only step blocks the job.
+The `consumer-fixture` job in `.github/workflows/tests.yml` runs `bin/consumer-matrix.sh` across the supported PHP/Laravel pairs (`8.3`/`12`, `8.3`/`13`, `8.4`/`12`, `8.4`/`13`, `8.5`/`13`) and smokes the local Filament archive for both `lowest` and `latest` dependency policies.
 
 ## Fixtures
 

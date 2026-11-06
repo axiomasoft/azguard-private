@@ -20,6 +20,7 @@ use AzGuard\Tests\Fixtures\Sources\Database\DatabaseWorld;
  */
 
 beforeEach(function (): void {
+    config(['azguard.cache.namespace' => 'test-contribution-key', 'azguard.cache.signing_key' => str_repeat('k', 32)]);
     app(StorageSchema::class)->create('default');
     DatabaseWorld::insert('permission', [DatabaseWorld::row('permission')]);
 });

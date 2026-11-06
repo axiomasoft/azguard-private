@@ -189,7 +189,7 @@ final class BatchInputs
     /** @param list<Attached> $sources */
     public function attempt(PanelCatalog $catalog, array $sources, EvaluationFrame $frame, PermissionSetCache $cache, SubjectRef $subject): ReadAttempt
     {
-        $key = IdentityCodec::compose([$frame->panel()->id(), $subject, $frame->scope()->tenant]);
+        $key = IdentityCodec::compose([$frame->panel()->id(), $subject, $frame->scope()->tenant, $frame->reads()->value]);
 
         return $this->attempts[$key] ??= new ReadAttempt($catalog, $sources, $frame, $cache, shared: $this->sessions);
     }

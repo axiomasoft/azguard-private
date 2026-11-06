@@ -1,6 +1,9 @@
 {
     "environment": [
         "AZGUARD_BUILD_ID",
+        "AZGUARD_CACHE_KEY_ID",
+        "AZGUARD_CACHE_NAMESPACE",
+        "AZGUARD_CACHE_SIGNING_KEY",
         "AZGUARD_DB_CONNECTION"
     ],
     "retired": {
@@ -22,7 +25,7 @@
             "resource_prefix": true,
             "cache": {
                 "store": null,
-                "ttl": 3600,
+                "ttl": 300,
                 "generation": 1
             },
             "consistency": {
@@ -46,6 +49,14 @@
         "schedule": {
             "enabled": true,
             "prune_expired": "daily"
+        },
+        "cache": {
+            "max_memo_entries": 1024,
+            "max_state_entries": 1024,
+            "namespace": null,
+            "signing_key": null,
+            "key_id": "active",
+            "previous_keys": []
         },
         "catalog": {
             "build_id": null,

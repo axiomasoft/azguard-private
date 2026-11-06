@@ -1,0 +1,5 @@
+Contact: mailto:dv.vostrikov@gmail.com
+Expires: 2027-05-01T00:00:00Z
+Preferred-Languages: en, ru
+Canonical: https://axiomasoft.github.io/azguard-private/.well-known/security.txt
+Policy: https://github.com/axiomasoft/azguard-private/blob/main/SECURITY.md

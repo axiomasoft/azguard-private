@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Shared coverage-driver detection for coverage-gate.sh and mutation-gate.sh.
+# Coverage-driver detection for coverage-gate.sh.
 # Source this file; do not execute it.
 
 azguard_php_has_coverage_driver() {

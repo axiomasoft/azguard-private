@@ -23,7 +23,7 @@ afterEach(function (): void {
     CrmWorld::resetRuntime();
 });
 
-function buildIdPanel(bool $store = false): string
+function buildIdPanel(bool|string $store = false): string
 {
     $path = sys_get_temp_dir().'/azguard-build-id-'.bin2hex(random_bytes(4)).'.php';
     config(['azguard.catalog.cache_path' => $path]);
@@ -33,8 +33,8 @@ function buildIdPanel(bool $store = false): string
     DoctorWorld::panels([TestPanel::class => static function (PanelBuilder $panel) use ($store): void {
         $panel->for(User::class)->permissions([OrderPermission::class, DatabaseSource::make()]);
 
-        if ($store) {
-            $panel->cache(store: 'array', ttl: 60);
+        if ($store !== false) {
+            $panel->cache(store: is_string($store) ? $store : 'redis', ttl: 60);
         }
     }]);
 
@@ -70,6 +70,12 @@ it('is an error in production without a build id when a panel uses a persistent 
     buildIdPanel(store: true);
 
     expect(buildIdFindings())->toBe(['core catalog.build_id error']);
+});
+
+it('warns in production without a build id when a panel uses the array cache store', function (): void {
+    buildIdPanel(store: 'array');
+
+    expect(buildIdFindings())->toBe(['core catalog.build_id warning']);
 });
 
 it('reports nothing when the build id is set', function (): void {

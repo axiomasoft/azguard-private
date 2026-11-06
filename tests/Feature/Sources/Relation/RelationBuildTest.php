@@ -29,7 +29,7 @@ it('describes request volatile role and selection capabilities', function (): vo
     $source = RelationSource::make(new ProjectDefinition, 'members', 'pivot.role');
     [$panel] = RelationWorld::compile([$source]);
     $description = $source->describe($panel);
-    expect($source->id())->toBe('relation:project')->and($source->volatility())->toBe(Volatility::Request)
+    expect($source->id())->toBe('relation:project')->and($source->volatility())->toBe(Volatility::Volatile)
         ->and($description->id)->toBe($source->id())->and($description->class)->toBe(RelationSource::class)
         ->and($description->dynamic)->toBeFalse();
     foreach ([ProvidesRoleGrants::class, FiltersQueries::class, DescribesSchema::class] as $capability) {

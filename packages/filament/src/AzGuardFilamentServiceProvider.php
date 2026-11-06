@@ -8,10 +8,13 @@ use AzGuard\Attributes\Api;
 use AzGuard\Filament\Authorization\FilamentGate;
 use AzGuard\Filament\Internal\Authorization\AuthorizesActions;
 use AzGuard\Filament\Internal\Authorization\RefusesEditableColumns;
+use AzGuard\Filament\Internal\Authorization\RefusesSurfaceCalls;
 use AzGuard\Filament\Internal\Console\FilamentGenerateCommand;
 use AzGuard\Filament\Internal\Exports\AuthorizesExports;
+use AzGuard\Filament\Internal\Exports\RefusesUnverifiableDownload;
 use Filament\Actions\Action;
 use Filament\Actions\Events\ActionCalling;
+use Filament\Actions\Exports\Http\Controllers\DownloadExport;
 use Illuminate\Contracts\Auth\Access\Gate;
 use Illuminate\Contracts\Events\Dispatcher;
 use Illuminate\Routing\Router;
@@ -26,6 +29,7 @@ final class AzGuardFilamentServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->mergeConfigFrom(__DIR__.'/../config/azguard-filament.php', 'azguard-filament');
+        $this->app->bindIf(DownloadExport::class, RefusesUnverifiableDownload::class);
     }
 
     public function boot(): void
@@ -41,6 +45,7 @@ final class AzGuardFilamentServiceProvider extends ServiceProvider
         $this->app->make(Dispatcher::class)->listen(ActionCalling::class, AuthorizesActions::class);
         $this->app->make(Dispatcher::class)->listen(ActionCalling::class, AuthorizesExports::class);
         Livewire::listen('call', (new RefusesEditableColumns)(...));
+        Livewire::listen('call', (new RefusesSurfaceCalls)(...));
         $this->app->booted($this->repeatPanelEntryOnLivewireUpdates(...));
         $this->app->booted($this->refuseUnownedFilamentChecks(...));
     }

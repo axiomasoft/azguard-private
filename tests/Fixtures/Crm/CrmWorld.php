@@ -77,7 +77,7 @@ final class CrmWorld
         } elseif (! str_ends_with($connection->getDatabaseName(), '_test')) {
             throw new RuntimeException('CRM fixture requires an isolated *_test database.');
         }
-        Relation::morphMap(['crm.user' => User::class, 'crm.organization' => Organization::class], false);
+        Relation::morphMap(['crm.user' => User::class, 'crm.organization' => Organization::class, 'crm.project' => Project::class], false);
         Carbon::setTestNow('2026-10-06T12:00:00Z');
         (new CrmSchema)->up();
         app(StorageSchema::class)->create('default');

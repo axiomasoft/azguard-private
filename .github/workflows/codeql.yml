@@ -2,12 +2,13 @@ name: CodeQL
 
 on:
   push:
-    branches: [main, 'feat/**']
+    branches: [main, 'feat/**', 'fix/**', 'hotfix/**']
   pull_request:
     branches: [main]
   schedule:
     - cron: '0 6 * * 1'
   workflow_dispatch:
+  workflow_call:
 
 permissions:
   contents: read
@@ -18,7 +19,7 @@ defaults:
 
 jobs:
   analyze:
-    name: Analyze (actions)
+    name: Analyze (${{ matrix.language }})
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -27,9 +28,10 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # CodeQL does not support PHP — the PHP code is covered by PHPStan/Larastan
-        # (level 9) and the Pest security/arch tests. CodeQL scans the Actions here.
-        language: [actions]
+        # CodeQL extracts GitHub Actions workflows and JavaScript/TypeScript sources,
+        # including docs/.vitepress/config.ts. PHP is not a CodeQL language: PHPStan/
+        # Larastan, tests, Composer audit and Semgrep are separate controls.
+        language: [actions, javascript-typescript]
     steps:
       - name: Checkout
         uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
@@ -42,6 +44,23 @@ jobs:
           languages: ${{ matrix.language }}
 
       - name: Perform CodeQL Analysis
+        id: analyze
         uses: github/codeql-action/analyze@ce5e7eeac396d720fe2d802714996c8ce561e311 # v3.39.0
         with:
-          category: '/language:${{ matrix.language }}'
+          category: '/language:${{ matrix.language }}/'
+          output: ../codeql-results
+
+      - name: Enforce report and bind it to the checked-out commit
+        if: always()
+        env:
+          SCAN_OUTCOME: ${{ steps.analyze.outcome }}
+          SCAN_LANGUAGE: ${{ matrix.language }}
+        run: python3 bin/check-security-results.py --scanner "codeql-$SCAN_LANGUAGE" --outcome "$SCAN_OUTCOME" --sha "$GITHUB_SHA" --report-dir ../codeql-results --metadata ../codeql-results/metadata.json
+
+      - name: Upload analysis evidence
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: codeql-${{ matrix.language }}-${{ github.sha }}-${{ github.run_attempt }}
+          path: ../codeql-results/
+          if-no-files-found: error

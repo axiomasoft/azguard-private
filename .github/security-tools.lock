@@ -26,6 +26,13 @@
       "sha256": "551f6fc83ea457d62a0d98237cbad105af8d557003051f41f3e7ca7b3f2470eb",
       "bin": "gitleaks"
     },
+    "cyclonedx-cli": {
+      "version": "0.29.2",
+      "kind": "binary",
+      "url": "https://github.com/CycloneDX/cyclonedx-cli/releases/download/v0.29.2/cyclonedx-linux-x64",
+      "sha256": "6c5ed6321ee3bb3c268b6d19477dbcd5509a757f118bed4b6508fe9fbbdc2a5b",
+      "bin": "cyclonedx-cli"
+    },
     "syft": {
       "version": "1.54.1",
       "kind": "binary",

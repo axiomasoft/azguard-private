@@ -12,6 +12,19 @@
                 "uses_key": true
             }
         },
+        "AzGuard\\Diagnostics\\Internal\\Checks\\CacheIntegrity": {
+            "key": "cache.integrity",
+            "finding_ids": {
+                "literal": [
+                    "cache.memory",
+                    "cache.redis",
+                    "cache.signing",
+                    "cache.transport",
+                    "cache.ttl"
+                ],
+                "uses_key": false
+            }
+        },
         "AzGuard\\Diagnostics\\Internal\\Checks\\CacheStore": {
             "key": "cache.store",
             "finding_ids": {
@@ -101,6 +114,13 @@
                 "uses_key": true
             }
         },
+        "AzGuard\\Diagnostics\\Internal\\Checks\\MorphIdentity": {
+            "key": "morph.identity",
+            "finding_ids": {
+                "literal": [],
+                "uses_key": true
+            }
+        },
         "AzGuard\\Diagnostics\\Internal\\Checks\\PanelsPlugins": {
             "key": "panels.plugins",
             "finding_ids": {
@@ -132,7 +152,9 @@
             "key": "panels.sources",
             "finding_ids": {
                 "literal": [
-                    "panels.sources"
+                    "panels.sources",
+                    "panels.sources.cache",
+                    "panels.sources.visibility"
                 ],
                 "uses_key": false
             }

@@ -1,6 +1,37 @@
 # Upgrading
 
-Instructions for AI agents migrating code written against the unpublished 0.7 development line to 1.0.
+Migration instructions for `axiomasoft/azguard` and the monorepo's Filament integration. Filament is outside the current publication scope; its notes apply to development and any independently obtained historical installation.
+
+The planned core release artifact set includes `source-core.cdx.json`, `sbom-core.cdx.json`, `resolution-core.lock`
+and `mapping-core.json` alongside the core archive and checksums. Release publication requires verified setup,
+signed tags and artifact attestations as described in `RELEASING.md`.
+
+## From 1.x to 2.0
+
+`2.0.0` requires PHP 8.3–8.5 and Laravel 12 or 13 (`illuminate/*` `^12.0|^13.0`); upgrade Laravel 11 applications before updating either package. Review and apply the following breaking changes and migration requirements:
+
+1. **`FiltersQueries::exactSelections()` and closed SQL visibility predicates:**
+   - Sources implementing `AzGuard\Contracts\Sources\FiltersQueries` must return an exact `AssignmentScopeSelection` from `exactSelections()` or `null` when a selection cannot be represented in SQL.
+   - `visibleTo()` compiles only the closed set of supported SQL visibility predicates. Whenever a source selection, automatic role, policy, condition, restriction or scope evaluator cannot be expressed as an exact SQL predicate, `visibleTo()` fails closed before running the host query by throwing `AzGuard\Exceptions\VisibilityNotSupportedException` with reason `unsupported_selection` (or `scope_query` / `source_error` as applicable), never falling back to a silent allow or PHP post-filtering of a paginated result.
+
+2. **`SelectsAutomaticRoleScopes` for automatic roles (`GrantedAutomatically`):**
+   - Automatic roles (`AzGuard\Roles\GrantedAutomatically`) on panels that use `DatabaseSource`, `RelationSource` or `FolderSource` must also implement `AzGuard\Roles\SelectsAutomaticRoleScopes` (`exactAutomaticScopes()`) for `visibleTo()` to succeed when those roles can grant the checked permission.
+   - An automatic role without `SelectsAutomaticRoleScopes` (or one whose `exactAutomaticScopes()` returns `null`) continues to work in scalar `decide()` and batch `decideMany()` checks, but causes `visibleTo()` to fail closed with `VisibilityNotSupportedException` (`unsupported_selection`), even if the role implements `FiltersAccessQueries`.
+
+3. **Security and query-compilation budgets:**
+   - `AzGuard\Authorization\Internal\Query\ResourceContextMapping::CONTEXT_BUDGET = 1000` caps the number of assignment scope contexts expanded for an owner or concrete runtime mapping during `visibleTo()`; exceeding 1,000 contexts fails closed with `VisibilityNotSupportedException`.
+   - `DatabaseSource` (and `RelationSource`) enforces a hard ceiling of `10,000` `(resource_type, resource_id)` assignment witness pairs during `exact_visibility` selection (`InvalidSourceContributionException`, surfaced as `VisibilityNotSupportedException` with reason `source_error`).
+
+4. **Signed permission-set cache (`PermissionSetCache` envelope `v: 2`):**
+   - Shared cross-request caching in `PermissionSetCache` wraps raw authority payloads in a signed HMAC envelope (`v: 2`, `SignedEnvelope`) that is verified before payload decoding and avoids cache-driver object deserialization.
+   - Cross-request caching requires an explicit `azguard.cache.namespace` (`AZGUARD_CACHE_NAMESPACE`) and signing material (`azguard.cache.signing_key` or Laravel `app.key`), and bypasses unsupported cache drivers or Redis connections with client-side serialization or compression enabled.
+   - Permission-set TTL now defaults to `300` seconds and shared entries are capped at `3600` seconds (`SignedEnvelope::MAX_TTL = 3600`) and the nearest grant expiry.
+   - Request/job in-memory memo maps (`cache.max_memo_entries` and `cache.max_state_entries`) retain at most `1024` entries each (configurable from `1` to `1024`).
+
+5. **Scoped `Authorizer` lifecycle, primary-read context and `AuthorizedExportCsv`:**
+   - `AzGuard\Contracts\Authorization\Authorizer` is registered as a scoped binding (`$app->scoped(Authorizer::class)`) so Octane requests and queue jobs receive isolated authorization state; call `app()->forgetScopedInstances()` when manually cycling long-running worker state.
+   - Sensitive authority checks on replica-default panels can force primary database reads via `Panel::readingFromPrimary()`, `SubjectAccess::onPrimary()` or `AccessRequest::onPrimary()`, which isolates request/shared cache keys by read mode and reloads state on the primary connection.
+   - In `axiomasoft/azguard-filament`, enforcing panels require `consistency.reads: primary` for writes and exports, prepare CSV export chunks through `AzGuard\Filament\Exports\AuthorizedExportCsv` (re-verifying the actor, panel/tenant/scope context and per-row authorization in each chunk job), and refuse the shared Filament export download route unless replaced by a host controller that reauthorizes the actor, context and exported records.
 
 ## From 0.7 to 1.0 (instructions for AI agents)
 
@@ -134,9 +165,9 @@ your code. Each line is `Find: <grep pattern> → Replace: <new form>`.
 - Find: `->bindToStorage(` or `$model->storage()` on a `Permission`, `PermissionGrant` or `RoleGrant` subclass → Replace: nothing; the models carry no storage member, ask `AzGuard::storage($id)` for the `StorageDescriptor`.
 - Find: `DatabaseSource::make()->storage($storageObject)` → Replace: `->storage('<storage id>')`; the method takes the id of a configured storage only.
 
-## Schema upgrades within 1.x
+## Schema upgrades within a major line
 
-A 1.x release changes the schema only by adding migrations; a published migration is immutable
+A minor or patch release changes the schema only by adding migrations; a published migration is immutable
 (`tests/Arch/MigrationsImmutableTest.php`). Run `php artisan migrate` after updating the packages.
 
 Irreversible steps: none so far. A migration that cannot be rolled back is listed here with the release that adds it,

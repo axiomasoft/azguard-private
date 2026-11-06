@@ -1,0 +1,489 @@
+{
+    "schema": "urn:azguard:source-capabilities:2",
+    "basis": "static_declaration",
+    "runtime_unsupported": {
+        "exception": "AzGuard\\Exceptions\\VisibilityNotSupportedException",
+        "semantics": "Conditional declarations never prove arbitrary closures or policies. Unsupported selections or predicates throw before the host query runs; never Allow or filter a paginated result in PHP.",
+        "test_reference": "tests/Feature/Visibility/UnsupportedTest.php"
+    },
+    "sources": {
+        "folder": {
+            "class": "AzGuard\\Sources\\Folder\\FolderSource",
+            "capabilities": [
+                "AzGuard\\Contracts\\Sources\\ProvidesPermissions",
+                "AzGuard\\Contracts\\Sources\\ProvidesRoles",
+                "AzGuard\\Contracts\\Sources\\ProvidesGrants",
+                "AzGuard\\Contracts\\Sources\\ProvidesRoleGrants",
+                "AzGuard\\Contracts\\Sources\\ProvidesPolicies",
+                "AzGuard\\Contracts\\Sources\\DescribesSchema",
+                "AzGuard\\Contracts\\Sources\\FiltersQueries"
+            ],
+            "volatility": "request",
+            "matrix": {
+                "scalar": {
+                    "status": "supported",
+                    "basis": "static_declaration",
+                    "reason": "Grant capability participates in the scalar pipeline; contributions are validated at runtime.",
+                    "test_reference": "tests/Feature/Diagnostics/SourceCapabilitiesTest.php"
+                },
+                "batch": {
+                    "status": "supported",
+                    "basis": "static_declaration",
+                    "reason": "decideMany uses the scalar pipeline; this does not promise a bulk source read.",
+                    "test_reference": "tests/Feature/Diagnostics/SourceCapabilitiesTest.php"
+                },
+                "exact_visibility": {
+                    "status": "conditional",
+                    "basis": "static_declaration",
+                    "reason": "Selections must return witnesses, not null; automatic roles, policies, closures, scopes and conditions must also admit exact query semantics.",
+                    "test_reference": "tests/Feature/Diagnostics/SourceCapabilitiesTest.php"
+                },
+                "stable_cache": {
+                    "status": "unsupported",
+                    "basis": "static_declaration",
+                    "reason": "Cross-request permission-set reuse requires grant authority, Stable volatility, FencesReads and a configured cache store; request reuse is separate.",
+                    "test_reference": "tests/Feature/Diagnostics/SourceCapabilitiesTest.php"
+                },
+                "tenant_inheritance": {
+                    "status": "conditional",
+                    "basis": "static_declaration",
+                    "reason": "The panel tenant policy, membership and access scopes govern inheritance; source contributions must preserve panel and tenant boundaries.",
+                    "test_reference": "tests/Feature/Visibility/TenantMembershipVisibilityTest.php"
+                },
+                "filament": {
+                    "status": "conditional",
+                    "basis": "static_declaration",
+                    "reason": "Requires the Filament plugin and panel configuration; grant editing requires the database writer, and record lists require exact visibility.",
+                    "test_reference": "tests/Feature/Filament/Gate/VisibilityTest.php"
+                }
+            }
+        },
+        "database": {
+            "class": "AzGuard\\Sources\\Database\\DatabaseSource",
+            "capabilities": [
+                "AzGuard\\Contracts\\Sources\\ProvidesPermissions",
+                "AzGuard\\Contracts\\Sources\\ProvidesGrants",
+                "AzGuard\\Contracts\\Sources\\ProvidesRoleGrants",
+                "AzGuard\\Contracts\\Sources\\DescribesSchema",
+                "AzGuard\\Contracts\\Sources\\FencesReads",
+                "AzGuard\\Contracts\\Sources\\FiltersQueries"
+            ],
+            "volatility": "stable",
+            "matrix": {
+                "scalar": {
+                    "status": "supported",
+                    "basis": "static_declaration",
+                    "reason": "Grant capability participates in the scalar pipeline; contributions are validated at runtime.",
+                    "test_reference": "tests/Feature/Diagnostics/SourceCapabilitiesTest.php"
+                },
+                "batch": {
+                    "status": "supported",
+                    "basis": "static_declaration",
+                    "reason": "decideMany uses the scalar pipeline; this does not promise a bulk source read.",
+                    "test_reference": "tests/Feature/Diagnostics/SourceCapabilitiesTest.php"
+                },
+                "exact_visibility": {
+                    "status": "conditional",
+                    "basis": "static_declaration",
+                    "reason": "Selections must return witnesses, not null; automatic roles, policies, closures, scopes and conditions must also admit exact query semantics.",
+                    "test_reference": "tests/Feature/Diagnostics/SourceCapabilitiesTest.php"
+                },
+                "stable_cache": {
+                    "status": "conditional",
+                    "basis": "static_declaration",
+                    "reason": "Cross-request permission-set reuse requires grant authority, Stable volatility, FencesReads and a configured cache store; request reuse is separate.",
+                    "test_reference": "tests/Feature/Diagnostics/SourceCapabilitiesTest.php"
+                },
+                "tenant_inheritance": {
+                    "status": "conditional",
+                    "basis": "static_declaration",
+                    "reason": "The panel tenant policy, membership and access scopes govern inheritance; source contributions must preserve panel and tenant boundaries.",
+                    "test_reference": "tests/Feature/Visibility/TenantMembershipVisibilityTest.php"
+                },
+                "filament": {
+                    "status": "conditional",
+                    "basis": "static_declaration",
+                    "reason": "Requires the Filament plugin and panel configuration; grant editing requires the database writer, and record lists require exact visibility.",
+                    "test_reference": "tests/Feature/Filament/Gate/VisibilityTest.php"
+                }
+            }
+        },
+        "relation": {
+            "class": "AzGuard\\Sources\\Relation\\RelationSource",
+            "capabilities": [
+                "AzGuard\\Contracts\\Sources\\ProvidesRoleGrants",
+                "AzGuard\\Contracts\\Sources\\DescribesSchema",
+                "AzGuard\\Contracts\\Sources\\FiltersQueries"
+            ],
+            "volatility": "volatile",
+            "matrix": {
+                "scalar": {
+                    "status": "supported",
+                    "basis": "static_declaration",
+                    "reason": "Grant capability participates in the scalar pipeline; contributions are validated at runtime.",
+                    "test_reference": "tests/Feature/Diagnostics/SourceCapabilitiesTest.php"
+                },
+                "batch": {
+                    "status": "supported",
+                    "basis": "static_declaration",
+                    "reason": "decideMany uses the scalar pipeline; this does not promise a bulk source read.",
+                    "test_reference": "tests/Feature/Diagnostics/SourceCapabilitiesTest.php"
+                },
+                "exact_visibility": {
+                    "status": "conditional",
+                    "basis": "static_declaration",
+                    "reason": "Selections must return witnesses, not null; automatic roles, policies, closures, scopes and conditions must also admit exact query semantics.",
+                    "test_reference": "tests/Feature/Diagnostics/SourceCapabilitiesTest.php"
+                },
+                "stable_cache": {
+                    "status": "unsupported",
+                    "basis": "static_declaration",
+                    "reason": "Cross-request permission-set reuse requires grant authority, Stable volatility, FencesReads and a configured cache store; request reuse is separate.",
+                    "test_reference": "tests/Feature/Diagnostics/SourceCapabilitiesTest.php"
+                },
+                "tenant_inheritance": {
+                    "status": "conditional",
+                    "basis": "static_declaration",
+                    "reason": "The panel tenant policy, membership and access scopes govern inheritance; source contributions must preserve panel and tenant boundaries.",
+                    "test_reference": "tests/Feature/Visibility/TenantMembershipVisibilityTest.php"
+                },
+                "filament": {
+                    "status": "conditional",
+                    "basis": "static_declaration",
+                    "reason": "Requires the Filament plugin and panel configuration; grant editing requires the database writer, and record lists require exact visibility.",
+                    "test_reference": "tests/Feature/Filament/Gate/VisibilityTest.php"
+                }
+            }
+        },
+        "gate": {
+            "class": "AzGuard\\Sources\\Gate\\GateSource",
+            "capabilities": [
+                "AzGuard\\Contracts\\Sources\\ProvidesPolicies",
+                "AzGuard\\Contracts\\Sources\\DescribesSchema"
+            ],
+            "volatility": null,
+            "matrix": {
+                "scalar": {
+                    "status": "supported",
+                    "basis": "static_declaration",
+                    "reason": "Accepted panel participant; no direct or role grants are declared.",
+                    "test_reference": "tests/Feature/Diagnostics/SourceCapabilitiesTest.php"
+                },
+                "batch": {
+                    "status": "supported",
+                    "basis": "static_declaration",
+                    "reason": "decideMany uses the scalar pipeline; this does not promise a bulk source read.",
+                    "test_reference": "tests/Feature/Diagnostics/SourceCapabilitiesTest.php"
+                },
+                "exact_visibility": {
+                    "status": "conditional",
+                    "basis": "static_declaration",
+                    "reason": "Selections must return witnesses, not null; automatic roles, policies, closures, scopes and conditions must also admit exact query semantics.",
+                    "test_reference": "tests/Feature/Diagnostics/SourceCapabilitiesTest.php"
+                },
+                "stable_cache": {
+                    "status": "unsupported",
+                    "basis": "static_declaration",
+                    "reason": "Cross-request permission-set reuse requires grant authority, Stable volatility, FencesReads and a configured cache store; request reuse is separate.",
+                    "test_reference": "tests/Feature/Diagnostics/SourceCapabilitiesTest.php"
+                },
+                "tenant_inheritance": {
+                    "status": "conditional",
+                    "basis": "static_declaration",
+                    "reason": "The panel tenant policy, membership and access scopes govern inheritance; source contributions must preserve panel and tenant boundaries.",
+                    "test_reference": "tests/Feature/Visibility/TenantMembershipVisibilityTest.php"
+                },
+                "filament": {
+                    "status": "conditional",
+                    "basis": "static_declaration",
+                    "reason": "Requires the Filament plugin and panel configuration; grant editing requires the database writer, and record lists require exact visibility.",
+                    "test_reference": "tests/Feature/Filament/Gate/VisibilityTest.php"
+                }
+            }
+        },
+        "filament": {
+            "class": "AzGuard\\Filament\\Sources\\FilamentSource",
+            "capabilities": [
+                "AzGuard\\Contracts\\Sources\\ProvidesPermissions",
+                "AzGuard\\Contracts\\Sources\\DescribesSchema"
+            ],
+            "volatility": null,
+            "matrix": {
+                "scalar": {
+                    "status": "supported",
+                    "basis": "static_declaration",
+                    "reason": "Accepted panel participant; no direct or role grants are declared.",
+                    "test_reference": "tests/Feature/Diagnostics/SourceCapabilitiesTest.php"
+                },
+                "batch": {
+                    "status": "supported",
+                    "basis": "static_declaration",
+                    "reason": "decideMany uses the scalar pipeline; this does not promise a bulk source read.",
+                    "test_reference": "tests/Feature/Diagnostics/SourceCapabilitiesTest.php"
+                },
+                "exact_visibility": {
+                    "status": "conditional",
+                    "basis": "static_declaration",
+                    "reason": "Selections must return witnesses, not null; automatic roles, policies, closures, scopes and conditions must also admit exact query semantics.",
+                    "test_reference": "tests/Feature/Diagnostics/SourceCapabilitiesTest.php"
+                },
+                "stable_cache": {
+                    "status": "unsupported",
+                    "basis": "static_declaration",
+                    "reason": "Cross-request permission-set reuse requires grant authority, Stable volatility, FencesReads and a configured cache store; request reuse is separate.",
+                    "test_reference": "tests/Feature/Diagnostics/SourceCapabilitiesTest.php"
+                },
+                "tenant_inheritance": {
+                    "status": "conditional",
+                    "basis": "static_declaration",
+                    "reason": "The panel tenant policy, membership and access scopes govern inheritance; source contributions must preserve panel and tenant boundaries.",
+                    "test_reference": "tests/Feature/Visibility/TenantMembershipVisibilityTest.php"
+                },
+                "filament": {
+                    "status": "conditional",
+                    "basis": "static_declaration",
+                    "reason": "Requires the Filament plugin and panel configuration; grant editing requires the database writer, and record lists require exact visibility.",
+                    "test_reference": "tests/Feature/Filament/Gate/VisibilityTest.php"
+                }
+            }
+        },
+        "custom_minimal": {
+            "class": "CapabilityMinimalSource",
+            "capabilities": [],
+            "volatility": null,
+            "matrix": {
+                "scalar": {
+                    "status": "supported",
+                    "basis": "static_declaration",
+                    "reason": "Accepted panel participant; no direct or role grants are declared.",
+                    "test_reference": "tests/Feature/Diagnostics/SourceCapabilitiesTest.php"
+                },
+                "batch": {
+                    "status": "supported",
+                    "basis": "static_declaration",
+                    "reason": "decideMany uses the scalar pipeline; this does not promise a bulk source read.",
+                    "test_reference": "tests/Feature/Diagnostics/SourceCapabilitiesTest.php"
+                },
+                "exact_visibility": {
+                    "status": "conditional",
+                    "basis": "static_declaration",
+                    "reason": "Selections must return witnesses, not null; automatic roles, policies, closures, scopes and conditions must also admit exact query semantics.",
+                    "test_reference": "tests/Feature/Diagnostics/SourceCapabilitiesTest.php"
+                },
+                "stable_cache": {
+                    "status": "unsupported",
+                    "basis": "static_declaration",
+                    "reason": "Cross-request permission-set reuse requires grant authority, Stable volatility, FencesReads and a configured cache store; request reuse is separate.",
+                    "test_reference": "tests/Feature/Diagnostics/SourceCapabilitiesTest.php"
+                },
+                "tenant_inheritance": {
+                    "status": "conditional",
+                    "basis": "static_declaration",
+                    "reason": "The panel tenant policy, membership and access scopes govern inheritance; source contributions must preserve panel and tenant boundaries.",
+                    "test_reference": "tests/Feature/Visibility/TenantMembershipVisibilityTest.php"
+                },
+                "filament": {
+                    "status": "conditional",
+                    "basis": "static_declaration",
+                    "reason": "Requires the Filament plugin and panel configuration; grant editing requires the database writer, and record lists require exact visibility.",
+                    "test_reference": "tests/Feature/Filament/Gate/VisibilityTest.php"
+                }
+            }
+        },
+        "custom_volatile": {
+            "class": "AzGuard\\Tests\\Fixtures\\Visibility\\VisibilitySource",
+            "capabilities": [
+                "AzGuard\\Contracts\\Sources\\ProvidesPermissions",
+                "AzGuard\\Contracts\\Sources\\ProvidesGrants",
+                "AzGuard\\Contracts\\Sources\\ProvidesRoleGrants",
+                "AzGuard\\Contracts\\Sources\\FiltersQueries"
+            ],
+            "volatility": "volatile",
+            "matrix": {
+                "scalar": {
+                    "status": "supported",
+                    "basis": "static_declaration",
+                    "reason": "Grant capability participates in the scalar pipeline; contributions are validated at runtime.",
+                    "test_reference": "tests/Feature/Diagnostics/SourceCapabilitiesTest.php"
+                },
+                "batch": {
+                    "status": "supported",
+                    "basis": "static_declaration",
+                    "reason": "decideMany uses the scalar pipeline; this does not promise a bulk source read.",
+                    "test_reference": "tests/Feature/Diagnostics/SourceCapabilitiesTest.php"
+                },
+                "exact_visibility": {
+                    "status": "conditional",
+                    "basis": "static_declaration",
+                    "reason": "Selections must return witnesses, not null; automatic roles, policies, closures, scopes and conditions must also admit exact query semantics.",
+                    "test_reference": "tests/Feature/Diagnostics/SourceCapabilitiesTest.php"
+                },
+                "stable_cache": {
+                    "status": "unsupported",
+                    "basis": "static_declaration",
+                    "reason": "Cross-request permission-set reuse requires grant authority, Stable volatility, FencesReads and a configured cache store; request reuse is separate.",
+                    "test_reference": "tests/Feature/Diagnostics/SourceCapabilitiesTest.php"
+                },
+                "tenant_inheritance": {
+                    "status": "conditional",
+                    "basis": "static_declaration",
+                    "reason": "The panel tenant policy, membership and access scopes govern inheritance; source contributions must preserve panel and tenant boundaries.",
+                    "test_reference": "tests/Feature/Visibility/TenantMembershipVisibilityTest.php"
+                },
+                "filament": {
+                    "status": "conditional",
+                    "basis": "static_declaration",
+                    "reason": "Requires the Filament plugin and panel configuration; grant editing requires the database writer, and record lists require exact visibility.",
+                    "test_reference": "tests/Feature/Filament/Gate/VisibilityTest.php"
+                }
+            }
+        },
+        "custom_stable_unfenced": {
+            "class": "CapabilityStableUnfencedSource",
+            "capabilities": [
+                "AzGuard\\Contracts\\Sources\\ProvidesPermissions",
+                "AzGuard\\Contracts\\Sources\\ProvidesGrants",
+                "AzGuard\\Contracts\\Sources\\ProvidesRoleGrants"
+            ],
+            "volatility": "stable",
+            "matrix": {
+                "scalar": {
+                    "status": "supported",
+                    "basis": "static_declaration",
+                    "reason": "Grant capability participates in the scalar pipeline; contributions are validated at runtime.",
+                    "test_reference": "tests/Feature/Diagnostics/SourceCapabilitiesTest.php"
+                },
+                "batch": {
+                    "status": "supported",
+                    "basis": "static_declaration",
+                    "reason": "decideMany uses the scalar pipeline; this does not promise a bulk source read.",
+                    "test_reference": "tests/Feature/Diagnostics/SourceCapabilitiesTest.php"
+                },
+                "exact_visibility": {
+                    "status": "unsupported",
+                    "basis": "static_declaration",
+                    "reason": "Grant sources require FiltersQueries for exact selection.",
+                    "test_reference": "tests/Feature/Diagnostics/SourceCapabilitiesTest.php"
+                },
+                "stable_cache": {
+                    "status": "unsupported",
+                    "basis": "static_declaration",
+                    "reason": "Cross-request permission-set reuse requires grant authority, Stable volatility, FencesReads and a configured cache store; request reuse is separate.",
+                    "test_reference": "tests/Feature/Diagnostics/SourceCapabilitiesTest.php"
+                },
+                "tenant_inheritance": {
+                    "status": "conditional",
+                    "basis": "static_declaration",
+                    "reason": "The panel tenant policy, membership and access scopes govern inheritance; source contributions must preserve panel and tenant boundaries.",
+                    "test_reference": "tests/Feature/Visibility/TenantMembershipVisibilityTest.php"
+                },
+                "filament": {
+                    "status": "conditional",
+                    "basis": "static_declaration",
+                    "reason": "Requires the Filament plugin and panel configuration; grant editing requires the database writer, and record lists require exact visibility.",
+                    "test_reference": "tests/Feature/Filament/Gate/VisibilityTest.php"
+                }
+            }
+        },
+        "custom_stable_fenced": {
+            "class": "CapabilityStableFencedSource",
+            "capabilities": [
+                "AzGuard\\Contracts\\Sources\\ProvidesPermissions",
+                "AzGuard\\Contracts\\Sources\\ProvidesGrants",
+                "AzGuard\\Contracts\\Sources\\ProvidesRoleGrants",
+                "AzGuard\\Contracts\\Sources\\FencesReads",
+                "AzGuard\\Contracts\\Sources\\FiltersQueries"
+            ],
+            "volatility": "stable",
+            "matrix": {
+                "scalar": {
+                    "status": "supported",
+                    "basis": "static_declaration",
+                    "reason": "Grant capability participates in the scalar pipeline; contributions are validated at runtime.",
+                    "test_reference": "tests/Feature/Diagnostics/SourceCapabilitiesTest.php"
+                },
+                "batch": {
+                    "status": "supported",
+                    "basis": "static_declaration",
+                    "reason": "decideMany uses the scalar pipeline; this does not promise a bulk source read.",
+                    "test_reference": "tests/Feature/Diagnostics/SourceCapabilitiesTest.php"
+                },
+                "exact_visibility": {
+                    "status": "conditional",
+                    "basis": "static_declaration",
+                    "reason": "Selections must return witnesses, not null; automatic roles, policies, closures, scopes and conditions must also admit exact query semantics.",
+                    "test_reference": "tests/Feature/Diagnostics/SourceCapabilitiesTest.php"
+                },
+                "stable_cache": {
+                    "status": "conditional",
+                    "basis": "static_declaration",
+                    "reason": "Cross-request permission-set reuse requires grant authority, Stable volatility, FencesReads and a configured cache store; request reuse is separate.",
+                    "test_reference": "tests/Feature/Diagnostics/SourceCapabilitiesTest.php"
+                },
+                "tenant_inheritance": {
+                    "status": "conditional",
+                    "basis": "static_declaration",
+                    "reason": "The panel tenant policy, membership and access scopes govern inheritance; source contributions must preserve panel and tenant boundaries.",
+                    "test_reference": "tests/Feature/Visibility/TenantMembershipVisibilityTest.php"
+                },
+                "filament": {
+                    "status": "conditional",
+                    "basis": "static_declaration",
+                    "reason": "Requires the Filament plugin and panel configuration; grant editing requires the database writer, and record lists require exact visibility.",
+                    "test_reference": "tests/Feature/Filament/Gate/VisibilityTest.php"
+                }
+            }
+        },
+        "folder_automatic_role": {
+            "class": "AzGuard\\Sources\\Folder\\FolderSource",
+            "capabilities": [
+                "AzGuard\\Contracts\\Sources\\ProvidesPermissions",
+                "AzGuard\\Contracts\\Sources\\ProvidesRoles",
+                "AzGuard\\Contracts\\Sources\\ProvidesGrants",
+                "AzGuard\\Contracts\\Sources\\ProvidesRoleGrants",
+                "AzGuard\\Contracts\\Sources\\ProvidesPolicies",
+                "AzGuard\\Contracts\\Sources\\DescribesSchema",
+                "AzGuard\\Contracts\\Sources\\FiltersQueries"
+            ],
+            "volatility": "request",
+            "matrix": {
+                "scalar": {
+                    "status": "supported",
+                    "basis": "static_declaration",
+                    "reason": "Grant capability participates in the scalar pipeline; contributions are validated at runtime.",
+                    "test_reference": "tests/Feature/Diagnostics/SourceCapabilitiesTest.php"
+                },
+                "batch": {
+                    "status": "supported",
+                    "basis": "static_declaration",
+                    "reason": "decideMany uses the scalar pipeline; this does not promise a bulk source read.",
+                    "test_reference": "tests/Feature/Diagnostics/SourceCapabilitiesTest.php"
+                },
+                "exact_visibility": {
+                    "status": "unsupported",
+                    "basis": "static_declaration",
+                    "reason": "An automatic role without SelectsAutomaticRoleScopes makes exact folder selection unsupported, even if it has a predicate adapter.",
+                    "test_reference": "tests/Feature/Diagnostics/SourceCapabilitiesTest.php"
+                },
+                "stable_cache": {
+                    "status": "unsupported",
+                    "basis": "static_declaration",
+                    "reason": "Cross-request permission-set reuse requires grant authority, Stable volatility, FencesReads and a configured cache store; request reuse is separate.",
+                    "test_reference": "tests/Feature/Diagnostics/SourceCapabilitiesTest.php"
+                },
+                "tenant_inheritance": {
+                    "status": "conditional",
+                    "basis": "static_declaration",
+                    "reason": "The panel tenant policy, membership and access scopes govern inheritance; source contributions must preserve panel and tenant boundaries.",
+                    "test_reference": "tests/Feature/Visibility/TenantMembershipVisibilityTest.php"
+                },
+                "filament": {
+                    "status": "conditional",
+                    "basis": "static_declaration",
+                    "reason": "Requires the Filament plugin and panel configuration; grant editing requires the database writer, and record lists require exact visibility.",
+                    "test_reference": "tests/Feature/Filament/Gate/VisibilityTest.php"
+                }
+            }
+        }
+    }
+}

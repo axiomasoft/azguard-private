@@ -28,7 +28,7 @@ concurrency:
 jobs:
   build:
     name: Documentation
-    uses: ./.github/workflows/docs.yml
+    uses: $/.github/workflows/docs.yml
     permissions:
       contents: read
 

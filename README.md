@@ -37,6 +37,10 @@ $user->hasPermission(PostPermission::Update, $post);   // the grant, then PostPo
 
 ## Installation
 
+The current monorepo work is local only: neither package is being split or published. The command below describes
+installation from a separately published core version, if one is available; it does not install the current checkout
+or establish that a particular version has been published.
+
 ```bash
 composer require axiomasoft/azguard
 php artisan azguard:install --panel=Admin --migrate
@@ -45,8 +49,8 @@ php artisan azguard:install --panel=Admin --migrate
 Add `HasAzGuard` and `AzGuardSubject` to your `User` model and register a morph alias. Then follow the
 **[quick start](docs/getting-started/quick-start.md)**.
 
-For Filament: `composer require axiomasoft/azguard-filament`. See the
-[Filament guide](docs/guides/filament.md).
+The Filament integration remains in this monorepo and is not in the current publication scope. See the
+[Filament guide](docs/guides/filament.md) for its development usage.
 
 ## Features
 
@@ -83,13 +87,17 @@ For Filament: `composer require axiomasoft/azguard-filament`. See the
 | [`axiomasoft/azguard`](packages/core) | The core: panels, sources, decisions, storage, Laravel integration, CLI, testing kit |
 | [`axiomasoft/azguard-filament`](packages/filament) | Filament 5 plugin: resource/page/widget authorization, list filtering, grant editors |
 
-This repository is the development monorepo. The packages are split into read-only repositories on release.
+This repository is the development monorepo. Neither core nor Filament is in the current publication scope;
+the Filament package is retained for development.
 
 ## Requirements
 
-PHP 8.3–8.5 (8.5 with Laravel 13), Laravel 12 or 13, and SQLite, MySQL 8, MariaDB 10.11+ or
-PostgreSQL 16. The Filament plugin needs Filament 5.8.4 or later. CI runs every PHP × Laravel pair on SQLite, and
-the suite on each database server.
+The 2.0 line supports PHP 8.3–8.5 and Laravel 12 or 13: PHP 8.3/8.4 with Laravel 12, and PHP 8.3/8.4/8.5
+with Laravel 13.
+The Filament plugin requires Filament `^5.8.4` and the exact same AzGuard core version (`self.version`).
+CI resolves lowest and latest dependencies for each of these five pairs on SQLite. Server lanes use
+MySQL 8, MariaDB 10.11, PostgreSQL 16 and Redis 7; these lanes do not represent every platform cross-product.
+See the [compatibility policy](docs/reference/compatibility.md) and [2.0 upgrade guide](docs/guides/upgrading-2.md).
 
 ## Contributing and security
 

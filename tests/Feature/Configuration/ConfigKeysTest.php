@@ -83,7 +83,7 @@ it('rejects an unknown key in every section of the file', function (string $sect
 
     expect(fn () => AzGuardConfig::fromRepository(new Repository(['azguard' => $config])))
         ->toThrow(InvalidConfigurationException::class, 'Unknown key in azguard'.($section === '' ? '' : '.'.$section).': typo');
-})->with(['', 'panels', 'storages.default', 'ids', 'defaults', 'defaults.models', 'defaults.tenants', 'defaults.scopes', 'defaults.cache',
+})->with(['', 'cache', 'panels', 'storages.default', 'ids', 'defaults', 'defaults.models', 'defaults.tenants', 'defaults.scopes', 'defaults.cache',
     'defaults.consistency', 'gate', 'schedule', 'catalog', 'discovery', 'scaffold']);
 
 it('reads the new sections with their defaults', function (): void {
@@ -249,5 +249,5 @@ it('keeps the defaults of the published files and the environment names they rea
         'azguard' => $core, 'azguard-filament' => $filament];
     [$actual, $stored] = FormatSnapshot::compare('config-defaults', $snapshot);
 
-    expect($names)->toBe(['AZGUARD_BUILD_ID', 'AZGUARD_DB_CONNECTION'])->and($actual)->toBe($stored);
+    expect($names)->toBe(['AZGUARD_BUILD_ID', 'AZGUARD_CACHE_KEY_ID', 'AZGUARD_CACHE_NAMESPACE', 'AZGUARD_CACHE_SIGNING_KEY', 'AZGUARD_DB_CONNECTION'])->and($actual)->toBe($stored);
 });

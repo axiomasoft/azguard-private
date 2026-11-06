@@ -1,20 +1,15 @@
 name: Split packages
 
-# Publishes the monorepo's packages to their standalone, read-only repositories
-# after the release workflow validates a tag. Packagist watches those repos (via webhook) and picks up
-# the new version automatically. The split repos are what users `composer require`.
-# The public release requires the one-time setup in RELEASING.md. Missing setup fails
-# the workflow instead of silently creating a release without its Composer packages.
-#
-# One-time setup (see RELEASING.md):
-#   1. Create the two target repos under the org (azguard, azguard-filament).
-#   2. Add a MONOREPO_SPLIT_TOKEN secret with push access to them.
-#   3. Submit each split repo to Packagist and enable the GitHub webhook.
+# Split publication is disabled by owner decision. The implementation below is
+# retained for future review and cannot proceed past the unconditional guard.
+# Filament is not distributed by this workflow.
 
 on:
   workflow_call:
     secrets:
       MONOREPO_SPLIT_TOKEN:
+        required: true
+      RELEASE_SETUP_READ_TOKEN:
         required: true
 
 permissions:
@@ -34,34 +29,56 @@ jobs:
       matrix:
         package:
           - { dir: core, name: azguard }
-          - { dir: filament, name: azguard-filament }
 
     steps:
-      - name: Require package publishing configuration
-        env:
-          SPLIT_ENABLED: ${{ vars.SPLIT_ENABLED }}
-          MONOREPO_SPLIT_TOKEN: ${{ secrets.MONOREPO_SPLIT_TOKEN }}
+      - name: Block split publication
         run: |
           set -Eeuo pipefail
-          if [[ "$SPLIT_ENABLED" != 'true' || -z "$MONOREPO_SPLIT_TOKEN" ]]; then
-            echo '::error::Complete RELEASING.md setup: SPLIT_ENABLED=true and MONOREPO_SPLIT_TOKEN are required.'
-            exit 1
-          fi
+          echo '::error::Split publication is disabled by the project owner.'
+          exit 1
 
       - name: Checkout
         uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
         with:
+          ref: ${{ github.sha }}
           fetch-depth: 0
           persist-credentials: false
 
-      - name: Split packages/${{ matrix.package.dir }} -> ${{ matrix.package.name }}
-        uses: symplify/monorepo-split-github-action@14e42e2437f674b8987c1f50ca3689116aea1893 # v2.4.5
-        env:
-          GITHUB_TOKEN: ${{ secrets.MONOREPO_SPLIT_TOKEN }}
+      - name: Prepare setup verifier dependencies
+        uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # 2.40.0
         with:
-          tag: ${{ github.ref_name }}
-          package_directory: packages/${{ matrix.package.dir }}
-          repository_organization: axiomasoft
-          repository_name: ${{ matrix.package.name }}
-          user_name: 'github-actions[bot]'
-          user_email: 'github-actions[bot]@users.noreply.github.com'
+          php-version: '8.4'
+          extensions: mbstring, pdo, pdo_sqlite, sqlite3, zip
+          tools: composer:v2
+          coverage: none
+      - name: Install locked verifier dependencies
+        run: composer install --no-scripts --no-plugins --no-interaction --no-progress --prefer-dist
+
+      - name: Require verified release setup
+        env:
+          GH_TOKEN: ${{ secrets.RELEASE_SETUP_READ_TOKEN }}
+        run: |
+          set -Eeuo pipefail
+          [[ -n "$GH_TOKEN" ]] || { echo '::error::Release setup read token is required.'; exit 1; }
+          php bin/prepare-release-setup.php
+          php bin/verify-release-evidence.php --setup build/release/setup-request.json
+
+      - name: Split packages/${{ matrix.package.dir }} -> ${{ matrix.package.name }}
+        env:
+          SPLIT_TOKEN: ${{ secrets.MONOREPO_SPLIT_TOKEN }}
+          PACKAGE: ${{ matrix.package.dir }}
+          REPOSITORY: ${{ matrix.package.name }}
+        run: |
+          set -Eeuo pipefail
+          [[ "$GITHUB_REF_NAME" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?$ ]]
+          [[ "$GITHUB_RUN_ID" =~ ^[0-9]+$ && "$GITHUB_RUN_ATTEMPT" =~ ^[0-9]+$ ]]
+          [[ "$PACKAGE:$REPOSITORY" == core:azguard ]]
+          [[ "$(git rev-parse HEAD)" == "$GITHUB_SHA" ]]
+          split_sha="$(git subtree split --prefix="packages/$PACKAGE" "$GITHUB_SHA")"
+          [[ "$split_sha" =~ ^[0-9a-f]{40}$ ]]
+          askpass="$(mktemp)"
+          trap 'rm -f "$askpass"' EXIT
+          printf '#!/bin/sh\nprintf "%%s\\n" "$SPLIT_TOKEN"\n' > "$askpass"
+          chmod 700 "$askpass"
+          export GIT_ASKPASS="$askpass" GIT_TERMINAL_PROMPT=0
+          git push "https://x-access-token@github.com/axiomasoft/$REPOSITORY.git" "$split_sha:refs/heads/release-candidate/$GITHUB_REF_NAME/$GITHUB_RUN_ID/$GITHUB_RUN_ATTEMPT"

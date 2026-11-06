@@ -80,3 +80,31 @@ it('requires the owner approval only when asked and refuses non-SemVer versions 
         ->and(evidenceRules(evidenceViolations([...evidenceFixture('valid.yml'), 'version' => '1.0'])))->toBe(['E2'])
         ->and(evidenceRules(evidenceViolations([...evidenceFixture('valid.yml'), 'schema' => 'x'])))->toBe(['E1']);
 });
+
+it('validates core-only v2 without weakening the historic v1 contract', function (): void {
+    $legacy = evidenceFixture('valid.yml');
+    $core = $legacy;
+    $core['schema'] = EVIDENCE_CORE_SCHEMA;
+    unset($core['artifacts']['filament_archive'], $core['artifacts']['sbom_filament'], $core['split']['filament'], $core['packagist']['filament']);
+
+    expect(evidenceViolations($core))->toBe([])
+        ->and(evidenceLive($core, 'runs-ok'))->toBe([])
+        ->and(evidenceRules(evidenceViolations([...$legacy, 'artifacts' => $core['artifacts']])))->toBe(['E7'])
+        ->and(evidenceRules(evidenceViolations([...$core, 'split' => $legacy['split']])))->toBe(['E10'])
+        ->and(evidenceRules(evidenceViolations([...$core, 'packagist' => $legacy['packagist']])))->toBe(['E10'])
+        ->and(evidenceRules(evidenceViolations([...$core, 'packagist' => []])))->toContain('E10');
+});
+
+it('rejects Filament keys even when their value is null in core-only evidence', function (string $section, string $key): void {
+    $core = evidenceFixture('valid.yml');
+    $core['schema'] = EVIDENCE_CORE_SCHEMA;
+    unset($core['artifacts']['filament_archive'], $core['artifacts']['sbom_filament'], $core['split']['filament'], $core['packagist']['filament']);
+    $core[$section][$key] = null;
+
+    expect(evidenceRules(evidenceViolations($core)))->toContain('E10');
+})->with([
+    'archive' => ['artifacts', 'filament_archive'],
+    'SBOM' => ['artifacts', 'sbom_filament'],
+    'split' => ['split', 'filament'],
+    'Packagist' => ['packagist', 'filament'],
+]);

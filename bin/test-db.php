@@ -3,6 +3,8 @@
 
 declare(strict_types=1);
 
+use AzGuard\Tests\Support\DatabaseLaneEnvironment;
+
 /*
  * The database lane: the tests whose result depends on the engine (group `database`, tests/zones.json) on one server
  * driver. Everything else runs once on SQLite (`composer test`).
@@ -16,6 +18,15 @@ declare(strict_types=1);
  */
 
 const DRIVERS = ['pgsql', 'mysql', 'mariadb'];
+
+require dirname(__DIR__).'/vendor/autoload.php';
+
+// Local disposable stand endpoints may be shared by the coordinator and worker processes without shell exports.
+// Explicit environment variables still win; this file cannot change the test target host or credentials.
+$currentEnvironment = getenv();
+foreach (DatabaseLaneEnvironment::read(dirname(__DIR__).'/tests/temp/database-lane.env', $currentEnvironment) as $name => $value) {
+    putenv("{$name}={$value}");
+}
 
 $driver = null;
 $workers = 0;

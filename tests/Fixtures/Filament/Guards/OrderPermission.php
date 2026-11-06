@@ -15,6 +15,7 @@ enum OrderPermission: string
     case Update = 'orders.update';
     case Delete = 'orders.delete';
     case DeleteAny = 'orders.delete_any';
+    case Restore = 'orders.restore';
     case ProductsViewAny = 'products.view_any';
     case ProductsView = 'products.view';
     case Reports = 'pages.reports';

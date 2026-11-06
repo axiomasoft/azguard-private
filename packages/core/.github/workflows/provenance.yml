@@ -1,0 +1,25 @@
+name: Split provenance disabled
+
+# A workflow on a staging ref can be changed together with the checkout. Until
+# an independently trusted workflow and protected credential boundary exist,
+# this repository must not be given source-read secrets or signing authority.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  blocked:
+    name: Block untrusted split provenance
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require trusted producer
+        run: |
+          set -Eeuo pipefail
+          echo '::error::Split provenance is disabled until a trusted producer and credential boundary are verified.'
+          exit 1

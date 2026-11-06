@@ -547,32 +547,33 @@ final class AzGuardPlugin implements Plugin
                 default => null,
             };
 
-            if ($ability === null || FilamentContext::serving() === null) {
+            if ($ability === null) {
                 return;
             }
             $action->fetchSelectedRecords()->authorizeIndividualRecords(static function (Model $record) use ($action, $ability): Response {
-                $resource = FilamentContext::resourceOf($action->getLivewire());
+                $context = FilamentContext::serving();
+                $livewire = $action->getLivewire();
+                $resource = $context === null ? null : FilamentContext::resourceOf($livewire);
 
-                if ($resource !== null) {
+                if ($context !== null && $resource !== null && ! $context->excludes('resources', $resource)) {
                     return FilamentGate::resource($resource, $ability, $record);
                 }
-                $livewire = $action->getLivewire();
                 $filament = $livewire instanceof HasActions ? $livewire->getDefaultActionIndividualRecordAuthorizationResponseResolver($action) : null;
 
                 $response = $filament === null ? null : $filament($record);
 
-                return $response instanceof Response ? $response : Response::deny();
+                return $response instanceof Response ? $response : ($context?->enforced() === true ? Response::deny() : Response::allow());
             });
         });
 
         $visible = static function (AttachAction|AssociateAction $action): void {
-            if (FilamentContext::serving()?->enforced() !== true) {
-                return;
-            }
             $action->recordSelectOptionsQuery(static function (Builder $query) use ($action): Builder {
+                $context = FilamentContext::serving();
                 $resource = FilamentContext::resourceOf($action->getLivewire());
 
-                return $resource === null ? $query : FilamentGate::visible($resource, $query);
+                return $context?->enforced() !== true || $resource === null || $context->excludes('resources', $resource)
+                    ? $query
+                    : FilamentGate::visible($resource, $query);
             });
         };
         AttachAction::configureUsing($visible);

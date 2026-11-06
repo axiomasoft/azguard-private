@@ -3,8 +3,8 @@
 #
 #   bash bin/release-artifacts.sh <version> <outdir>
 #
-# Writes to <outdir>: azguard-core-<version>.zip, azguard-filament-<version>.zip, sbom-core.cdx.json,
-# sbom-filament.cdx.json and SHA256SUMS. The release workflow runs the same script, so a local run reproduces the build.
+# Writes the core archive, source and dependency SBOMs, lock, mapping and SHA256SUMS.
+# Filament is not a release artifact. The release workflow runs this same script.
 # The archive builder is the one of bin/consumer-fixture.sh (build_archives): a copy of the package with the version set
 # in the copy only, then `composer archive`. The SBOM is made from a temporary project that requires the archive alone
 # with --no-dev, so it holds the package and its production dependencies and no development tool.
@@ -22,6 +22,10 @@ version="$1"
 out="$2"
 mkdir -p "${out}"
 out="$(cd "${out}" && pwd)"
+if [[ -n "$(find "${out}" -mindepth 1 -maxdepth 1 -print -quit)" ]]; then
+    echo "error: output directory must be empty" >&2
+    exit 1
+fi
 
 work="$(mktemp -d)"
 trap 'rm -r -f "${work}"' EXIT
@@ -35,7 +39,13 @@ log() {
 build_archive() {
     local package="$1" copy="${work}/pkg-${package}" built="${work}/built-${package}"
     mkdir -p "${built}" "${work}/archives"
-    cp -a "${root}/packages/${package}" "${copy}"
+    if [[ "${GITHUB_ACTIONS:-}" == true ]]; then
+        cp -a "${root}/packages/${package}" "${copy}"
+    else
+        # A local rehearsal is bound to committed HEAD, not an uncommitted tree.
+        mkdir -p "${copy}"
+        git -C "${root}" archive --format=tar "HEAD:packages/${package}" | tar -xf - -C "${copy}"
+    fi
     php -r '
         $file = $argv[1];
         $json = json_decode(file_get_contents($file), true, 512, JSON_THROW_ON_ERROR);
@@ -47,13 +57,13 @@ build_archive() {
     zip="$(find "${built}" -maxdepth 1 -type f -name '*.zip' | head -n 1)"
     [[ -n "${zip}" ]] || { echo "error: composer archive produced no zip for ${package}" >&2; exit 1; }
     cp "${zip}" "${out}/azguard-${package}-${version}.zip"
+    python3 "${root}/packages/core/.github/canonicalize-release-zip.py" "${out}/azguard-${package}-${version}.zip"
     cp "${zip}" "${work}/archives/$(basename "${zip}")"
 }
 
 # The production SBOM of a package: a project that requires the archives with --no-dev, scanned by the pinned syft.
 build_sbom() {
     local package="$1" name="axiomasoft/azguard"
-    [[ "${package}" == filament ]] && name="axiomasoft/azguard-filament"
     local project="${work}/sbom-${package}"
     mkdir -p "${project}"
     cat >"${project}/composer.json" <<JSON
@@ -66,8 +76,15 @@ build_sbom() {
 }
 JSON
     (cd "${project}" && composer update --no-dev --no-scripts --no-plugins --no-interaction --no-progress >/dev/null)
+    sha256sum "${project}/composer.lock" > "${work}/sbom-${package}.lock.sha256"
+    # Audit the exact production lock used for the SBOM, not the monorepo lock.
+    (cd "${project}" && composer audit --locked --no-dev --abandoned=fail --no-interaction)
+    # Query the same production resolution against OSV before using it for the SBOM.
+    bash "${root}/bin/security-tools.sh" osv-scanner -- scan source --lockfile="${project}/composer.lock" --config="${root}/.github/osv-scanner.toml"
+    sha256sum --check "${work}/sbom-${package}.lock.sha256"
     # The scan reads composer.lock only; vendor/ is not part of the evidence.
-    bash "${root}/bin/security-tools.sh" syft -- "dir:${project}" -o "cyclonedx-json=${out}/sbom-${package}.cdx.json" --quiet
+    bash "${root}/bin/security-tools.sh" syft -- "dir:${project}" -o "cyclonedx-json@1.6=${out}/sbom-${package}.cdx.json" --quiet
+    sha256sum --check "${work}/sbom-${package}.lock.sha256"
     python3 - "${out}/sbom-${package}.cdx.json" "${name}" "${version}" <<'PY'
 import json, sys
 
@@ -86,17 +103,34 @@ if bom.get("bomFormat") != "CycloneDX" or not components:
     sys.exit("not a CycloneDX document with components")
 json.dump(bom, open(path, "w"), indent=2)
 PY
+    cp "${project}/composer.lock" "${out}/resolution-${package}.lock"
+    sha256sum --check "${work}/sbom-${package}.lock.sha256"
+    cmp "${project}/composer.lock" "${out}/resolution-${package}.lock"
+    php "${root}/bin/package-evidence.php" --check-resolved-sbom "${out}/resolution-${package}.lock" "${out}/sbom-${package}.cdx.json" "${name}" "${version}"
 }
 
 log "version ${version}, output ${out}"
-for package in core filament; do
+for package in core; do
     build_archive "${package}"
 done
-# The Filament archive requires the core archive of the same version: both are in the artifact repository.
-for package in core filament; do
+for package in core; do
     build_sbom "${package}"
 done
 
-(cd "${out}" && sha256sum "azguard-core-${version}.zip" "azguard-filament-${version}.zip" sbom-core.cdx.json sbom-filament.cdx.json >SHA256SUMS)
+for package in core; do
+    name=axiomasoft/azguard
+    php "${root}/bin/package-evidence.php" --source-sbom "${out}/azguard-${package}-${version}.zip" "${name}" "${version}" "${out}/source-${package}.cdx.json"
+    php "${root}/bin/package-evidence.php" --check-source-sbom "${out}/azguard-${package}-${version}.zip" "${name}" "${version}" "${out}/source-${package}.cdx.json"
+    for bom in "${out}/source-${package}.cdx.json" "${out}/sbom-${package}.cdx.json"; do
+        schema_version="$(php -r '$j=json_decode(file_get_contents($argv[1]),true,512,JSON_THROW_ON_ERROR); $v=$j["specVersion"]??""; if (!in_array($v,["1.4","1.5","1.6"],true)) exit(1); echo "v".str_replace(".","_",$v);' "${bom}")"
+        bash "${root}/bin/security-tools.sh" cyclonedx-cli -- validate --input-file "${bom}" --input-format json --input-version "${schema_version}" --fail-on-errors
+    done
+done
+
+for package in core; do
+    php "${root}/bin/package-evidence.php" --build-manifest "${package}" "${version}" "${out}" "${out}/mapping-${package}.json"
+done
+(cd "${out}" && sha256sum "azguard-core-${version}.zip" source-core.cdx.json sbom-core.cdx.json resolution-core.lock mapping-core.json >SHA256SUMS)
+(cd "${out}" && sha256sum --strict --check SHA256SUMS)
 log "artifacts:"
 ls -1 "${out}" | sed 's/^/  /'

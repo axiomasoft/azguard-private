@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace AzGuard\Sources\Folder;
 
 use AzGuard\Attributes\Api;
+use AzGuard\Catalog\Internal\PanelCatalog;
 use AzGuard\Catalog\PermissionDefinition;
 use AzGuard\Contracts\Authorization\EvaluationContext;
 use AzGuard\Contracts\Sources\AssignmentScopeSelection;
@@ -23,6 +24,8 @@ use AzGuard\Exceptions\DefinitionException;
 use AzGuard\Exceptions\DuplicatePermissionException;
 use AzGuard\Exceptions\DuplicatePolicyBindingException;
 use AzGuard\Exceptions\InvalidPolicyStructureException;
+use AzGuard\Exceptions\InvalidSourceContributionException;
+use AzGuard\Exceptions\VisibilityNotSupportedException;
 use AzGuard\Kernel\Decision\Grant;
 use AzGuard\Kernel\Decision\PermissionAuthority;
 use AzGuard\Kernel\Decision\RoleContribution;
@@ -39,6 +42,7 @@ use AzGuard\Policies\PolicyBinding;
 use AzGuard\Policies\PolicyFor;
 use AzGuard\Roles\BaseRole;
 use AzGuard\Roles\GrantedAutomatically;
+use AzGuard\Roles\SelectsAutomaticRoleScopes;
 use AzGuard\Sources\Folder\Internal\AttributeReader;
 use AzGuard\Sources\Folder\Internal\DiscoverySnapshot;
 use AzGuard\Sources\Internal\EvaluatesAutomaticRoles;
@@ -304,6 +308,67 @@ final class FolderSource implements ChecksHealth, DescribesSchema, EvaluatesAuto
         }
 
         return $items === [] ? AssignmentScopeSelection::nowhere() : AssignmentScopeSelection::inEveryContext($items);
+    }
+
+    /**
+     * @internal Separate selections retain the distinct every-context semantics of granted-to-all permissions.
+     *
+     * @return list<AssignmentScopeSelection>|null
+     */
+    public function exactSelections(SubjectRef $subject, ?string $contextType, EvaluationContext $context): ?array
+    {
+        $items = iterator_to_array($this->grants($subject, [AccessScope::in($context->scope()->tenant)], $context), false);
+        $selections = [$items === [] ? AssignmentScopeSelection::nowhere() : AssignmentScopeSelection::inEveryContext($items)];
+        $model = $context->subjectModel();
+        $total = 0;
+        foreach (array_unique($this->roleClasses ?? [...$this->discovery()->roles, ...$this->recipe()->roles()]) as $class) {
+            if (! is_subclass_of($class, GrantedAutomatically::class)) {
+                continue;
+            }
+
+            if (! is_subclass_of($class, SelectsAutomaticRoleScopes::class)) {
+                return null;
+            }
+
+            if ($model === null || ! $context->panel()->accepts($subject) || ! $context->panel()->accepts($model)) {
+                continue;
+            }
+            $role = $this->container()->make($class);
+
+            if (! $role instanceof BaseRole || ! $role instanceof GrantedAutomatically || ! $role instanceof SelectsAutomaticRoleScopes) {
+                throw new DefinitionException('Automatic role resolver returned an incompatible role.');
+            }
+            $scopes = $role->exactAutomaticScopes($model, $contextType, $context);
+
+            if ($scopes === null) {
+                return null;
+            }
+            $total += count($scopes);
+
+            if ($total > 1000) {
+                throw new VisibilityNotSupportedException('selection_budget', self::class);
+            }
+            $items = $refs = [];
+            $global = false;
+            $index = 0;
+            foreach (PanelCatalog::untrusted($scopes) as $key => $scope) {
+                if ($key !== $index++ || ! $scope instanceof AccessScope
+                    || (! $scope->tenant->equals($context->scope()->tenant) && ! $scope->tenant->isGlobal())
+                    || (! $scope->context->isGlobal() && ($contextType === null || $scope->context->type() !== $contextType))) {
+                    throw new InvalidSourceContributionException('Invalid automatic role scope.');
+                }
+                $items[] = RoleContribution::of(RoleKey::of($context->panel()->id(), $role->key()), $scope, $this->id(), origin: 'automatic');
+
+                if ($scope->context->isGlobal()) {
+                    $global = true;
+                } else {
+                    $refs[] = $scope->context;
+                }
+            }
+            $selections[] = $global ? AssignmentScopeSelection::everywhere($items) : AssignmentScopeSelection::in($refs, $items);
+        }
+
+        return $selections;
     }
 
     /**

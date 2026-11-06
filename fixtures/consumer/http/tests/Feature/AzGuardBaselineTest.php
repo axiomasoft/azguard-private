@@ -13,9 +13,11 @@ use AzGuard\Panels\Reads;
 use AzGuard\Storage\Internal\AuthorityReadBaseline;
 use AzGuard\Storage\Internal\StorageRegistry;
 use AzGuard\Testing\InteractsWithAzGuard;
+use Illuminate\Cache\ArrayStore;
 use Illuminate\Database\Events\QueryExecuted;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Route;
+use ReflectionProperty;
 use Tests\TestCase;
 
 final class AzGuardBaselineTest extends TestCase
@@ -34,7 +36,8 @@ final class AzGuardBaselineTest extends TestCase
         $this->assertFileDoesNotExist(app()->getCachedConfigPath());
         $this->assertSame('bigint', config('azguard.ids.host_keys'));
         $this->assertSame('sqlite', config('azguard.storages.default.connection'));
-        $this->assertSame(storage_path('framework/cache/data'), config('cache.stores.file.path'));
+        $this->assertSame('array', config('cache.stores.array.driver'));
+        $this->assertSame('consumer-fixture', config('azguard.cache.namespace'));
     }
 
     public function test_stored_grants_use_the_installed_schema_and_shared_cache_under_refresh_database(): void
@@ -74,7 +77,7 @@ final class AzGuardBaselineTest extends TestCase
         });
 
         $this->assertTrue(AzGuard::check($user, StoredPermission::Refund));
-        $this->assertSame(0, $grantReads, 'A fresh request scope must read grants from the file cache.');
+        $this->assertSame(0, $grantReads, 'A fresh request scope must read grants from the shared array cache.');
         $this->assertGreaterThan(0, $stateReads, 'The shared-cache hit must still execute its database fence.');
 
         AzGuard::actingAs('testing', static fn () => AzGuard::panel('stored')->for($user)->revokePermission(StoredPermission::Refund));
@@ -99,6 +102,8 @@ final class AzGuardBaselineTest extends TestCase
             $former = User::factory()->create();
             $this->actingAsWithPermissions($former, [StoredPermission::Refund], panel: 'stored');
             $this->assertTrue(AzGuard::check($former, StoredPermission::Refund));
+            $arrayStore = app('cache')->store('array')->getStore();
+            $this->assertNotEmpty((new ReflectionProperty(ArrayStore::class, 'storage'))->getValue($arrayStore));
             $first = $storage->state('stored');
             $connection->rollBack();
 

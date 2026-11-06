@@ -7,6 +7,7 @@ namespace AzGuard\Diagnostics\Internal\Checks;
 use AzGuard\Contracts\Diagnostics\DoctorCheck;
 use AzGuard\Diagnostics\DoctorContext;
 use AzGuard\Diagnostics\DoctorFinding;
+use Illuminate\Contracts\Config\Repository;
 
 /**
  * `catalog.build_id`, for a production deployment: the build is named by `catalog.build_id` (`AZGUARD_BUILD_ID`).
@@ -18,6 +19,8 @@ use AzGuard\Diagnostics\DoctorFinding;
  */
 final readonly class CatalogBuildId implements DoctorCheck
 {
+    public function __construct(private Repository $config) {}
+
     public function key(): string
     {
         return 'catalog.build_id';
@@ -50,8 +53,10 @@ final readonly class CatalogBuildId implements DoctorCheck
         }
 
         foreach ($context->panels() as $panel) {
-            if ($panel->settings()->cacheStore() !== null) {
-                return 'panel '.$panel->id().' keeps permission sets in the persistent store "'.$panel->settings()->cacheStore().'"';
+            $store = $panel->settings()->cacheStore();
+
+            if ($store !== null && $this->config->get('cache.stores.'.$store.'.driver') !== 'array') {
+                return 'panel '.$panel->id().' keeps permission sets in the persistent store "'.$store.'"';
             }
         }
 

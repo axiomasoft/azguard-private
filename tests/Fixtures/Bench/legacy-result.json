@@ -1,0 +1,12 @@
+{
+    "schema": "urn:azguard:bench:result:1",
+    "date": "2026-10-14T00:00:00Z",
+    "commit": "b981f2fa",
+    "dirty": false,
+    "tier": "mini",
+    "driver": "sqlite",
+    "cache": "none",
+    "environment": {"php": "8.4", "laravel": "13", "database": "sqlite", "database_server": "3", "opcache": true, "xdebug": false, "cpu": "cpu", "cpus": 4, "os": "linux"},
+    "dataset": {"tier": {}, "rows": {}, "digest": "legacy"},
+    "profiles": [{"id": "sample", "description": "legacy fixture", "primary_op": "check", "stages": [{"name": "w1", "workers": 1, "iterations_per_worker": 100, "warmup_per_worker": 10, "windows_s": [1, 1, 1], "reps": [{}, {}, {}], "summary": {"check": {"p50_us": 1000, "p95_us": 1200, "p99_us": 1300, "sql_per_op": 1, "ops_per_s": 100, "errors": 0, "p95_cv": 0.01, "stable": true}}, "checks": []}]}]
+}

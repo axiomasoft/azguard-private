@@ -8,11 +8,13 @@ use AzGuard\Diagnostics\DoctorFinding;
 use AzGuard\Panels\PanelBuilder;
 use AzGuard\Sources\Database\DatabaseSource;
 use AzGuard\Tests\Fixtures\Crm\CrmWorld;
+use AzGuard\Tests\Fixtures\Crm\Models\Project;
 use AzGuard\Tests\Fixtures\Diagnostics\DoctorWorld;
 use AzGuard\Tests\Fixtures\Diagnostics\ProbeCheck;
 use AzGuard\Tests\Fixtures\Panels\OrderPermission;
 use AzGuard\Tests\Fixtures\Panels\TestPanel;
 use AzGuard\Tests\Fixtures\Panels\User;
+use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Support\Facades\Artisan;
 
 /*
@@ -90,6 +92,7 @@ it('checks a production deployment with --production or in the production enviro
 
 it('matches the JSON snapshot of the CRM stand and changes nothing it reads', function (): void {
     CrmWorld::seed();
+    Relation::morphMap(['crm.project' => Project::class]);
     CrmWorld::compile();
     $storage = CrmWorld::storage();
     $before = [$storage->state('crm')?->version, $storage->table('role_grants')->count(), $storage->table('permission_grants')->count()];

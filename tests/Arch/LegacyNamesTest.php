@@ -60,7 +60,11 @@ function legacyNamesScannedFiles(): array
         $iterator = new RecursiveIteratorIterator(new RecursiveCallbackFilterIterator(
             new RecursiveDirectoryIterator($root.'/'.$directory, FilesystemIterator::SKIP_DOTS),
             static fn (SplFileInfo $file): bool => ! in_array($file->getFilename(), ['vendor', 'node_modules'], true)
-                && ! str_starts_with(str_replace('\\', '/', $file->getPathname()), $root.'/tests/Regression/specs'),
+                && ! str_starts_with(str_replace('\\', '/', $file->getPathname()), $root.'/tests/Regression/specs')
+                && ! in_array(str_replace('\\', '/', $file->getPathname()), [
+                    $root.'/tests/Fixtures/Regression/Audit/probes/OpusAuditProbesTest.php',
+                    $root.'/tests/Fixtures/Regression/Audit/probes/OpusAuditContextProbesTest.php',
+                ], true),
         ));
 
         foreach ($iterator as $file) {
@@ -72,6 +76,14 @@ function legacyNamesScannedFiles(): array
 
     return $files;
 }
+
+it('excludes only the historical audit probes, not other fixture files', function (): void {
+    $root = dirname(__DIR__, 2);
+    $files = legacyNamesScannedFiles();
+    expect($files)->not->toContain($root.'/tests/Fixtures/Regression/Audit/probes/OpusAuditProbesTest.php')
+        ->not->toContain($root.'/tests/Fixtures/Regression/Audit/probes/OpusAuditContextProbesTest.php')
+        ->toContain($root.'/tests/Fixtures/Crm/CrmWorld.php');
+});
 
 it('removes the frozen 0.3 files and links from the reference tree', function (): void {
     $legacy = dirname(__DIR__, 2).'/legacy';

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Isolated commit fixtures for the compatibility baseline guard.
+# Isolated commit fixtures for the baseline guard and the same-major comparison policy.
 set -euo pipefail
 
 script="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/compat-baseline-guard.sh"
@@ -37,6 +37,10 @@ git -C "$fixture" checkout --quiet -b pointer main
 echo '{"schema": "urn:azguard:compatibility:1", "candidate": "0000000000000000000000000000000000000000", "artifacts": []}' > "$fixture/compatibility.json"
 git -C "$fixture" commit --quiet -am 'fixture: new pointer'
 
+git -C "$fixture" checkout --quiet -b major-policy main
+echo '{"schema": "urn:azguard:compatibility:1", "candidate": null, "major": 2, "major_candidate": "2222222222222222222222222222222222222222", "migration_inventory": "docs/reference/compatibility-2.json", "artifacts": []}' > "$fixture/compatibility.json"
+git -C "$fixture" commit --quiet -am 'fixture: new major policy, unchanged old pointer'
+
 # A pointer change merged into main after the branch point is not the pull request's change (three-dot diff).
 git -C "$fixture" checkout --quiet main
 echo '{"schema": "urn:azguard:compatibility:1", "candidate": "1111111111111111111111111111111111111111", "artifacts": []}' > "$fixture/compatibility.json"
@@ -47,6 +51,8 @@ expect 0 other '["size/XS"]' 'no pointer change, other labels'
 expect 0 pointer '["size/S", "compat-baseline"]' 'pointer change with the label'
 expect 1 pointer '[]' 'pointer change without labels'
 expect 1 pointer '["compat-baseline-later", "Compat-Baseline"]' 'pointer change with similar labels only'
+expect 1 major-policy '[]' 'major policy change with unchanged old candidate needs the label'
+expect 0 major-policy '["compat-baseline"]' 'major policy change with the label'
 expect 2 pointer 'not json' 'malformed labels'
 expect 2 pointer '{"name": "compat-baseline"}' 'labels not a list'
 expect 2 pointer '[["compat-baseline"]]' 'labels not names'
@@ -61,3 +67,8 @@ if [[ "$missing" != 2 ]]; then
     exit 1
 fi
 echo "ok: missing argument (exit 2)"
+
+# The release self-check also exercises first-v2-tag selection, retained migration deltas and rejected same-major
+# breaks. Keep these cases in the repository's test file so the normal Arch lane runs the same proof.
+root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+php "$root/vendor/bin/pest" "$root/tests/Arch/CompatibilityPolicyTest.php"

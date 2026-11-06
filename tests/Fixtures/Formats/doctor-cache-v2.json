@@ -1,0 +1,30 @@
+{
+    "exit": 1,
+    "finding_fields": [
+        "key",
+        "severity",
+        "scope",
+        "message",
+        "details"
+    ],
+    "findings": [
+        {
+            "key": "cache.redis",
+            "severity": "warning",
+            "scope": "panel:test",
+            "details": []
+        },
+        {
+            "key": "cache.signing",
+            "severity": "error",
+            "scope": "panel:test",
+            "details": []
+        },
+        {
+            "key": "cache.ttl",
+            "severity": "warning",
+            "scope": "panel:test",
+            "details": []
+        }
+    ]
+}

@@ -170,7 +170,7 @@ it('uses publications and enum classes the catalogue assumes', function (): void
 it('finds nothing when nothing changed', function (): void {
     $artifacts = compatTestArtifacts();
 
-    expect($artifacts)->toHaveCount(22)
+    expect($artifacts)->toHaveCount(24)
         ->and(compatCompare($artifacts, $artifacts))->toBe(['breaks' => [], 'additions' => []]);
 });
 

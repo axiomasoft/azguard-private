@@ -244,7 +244,7 @@ class VisibilityRestriction implements FiltersAccessQueries, Restriction
 
     public function check(AccessRequest $request, EvaluationContext $context): RestrictionResult
     {
-        return $context->resource()?->getAttribute('city') === 'Paris' ? RestrictionResult::pass() : RestrictionResult::deny();
+        return $context->resource()?->getAttribute('city') === 'Paris' ? RestrictionResult::pass() : RestrictionResult::deny('city');
     }
 
     public function exemptsSuperAdmin(): bool

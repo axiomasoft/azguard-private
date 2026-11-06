@@ -51,7 +51,7 @@ it('falls back to the built-in values when nothing sets a setting', function ():
 
     expect($settings->resourcePrefix())->toBe('admin')
         ->and($settings->cacheStore())->toBeNull()
-        ->and($settings->cacheTtl())->toBe(3600)
+        ->and($settings->cacheTtl())->toBe(300)
         ->and($settings->cacheGeneration())->toBe(1)
         ->and($settings->reads())->toBe(Reads::Primary)
         ->and($settings->stateRefresh())->toBe(StateRefresh::Request)
@@ -265,6 +265,6 @@ it('makes the effective settings part of the panel fingerprint', function (): vo
 
     expect($fingerprint(static fn (PanelBuilder $panel): PanelBuilder => $panel->cache(ttl: 60)))->not->toBe($base)
         ->and($fingerprint(static fn (): null => null, ['consistency.reads' => 'default']))->not->toBe($base)
-        ->and($fingerprint(static fn (PanelBuilder $panel): PanelBuilder => $panel->cache(ttl: 3600)))->toBe($base)
+        ->and($fingerprint(static fn (PanelBuilder $panel): PanelBuilder => $panel->cache(ttl: 300)))->toBe($base)
         ->and($fingerprint(static fn (PanelBuilder $panel): PanelBuilder => $panel->label('Renamed')->presentation(['icon' => 'x'])))->toBe($base);
 });
