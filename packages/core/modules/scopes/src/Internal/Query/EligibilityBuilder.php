@@ -77,11 +77,7 @@ final class EligibilityBuilder
             }
 
             try {
-                $structural = $definition->query()->applyScopes()->withoutGlobalScopes();
-                $branch = clone $structural;
-                $branch->getQuery()->wheres = [];
-                $branch->getQuery()->setBindings([], 'where');
-                $branch->getQuery()->addNestedWhereQuery($structural->getQuery());
+                $branch = self::structural($definition);
                 ModelKey::where($branch, $resolved->ref->id());
                 self::apply($definition, $branch, $filters, $runtime, $container);
                 // A witness tag prevents one passing role/field predicate from granting a sibling witness.

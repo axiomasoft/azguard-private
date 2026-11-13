@@ -37,6 +37,8 @@ final readonly class CacheIntegrity implements DoctorCheck
             }
         }
 
+        $signing = CacheSigningConfig::fromConfig($this->config);
+
         foreach ($context->panels() as $panel) {
             $store = $panel->settings()->cacheStore();
 
@@ -56,7 +58,7 @@ final readonly class CacheIntegrity implements DoctorCheck
                 continue;
             }
 
-            if (CacheSigningConfig::fromConfig($this->config) === null) {
+            if ($signing === null) {
                 $message = 'Configure a valid cache signing key and explicit namespace, including valid rotation keys; shared caching is disabled.';
                 yield $context->isProduction()
                     ? DoctorFinding::error('cache.signing', $message, $scope)
