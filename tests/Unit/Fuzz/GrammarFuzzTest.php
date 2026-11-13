@@ -113,6 +113,10 @@ function identifierProperties(int $seed, int $iterations): void
         }
     });
 
+    // A parser that refuses every string still has to accept a real alias and a real id.
+    IdentityCodec::assertTypeAlias('user');
+    expect(IdentityCodec::canonicalId('user'))->toBe('user')->and(IdentityCodec::canonicalId(1))->toBe('1');
+
     $input = new FuzzInput($seed);
 
     for ($i = 0; $i < $iterations; $i++) {

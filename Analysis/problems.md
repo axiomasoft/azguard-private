@@ -88,11 +88,12 @@
 
 `P39` closed. `covered()` возвращает false, если middleware атрибута исключён и `resolveMiddleware` даёт пустой список. `can:view` больше не делает strict mode «покрытым». Нестрогий тест с `assertOk()` на исключённой проверке не читает `covered()` и остаётся зелёным. `RouteChecksTest` зелёный.
 
-`P33` open, тесты, которые остаются зелёными при сломанном поведении. Это не стиль, это дыры сценариев.
+`P33` partly closed. Грамматический fuzz теперь требует, чтобы `user` и `1` канонизировались. Слушатель `AccessDecided` должен сообщить исключение и сохранить то же решение. Три пустых `catch (ConflictingPanelException)` заменены на `toThrow`. Остаётся:
 
-- `tests/Unit/Fuzz/GrammarFuzzTest.php:101` возвращается на `InvalidIdentityException` и не проверяет, что отказ остаётся отказом. Если `canonicalId()` бросает на каждую строку, `expect()` ниже не выполняется.
-- Там же строка 111: пустой `catch` вокруг `assertTypeAlias()`. И no-op, и throw считаются успехом.
-- Там же строка 123: единственный `expect()` для int сидит внутри `catch`. Отказ любого положительного int проглатывается. Возврат невалидной строки как есть проходит `toBe($value)`.
+- `tests/Unit/Fuzz/GrammarFuzzTest.php` по-прежнему считает отказ alias на случайной строке успехом: грамматика alias уже, чем грамматика id. Известный alias `user` теперь обязателен.
+- `tests/Unit/Fuzz/StateTokenFuzzTest.php` считает отказ повреждённой строки успехом. Неповреждённые токены проверяются отдельным циклом.
+- `tests/Feature/Console/ProductionRunbookTest.php:255` на не-Redis только проверяет `ArrayStore` и выходит. Команда retirement там не выполняется. Это сознательная граница локального прогона.
+- `tests/Feature/Parity/ParityMatrixTest.php:50` при неполном `PARITY_SEEDS` сравнивает замороженный ledger с самим собой. Иначе частичный прогон ломал бы полный снимок.
 - `tests/Unit/Fuzz/StateTokenFuzzTest.php:41` делает `return` до round-trip, `$accepted` нигде не проверяется. Парсер, который отвергает все сгенерированные строки, всё равно зелёный.
 - `tests/Feature/Events/AccessDecidedTest.php:93` «reports a failing listener» проверяет только `toBeInstanceOf(Effect::class)`. Любой `Decision` это удовлетворяет.
 - `tests/Feature/Console/ProductionRunbookTest.php:255` после `toBeInstanceOf(ArrayStore::class)` возвращается, если кэш не Redis. Команда retirement не выполняется. На Redis тест сам вызывает `$redis->expire()`, сломанная команда пакета всё равно зелёная.

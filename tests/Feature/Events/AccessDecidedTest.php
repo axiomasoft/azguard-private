@@ -5,7 +5,6 @@ declare(strict_types=1);
 use AzGuard\Authorization\Internal\Authorizer;
 use AzGuard\Events\AccessDecided;
 use AzGuard\Kernel\Decision\AccessRequest;
-use AzGuard\Kernel\Decision\Effect;
 use AzGuard\Kernel\Identity\ActorRef;
 use AzGuard\Kernel\Identity\PermissionKey;
 use AzGuard\Kernel\Identity\SubjectRef;
@@ -20,6 +19,7 @@ use AzGuard\Tests\Fixtures\Crm\Guards\Crm\Permissions\Clients\ClientPermission;
 use AzGuard\Tests\Fixtures\Crm\Models\Client;
 use AzGuard\Tests\Fixtures\Events\EventWorld;
 use AzGuard\Tests\Fixtures\Panels\ArraySource;
+use Illuminate\Contracts\Debug\ExceptionHandler;
 use Illuminate\Database\Events\QueryExecuted;
 use Illuminate\Support\Facades\Event;
 
@@ -86,11 +86,40 @@ it('publishes a decision for explain and for every decision of a batch', functio
 
 it('reports a failing listener and keeps the decision', function (): void {
     $panel = tracedPanel(true);
+    $clean = CrmWorld::decide($panel, 1, ClientPermission::View, 3);
     Event::listen(AccessDecided::class, static fn (): never => throw new RuntimeException('tracing listener failed'));
+    $reported = [];
+    $handler = app(ExceptionHandler::class);
+    $this->app->instance(ExceptionHandler::class, new class($handler, $reported) implements ExceptionHandler
+    {
+        /** @param list<Throwable> $reported */
+        public function __construct(private readonly object $inner, public array &$reported) {}
+
+        public function report(Throwable $e): void
+        {
+            $this->reported[] = $e;
+        }
+
+        public function shouldReport(Throwable $e): bool
+        {
+            return true;
+        }
+
+        public function render($request, Throwable $e): never
+        {
+            throw $e;
+        }
+
+        public function renderForConsole($output, Throwable $e): void {}
+    });
 
     $decision = CrmWorld::decide($panel, 1, ClientPermission::View, 3);
 
-    expect($decision->effect)->toBeInstanceOf(Effect::class);
+    expect($decision->effect)->toBe($clean->effect)
+        ->and($decision->reason)->toBe($clean->reason)
+        ->and($decision->allowed())->toBe($clean->allowed())
+        ->and($reported)->toHaveCount(1)
+        ->and($reported[0]->getMessage())->toBe('tracing listener failed');
 });
 
 it('publishes a decision made inside a transaction of the package only after its commit', function (bool $commit): void {

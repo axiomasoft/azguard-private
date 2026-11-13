@@ -71,10 +71,8 @@ it('V14 keeps the previous scope when a call fails inside withinScope', function
     $current = app(CurrentContext::class);
 
     app(WithinContext::class)->run($panel, $outer, static function () use ($access, $panel, $current, $outer): void {
-        try {
-            app(WithinContext::class)->run($panel, CrmWorld::scope(2), static fn (): bool => $access->hasPermission('backoffice:clients.view'));
-        } catch (ConflictingPanelException) {
-        }
+        expect(fn () => app(WithinContext::class)->run($panel, CrmWorld::scope(2), static fn (): bool => $access->hasPermission('backoffice:clients.view')))
+            ->toThrow(ConflictingPanelException::class);
         ClientScopeResolver::$throws = true;
 
         expect($access->decide(ClientPermission::View, on: Client::query()->findOrFail(1))->allowed())->toBeFalse()

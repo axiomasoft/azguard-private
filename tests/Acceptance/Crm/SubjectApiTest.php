@@ -76,10 +76,7 @@ it('R04 keeps independent wrappers of one user instance through nested calls and
     $c5 = Client::query()->findOrFail(5);
 
     $nested = app(WithinContext::class)->run($panel, CrmWorld::scope(2), static function () use ($a, $b, $c1, $c5): array {
-        try {
-            $a->hasPermission('backoffice:clients.view', on: $c1);
-        } catch (ConflictingPanelException) {
-        }
+        expect(fn () => $a->hasPermission('backoffice:clients.view', on: $c1))->toThrow(ConflictingPanelException::class);
 
         return [$a->hasPermission(ClientPermission::Update, on: $c1), $b->hasPermission(ClientPermission::Update, on: $c5), $b->hasPermission(ClientPermission::View, on: $c5)];
     });
@@ -166,10 +163,7 @@ it('R04 keeps independent panel accesses of A and B through nested scopes and ex
     $c5 = Client::query()->findOrFail(5);
 
     $nested = app(WithinContext::class)->run($panel, CrmWorld::scope(2), static function () use ($a, $b, $anna, $c1, $c5): array {
-        try {
-            $a->for($anna)->hasPermission('backoffice:clients.view', on: $c1);
-        } catch (ConflictingPanelException) {
-        }
+        expect(fn () => $a->for($anna)->hasPermission('backoffice:clients.view', on: $c1))->toThrow(ConflictingPanelException::class);
 
         return [$a->for($anna)->hasPermission(ClientPermission::Update, on: $c1), $b->for($anna)->hasPermission(ClientPermission::Update, on: $c5), $b->for($anna)->hasPermission(ClientPermission::View, on: $c5)];
     });
