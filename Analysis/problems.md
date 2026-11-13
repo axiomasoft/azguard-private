@@ -28,7 +28,7 @@
 
 ### Авторизация HTTP
 
-`P1` medium, open. `packages/core/src/Laravel/Internal/Http/Middleware/EnterPanel.php:108`. На Laravel 13.0–13.4 маршрутизатор не собирает `#[CheckPermission]` с родительского контроллера. `RouteChecks::missing()` применяется только после допуска `azguard.panel`. Маршрут, который в панель не входит, выполняет действие, а родительский атрибут игнорируется. Doctor сообщает и запрос не останавливает. Починка: отказ, если у собранного маршрута всё ещё нет middleware атрибута, в том числе вне панели.
+`P1` medium, closed. `EnterPanel::outside()` на `RouteMatched` добавляет middleware родительского атрибута, если маршрут не входит в панель. На 13.5+ `missing()` пуст, метод ничего не делает. `RouteChecksTest` зелёный. Было: `P1` medium, open. `packages/core/src/Laravel/Internal/Http/Middleware/EnterPanel.php:108`. На Laravel 13.0–13.4 маршрутизатор не собирает `#[CheckPermission]` с родительского контроллера. `RouteChecks::missing()` применяется только после допуска `azguard.panel`. Маршрут, который в панель не входит, выполняет действие, а родительский атрибут игнорируется. Doctor сообщает и запрос не останавливает. Починка: отказ, если у собранного маршрута всё ещё нет middleware атрибута, в том числе вне панели.
 
 `P2` medium, open. `packages/core/src/Laravel/Internal/Http/RouteChecks.php:86`. `missing()` отбрасывает `#[CheckPermission]`, чей middleware исключён. Strict mode выключен, пока панель не вызывает `requireRouteChecks()` (`EnterPanel.php:104`). Допущенный субъект доходит до действия. Тест исключения логинит пользователя 2 и получает HTTP 200 на update, который атрибут запретил бы. Починка: считать исключённую или отсутствующую проверку атрибута отказом даже без strict mode, либо сделать strict mode значением по умолчанию.
 
@@ -48,7 +48,7 @@
 
 ### Очередь
 
-`P8` medium, open. `packages/core/src/Laravel/Internal/Queue/PanelContext.php:100`. `leaving()` восстанавливает `CurrentPanel` и оставляет скрытый контекст `azguard.panel`. Job, отправленный из более позднего слушателя `JobProcessed` или `JobAttempted` (провайдеры приложения идут после этого), встаёт в очередь с id панели уже закончившейся работы, и `entering()` ставит её панелью для коротких имён. Починка: снять этот скрытый id в слушателе `JobProcessing`, который выполняется до `Context::hydrate` Laravel, и записать снимок обратно в `leaving()`.
+`P8` medium, closed. `PanelContext::snapshot()` слушает `JobProcessing` до hydrate и запоминает скрытый hint. `leaving()` пишет его обратно: у sync-запроса остаётся `crm`, у воркера без hint ключ снимается. `QueueContextTest` зелёный. Было: `P8` medium, open. `packages/core/src/Laravel/Internal/Queue/PanelContext.php:100`. `leaving()` восстанавливает `CurrentPanel` и оставляет скрытый контекст `azguard.panel`. Job, отправленный из более позднего слушателя `JobProcessed` или `JobAttempted` (провайдеры приложения идут после этого), встаёт в очередь с id панели уже закончившейся работы, и `entering()` ставит её панелью для коротких имён. Починка: снять этот скрытый id в слушателе `JobProcessing`, который выполняется до `Context::hydrate` Laravel, и записать снимок обратно в `leaving()`.
 
 Удалённый id панели по-прежнему отвергается, а не подменяется панелью по умолчанию. Секретов по умолчанию в `config/azguard.php` нет. `InstallCommand.php:227` запускает `php artisan` через `Process` списком аргументов: `migrate` и `azguard:doctor`, `--no-interaction`, необязательный `--force` и `--env` родителя. Соединение только переменная окружения и должно уже быть ключом `database.connections`.
 
@@ -82,7 +82,7 @@
 
 `P38` closed. `QueryScopeDirectory::match()` сравнивает ключ только если `ModelKey::canHold()`. `05` больше не ищется как id 5.
 
-`P39` open. Strict mode: на действии есть `#[CheckPermission('orders.update')]` и ещё `can:view`. Исключение `withoutMiddleware('azguard.can')` выкидывает атрибут из `missing()`, а `covered()` остаётся true из-за `can:`. Действие выполняется только с `can:view`. Без лишнего `can:` strict mode даёт 403.
+`P39` closed. `covered()` возвращает false, если middleware атрибута исключён и `resolveMiddleware` даёт пустой список. `can:view` больше не делает strict mode «покрытым». Нестрогий тест с `assertOk()` на исключённой проверке не читает `covered()` и остаётся зелёным. `RouteChecksTest` зелёный.
 
 `P33` open, тесты, которые остаются зелёными при сломанном поведении. Это не стиль, это дыры сценариев.
 
