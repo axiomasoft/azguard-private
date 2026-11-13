@@ -134,10 +134,17 @@ final class RouteChecks
             return true;
         }
         $router = app(Router::class);
+        $excluded = $route->excludedMiddleware();
+
+        foreach ($this->attributes($route) as $check) {
+            if (is_string($check->middleware) && $router->resolveMiddleware([$check->middleware], $excluded) === []) {
+                return false;
+            }
+        }
         $middleware = $router->resolveMiddleware([
             ...$route->gatherMiddleware(),
             ...array_map(static fn (CheckPermission $check): Closure|string => $check->middleware, $this->attributes($route)),
-        ], $route->excludedMiddleware());
+        ], $excluded);
         $prefixes = $this->prefixes($router);
 
         foreach ($middleware as $check) {

@@ -22,6 +22,7 @@ use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Contracts\Translation\Translator;
 use Illuminate\Http\Request;
 use Illuminate\Pipeline\Pipeline;
+use Illuminate\Routing\Events\RouteMatched;
 use Illuminate\Routing\Route;
 use Illuminate\Routing\Router;
 
@@ -111,6 +112,26 @@ final readonly class EnterPanel
                 $this->contexts->set($panel, $previous);
             }
         });
+    }
+
+    /**
+     * A route that never enters a panel still has to run a parent-controller `#[CheckPermission]` that Laravel 13.0–13.4
+     * did not gather. On 13.5+ `missing()` is empty, so this is a no-op.
+     */
+    public function outside(RouteMatched $event): void
+    {
+        $route = $event->route;
+
+        if ($this->checks->panelOf($route) !== null) {
+            return;
+        }
+        $missing = $this->checks->missing($route);
+
+        if ($missing === []) {
+            return;
+        }
+        $route->middleware($missing);
+        $route->computedMiddleware = null;
     }
 
     /**

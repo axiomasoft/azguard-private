@@ -39,9 +39,13 @@ final class PanelContext
     /** @var WeakMap<Job, array{0: Panel|string|null}> the panel to restore, by the job that replaced it */
     private WeakMap $running;
 
+    /** @var WeakMap<Job, mixed> hidden azguard.panel from before Context::hydrate */
+    private WeakMap $hints;
+
     public function __construct(private readonly Container $container)
     {
         $this->running = new WeakMap;
+        $this->hints = new WeakMap;
     }
 
     /**
@@ -64,6 +68,14 @@ final class PanelContext
         } finally {
             $previous === null ? $context->forgetHidden(self::KEY) : $context->addHidden(self::KEY, $previous);
         }
+    }
+
+    /**
+     * Registered before the framework hydrates the job, so the hidden hint is still the caller's, not the payload.
+     */
+    public function snapshot(JobProcessing $event): void
+    {
+        $this->hints[$event->job] = $this->container->make(Repository::class)->getHidden(self::KEY);
     }
 
     /**
@@ -98,5 +110,13 @@ final class PanelContext
 
         $current = $this->container->make(CurrentPanel::class);
         is_string($previous) ? $current->reject($previous) : $current->set($previous);
+
+        if (! $this->hints->offsetExists($event->job)) {
+            return;
+        }
+        $hint = $this->hints[$event->job];
+        unset($this->hints[$event->job]);
+        $context = $this->container->make(Repository::class);
+        $hint === null ? $context->forgetHidden(self::KEY) : $context->addHidden(self::KEY, $hint);
     }
 }

@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Model;
 use ReflectionFunction;
 use ReflectionIntersectionType;
 use ReflectionNamedType;
+use ReflectionParameter;
 use ReflectionType;
 use ReflectionUnionType;
 use RuntimeException;

@@ -51,6 +51,10 @@ final class AuthorizesActions
             }
 
             if ($resource === null) {
+                if ($livewire instanceof Widget && $context->excludes('widgets', $livewire::class)) {
+                    return $otherwise ?? Response::allow();
+                }
+
                 // A widget table has no resource. An empty default response must not allow a row action.
                 return $otherwise ?? ($livewire instanceof Widget ? Response::deny() : Response::allow());
             }
@@ -89,6 +93,10 @@ final class AuthorizesActions
 
             if ($resource !== null && self::changesRelation($action)) {
                 return self::relation($action, $livewire, $resource);
+            }
+
+            if ($resource === null && $livewire instanceof Widget && $context->excludes('widgets', $livewire::class)) {
+                return Response::allow();
             }
 
             return $resource === null ? Response::deny() : FilamentGate::resource($resource, self::exports($action) ? 'view' : self::ability($action), $record);

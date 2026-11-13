@@ -26,12 +26,7 @@ final class RefusesSurfaceCalls
         app()->instance('azguard.filament.widget-guard', true);
         $guard = static function (mixed $component): void {
             if ($component instanceof RelationManager) {
-                $context = FilamentContext::serving();
-
-                if ($context?->enforced() !== true) {
-                    return;
-                }
-                abort_unless(ClassTraits::has($component, AuthorizesRelationManager::class), 403);
+                self::refuseRelationManager($component);
 
                 return;
             }
@@ -47,13 +42,25 @@ final class RefusesSurfaceCalls
         Livewire::listen('hydrate', static fn (mixed $component) => $guard($component));
     }
 
+    private static function refuseRelationManager(object $component): void
+    {
+        $context = FilamentContext::serving();
+
+        if ($context?->enforced() !== true) {
+            return;
+        }
+        $owner = FilamentContext::ownerOf($component);
+
+        if (is_array($owner) && is_string($owner[0]) && $context->excludes('resources', $owner[0])) {
+            return;
+        }
+        abort_unless(ClassTraits::has($component, AuthorizesRelationManager::class), 403);
+    }
+
     public function __invoke(object $component): void
     {
         if ($component instanceof RelationManager) {
-            if (FilamentContext::serving()?->enforced() !== true) {
-                return;
-            }
-            abort_unless(ClassTraits::has($component, AuthorizesRelationManager::class), 403);
+            self::refuseRelationManager($component);
 
             return;
         }
