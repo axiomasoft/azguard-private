@@ -10,67 +10,32 @@ use AzGuard\Laravel\Internal\Http\Middleware\CheckPermission as CheckPermissionM
 use Illuminate\Routing\Attributes\Controllers\Middleware;
 use UnitEnum;
 
-// One class name on every supported Laravel version: from Laravel 13 the router applies the attribute itself as
-// controller middleware; before it `azguard.panel` reads the attribute and adds the same `azguard.can` middleware.
-if (class_exists(Middleware::class)) {
+/**
+ * Requires a permission for a controller action: `azguard.can:{permission}[,{on}]` middleware the router adds.
+ *
+ * On a class it covers every action, narrowed by `only` and `except` as Laravel controller middleware. `on` names
+ * the route parameter that holds the resource or the assignment scope. A denial answers with `status` and
+ * `message` (by default 403 and the standard message) and never explains the decision. On Laravel 13.0–13.4 a parent
+ * controller attribute is still applied by `azguard.panel`, because the router does not walk parent classes there.
+ */
+#[Attribute(Attribute::TARGET_CLASS | Attribute::TARGET_METHOD | Attribute::IS_REPEATABLE)]
+#[Api(since: '1.0')]
+final class CheckPermission extends Middleware
+{
+    use DescribesPermissionCheck;
+
     /**
-     * Requires a permission for a controller action: `azguard.can:{permission}[,{on}]` middleware the router adds.
-     *
-     * On a class it covers every action, narrowed by `only` and `except` as Laravel controller middleware. `on` names
-     * the route parameter that holds the resource or the assignment scope. A denial answers with `status` and
-     * `message` (by default 403 and the standard message) and never explains the decision.
+     * @param  list<string>|null  $only
+     * @param  list<string>|null  $except
      */
-    #[Attribute(Attribute::TARGET_CLASS | Attribute::TARGET_METHOD | Attribute::IS_REPEATABLE)]
-    #[Api(since: '1.0')]
-    final class CheckPermission extends Middleware
-    {
-        use DescribesPermissionCheck;
-
-        /**
-         * @param  list<string>|null  $only
-         * @param  list<string>|null  $except
-         */
-        public function __construct(
-            public UnitEnum|string $permission,
-            public ?string $on = null,
-            public int $status = 403,
-            public ?string $message = null,
-            ?array $only = null,
-            ?array $except = null,
-        ) {
-            parent::__construct(CheckPermissionMiddleware::using($permission, $on), $only, $except);
-        }
-    }
-} else {
-    /**
-     * Requires a permission for a controller action: `azguard.can:{permission}[,{on}]` middleware that
-     * `azguard.panel` adds, since this Laravel version has no controller middleware attributes.
-     *
-     * On a class it covers every action, narrowed by `only` and `except` as Laravel controller middleware. `on` names
-     * the route parameter that holds the resource or the assignment scope. A denial answers with `status` and
-     * `message` (by default 403 and the standard message) and never explains the decision.
-     */
-    #[Attribute(Attribute::TARGET_CLASS | Attribute::TARGET_METHOD | Attribute::IS_REPEATABLE)]
-    #[Api(since: '1.0')]
-    final class CheckPermission
-    {
-        use DescribesPermissionCheck;
-
-        public string $middleware;
-
-        /**
-         * @param  list<string>|null  $only
-         * @param  list<string>|null  $except
-         */
-        public function __construct(
-            public UnitEnum|string $permission,
-            public ?string $on = null,
-            public int $status = 403,
-            public ?string $message = null,
-            public ?array $only = null,
-            public ?array $except = null,
-        ) {
-            $this->middleware = CheckPermissionMiddleware::using($permission, $on);
-        }
+    public function __construct(
+        public UnitEnum|string $permission,
+        public ?string $on = null,
+        public int $status = 403,
+        public ?string $message = null,
+        ?array $only = null,
+        ?array $except = null,
+    ) {
+        parent::__construct(CheckPermissionMiddleware::using($permission, $on), $only, $except);
     }
 }
