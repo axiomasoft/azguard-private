@@ -18437,6 +18437,26 @@
             ],
             "methods": [
                 {
+                    "name": "equals",
+                    "visibility": "public",
+                    "static": false,
+                    "abstract": false,
+                    "final": false,
+                    "parameters": [
+                        {
+                            "name": "other",
+                            "type": "?self",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "bool",
+                    "returnsReference": false,
+                    "namedArguments": true,
+                    "contracts": []
+                },
+                {
                     "name": "of",
                     "visibility": "public",
                     "static": true,

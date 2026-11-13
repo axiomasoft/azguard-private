@@ -38,7 +38,10 @@ final class AzGuardFilamentServiceProvider extends ServiceProvider
         $this->mergeConfigFrom(__DIR__.'/../config/azguard-filament.php', 'azguard-filament');
         $this->app->bindIf(DownloadExport::class, RefusesUnverifiableDownload::class);
         // Before Livewire registers its lifecycle hook, so a refused widget aborts prior to its own boot().
-        $this->app->make('livewire')->componentHook(RefusesWidgetBoot::class);
+        // Applications that do not install Livewire never bind this alias.
+        if ($this->app->bound('livewire')) {
+            $this->app->make('livewire')->componentHook(RefusesWidgetBoot::class);
+        }
     }
 
     public function boot(): void
