@@ -72,6 +72,17 @@
 
 `P31` high, closed. Сравнение актора, субъекта, роли и права шло через `==` / `!=`. Для строк PHP считает `'007' == '7'`, `'10' == '1e1'`, `'1e2' == '100'`. Из-за этого `Change::sameIdentity` принимал подмену актора, `ChangeValidator::actorModel` отдавал модель другого человека, а `GrantWriter::update` не бросал `StaleSelectionException` и писал в чужую строку. Теперь актор сравнивается `ActorRef::equals()` (строгое `===` по полям), субъект, роль и право — через `equals()`. `tests/Feature/Changes` и `tests/Feature/Storage`: 532 passed.
 
+`P33` open, тесты, которые остаются зелёными при сломанном поведении. Это не стиль, это дыры сценариев.
+
+- `tests/Unit/Fuzz/GrammarFuzzTest.php:101` возвращается на `InvalidIdentityException` и не проверяет, что отказ остаётся отказом. Если `canonicalId()` бросает на каждую строку, `expect()` ниже не выполняется.
+- Там же строка 111: пустой `catch` вокруг `assertTypeAlias()`. И no-op, и throw считаются успехом.
+- Там же строка 123: единственный `expect()` для int сидит внутри `catch`. Отказ любого положительного int проглатывается. Возврат невалидной строки как есть проходит `toBe($value)`.
+- `tests/Unit/Fuzz/StateTokenFuzzTest.php:41` делает `return` до round-trip, `$accepted` нигде не проверяется. Парсер, который отвергает все сгенерированные строки, всё равно зелёный.
+- `tests/Feature/Events/AccessDecidedTest.php:93` «reports a failing listener» проверяет только `toBeInstanceOf(Effect::class)`. Любой `Decision` это удовлетворяет.
+- `tests/Feature/Console/ProductionRunbookTest.php:255` после `toBeInstanceOf(ArrayStore::class)` возвращается, если кэш не Redis. Команда retirement не выполняется. На Redis тест сам вызывает `$redis->expire()`, сломанная команда пакета всё равно зелёная.
+- `tests/Feature/Parity/ParityMatrixTest.php:50` при заданном `PARITY_SEEDS` делает `$stored->toBe($stored)`. Неверный ledger unsupported не падает.
+- `tests/Acceptance/Crm/SubjectApiTest.php:81` и `:171`, а также `tests/Feature/Concerns/PublicWrapperTest.php:76`: `catch (ConflictingPanelException) {}` выбрасывает сам факт отказа. Если `hasPermission('backoffice:…')` возвращает значение вместо исключения, дальнейшие проверки `[true, false, true]` всё равно проходят.
+
 `P32` open. `ScopedGrantManager.php:124` приводит курсор `(int) $parts[2]`. Регекс пускает 19 цифр. `9223372036854775808` становится `9223372036854775807`, и следующая страница берёт `id >` этого потолка. Тот же каст в `GrantWriter.php:252` и `ActionWriter.php:115`: id гранта выше `PHP_INT_MAX` обновляет или удаляет другую строку. `GrantInspection.php:58` и `LockedReads.php:230` передают цифровую строку в `where('id')` без проверки диапазона bigint: Postgres роняет транзакцию, MySQL может сматчить другой id выше 2^53. Не чинилось в этом заходе: правка курсора меняет границу страницы, её надо закрывать отдельным тестом на границе int.
 
 Prune журнала дефектом не признан. `JournalPruner::batch` (`JournalPruner.php:62`) берёт не больше 1000 id с `panel = ? AND occurred_at < ?` и удаляет эти первичные ключи. Фильтр панели на select, id уникальны, строки журнала не обновляются, чужая панель остаётся. `--before` только сдвигает границу раньше (`AuditPruneCommand.php:60`). `JournalRow::COLUMNS` совпадает с колонками `audit_log`, которые пишут и проверяют в `AuditSchema`.
