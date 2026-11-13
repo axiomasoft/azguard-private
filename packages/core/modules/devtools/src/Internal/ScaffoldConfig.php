@@ -48,7 +48,14 @@ final readonly class ScaffoldConfig
             if (! is_string($name) || $name === '' || str_contains($name, "\0")) {
                 throw new InvalidConfigurationException('azguard.discovery.'.$kind.' must be a folder name, got '.get_debug_type($name).'.');
             }
-            $folders[$kind] = trim(str_replace('\\', '/', $name), '/');
+            $folder = trim(str_replace('\\', '/', $name), '/');
+
+            foreach (explode('/', $folder) as $segment) {
+                if (preg_match('/\A[A-Za-z_][A-Za-z0-9_]*\z/', $segment) !== 1) {
+                    throw new InvalidConfigurationException('azguard.discovery.'.$kind.' must be a folder of identifier segments, got "'.$name.'".');
+                }
+            }
+            $folders[$kind] = $folder;
         }
 
         return new self(self::namespaceFrom($section['namespace'] ?? 'App\\Guards'), self::pathFrom($section['path'] ?? 'app/Guards'), $folders);
