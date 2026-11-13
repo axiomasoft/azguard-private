@@ -171,7 +171,7 @@ final class LockedReads
     public function grants(string $kind, TenantRef $tenant, SubjectRef $subject, ?string $key, ?AssignmentScopeRef $context, string $origin): array
     {
         $query = $this->partition($kind, $tenant, $origin)->where('subject_type', $subject->type())
-            ->where('subject_id', HostKeyColumns::canonical($this->storage->hostKeys(), $subject->id()));
+            ->where('subject_id', HostKeyColumns::bound($this->storage->hostKeys(), $subject->id()));
 
         if ($key !== null) {
             $query->where($kind, $key);

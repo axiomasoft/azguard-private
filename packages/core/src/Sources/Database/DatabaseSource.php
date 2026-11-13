@@ -820,7 +820,7 @@ final class DatabaseSource implements ChecksHealth, DescribesSchema, FencesReads
         $origins = [];
         foreach (['role_grants', 'permission_grants'] as $table) {
             foreach ($storage->table($table)->where('panel', $panel->id())->where('tenant_key', $tenant->key())
-                ->where('subject_type', $subject->type())->where('subject_id', HostKeyColumns::canonical($storage->hostKeys(), $subject->id()))
+                ->where('subject_type', $subject->type())->where('subject_id', HostKeyColumns::bound($storage->hostKeys(), $subject->id()))
                 ->distinct()->pluck('origin') as $origin) {
                 if (is_string($origin)) {
                     $origins[$origin] = true;
@@ -1308,7 +1308,7 @@ final class DatabaseSource implements ChecksHealth, DescribesSchema, FencesReads
         $storage = $this->resolvedStorage();
         $query = $session->table($kind === 'role_grant' ? 'role_grants' : 'permission_grants')
             ->where('panel', $context->panel()->id())->where('subject_type', $subject->type())
-            ->where('subject_id', HostKeyColumns::canonical($storage->hostKeys(), $subject->id()));
+            ->where('subject_id', HostKeyColumns::bound($storage->hostKeys(), $subject->id()));
 
         if ($contextType !== null) {
             $tenants = [$context->scope()->tenant->key()];

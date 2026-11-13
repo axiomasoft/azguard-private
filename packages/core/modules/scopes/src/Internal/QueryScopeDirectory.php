@@ -304,7 +304,7 @@ final readonly class QueryScopeDirectory implements AssignmentScopeDirectory
             $matchers = 0;
 
             if ($keyCanEqual) {
-                $group->orWhere($model->getQualifiedKeyName(), $term);
+                $group->orWhere($model->getQualifiedKeyName(), ModelKey::isInteger($model) ? (int) $term : $term);
                 $matchers++;
             }
 

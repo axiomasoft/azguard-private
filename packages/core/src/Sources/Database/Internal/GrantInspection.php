@@ -70,7 +70,7 @@ final readonly class GrantInspection
     public function models(string $kind, TenantRef $tenant, string $origin, SubjectRef $subject, ?AssignmentScopeRef $context): array
     {
         $query = $this->partition($kind, $tenant, $origin)->where('subject_type', $subject->type())
-            ->where('subject_id', HostKeyColumns::canonical($this->hostKeys, $subject->id()));
+            ->where('subject_id', HostKeyColumns::bound($this->hostKeys, $subject->id()));
 
         if ($context !== null) {
             $query->where('context_key', $context->key());
@@ -149,7 +149,7 @@ final readonly class GrantInspection
     {
         if ($filter->subject !== null) {
             $query->where('subject_type', $filter->subject->type())
-                ->where('subject_id', HostKeyColumns::canonical($this->hostKeys, $filter->subject->id()));
+                ->where('subject_id', HostKeyColumns::bound($this->hostKeys, $filter->subject->id()));
         }
 
         if ($filter->context instanceof AssignmentScopeRef) {
@@ -173,7 +173,7 @@ final readonly class GrantInspection
         if ($filter->grantedBy !== null) {
             $query->where('actor_type', $filter->grantedBy->type);
             $filter->grantedBy->id === null ? $query->whereNull('actor_id')
-                : $query->where('actor_id', HostKeyColumns::canonical($this->hostKeys, $filter->grantedBy->id));
+                : $query->where('actor_id', HostKeyColumns::bound($this->hostKeys, $filter->grantedBy->id));
         }
     }
 

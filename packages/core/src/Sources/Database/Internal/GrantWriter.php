@@ -131,7 +131,7 @@ final readonly class GrantWriter
             'panel' => $change->panel,
             'tenant_key' => $change->scope->tenant->key(), 'tenant_type' => $change->scope->tenant->type(), 'tenant_id' => $change->scope->tenant->id(),
             $kind => $change->role?->key() ?? $change->permission?->local(),
-            'subject_type' => $subject->type(), 'subject_id' => HostKeyColumns::canonical($this->storage->hostKeys(), $subject->id()),
+            'subject_type' => $subject->type(), 'subject_id' => HostKeyColumns::bound($this->storage->hostKeys(), $subject->id()),
             'context_key' => $change->scope->context->key(), 'context_type' => $change->scope->context->type(), 'context_id' => $change->scope->context->id(),
             'origin' => $change->origin, 'expires_at' => $until === null ? null : self::stamp($until),
             ...$this->actor($change->actor), ...$row['columns'],
@@ -228,7 +228,7 @@ final readonly class GrantWriter
     private function actor(?ActorRef $actor): array
     {
         return ['actor_type' => $actor?->type,
-            'actor_id' => $actor?->id === null ? null : HostKeyColumns::canonical($this->storage->hostKeys(), $actor->id),
+            'actor_id' => $actor?->id === null ? null : HostKeyColumns::bound($this->storage->hostKeys(), $actor->id),
             'actor_reason' => $actor?->reason];
     }
 
