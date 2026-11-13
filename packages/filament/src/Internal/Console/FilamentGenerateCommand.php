@@ -196,8 +196,19 @@ final class FilamentGenerateCommand extends Command
 
             return false;
         }
-        $path = base_path($created[1]);
-        $source = (string) file_get_contents($path);
+        $relative = $created[1];
+        $root = realpath(base_path());
+        $path = base_path($relative);
+        $real = realpath($path);
+
+        if ($root === false || $real === false || str_contains($relative, '..')
+            || ! str_starts_with($real, $root.DIRECTORY_SEPARATOR)) {
+            $this->components->error('The generator path for '.$group['group'].' is outside the application.');
+
+            return false;
+        }
+        $source = (string) file_get_contents($real);
+        $path = $real;
         file_put_contents($path, EnumMarks::add($source, array_map(static fn (string $class): array => ['attribute' => ForFilament::class, 'class' => $class], $group['classes'])));
 
         if ($this->option('with-policy') === true && $authority === 'grants') {

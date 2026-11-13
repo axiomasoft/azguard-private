@@ -88,7 +88,16 @@ final class EligibilityBuilder
             }
         }
         foreach ($query?->get() ?? [] as $row) {
-            $results[$keys[self::witness($row->azguard_batch_witness)]] = true;
+            $key = $keys[self::witness($row->azguard_batch_witness)];
+            [$resolved] = $witnesses[$key];
+            $probe = self::structural($definition);
+            ModelKey::where($probe, $resolved->ref->id());
+            $record = $probe->first();
+
+            // Same owner rule as matches(): the copied tenant on the witness is not the row's tenantOf().
+            if ($record !== null && $definition->tenantOf($record)->equals($resolved->tenant)) {
+                $results[$key] = true;
+            }
         }
 
         return $results;

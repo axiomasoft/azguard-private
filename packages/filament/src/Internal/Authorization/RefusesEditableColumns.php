@@ -53,12 +53,12 @@ final class RefusesEditableColumns
         }
 
         if (! $column instanceof Editable) {
-            return;
+            abort(403);
         }
         $record = $component->getTableRecord((string) $key);
 
         if (! $record instanceof Model) {
-            return;
+            abort(403);
         }
         $column->record($record);
         // Exposed column methods may skip disabled(), so do not dispatch those methods even on a disabled editor.

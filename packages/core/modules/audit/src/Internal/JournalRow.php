@@ -46,7 +46,7 @@ final class JournalRow
     {
         $row = self::of($event);
 
-        foreach (['subject_id', 'actor_id'] as $column) {
+        foreach (['subject_id', 'actor_id', 'tenant_id'] as $column) {
             if (is_int($row[$column]) || is_string($row[$column])) {
                 $row[$column] = $storage->canonicalKey($row[$column]);
             }
