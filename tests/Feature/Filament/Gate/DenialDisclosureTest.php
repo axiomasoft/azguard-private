@@ -29,7 +29,6 @@ use AzGuard\Tests\Fixtures\Filament\Resources\Pages\ListOrders;
 use AzGuard\Tests\Fixtures\Filament\Widgets\OrderCountWidget;
 use Filament\Actions\Testing\TestAction;
 use Filament\Notifications\Livewire\Notifications;
-use Filament\Notifications\NotificationMailbox;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Database\Eloquent\Model;
 use Livewire\Livewire;
@@ -116,7 +115,6 @@ it('keeps the bulk denial notification generic', function (): void {
     GateWorld::serve(GateWorld::grant(['orders.view_any', 'orders.view', 'orders.delete_any', 'orders.delete']));
     $component = Livewire::test(ListOrders::class)->selectTableRecords([1, 4])
         ->callAction(TestAction::make('delete')->table()->bulk());
-    app(NotificationMailbox::class)->flush();
     $notifications = new Notifications;
     $notifications->mount();
     $notifications->pullNotificationsFromSession();
@@ -164,7 +162,6 @@ it('does not disclose exception messages, table names, or source and policy clas
 
     Livewire::test(ListOrders::class)->selectTableRecords([1, 2])
         ->callAction(TestAction::make('delete')->table()->bulk());
-    app(NotificationMailbox::class)->flush();
     $notifications = new Notifications;
     $notifications->mount();
     $notifications->pullNotificationsFromSession();
@@ -185,7 +182,6 @@ it('does not disclose exception messages, table names, or source and policy clas
     SecretThrowingFilamentSource::$throwOnResourceOnly = true;
     Livewire::test(ListOrders::class)->selectTableRecords([1, 2])
         ->callAction(TestAction::make('delete')->table()->bulk());
-    app(NotificationMailbox::class)->flush();
     $sourceNotifications = new Notifications;
     $sourceNotifications->mount();
     $sourceNotifications->pullNotificationsFromSession();
