@@ -44,7 +44,7 @@
 
 `P6` medium, closed. `RefusesEditableColumns` больше не возвращает управление для колонки не `Editable` и для записи не-модели: оба пути `abort(403)`. Выключенная editable-колонка по-прежнему доходит до Livewire и не пишет. `SurfacesTest` и `ForgedCallsTest` зелёные.
 
-`P7` medium, open. `packages/filament/src/Internal/Authorization/AuthorizesActions.php:107`. `DeleteBulkAction`, `ForceDeleteBulkAction` и `RestoreBulkAction` возвращаются раньше проверки явных ключей и построчного abort. Подменённый `action()`, который удаляет `selectedTableRecords` напрямую, может задеть подделанные ключи, которых видимый запрос не возвращал. Штатный процесс Filament выборку фильтрует. Починка: та же проверка согласованности ключей, если callback не потребляет уже авторизованную выборку Filament.
+`P7` medium, closed. Ранний выход bulk-delete остаётся только если callback всё ещё метод `DeleteBulkAction`, `ForceDeleteBulkAction` или `RestoreBulkAction` и `using()` пуст. Подменённый `action()` или `using()` проходит проверку явных ключей. Штатный `V96` по-прежнему удаляет видимые строки и шлёт уведомление. `SurfacesTest` зелёный.
 
 ### Очередь
 

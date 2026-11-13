@@ -7,6 +7,7 @@ namespace AzGuard\Filament;
 use AzGuard\Attributes\Api;
 use AzGuard\Filament\Authorization\FilamentGate;
 use AzGuard\Filament\Internal\Authorization\AuthorizesActions;
+use AzGuard\Filament\Internal\Authorization\FilamentContext;
 use AzGuard\Filament\Internal\Authorization\RefusesEditableColumns;
 use AzGuard\Filament\Internal\Authorization\RefusesSurfaceCalls;
 use AzGuard\Filament\Internal\Console\FilamentGenerateCommand;
@@ -15,8 +16,11 @@ use AzGuard\Filament\Internal\Exports\RefusesUnverifiableDownload;
 use Filament\Actions\Action;
 use Filament\Actions\Events\ActionCalling;
 use Filament\Actions\Exports\Http\Controllers\DownloadExport;
+use Filament\Resources\Pages\ManageRelatedRecords;
+use Filament\Tables\Table;
 use Illuminate\Contracts\Auth\Access\Gate;
 use Illuminate\Contracts\Events\Dispatcher;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Routing\Router;
 use Illuminate\Support\ServiceProvider;
 use Livewire\Livewire;
@@ -42,6 +46,16 @@ final class AzGuardFilamentServiceProvider extends ServiceProvider
         }
 
         Action::configureUsing(AuthorizesActions::configure(...));
+        Table::configureUsing(static function (Table $table): void {
+            if (! $table->getLivewire() instanceof ManageRelatedRecords) {
+                return;
+            }
+            $table->modifyQueryUsing(static function (Builder $query) use ($table): Builder {
+                $resource = FilamentContext::resourceOf($table->getLivewire());
+
+                return $resource === null ? $query : FilamentGate::visible($resource, $query);
+            });
+        });
         $this->app->make(Dispatcher::class)->listen(ActionCalling::class, AuthorizesActions::class);
         $this->app->make(Dispatcher::class)->listen(ActionCalling::class, AuthorizesExports::class);
         Livewire::listen('call', (new RefusesEditableColumns)(...));

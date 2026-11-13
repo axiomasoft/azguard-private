@@ -10,10 +10,8 @@ use AzGuard\Filament\Concerns\AuthorizesRelationManager;
 use AzGuard\Filament\Concerns\AuthorizesWidget;
 use AzGuard\Filament\Internal\Reflection\ClassTraits;
 use Filament\Pages\Page;
-use Filament\Resources\Pages\ManageRelatedRecords;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Widgets\Widget;
-use Illuminate\Database\Eloquent\Builder;
 use Livewire\Livewire;
 
 /** @internal */
@@ -38,11 +36,6 @@ final class RefusesSurfaceCalls
                 return;
             }
 
-            if ($component instanceof ManageRelatedRecords) {
-                self::limitRelatedRecords($component);
-
-                return;
-            }
             $context = $component instanceof Widget ? FilamentContext::serving() : null;
 
             if ($context?->enforced() !== true || $context->excludes('widgets', $component::class)) {
@@ -52,21 +45,6 @@ final class RefusesSurfaceCalls
         };
         Livewire::listen('mount', static fn (mixed $component) => $guard($component));
         Livewire::listen('hydrate', static fn (mixed $component) => $guard($component));
-    }
-
-    /** The related-records page is not a relation manager, so its table does not inherit that visibility modifier. */
-    private static function limitRelatedRecords(ManageRelatedRecords $component): void
-    {
-        $context = FilamentContext::serving();
-        $resource = FilamentContext::resourceOf($component);
-
-        if ($context?->enforced() !== true || $resource === null || $context->excludes('resources', $resource)) {
-            return;
-        }
-
-        $component->getTable()->modifyQueryUsing(static function (Builder $query) use ($resource): Builder {
-            return FilamentGate::visible($resource, $query);
-        });
     }
 
     public function __invoke(object $component): void

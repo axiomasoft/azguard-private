@@ -164,11 +164,12 @@ final readonly class ScopeEligibility
      */
     private function configurations(AssignmentScopeRuntime $runtime, AssignmentScopeDefinition $definition, ResolvedAssignmentScope $resolved): array
     {
-        if ($runtime->role === null && $runtime->grant === null) {
+        if ($runtime->role === null) {
+            // A direct grant still has to pass the definition filters. Visibility already does.
             return [$definition];
         }
 
-        return $runtime->role === null ? [] : $this->bindings($runtime->role, $definition, $resolved);
+        return $this->bindings($runtime->role, $definition, $resolved);
     }
 
     /** @return list<AssignmentScopeDefinition> role bindings of the selected type, checked against the registered definition */

@@ -5,24 +5,30 @@ declare(strict_types=1);
 namespace AzGuard\Filament\Internal\Authorization;
 
 use AzGuard\Filament\Authorization\FilamentGate;
+use Closure;
 use Filament\Actions\Action;
 use Filament\Actions\AssociateAction;
 use Filament\Actions\AttachAction;
 use Filament\Actions\BulkAction;
 use Filament\Actions\Contracts\HasActions;
 use Filament\Actions\CreateAction;
+use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\DetachAction;
 use Filament\Actions\DetachBulkAction;
 use Filament\Actions\DissociateAction;
 use Filament\Actions\DissociateBulkAction;
 use Filament\Actions\ExportAction;
 use Filament\Actions\ExportBulkAction;
+use Filament\Actions\ForceDeleteBulkAction;
 use Filament\Actions\ReplicateAction;
+use Filament\Actions\RestoreBulkAction;
 use Filament\Resources\Resource as FilamentResource;
 use Filament\Tables\Contracts\HasTable;
 use Filament\Widgets\Widget;
 use Illuminate\Auth\Access\Response;
 use Illuminate\Database\Eloquent\Model;
+use ReflectionFunction;
+use ReflectionProperty;
 
 /**
  * Default checks for custom actions, and a fresh check before a bulk callback can consume selected records or keys.
@@ -118,8 +124,9 @@ final class AuthorizesActions
             $action->fetchSelectedRecords();
         }
 
-        if ($livewire->getDefaultActionIndividualRecordAuthorizationResponseResolver($action) !== null) {
-            // Native bulk actions consume Filament's filtered collection and report individual failures.
+        if ($livewire->getDefaultActionIndividualRecordAuthorizationResponseResolver($action) !== null
+            && self::usesFilteredBulkSelection($action)) {
+            // Stock delete, force-delete and restore consume Filament's filtered collection.
             $action->fetchSelectedRecords();
 
             return;
@@ -157,6 +164,27 @@ final class AuthorizesActions
         }
 
         return array_values(array_unique($validated));
+    }
+
+    /** The callback is still Filament's and has no custom `using()` process. */
+    private static function usesFilteredBulkSelection(BulkAction $action): bool
+    {
+        $callback = $action->getActionFunction();
+
+        if (! $callback instanceof Closure) {
+            return false;
+        }
+        $scope = (new ReflectionFunction($callback))->getClosureScopeClass()?->getName();
+
+        if (! in_array($scope, [
+            DeleteBulkAction::class,
+            ForceDeleteBulkAction::class,
+            RestoreBulkAction::class,
+        ], true)) {
+            return false;
+        }
+
+        return (new ReflectionProperty($action, 'using'))->getValue($action) === null;
     }
 
     /** Create and replicate save through the owner relationship, so they are an update of that owner. */
