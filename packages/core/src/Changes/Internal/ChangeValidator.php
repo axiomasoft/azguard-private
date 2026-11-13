@@ -509,7 +509,7 @@ final class ChangeValidator
             return null;
         }
 
-        if ($this->actorModel !== null && $actor == $this->actor) {
+        if ($this->actorModel !== null && $actor->equals($this->actor)) {
             return $this->actorModel;
         }
         $subject = SubjectRef::of($actor->type, $actor->id);

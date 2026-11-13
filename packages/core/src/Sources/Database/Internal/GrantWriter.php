@@ -14,6 +14,8 @@ use AzGuard\Changes\GrantRecord;
 use AzGuard\Exceptions\StaleSelectionException;
 use AzGuard\Exceptions\UnsupportedDirectWriteException;
 use AzGuard\Kernel\Identity\ActorRef;
+use AzGuard\Kernel\Identity\PermissionPattern;
+use AzGuard\Kernel\Identity\RoleKey;
 use AzGuard\Kernel\Identity\SubjectRef;
 use AzGuard\Storage\Internal\Schema\HostKeyColumns;
 use AzGuard\Storage\Internal\Storage;
@@ -164,8 +166,8 @@ final readonly class GrantWriter
     {
         $existing = $this->reads->find($change->grantId ?? '', $change->scope->tenant, $change->origin);
 
-        if ($existing === null || ! $existing->scope->equals($change->scope) || $existing->subject != $change->subject
-            || $existing->role != $change->role || $existing->permission != $change->permission) {
+        if ($existing === null || ! $existing->scope->equals($change->scope) || self::mismatches($existing->subject, $change->subject)
+            || self::mismatches($existing->role, $change->role) || self::mismatches($existing->permission, $change->permission)) {
             throw new StaleSelectionException('The selected grant no longer exists in this panel, tenant and origin.');
         }
 
@@ -245,6 +247,15 @@ final readonly class GrantWriter
     private static function stamp(DateTimeImmutable $moment): string
     {
         return $moment->setTimezone(new DateTimeZone('UTC'))->format('Y-m-d H:i:s');
+    }
+
+    private static function mismatches(SubjectRef|RoleKey|PermissionPattern|null $one, SubjectRef|RoleKey|PermissionPattern|null $other): bool
+    {
+        if ($one === null || $other === null) {
+            return $one !== $other;
+        }
+
+        return $one::class !== $other::class || ! $one->equals($other);
     }
 
     private static function number(string $id): int

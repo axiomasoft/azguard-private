@@ -285,15 +285,40 @@ function builtInCapabilityExecutionErrors(array $coverage): array
     }
 
     $errors = [];
-    foreach ($scenarios as $id => [$file, $name]) {
-        $process = new Process([PHP_BINARY, dirname(__DIR__, 3).'/vendor/bin/pest', __DIR__.'/'.$file,
-            '--filter='.$name, '--fail-on-skipped', '--fail-on-incomplete', '--fail-on-risky', '--fail-on-empty-test-suite'], dirname(__DIR__, 3));
-        $process->setTimeout(120);
-        $process->run();
+    $running = [];
+    $root = dirname(__DIR__, 3);
+    $launch = static function (string $file, string $name) use ($root): Process {
+        $process = new Process([PHP_BINARY, $root.'/vendor/bin/pest', __DIR__.'/'.$file,
+            '--filter='.$name, '--do-not-cache-result', '--fail-on-skipped', '--fail-on-incomplete', '--fail-on-risky', '--fail-on-empty-test-suite'], $root);
+        $process->setTimeout(180);
+        $process->start();
 
-        if (! $process->isSuccessful()) {
-            $errors[] = "$id did not pass: ".$process->getOutput().$process->getErrorOutput();
+        return $process;
+    };
+    foreach ($scenarios as $id => [$file, $name]) {
+        $running[$id] = $launch($file, $name);
+
+        if (count($running) < 4) {
+            continue;
         }
+        $errors = [...$errors, ...capabilityProcesses($running)];
+        $running = [];
+    }
+
+    return [...$errors, ...capabilityProcesses($running)];
+}
+
+/** @param array<string, Process> $running @return list<string> */
+function capabilityProcesses(array $running): array
+{
+    $errors = [];
+    foreach ($running as $id => $process) {
+        $process->wait();
+
+        if ($process->isSuccessful()) {
+            continue;
+        }
+        $errors[] = $id.' did not pass: '.$process->getOutput().$process->getErrorOutput();
     }
 
     return $errors;

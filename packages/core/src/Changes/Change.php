@@ -311,7 +311,7 @@ final readonly class Change
         return $this->type === $other->type && $this->panel === $other->panel && $this->scope->equals($other->scope)
             && self::same($this->subject, $other->subject) && self::same($this->role, $other->role)
             && self::same($this->permission, $other->permission) && $this->origin === $other->origin
-            && $this->actor == $other->actor && $this->grantId === $other->grantId
+            && ($this->actor === null ? $other->actor === null : $this->actor->equals($other->actor)) && $this->grantId === $other->grantId
             && $this->expectedFingerprint === $other->expectedFingerprint && $this->name === $other->name
             && $this->reason === $other->reason && $this->expired === $other->expired && self::same($this->previousRole, $other->previousRole)
             && $this->details?->label === $other->details?->label && $this->details?->group === $other->details?->group
