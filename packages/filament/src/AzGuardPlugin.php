@@ -16,6 +16,7 @@ use AzGuard\Filament\Contracts\FilamentFormExtension;
 use AzGuard\Filament\Internal\Authorization\FilamentContext;
 use AzGuard\Filament\Internal\Authorization\FilamentKeys;
 use AzGuard\Filament\Internal\Authorization\FilamentSurface;
+use AzGuard\Filament\Internal\Reflection\ClassTraits;
 use AzGuard\Filament\Pages\DoctorPage;
 use AzGuard\Filament\Pages\PanelsPage;
 use AzGuard\Filament\Resources\PermissionGrantResource;
@@ -502,7 +503,7 @@ final class AzGuardPlugin implements Plugin
         $file = (new ReflectionClass($trait))->getFileName();
 
         foreach ($methods as $method) {
-            if (! in_array($trait, class_uses_recursive($class), true) || (new ReflectionMethod($class, $method))->getFileName() !== $file) {
+            if (! ClassTraits::has($class, $trait) || (new ReflectionMethod($class, $method))->getFileName() !== $file) {
                 throw InvalidConfigurationException::failing('filament_enforce', $class.' in the Filament panel "'.$panel->getId().'", which enforces its permissions, is not decided by AzGuard: use '
                     .$trait.' and keep its '.implode('() and ', $methods).'()'.($surface === FilamentSurface::Resource ? ' (change the query in modifyEloquentQuery())' : '')
                     .', or exclude the class.');
@@ -527,7 +528,7 @@ final class AzGuardPlugin implements Plugin
             if ($context?->enforced() !== true || $context->excludes('widgets', $component::class)) {
                 return;
             }
-            abort_unless(in_array(AuthorizesWidget::class, class_uses_recursive($component), true), 403);
+            abort_unless(ClassTraits::has($component, AuthorizesWidget::class), 403);
         };
         Livewire::listen('mount', static fn (mixed $component) => $guard($component));
         Livewire::listen('hydrate', static fn (mixed $component) => $guard($component));
@@ -595,7 +596,7 @@ final class AzGuardPlugin implements Plugin
             $class = $relation instanceof RelationManagerConfiguration ? $relation->relationManager : $relation;
 
             foreach (['canViewForRecord', 'getAuthorizationResponse', 'makeTable'] as $method) {
-                if (! in_array($trait, class_uses_recursive($class), true) || (new ReflectionMethod($class, $method))->getFileName() !== $file) {
+                if (! ClassTraits::has($class, $trait) || (new ReflectionMethod($class, $method))->getFileName() !== $file) {
                     throw self::invalid($class.' in an enforced resource must use '.$trait.' and keep its authorization and visibility methods.');
                 }
             }

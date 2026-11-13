@@ -170,13 +170,7 @@ it('keeps oversized authoritative data locally without writing it to the shared 
 });
 
 it('does not deserialize a forged outer value in a serialized array store', function (): void {
-    app('cache')->extend('legacy_array', static fn () => new Repository(new class(true) extends ArrayStore
-    {
-        public function all($unserialize = true)
-        {
-            throw new LogicException('Laravel 12.0 has no all method.');
-        }
-    }));
+    app('cache')->extend('legacy_array', static fn () => new Repository(new class(true) extends ArrayStore {}));
     config(['cache.stores.envelope_serialized' => ['driver' => 'legacy_array'], 'cache.serializable_classes' => null]);
     [, $panel] = AuthorizationWorld::compile(new CacheSource, fn (PanelBuilder $panel) => $panel->cache('envelope_serialized', 60));
     $now = Carbon::now()->toDateTimeImmutable();

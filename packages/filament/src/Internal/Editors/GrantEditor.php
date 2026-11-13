@@ -12,6 +12,8 @@ use AzGuard\Changes\GrantPage;
 use AzGuard\Changes\GrantRecord;
 use AzGuard\Context\AssignmentScopePhase;
 use AzGuard\Contracts\PanelAccess;
+use AzGuard\Contracts\Scopes\AssignmentScopeDirectory;
+use AzGuard\Contracts\Subjects\SubjectDirectory;
 use AzGuard\Directories\LookupContext;
 use AzGuard\Exceptions\InvalidIdentityException;
 use AzGuard\Facades\AzGuard;
@@ -60,15 +62,47 @@ final readonly class GrantEditor
     /**
      * @param  'role'|'permission'  $kind
      * @param  ArrayObject<string, string>  $labels  the labels of the subjects of the page that is shown
+     * @param  array<string, RoleSchema>  $rolesByKey
+     * @param  array<string, PermissionSchema>  $permissionsByLocal
+     * @param  array<string, class-string<Model>>  $subjectModelsByType
+     * @param  ArrayObject<string, AssignmentScopeDirectory>  $scopeDirectories
+     * @param  ArrayObject<int, SubjectDirectory>  $subjectDirectory
      */
-    private function __construct(public PanelAccess $access, public string $kind, private PanelSchema $schema, private ArrayObject $labels) {}
+    private function __construct(
+        public PanelAccess $access,
+        public string $kind,
+        private PanelSchema $schema,
+        private ArrayObject $labels,
+        private array $rolesByKey,
+        private array $permissionsByLocal,
+        private array $subjectModelsByType,
+        private ArrayObject $scopeDirectories,
+        private ArrayObject $subjectDirectory,
+    ) {}
 
     /**
      * @param  'role'|'permission'  $kind
      */
     public static function of(PanelAccess $access, string $kind): self
     {
-        return new self($access, $kind, $access->schema(), new ArrayObject);
+        $schema = $access->schema();
+        $roles = [];
+        $permissions = [];
+        $subjects = [];
+
+        foreach ($schema->roles() as $role) {
+            $roles[$role->key->key()] ??= $role;
+        }
+
+        foreach ($schema->permissions() as $permission) {
+            $permissions[$permission->key->local()] ??= $permission;
+        }
+
+        foreach ($schema->subjects() as $type) {
+            $subjects[$type->type] ??= $type->model;
+        }
+
+        return new self($access, $kind, $schema, new ArrayObject, $roles, $permissions, $subjects, new ArrayObject, new ArrayObject);
     }
 
     public function schema(): PanelSchema
@@ -439,36 +473,20 @@ final readonly class GrantEditor
 
     private function role(string $key): ?RoleSchema
     {
-        foreach ($this->schema->roles() as $role) {
-            if ($role->key->key() === $key) {
-                return $role;
-            }
-        }
-
-        return null;
+        return $this->rolesByKey[$key] ?? null;
     }
 
     private function permission(string $local): ?PermissionSchema
     {
-        foreach ($this->schema->permissions() as $permission) {
-            if ($permission->key->local() === $local) {
-                return $permission;
-            }
-        }
-
-        return null;
+        return $this->permissionsByLocal[$local] ?? null;
     }
 
     /** The model of a subject, by the subject model the schema names for its type. */
     private function subjectModel(SubjectRef $subject): ?Model
     {
-        foreach ($this->schema->subjects() as $type) {
-            if ($type->type === $subject->type()) {
-                return ModelKey::find($type->model::query(), $subject->id());
-            }
-        }
+        $model = $this->subjectModelsByType[$subject->type()] ?? null;
 
-        return null;
+        return $model === null ? null : ModelKey::find($model::query(), $subject->id());
     }
 
     private function subjectRef(?string $key): ?SubjectRef
@@ -502,7 +520,9 @@ final readonly class GrantEditor
     private function describeContext(AssignmentScopeRef $context, LookupContext $lookup): string
     {
         try {
-            return $this->access->directories()->scopes((string) $context->type())->describe($context, $lookup)?->label ?? $context->key();
+            $type = (string) $context->type();
+
+            return ($this->scopeDirectories[$type] ??= $this->access->directories()->scopes($type))->describe($context, $lookup)?->label ?? $context->key();
         } catch (Throwable) {
             // The type of an orphaned grant may be gone from the panel; the row is still shown for cleanup.
             return $context->key();
@@ -514,7 +534,7 @@ final readonly class GrantEditor
     {
         $key = $subject->key();
 
-        $this->labels[$key] ??= $this->access->directories()->subjects()->describe($subject, $lookup)?->label ?? $key;
+        $this->labels[$key] ??= ($this->subjectDirectory[0] ??= $this->access->directories()->subjects())->describe($subject, $lookup)?->label ?? $key;
 
         return $this->labels[$key];
     }

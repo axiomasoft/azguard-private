@@ -26,7 +26,6 @@ use Illuminate\Contracts\Cache\Factory;
 use Illuminate\Redis\Connections\PhpRedisConnection;
 use Illuminate\Redis\Connections\PredisConnection;
 use Illuminate\Support\Carbon;
-use ReflectionProperty;
 use Throwable;
 use UnexpectedValueException;
 
@@ -284,8 +283,8 @@ final class PermissionSetCache
     /** @return array{value: mixed, expiresAt: float|int}|null */
     private function arrayItem(ArrayStore $store, string $key): ?array
     {
-        // Laravel 12.0 has no all(false); get() may deserialize before MAC verification.
-        $storage = (new ReflectionProperty(ArrayStore::class, 'storage'))->getValue($store);
+        // all(false) is the raw store. get() may deserialize before the MAC check.
+        $storage = $store->all(false);
 
         if (! is_array($storage)) {
             throw new UnexpectedValueException('Invalid array cache storage.');

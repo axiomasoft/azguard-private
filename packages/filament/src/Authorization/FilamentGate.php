@@ -9,6 +9,7 @@ use AzGuard\Exceptions\InvalidConfigurationException;
 use AzGuard\Exceptions\UnknownPermissionException;
 use AzGuard\Exceptions\VisibilityNotSupportedException;
 use AzGuard\Filament\Internal\Authorization\FilamentContext;
+use AzGuard\Filament\Internal\Reflection\ClassTraits;
 use AzGuard\Kernel\Decision\AccessRequest;
 use AzGuard\Kernel\Identity\PermissionKey;
 use AzGuard\Laravel\Gate\GateBridge;
@@ -88,7 +89,7 @@ final class FilamentGate
                 }
                 $query = $record->newQuery()->useWritePdo();
 
-                if (in_array(SoftDeletes::class, class_uses_recursive($record), true)
+                if (ClassTraits::has($record, SoftDeletes::class)
                     && in_array(FilamentContext::ability($action), ['restore', 'force_delete'], true)) {
                     $query->withoutGlobalScope(SoftDeletingScope::class);
                 }

@@ -10,6 +10,7 @@ use AzGuard\Exceptions\InvalidConfigurationException;
 use AzGuard\Facades\AzGuard;
 use AzGuard\Filament\AzGuardPlugin;
 use AzGuard\Filament\Concerns\AuthorizesResource;
+use AzGuard\Filament\Internal\Reflection\ClassTraits;
 use AzGuard\Kernel\Identity\SubjectRef;
 use AzGuard\Support\ModelKey;
 use BackedEnum;
@@ -244,7 +245,7 @@ final readonly class FilamentContext
      */
     public static function authorizes(string $resource): bool
     {
-        return is_subclass_of($resource, FilamentResource::class) && in_array(AuthorizesResource::class, class_uses_recursive($resource), true);
+        return is_subclass_of($resource, FilamentResource::class) && ClassTraits::has($resource, AuthorizesResource::class);
     }
 
     private static function filament(): bool
