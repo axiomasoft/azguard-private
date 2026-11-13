@@ -106,11 +106,12 @@ final readonly class AuthorityStage
         $qualified = false;
         $permission = $request->permission()->local();
         $wildcards = [];
+        $roleCovers = [];
         [$frame, $denial, $count] = $this->walk($request, $frame, $catalog, $trace,
-            function (Source $source, Grant|RoleContribution $item, ?array $roleDefinition) use ($permission, $trace, &$matching, &$superAdmin, &$qualified, &$wildcards): void {
+            function (Source $source, Grant|RoleContribution $item, ?array $roleDefinition) use ($permission, $trace, &$matching, &$superAdmin, &$qualified, &$wildcards, &$roleCovers): void {
                 $admin = $item instanceof RoleContribution && $this->superAdmin($roleDefinition);
                 // Exact patterns are a lookup, as in permissionSet(); only wildcards are matched.
-                $covers = self::covers($permission, $item, $roleDefinition, $wildcards);
+                $covers = self::covers($permission, $item, $roleDefinition, $wildcards, $roleCovers);
 
                 if ($admin || $covers) {
                     $qualified = true;
@@ -281,8 +282,9 @@ final readonly class AuthorityStage
      *
      * @param  CompiledRole|null  $role
      * @param  array<string, list<string>>  $wildcards
+     * @param  array<string, bool>  $roleCovers  whether this decision's permission is already known to match the role
      */
-    private static function covers(string $permission, Grant|RoleContribution $item, ?array $role, array &$wildcards): bool
+    private static function covers(string $permission, Grant|RoleContribution $item, ?array $role, array &$wildcards, array &$roleCovers): bool
     {
         if ($item instanceof Grant) {
             return PatternMatcher::coversValidated($item->pattern->local(), $permission);
@@ -292,17 +294,21 @@ final readonly class AuthorityStage
             return false;
         }
 
+        if (array_key_exists($role['key'], $roleCovers)) {
+            return $roleCovers[$role['key']];
+        }
+
         if (in_array($permission, $role['permissions'], true)) {
-            return true;
+            return $roleCovers[$role['key']] = true;
         }
         $wildcards[$role['key']] ??= array_values(array_filter($role['permissions'], static fn (string $pattern): bool => str_ends_with($pattern, '*')));
         foreach ($wildcards[$role['key']] as $pattern) {
             if (PatternMatcher::coversValidated($pattern, $permission)) {
-                return true;
+                return $roleCovers[$role['key']] = true;
             }
         }
 
-        return false;
+        return $roleCovers[$role['key']] = false;
     }
 
     /** @param CompiledRole|null $role */

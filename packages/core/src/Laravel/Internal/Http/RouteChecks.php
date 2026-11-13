@@ -32,6 +32,15 @@ final class RouteChecks
 {
     private const array LARAVEL_CHECKS = ['can:', Authorize::class.':'];
 
+    /** @var array<string, list<CheckPermission>> attribute lists do not depend on the route instance */
+    private array $attributeCache = [];
+
+    /** @var array<int, list<mixed>> resolved gathered middleware for one route object */
+    private array $gatheredCache = [];
+
+    /** @var list<mixed>|null */
+    private ?array $checkPrefixes = null;
+
     /**
      * The permission attributes that apply to the action of the route; none for a closure route.
      *
@@ -45,6 +54,11 @@ final class RouteChecks
             return [];
         }
         [$class, $method] = $action;
+        $cacheKey = $class->getName().'::'.$method->getName();
+
+        if (isset($this->attributeCache[$cacheKey])) {
+            return $this->attributeCache[$cacheKey];
+        }
         $lineage = [];
 
         for ($current = $class; $current !== false; $current = $current->getParentClass()) {
@@ -62,7 +76,7 @@ final class RouteChecks
             }
         }
 
-        return $attributes;
+        return $this->attributeCache[$cacheKey] = $attributes;
     }
 
     /**
@@ -74,7 +88,7 @@ final class RouteChecks
     {
         $router = app(Router::class);
         $excluded = $route->excludedMiddleware();
-        $gathered = $router->resolveMiddleware($route->gatherMiddleware(), $excluded);
+        $gathered = $this->gathered($route);
         $missing = [];
 
         foreach ($this->attributes($route) as $check) {
@@ -124,7 +138,7 @@ final class RouteChecks
             ...$route->gatherMiddleware(),
             ...array_map(static fn (CheckPermission $check): Closure|string => $check->middleware, $this->attributes($route)),
         ], $route->excludedMiddleware());
-        $prefixes = $router->resolveMiddleware([CheckPermissionMiddleware::ALIAS.':', 'can:']);
+        $prefixes = $this->prefixes($router);
 
         foreach ($middleware as $check) {
             if (! is_string($check)) {
@@ -148,13 +162,27 @@ final class RouteChecks
     {
         $prefix = EnterPanel::class.':';
 
-        foreach (app(Router::class)->resolveMiddleware($route->gatherMiddleware(), $route->excludedMiddleware()) as $middleware) {
+        foreach ($this->gathered($route) as $middleware) {
             if (is_string($middleware) && str_starts_with($middleware, $prefix)) {
                 return substr($middleware, strlen($prefix));
             }
         }
 
         return null;
+    }
+
+    /** @return list<mixed> */
+    private function gathered(Route $route): array
+    {
+        $id = spl_object_id($route);
+
+        return $this->gatheredCache[$id] ??= app(Router::class)->resolveMiddleware($route->gatherMiddleware(), $route->excludedMiddleware());
+    }
+
+    /** @return list<mixed> */
+    private function prefixes(Router $router): array
+    {
+        return $this->checkPrefixes ??= $router->resolveMiddleware([CheckPermissionMiddleware::ALIAS.':', 'can:']);
     }
 
     private function skipped(Route $route): bool

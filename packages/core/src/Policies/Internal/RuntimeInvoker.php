@@ -25,7 +25,7 @@ final readonly class RuntimeInvoker
         $closure = Closure::fromCallable($callback);
         $named = [];
         $used = [];
-        foreach ((new ReflectionFunction($closure))->getParameters() as $position => $parameter) {
+        foreach (self::parameters($callback, $closure) as $position => $parameter) {
             $name = $parameter->getName();
             $slot = array_key_exists($name, $inputs) ? $name : null;
             $before = array_key_exists('ability', $inputs) && array_key_exists('user', $inputs);
@@ -87,6 +87,35 @@ final readonly class RuntimeInvoker
         }
 
         return $this->container->call($closure, $named);
+    }
+
+    /**
+     * Parameter metadata of a class method is stable. The closure that actually runs stays the one just built, so a
+     * cached signature cannot call the first policy instance again. Fresh closures are not stored.
+     *
+     * @return list<ReflectionParameter>
+     */
+    private static function parameters(callable $callback, Closure $closure): array
+    {
+        $key = null;
+
+        if (is_array($callback)) {
+            $target = is_object($callback[0]) ? $callback[0]::class : $callback[0];
+            $key = $target.'::'.$callback[1];
+        } elseif (is_string($callback)) {
+            $key = $callback;
+        } elseif (is_object($callback) && ! $callback instanceof Closure) {
+            $key = $callback::class.'::__invoke';
+        }
+
+        if ($key === null) {
+            return (new ReflectionFunction($closure))->getParameters();
+        }
+
+        /** @var array<string, ReflectionFunction> $functions */
+        static $functions = [];
+
+        return ($functions[$key] ??= new ReflectionFunction($closure))->getParameters();
     }
 
     private function accepts(?ReflectionType $type, mixed $value): bool
