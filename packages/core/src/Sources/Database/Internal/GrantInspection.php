@@ -50,12 +50,12 @@ final readonly class GrantInspection
     /** A stored grant by id inside the panel, tenant and origin, whatever its state; a foreign id is not found. */
     public function find(TenantRef $tenant, string $origin, string $id): ?GrantRecord
     {
-        if (preg_match('/\A(role|permission):([1-9][0-9]{0,18})\z/', $id, $parts) !== 1) {
+        if (preg_match('/\A(role|permission):([1-9][0-9]{0,18})\z/', $id, $parts) !== 1 || (string) (int) $parts[2] !== $parts[2]) {
             return null;
         }
         /** @var 'role'|'permission' $kind */
         $kind = $parts[1];
-        $row = $this->partition($kind, $tenant, $origin)->where('id', $parts[2])->first();
+        $row = $this->partition($kind, $tenant, $origin)->where('id', (int) $parts[2])->first();
 
         return $row === null ? null : $this->rows->record($kind, $row);
     }
