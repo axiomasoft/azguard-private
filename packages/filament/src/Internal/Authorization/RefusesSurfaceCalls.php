@@ -6,9 +6,11 @@ namespace AzGuard\Filament\Internal\Authorization;
 
 use AzGuard\Filament\Authorization\FilamentGate;
 use AzGuard\Filament\Concerns\AuthorizesPage;
+use AzGuard\Filament\Concerns\AuthorizesRelationManager;
 use AzGuard\Filament\Concerns\AuthorizesWidget;
 use AzGuard\Filament\Internal\Reflection\ClassTraits;
 use Filament\Pages\Page;
+use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Widgets\Widget;
 use Livewire\Livewire;
 
@@ -23,6 +25,16 @@ final class RefusesSurfaceCalls
         }
         app()->instance('azguard.filament.widget-guard', true);
         $guard = static function (mixed $component): void {
+            if ($component instanceof RelationManager) {
+                $context = FilamentContext::serving();
+
+                if ($context?->enforced() !== true) {
+                    return;
+                }
+                abort_unless(ClassTraits::has($component, AuthorizesRelationManager::class), 403);
+
+                return;
+            }
             $context = $component instanceof Widget ? FilamentContext::serving() : null;
 
             if ($context?->enforced() !== true || $context->excludes('widgets', $component::class)) {
@@ -36,6 +48,15 @@ final class RefusesSurfaceCalls
 
     public function __invoke(object $component): void
     {
+        if ($component instanceof RelationManager) {
+            if (FilamentContext::serving()?->enforced() !== true) {
+                return;
+            }
+            abort_unless(ClassTraits::has($component, AuthorizesRelationManager::class), 403);
+
+            return;
+        }
+
         if ((! $component instanceof Widget && ! $component instanceof Page) || FilamentContext::serving()?->enforced() !== true) {
             return;
         }

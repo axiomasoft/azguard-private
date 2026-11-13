@@ -12,6 +12,7 @@ use Illuminate\Database\Connection;
 use Illuminate\Database\DatabaseManager;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Schema\ColumnDefinition;
+use InvalidArgumentException;
 
 /**
  * Identity columns of a table a module owns on an AzGuard storage, with the same types, lengths, byte semantics and
@@ -48,6 +49,11 @@ final class IdentityColumns
      */
     public static function scopeConstraint(StorageDescriptor $storage, string $table, string $short, string $scope): void
     {
+        foreach (['table' => $table, 'short' => $short, 'scope' => $scope] as $label => $value) {
+            if (preg_match('/\A[a-z][a-z0-9_]*\z/', $value) !== 1) {
+                throw new InvalidArgumentException('A scope constraint '.$label.' must be a lowercase identifier.');
+            }
+        }
         $key = $scope.'_key';
         $type = $scope.'_type';
         $id = $scope.'_id';
