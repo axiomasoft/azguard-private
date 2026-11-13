@@ -80,6 +80,8 @@
 
 `P37` open. Попытка гонять фильтры определения на прямом гранте удвоила вызов: `RuntimeInputsTest` требует один проход с `grant === null`. `decide()` и `visibleTo()` по-прежнему могут разойтись, если фильтр смотрит на `grant`. Это решение продукта, не тихая правка.
 
+`P40` held. Одинаковые на вид куски не склеены, потому что общее тело меняет проверку. `FolderSource::pairedEnum` не требует string-backed enum, `PanelDiscovery::policyFor` требует и пишет другое сообщение. `PermissionsGrantCommand` передаёт в `panelFor` права, `RolesGrantCommand` передаёт роли. Общий `handle()` легко подставит не тот каталог.
+
 `P38` closed. `QueryScopeDirectory::match()` сравнивает ключ только если `ModelKey::canHold()`. `05` больше не ищется как id 5.
 
 `P39` closed. `covered()` возвращает false, если middleware атрибута исключён и `resolveMiddleware` даёт пустой список. `can:view` больше не делает strict mode «покрытым». Нестрогий тест с `assertOk()` на исключённой проверке не читает `covered()` и остаётся зелёным. `RouteChecksTest` зелёный.

@@ -11,7 +11,7 @@ use AzGuard\Changes\Change;
 use AzGuard\Changes\ChangeResult;
 use AzGuard\Changes\Internal\ChangePipeline;
 use AzGuard\Context\Internal\ContextIdentity;
-use AzGuard\Context\Internal\CurrentContext;
+use AzGuard\Context\Internal\RequiredTenant;
 use AzGuard\Contracts\Scopes\ProvidesAccessScope;
 use AzGuard\Exceptions\AssignmentScopeNotAcceptedException;
 use AzGuard\Exceptions\ConflictingPanelException;
@@ -444,17 +444,7 @@ final readonly class SubjectAccess
     /** @throws TenantRequiredException */
     private function requiredTenant(): TenantRef
     {
-        $tenant = $this->tenant ?? app(CurrentContext::class)->get($this->panel)?->tenant;
-
-        if ($tenant !== null) {
-            return $tenant;
-        }
-
-        if ($this->panel->tenants()->mode() === TenantMode::None) {
-            return TenantRef::global();
-        }
-
-        throw new TenantRequiredException('Panel '.$this->panel->id().' has tenants: choose one with inTenant(); nothing is read or changed across tenants.');
+        return RequiredTenant::of($this->panel, $this->tenant);
     }
 
     /**

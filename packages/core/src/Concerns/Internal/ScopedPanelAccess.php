@@ -10,6 +10,7 @@ use AzGuard\Changes\Internal\ChangePipeline;
 use AzGuard\Changes\Internal\PanelManagers;
 use AzGuard\Concerns\SubjectAccess;
 use AzGuard\Context\Internal\CurrentContext;
+use AzGuard\Context\Internal\RequiredTenant;
 use AzGuard\Contracts\Catalog\PermissionCatalog;
 use AzGuard\Contracts\Changes\GrantManager;
 use AzGuard\Contracts\Changes\PermissionManager;
@@ -36,7 +37,6 @@ use AzGuard\Panels\Panel;
 use AzGuard\Schema\Internal\SchemaBuilder;
 use AzGuard\Schema\PanelSchema;
 use AzGuard\Tenancy\Internal\TenantIdentity;
-use AzGuard\Tenancy\TenantMode;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Database\Eloquent\Model;
 
@@ -203,16 +203,6 @@ final readonly class ScopedPanelAccess implements PanelAccess
     /** @throws TenantRequiredException */
     private function requiredTenant(): TenantRef
     {
-        $tenant = $this->tenant ?? app(CurrentContext::class)->get($this->panel)?->tenant;
-
-        if ($tenant !== null) {
-            return $tenant;
-        }
-
-        if ($this->panel->tenants()->mode() === TenantMode::None) {
-            return TenantRef::global();
-        }
-
-        throw new TenantRequiredException('Panel '.$this->panel->id().' has tenants: choose one with inTenant(); nothing is read or changed across tenants.');
+        return RequiredTenant::of($this->panel, $this->tenant);
     }
 }

@@ -433,22 +433,14 @@ final class Storage
     public function verifySchema(): void
     {
         $expected = $this->schema();
-        $found = null;
 
         try {
-            $row = $this->table('storage_state')->where('id', 1)->first();
-
-            if ($row !== null) {
-                $found = is_string($row->schema) ? json_decode($row->schema, true, flags: JSON_THROW_ON_ERROR) : null;
-            }
+            $found = StoredSchema::decoded($this->table('storage_state')->where('id', 1)->first());
         } catch (QueryException|JsonException $error) {
-            throw new StorageMismatchException('Storage '.$this->id.' expected '.json_encode($expected).'; cannot read storage_state: '.$error->getMessage(), 0, $error);
+            StoredSchema::unreadable($this->id, $expected, $error);
         }
 
-        if (! is_array($found) || count($found) !== count($expected)
-            || array_filter($expected, static fn (int|string $value, string $key): bool => ($found[$key] ?? null) !== $value, ARRAY_FILTER_USE_BOTH) !== []) {
-            throw new StorageMismatchException('Storage '.$this->id.' expected '.json_encode($expected).'; found '.json_encode($found).'.');
-        }
+        StoredSchema::matches($this->id, $expected, $found);
     }
 
     private function lockPanel(string $panel): PanelState
