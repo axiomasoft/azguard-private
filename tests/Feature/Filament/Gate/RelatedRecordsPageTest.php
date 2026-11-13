@@ -30,6 +30,14 @@ beforeEach(function (): void {
     $this->ids = fn (): array => $this->order->products()->pluck('products.id')->sort()->values()->all();
 });
 
+it('hides a secret related record on the page the same way a relation manager does', function (): void {
+    GateWorld::serve(GateWorld::grant(['orders.view_any', 'orders.view', 'orders.update', 'products.view_any', 'products.view']));
+    $this->order->products()->sync([1, 2]);
+
+    ($this->page)()->assertCanSeeTableRecords(Product::query()->whereKey(1)->get())
+        ->assertCanNotSeeTableRecords(Product::query()->whereKey(2)->get());
+});
+
 it('refuses to change the relation on the page with read grants alone', function (): void {
     GateWorld::serve(GateWorld::grant(['orders.view_any', 'orders.view', 'products.view_any', 'products.view']));
     $page = ($this->page)();

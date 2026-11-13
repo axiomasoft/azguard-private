@@ -36,7 +36,7 @@
 
 ### Filament
 
-`P3` high, open. `packages/filament/src/Internal/Authorization/FilamentContext.php:161` и `packages/filament/src/Concerns/AuthorizesRelationManager.php:40`. `ManageRelatedRecords` авторизуется как связанный ресурс, но `FilamentGate::visible()` вешает только relation manager. Сценарий: у заказа 1 видны товар 1 и секретный товар 2; у пользователя есть `orders.view`, `products.view_any` и `products.view`. `ProductsRelationManager` показывает одну строку. `ManageOrderProducts` показывает товар 2, и его можно отцепить. Починка: тот же `visible()` на таблице страницы связанных записей.
+`P3` high, closed. На mount и hydrate страницы `ManageRelatedRecords` таблица получает тот же `FilamentGate::visible()`, что relation manager. `RelatedRecordsPageTest` прячет секретный товар 2 и показывает товар 1. Было: `P3` high, open. `packages/filament/src/Internal/Authorization/FilamentContext.php:161` и `packages/filament/src/Concerns/AuthorizesRelationManager.php:40`. `ManageRelatedRecords` авторизуется как связанный ресурс, но `FilamentGate::visible()` вешает только relation manager. Сценарий: у заказа 1 видны товар 1 и секретный товар 2; у пользователя есть `orders.view`, `products.view_any` и `products.view`. `ProductsRelationManager` показывает одну строку. `ManageOrderProducts` показывает товар 2, и его можно отцепить. Починка: тот же `visible()` на таблице страницы связанных записей.
 
 `P4` medium, closed. `AuthorizesPage::bootAuthorizesPage()` делает `abort_unless(canAccess(), 403)` в boot, до `mount()`. `PanelsAndDoctorPagesTest` зелёный: без права страница 403, с правом doctor открывается.
 
@@ -66,7 +66,7 @@
 
 ### Хранилище и журнал
 
-`P11` low, open. `packages/core/src/Storage/Schema/IdentityColumns.php:61`. `scopeConstraint()` подставляет `$scope`, `$short` и выведенные имена колонок в сырой DDL. Имя таблицы и ограничения обёрнуты, предикат `CHECK` нет. На SQLite не обёрнуты список `UPDATE OF` и литерал `RAISE`. `AuditSchema` передаёт только константы `audit_log`, `al` и `tenant`, из запроса это сегодня не достать. Вызывающий, который прокинет настроенные scope или short (публичный SPI принимает эти строки), вырывается из оператора. Починка: принимать у `$table`, `$short` и `$scope` только `[a-z][a-z0-9_]*`, кавычить каждую колонку и собирать сообщение SQLite кавыченным литералом.
+`P11` low, partly closed. `scopeConstraint()` отвергает table, short и scope, если это не `[a-z][a-z0-9_]*`, до склейки SQL. Константы `audit_log` / `al` / `tenant` по-прежнему проходят и дают тот же DDL. Кавычки внутри предиката не менялись, чтобы не разойтись со снимками схемы. Было: `P11` low, open. `packages/core/src/Storage/Schema/IdentityColumns.php:61`. `scopeConstraint()` подставляет `$scope`, `$short` и выведенные имена колонок в сырой DDL. Имя таблицы и ограничения обёрнуты, предикат `CHECK` нет. На SQLite не обёрнуты список `UPDATE OF` и литерал `RAISE`. `AuditSchema` передаёт только константы `audit_log`, `al` и `tenant`, из запроса это сегодня не достать. Вызывающий, который прокинет настроенные scope или short (публичный SPI принимает эти строки), вырывается из оператора. Починка: принимать у `$table`, `$short` и `$scope` только `[a-z][a-z0-9_]*`, кавычить каждую колонку и собирать сообщение SQLite кавыченным литералом.
 
 `P12` low, closed. `JournalRow::stored()` прогоняет `canonicalKey()` и для `tenant_id`, рядом с subject и actor. `null` по-прежнему пропускается. `AuditPluginTest` зелёный.
 
@@ -80,7 +80,7 @@
 
 `P37` open. `ScopeVisibility::narrow()` применяет фильтры определения к runtime вклада, а `ScopeEligibility::configurations()` для прямого гранта эти фильтры не гоняет. `decide()` пускает строку, `visibleTo()` её убирает. Сигнатуры можно не менять, но ответы видимости и решения разойдутся, пока фильтр не общий.
 
-`P38` open. `QueryScopeDirectory::search()` на цифровой строке `05` делает `orWhere(key, '05')`. MySQL, PostgreSQL и SQLite приводят её к id 5. `ModelKey::canHold('05')` и `describe()` эту строку отвергают. Поиск возвращает чужой id.
+`P38` closed. `QueryScopeDirectory::match()` сравнивает ключ только если `ModelKey::canHold()`. `05` больше не ищется как id 5.
 
 `P39` open. Strict mode: на действии есть `#[CheckPermission('orders.update')]` и ещё `can:view`. Исключение `withoutMiddleware('azguard.can')` выкидывает атрибут из `missing()`, а `covered()` остаётся true из-за `can:`. Действие выполняется только с `can:view`. Без лишнего `can:` strict mode даёт 403.
 
@@ -95,7 +95,7 @@
 - `tests/Feature/Parity/ParityMatrixTest.php:50` при заданном `PARITY_SEEDS` делает `$stored->toBe($stored)`. Неверный ledger unsupported не падает.
 - `tests/Acceptance/Crm/SubjectApiTest.php:81` и `:171`, а также `tests/Feature/Concerns/PublicWrapperTest.php:76`: `catch (ConflictingPanelException) {}` выбрасывает сам факт отказа. Если `hasPermission('backoffice:…')` возвращает значение вместо исключения, дальнейшие проверки `[true, false, true]` всё равно проходят.
 
-`P32` open. `ScopedGrantManager.php:124` приводит курсор `(int) $parts[2]`. Регекс пускает 19 цифр. `9223372036854775808` становится `9223372036854775807`, и следующая страница берёт `id >` этого потолка. Тот же каст в `GrantWriter.php:252` и `ActionWriter.php:115`: id гранта выше `PHP_INT_MAX` обновляет или удаляет другую строку. `GrantInspection.php:58` и `LockedReads.php:230` передают цифровую строку в `where('id')` без проверки диапазона bigint: Postgres роняет транзакцию, MySQL может сматчить другой id выше 2^53. Не чинилось в этом заходе: правка курсора меняет границу страницы, её надо закрывать отдельным тестом на границе int.
+`P32` partly closed. `GrantWriter::number`, `ActionWriter::number` и курсор `ScopedGrantManager::decode` отвергают цифровую строку, которая не равна `(string) (int)`. Id выше `PHP_INT_MAX` больше не пишется и не листается как соседний int. `GrantInspection` и `LockedReads` всё ещё отдают сырую строку в `where('id')`. Было: `P32` open. `ScopedGrantManager.php:124` приводит курсор `(int) $parts[2]`. Регекс пускает 19 цифр. `9223372036854775808` становится `9223372036854775807`, и следующая страница берёт `id >` этого потолка. Тот же каст в `GrantWriter.php:252` и `ActionWriter.php:115`: id гранта выше `PHP_INT_MAX` обновляет или удаляет другую строку. `GrantInspection.php:58` и `LockedReads.php:230` передают цифровую строку в `where('id')` без проверки диапазона bigint: Postgres роняет транзакцию, MySQL может сматчить другой id выше 2^53. Не чинилось в этом заходе: правка курсора меняет границу страницы, её надо закрывать отдельным тестом на границе int.
 
 Prune журнала дефектом не признан. `JournalPruner::batch` (`JournalPruner.php:62`) берёт не больше 1000 id с `panel = ? AND occurred_at < ?` и удаляет эти первичные ключи. Фильтр панели на select, id уникальны, строки журнала не обновляются, чужая панель остаётся. `--before` только сдвигает границу раньше (`AuditPruneCommand.php:60`). `JournalRow::COLUMNS` совпадает с колонками `audit_log`, которые пишут и проверяют в `AuditSchema`.
 
