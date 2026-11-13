@@ -72,8 +72,14 @@ final class AuthorizesActions
             $ability = self::ability($action);
             $bulkQuery = $action instanceof BulkAction && $livewire instanceof HasTable && $livewire->getTable()->hasQuery();
 
-            return $otherwise ?? FilamentGate::resource($resource, $bulkQuery && ! str_ends_with($ability, '_any') ? $ability.'_any' : $ability,
+            $decision = FilamentGate::resource($resource, $bulkQuery && ! str_ends_with($ability, '_any') ? $ability.'_any' : $ability,
                 $record instanceof Model && ! self::exports($action) ? $record : null);
+
+            if (! $decision->allowed()) {
+                return $decision;
+            }
+
+            return ($otherwise !== null && ! $otherwise->allowed()) ? $otherwise : $decision;
         });
 
         if (! $action instanceof BulkAction) {

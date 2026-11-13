@@ -133,6 +133,15 @@ it('lets the policy of a model decide in the guarded panel', function (): void {
         ->and(Gate::forUser($member)->check('viewAny', Order::class))->toBeTrue();
 });
 
+it('does not let a policy without the ability allow that Filament check', function (): void {
+    Gate::policy(Order::class, OrderDeleteOnlyPolicy::class);
+    $member = User::query()->findOrFail(1);
+    GateWorld::serve($member);
+
+    expect(FilamentGate::before($member, 'viewAny', [Order::class]))->toBeFalse()
+        ->and(FilamentGate::before($member, 'delete', [Order::class]))->toBeNull();
+});
+
 it('refuses at boot a resource, page or widget that AzGuard does not decide while the panel enforces', function (array $fixture, string $class): void {
     foreach ($fixture as $property => $value) {
         FilamentFixture::${$property} = $value;
@@ -164,6 +173,14 @@ it('boots a panel with such classes when it does not enforce or excludes them', 
 final class OrderGatePolicy
 {
     public function viewAny(): bool
+    {
+        return true;
+    }
+}
+
+final class OrderDeleteOnlyPolicy
+{
+    public function delete(): bool
     {
         return true;
     }

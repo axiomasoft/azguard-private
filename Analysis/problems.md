@@ -80,6 +80,8 @@
 
 `P37` open. Попытка гонять фильтры определения на прямом гранте удвоила вызов: `RuntimeInputsTest` требует один проход с `grant === null`. `decide()` и `visibleTo()` по-прежнему могут разойтись, если фильтр смотрит на `grant`. Это решение продукта, не тихая правка.
 
+`P41` high, closed. `FilamentGate::before()` возвращал null, если у модели была любая политика, даже без метода этой способности. Filament тогда разрешал проверку. Теперь null только если способность зарегистрирована в Gate или политика объявляет `before` либо сам метод. Иначе false. Действие enforced-ресурса больше не обходит `FilamentGate::resource()`, когда ответ Filament по умолчанию непустой: запрет любого из двух побеждает. `ResourcesTest` фиксирует политику только с `delete`.
+
 `P40` held. Одинаковые на вид куски не склеены, потому что общее тело меняет проверку. `FolderSource::pairedEnum` не требует string-backed enum, `PanelDiscovery::policyFor` требует и пишет другое сообщение. `PermissionsGrantCommand` передаёт в `panelFor` права, `RolesGrantCommand` передаёт роли. Общий `handle()` легко подставит не тот каталог.
 
 `P38` closed. `QueryScopeDirectory::match()` сравнивает ключ только если `ModelKey::canHold()`. `05` больше не ищется как id 5.

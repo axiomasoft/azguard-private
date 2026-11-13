@@ -27,6 +27,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 use Throwable;
 use UnitEnum;
 
@@ -214,7 +215,19 @@ final class FilamentGate
         };
         $gate = app(Gate::class);
 
-        return $model === null || $gate->has($ability) || $gate->getPolicyFor($model) !== null ? null : false;
+        if ($model === null || $gate->has($ability)) {
+            return null;
+        }
+        $policy = $gate->getPolicyFor($model);
+
+        if ($policy === null) {
+            return false;
+        }
+
+        // A policy that does not define this ability must not fall through to Filament's allow.
+        $method = str_contains($ability, '-') ? Str::camel($ability) : $ability;
+
+        return method_exists($policy, 'before') || method_exists($policy, $method) ? null : false;
     }
 
     /**
