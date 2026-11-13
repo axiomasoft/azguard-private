@@ -46,6 +46,7 @@ final class AzGuardFilamentServiceProvider extends ServiceProvider
         $this->app->make(Dispatcher::class)->listen(ActionCalling::class, AuthorizesExports::class);
         Livewire::listen('call', (new RefusesEditableColumns)(...));
         Livewire::listen('call', (new RefusesSurfaceCalls)(...));
+        RefusesSurfaceCalls::guardWidgets();
         $this->app->booted($this->repeatPanelEntryOnLivewireUpdates(...));
         $this->app->booted($this->refuseUnownedFilamentChecks(...));
     }

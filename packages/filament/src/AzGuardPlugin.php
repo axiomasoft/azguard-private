@@ -16,6 +16,7 @@ use AzGuard\Filament\Contracts\FilamentFormExtension;
 use AzGuard\Filament\Internal\Authorization\FilamentContext;
 use AzGuard\Filament\Internal\Authorization\FilamentKeys;
 use AzGuard\Filament\Internal\Authorization\FilamentSurface;
+use AzGuard\Filament\Internal\Authorization\RefusesSurfaceCalls;
 use AzGuard\Filament\Internal\Reflection\ClassTraits;
 use AzGuard\Filament\Pages\DoctorPage;
 use AzGuard\Filament\Pages\PanelsPage;
@@ -40,12 +41,10 @@ use Filament\Resources\RelationManagers\RelationGroup;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Resources\RelationManagers\RelationManagerConfiguration;
 use Filament\Resources\Resource;
-use Filament\Widgets\Widget;
 use Illuminate\Auth\Access\Response;
 use Illuminate\Contracts\Config\Repository;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
-use Livewire\Livewire;
 use ReflectionClass;
 use ReflectionMethod;
 
@@ -66,9 +65,6 @@ use ReflectionMethod;
 #[Api(since: '1.0')]
 final class AzGuardPlugin implements Plugin
 {
-    /** The container key that marks the widget guard as registered for this application. */
-    private const string WIDGET_GUARD = 'azguard.filament.widget-guard';
-
     public const string ID = 'azguard';
 
     /** Alias of the middleware that enters a panel. */
@@ -518,20 +514,7 @@ final class AzGuardPlugin implements Plugin
      */
     private static function guardWidgets(): void
     {
-        if (app()->bound(self::WIDGET_GUARD)) {
-            return;
-        }
-        app()->instance(self::WIDGET_GUARD, true);
-        $guard = static function (mixed $component): void {
-            $context = $component instanceof Widget ? FilamentContext::serving() : null;
-
-            if ($context?->enforced() !== true || $context->excludes('widgets', $component::class)) {
-                return;
-            }
-            abort_unless(ClassTraits::has($component, AuthorizesWidget::class), 403);
-        };
-        Livewire::listen('mount', static fn (mixed $component) => $guard($component));
-        Livewire::listen('hydrate', static fn (mixed $component) => $guard($component));
+        RefusesSurfaceCalls::guardWidgets();
     }
 
     /**

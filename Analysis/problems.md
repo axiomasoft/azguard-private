@@ -72,6 +72,18 @@
 
 `P31` high, closed. Сравнение актора, субъекта, роли и права шло через `==` / `!=`. Для строк PHP считает `'007' == '7'`, `'10' == '1e1'`, `'1e2' == '100'`. Из-за этого `Change::sameIdentity` принимал подмену актора, `ChangeValidator::actorModel` отдавал модель другого человека, а `GrantWriter::update` не бросал `StaleSelectionException` и писал в чужую строку. Теперь актор сравнивается `ActorRef::equals()` (строгое `===` по полям), субъект, роль и право — через `equals()`. `tests/Feature/Changes` и `tests/Feature/Storage`: 532 passed.
 
+`P34` high, closed. `AuthorizesActions` больше не берёт первый непустой ответ `otherwise ?? owner`. `CreateAction` и `ReplicateAction` на записи владельца требуют `update` владельца и ответ связанного ресурса одновременно. У виджета без ресурса пустой ответ по умолчанию это deny, не allow. Сторож виджетов без трейта регистрируется из `AzGuardFilamentServiceProvider::boot()`, а не из boot первой панели процесса. Gate-тесты: 148 passed. Два теста `DenialDisclosureTest` падают на отсутствующий `Filament\Notifications\NotificationMailbox` в этом окружении, на строке flush, не на решении.
+
+`P35` medium, open. `AuthorizesWidget::canView()` не останавливает собственный `boot()` виджета: Livewire вызывает `boot()` класса раньше хука трейта, а `Livewire::listen('mount')` ещё позже. Виджет без `widgets.{name}` может удалить или прочитать строку и только потом получить 403.
+
+`P36` medium, open. Глобальный scope тенанта Filament вешается из `Panel::boot()`. `bootCurrentPanel()` поднимает одну панель на процесс. Если первым загрузилась панель без плагина, enforced-панель этого процесса не регистрирует scope, и запросы ресурса не режутся тенантом.
+
+`P37` open. `ScopeVisibility::narrow()` применяет фильтры определения к runtime вклада, а `ScopeEligibility::configurations()` для прямого гранта эти фильтры не гоняет. `decide()` пускает строку, `visibleTo()` её убирает. Сигнатуры можно не менять, но ответы видимости и решения разойдутся, пока фильтр не общий.
+
+`P38` open. `QueryScopeDirectory::search()` на цифровой строке `05` делает `orWhere(key, '05')`. MySQL, PostgreSQL и SQLite приводят её к id 5. `ModelKey::canHold('05')` и `describe()` эту строку отвергают. Поиск возвращает чужой id.
+
+`P39` open. Strict mode: на действии есть `#[CheckPermission('orders.update')]` и ещё `can:view`. Исключение `withoutMiddleware('azguard.can')` выкидывает атрибут из `missing()`, а `covered()` остаётся true из-за `can:`. Действие выполняется только с `can:view`. Без лишнего `can:` strict mode даёт 403.
+
 `P33` open, тесты, которые остаются зелёными при сломанном поведении. Это не стиль, это дыры сценариев.
 
 - `tests/Unit/Fuzz/GrammarFuzzTest.php:101` возвращается на `InvalidIdentityException` и не проверяет, что отказ остаётся отказом. Если `canonicalId()` бросает на каждую строку, `expect()` ниже не выполняется.

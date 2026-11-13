@@ -10,14 +10,17 @@ use Filament\Actions\AssociateAction;
 use Filament\Actions\AttachAction;
 use Filament\Actions\BulkAction;
 use Filament\Actions\Contracts\HasActions;
+use Filament\Actions\CreateAction;
 use Filament\Actions\DetachAction;
 use Filament\Actions\DetachBulkAction;
 use Filament\Actions\DissociateAction;
 use Filament\Actions\DissociateBulkAction;
 use Filament\Actions\ExportAction;
 use Filament\Actions\ExportBulkAction;
+use Filament\Actions\ReplicateAction;
 use Filament\Resources\Resource as FilamentResource;
 use Filament\Tables\Contracts\HasTable;
+use Filament\Widgets\Widget;
 use Illuminate\Auth\Access\Response;
 use Illuminate\Database\Eloquent\Model;
 
@@ -37,12 +40,23 @@ final class AuthorizesActions
             $context = FilamentContext::serving();
             $resource = FilamentContext::resourceOf($livewire);
 
-            if ($context?->enforced() !== true || $resource === null || $context->excludes('resources', $resource)) {
+            if ($context?->enforced() !== true || ($resource !== null && $context->excludes('resources', $resource))) {
                 return $otherwise ?? Response::allow();
             }
 
-            if (self::changesRelation($action)) {
-                return $otherwise ?? self::relation($action, $livewire, $resource);
+            if ($resource === null) {
+                // A widget table has no resource. An empty default response must not allow a row action.
+                return $otherwise ?? ($livewire instanceof Widget ? Response::deny() : Response::allow());
+            }
+
+            if (self::changesRelation($action) || (self::writesOwnerRow($action) && FilamentContext::ownerOf($livewire) !== null)) {
+                $owner = self::relation($action, $livewire, $resource);
+
+                if (! $owner->allowed()) {
+                    return $owner;
+                }
+
+                return ($otherwise !== null && ! $otherwise->allowed()) ? $otherwise : ($otherwise ?? $owner);
             }
             $record = $action->getRecord();
             $ability = self::ability($action);
@@ -143,6 +157,12 @@ final class AuthorizesActions
         }
 
         return array_values(array_unique($validated));
+    }
+
+    /** Create and replicate save through the owner relationship, so they are an update of that owner. */
+    private static function writesOwnerRow(Action $action): bool
+    {
+        return $action instanceof CreateAction || $action instanceof ReplicateAction;
     }
 
     /** Whether the action links or unlinks the record of another resource to the record that owns the relation. */
