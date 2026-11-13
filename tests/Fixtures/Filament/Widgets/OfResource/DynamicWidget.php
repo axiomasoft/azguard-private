@@ -9,7 +9,14 @@ use Filament\Widgets\Widget;
 /** A widget that no panel, resource or configuration lists: a page returns it at run time. */
 final class DynamicWidget extends Widget
 {
+    public static int $booted = 0;
+
     protected static bool $isLazy = false;
 
     protected string $view = 'azguard-fixtures::widget';
+
+    public function boot(): void
+    {
+        self::$booted++;
+    }
 }

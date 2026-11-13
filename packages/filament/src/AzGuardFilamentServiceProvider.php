@@ -10,12 +10,15 @@ use AzGuard\Filament\Internal\Authorization\AuthorizesActions;
 use AzGuard\Filament\Internal\Authorization\FilamentContext;
 use AzGuard\Filament\Internal\Authorization\RefusesEditableColumns;
 use AzGuard\Filament\Internal\Authorization\RefusesSurfaceCalls;
+use AzGuard\Filament\Internal\Authorization\RefusesWidgetBoot;
 use AzGuard\Filament\Internal\Console\FilamentGenerateCommand;
 use AzGuard\Filament\Internal\Exports\AuthorizesExports;
 use AzGuard\Filament\Internal\Exports\RefusesUnverifiableDownload;
 use Filament\Actions\Action;
 use Filament\Actions\Events\ActionCalling;
 use Filament\Actions\Exports\Http\Controllers\DownloadExport;
+use Filament\Events\ServingFilament;
+use Filament\Facades\Filament;
 use Filament\Resources\Pages\ManageRelatedRecords;
 use Filament\Tables\Table;
 use Illuminate\Contracts\Auth\Access\Gate;
@@ -34,6 +37,8 @@ final class AzGuardFilamentServiceProvider extends ServiceProvider
     {
         $this->mergeConfigFrom(__DIR__.'/../config/azguard-filament.php', 'azguard-filament');
         $this->app->bindIf(DownloadExport::class, RefusesUnverifiableDownload::class);
+        // Before Livewire registers its lifecycle hook, so a refused widget aborts prior to its own boot().
+        $this->app->make('livewire')->componentHook(RefusesWidgetBoot::class);
     }
 
     public function boot(): void
@@ -61,6 +66,17 @@ final class AzGuardFilamentServiceProvider extends ServiceProvider
         Livewire::listen('call', (new RefusesEditableColumns)(...));
         Livewire::listen('call', (new RefusesSurfaceCalls)(...));
         RefusesSurfaceCalls::guardWidgets();
+        $this->app->make('events')->listen(ServingFilament::class, static function (): void {
+            $panel = Filament::getCurrentPanel();
+
+            if ($panel === null || ! $panel->hasTenancy()) {
+                return;
+            }
+
+            foreach ($panel->getResources() as $resource) {
+                $resource::registerTenancyModelGlobalScope($panel);
+            }
+        });
         $this->app->booted($this->repeatPanelEntryOnLivewireUpdates(...));
         $this->app->booted($this->refuseUnownedFilamentChecks(...));
     }

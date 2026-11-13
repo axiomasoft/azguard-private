@@ -74,7 +74,7 @@
 
 `P34` high, closed. `AuthorizesActions` больше не берёт первый непустой ответ `otherwise ?? owner`. `CreateAction` и `ReplicateAction` на записи владельца требуют `update` владельца и ответ связанного ресурса одновременно. У виджета без ресурса пустой ответ по умолчанию это deny, не allow. Сторож виджетов без трейта регистрируется из `AzGuardFilamentServiceProvider::boot()`, а не из boot первой панели процесса. Gate-тесты: 148 passed. Два теста `DenialDisclosureTest` падают на отсутствующий `Filament\Notifications\NotificationMailbox` в этом окружении, на строке flush, не на решении.
 
-`P35` medium, open. `AuthorizesWidget::canView()` не останавливает собственный `boot()` виджета: Livewire вызывает `boot()` класса раньше хука трейта, а `Livewire::listen('mount')` ещё позже. Виджет без `widgets.{name}` может удалить или прочитать строку и только потом получить 403.
+`P35` medium, closed. `RefusesWidgetBoot` регистрируется до хука жизненного цикла Livewire. Отказ происходит до `boot()` класса. `ResourceWidgetsTest` проверяет, что запрещённый виджет не увеличивает счётчик boot, а исключённый виджет увеличивает.
 
 `P36` medium, open. Глобальный scope тенанта Filament вешается из `Panel::boot()`. `bootCurrentPanel()` поднимает одну панель на процесс. Если первым загрузилась панель без плагина, enforced-панель этого процесса не регистрирует scope, и запросы ресурса не режутся тенантом.
 
