@@ -48,5 +48,5 @@ adapter (`membership=0`). Real CRM membership freshness is checked by CRM accept
 No latency pass threshold is invented; the SQL query budgets are executable assertions.
 
 Primary sources for the fixture:
-- [PostgreSQL 16 pg_basebackup](https://www.postgresql.org/docs/16/app-pgbasebackup.html)
-- [PostgreSQL 16 recovery control and WAL LSN functions](https://www.postgresql.org/docs/16/functions-admin.html)
+- [PostgreSQL 18 pg_basebackup](https://www.postgresql.org/docs/18/app-pgbasebackup.html)
+- [PostgreSQL 18 recovery control and WAL LSN functions](https://www.postgresql.org/docs/18/functions-admin.html)

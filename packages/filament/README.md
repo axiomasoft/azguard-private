@@ -7,7 +7,7 @@ The Filament 5 plugin for [AzGuard](https://github.com/axiomasoft/azguard):
 - editors for role grants, permission grants and runtime permissions.
 
 The 2.0 line requires Filament `^5.8.4` and the exact same core package version (`self.version`).
-Supported pairs are PHP 8.3/8.4 with Laravel 12 and PHP 8.3/8.4/8.5 with Laravel 13, each resolved with
+Supported pairs are PHP 8.3, 8.4 and 8.5 with Laravel 13, each resolved with
 lowest and latest dependencies in CI. SQL visibility that cannot represent an authorization rule fails closed;
 filtering a paginated collection afterwards does not implement authorization.
 

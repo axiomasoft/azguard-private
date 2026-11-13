@@ -21,7 +21,7 @@ if [[ -n "$verify" ]]; then
     [[ -n "$report" ]] || report="$verify/candidate.json"
     php -r '
         $expected=[];
-        foreach (["8.3-12","8.3-13","8.4-12","8.4-13","8.5-13"] as $pair)
+        foreach (["8.3-13","8.4-13","8.5-13"] as $pair)
             foreach (["lowest","latest"] as $policy)
                 foreach (["core","core-only","relocated-audit"] as $composition)
                     $expected["$pair-$policy-$composition"]=true;
@@ -64,7 +64,7 @@ fi
 [[ -n "$source_ref" && ( -n "$output" || -n "$report" ) ]] || { echo 'Use --source=worktree or --source=<40 SHA>, --report=FILE or --output=DIR, optionally --version=VERSION, --deps=lowest,latest and --pair=PHP-LARAVEL' >&2; exit 2; }
 [[ "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z]+([.-][0-9A-Za-z]+)*)?$ ]] || { echo "Invalid version: $version" >&2; exit 2; }
 case "$deps" in lowest,latest|latest,lowest) ;; *) echo "Expected both dependency policies, lowest,latest: $deps" >&2; exit 2 ;; esac
-case "$pair" in ''|8.3-12|8.3-13|8.4-12|8.4-13|8.5-13) ;; *) echo "Unsupported pair: $pair" >&2; exit 2 ;; esac
+case "$pair" in ''|8.3-13|8.4-13|8.5-13) ;; *) echo "Unsupported pair: $pair" >&2; exit 2 ;; esac
 commit="$(git -C "$root" rev-parse HEAD)"
 tree="$(git -C "$root" rev-parse HEAD^{tree})"
 if [[ "$source_ref" != worktree ]]; then
@@ -102,10 +102,10 @@ else
     git -C "$root" cat-file blob "$source_ref:$fixture" > "$tmp/source/$fixture"
 fi
 php -r '
-    $rows=[]; foreach (["8.3-12","8.3-13","8.4-12","8.4-13","8.5-13"] as $p) foreach (["lowest","latest"] as $d) foreach (["core","core-only","relocated-audit"] as $c) $rows[]=["id"=>"$p-$d-$c","result"=>"pending"];
+    $rows=[]; foreach (["8.3-13","8.4-13","8.5-13"] as $p) foreach (["lowest","latest"] as $d) foreach (["core","core-only","relocated-audit"] as $c) $rows[]=["id"=>"$p-$d-$c","result"=>"pending"];
     file_put_contents($argv[1],json_encode(["qualification"=>"nonrelease","version"=>$argv[5],"source"=>["mode"=>$argv[2],"commit"=>$argv[3],"tree"=>$argv[4]],"rows"=>$rows],JSON_PRETTY_PRINT|JSON_UNESCAPED_SLASHES)."\n");
 ' "$report" "$source_ref" "$commit" "$tree" "$version"
-pairs=(8.3-12 8.3-13 8.4-12 8.4-13 8.5-13)
+pairs=(8.3-13 8.4-13 8.5-13)
 [[ -z "$pair" ]] || pairs=("$pair")
 for current in "${pairs[@]}"; do
     php_version="${current%-*}" laravel="${current#*-}"

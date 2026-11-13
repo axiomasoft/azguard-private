@@ -502,7 +502,7 @@ final readonly class GrantEditor
     private function describeContext(AssignmentScopeRef $context, LookupContext $lookup): string
     {
         try {
-            return $this->access->directories()->scopes((string) $context->type())->describe($context, $lookup)->label ?? $context->key();
+            return $this->access->directories()->scopes((string) $context->type())->describe($context, $lookup)?->label ?? $context->key();
         } catch (Throwable) {
             // The type of an orphaned grant may be gone from the panel; the row is still shown for cleanup.
             return $context->key();
@@ -514,7 +514,7 @@ final readonly class GrantEditor
     {
         $key = $subject->key();
 
-        $this->labels[$key] ??= $this->access->directories()->subjects()->describe($subject, $lookup)->label ?? $key;
+        $this->labels[$key] ??= $this->access->directories()->subjects()->describe($subject, $lookup)?->label ?? $key;
 
         return $this->labels[$key];
     }

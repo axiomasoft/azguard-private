@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "efe275431feca737b401488cbd10aea8",
+    "content-hash": "dab505816da5d8cdb2b02ed29da0de6e",
     "packages": [
         {
             "name": "anourvalar/eloquent-serialize",
@@ -77,19 +77,19 @@
             "dist": {
                 "type": "path",
                 "url": "packages/core",
-                "reference": "0edaf86bf5c12eb8cbd1403c512530fc166dd255"
+                "reference": "abeb1ddace46cb6e7a65500b3a68315c1d06aacb"
             },
             "require": {
-                "illuminate/auth": "^12.0|^13.0",
-                "illuminate/console": "^12.0|^13.0",
-                "illuminate/contracts": "^12.0|^13.0",
-                "illuminate/database": "^12.0|^13.0",
-                "illuminate/filesystem": "^12.0|^13.0",
-                "illuminate/http": "^12.0|^13.0",
-                "illuminate/log": "^12.0|^13.0",
-                "illuminate/queue": "^12.0|^13.0",
-                "illuminate/routing": "^12.0|^13.0",
-                "illuminate/support": "^12.0|^13.0",
+                "illuminate/auth": "^13.0",
+                "illuminate/console": "^13.0",
+                "illuminate/contracts": "^13.0",
+                "illuminate/database": "^13.0",
+                "illuminate/filesystem": "^13.0",
+                "illuminate/http": "^13.0",
+                "illuminate/log": "^13.0",
+                "illuminate/queue": "^13.0",
+                "illuminate/routing": "^13.0",
+                "illuminate/support": "^13.0",
                 "php": "^8.3"
             },
             "suggest": {
@@ -137,7 +137,9 @@
                 "roles"
             ],
             "support": {
+                "email": "dv.vostrikov@gmail.com",
                 "issues": "https://github.com/axiomasoft/azguard/issues",
+                "security": "https://github.com/axiomasoft/azguard-private/blob/main/SECURITY.md",
                 "source": "https://github.com/axiomasoft/azguard"
             },
             "transport-options": {
@@ -150,7 +152,7 @@
             "dist": {
                 "type": "path",
                 "url": "packages/filament",
-                "reference": "0f66716b358276a8606bc5bb84b6dbf2b97641df"
+                "reference": "5f4441d38bd65afc031bea1bd4184186f949aff1"
             },
             "require": {
                 "axiomasoft/azguard": "self.version",
@@ -193,7 +195,9 @@
                 "roles"
             ],
             "support": {
+                "email": "dv.vostrikov@gmail.com",
                 "issues": "https://github.com/axiomasoft/azguard/issues",
+                "security": "https://github.com/axiomasoft/azguard-private/blob/main/SECURITY.md",
                 "source": "https://github.com/axiomasoft/azguard"
             },
             "transport-options": {

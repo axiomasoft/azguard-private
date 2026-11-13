@@ -65,7 +65,7 @@ def compose_container(service, port, target_port, tmpfs=None, volume=None):
                  and bool(labels.get('com.docker.compose.project')))
         bound = len(ports) == 1 and ports[0]['HostIp'] == '127.0.0.1' and ports[0]['HostPort'] == str(port)
         disposable = tmpfs is None or tmpfs in (container['HostConfig'].get('Tmpfs') or {})
-        data_path = tmpfs or ('/data' if service == 'redis' else '/var/lib/postgresql/data')
+        data_path = tmpfs or ('/data' if service == 'redis' else '/var/lib/postgresql')
         # A nested bind/volume can mask tmpfs, including a nested PGDATA directory.
         mounts = [m for m in container.get('Mounts', [])
                   if Path(m['Destination']) == Path(data_path)
@@ -101,7 +101,7 @@ def server_probe(driver, host, port, database):
         return 'failed', 'database must be a non-production *_test name'
     cid, reason = compose_container(driver if driver != 'pgsql' else 'postgres', port,
                                     '5432' if driver == 'pgsql' else '3306',
-                                    '/var/lib/postgresql/data' if driver == 'pgsql' else '/var/lib/mysql')
+                                    '/var/lib/postgresql' if driver == 'pgsql' else '/var/lib/mysql')
     if not cid:
         return 'unavailable', reason
     # Probe the same host endpoint, credentials and exact worker database used by TestCase.

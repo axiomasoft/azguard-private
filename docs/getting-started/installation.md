@@ -1,7 +1,7 @@
 # Installation
 
-For 2.0, use PHP 8.3/8.4 with Laravel 12 or PHP 8.3/8.4/8.5 with Laravel 13. Other Laravel majors are unsupported.
-The [compatibility policy](../reference/compatibility.md#supported-platforms) records the five CI pairs and server lanes.
+For 2.0, use PHP 8.3, 8.4 or 8.5 with Laravel 13. Other Laravel majors are unsupported.
+The [compatibility policy](../reference/compatibility.md#supported-platforms) records the three CI pairs and server lanes.
 For an existing installation, follow [upgrading to 2.0](../guides/upgrading-2.md) before running migrations.
 
 The current work is local to the monorepo; neither package is being split or published. The Composer command below

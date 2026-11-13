@@ -11,7 +11,7 @@ bash bin/consumer-fixture.sh                      # core archive, Laravel 13
 bash bin/consumer-fixture.sh --with-filament      # core and Filament archives
 bash bin/consumer-fixture.sh core-only            # the core archive without modules/ (no Scopes, Audit, DevTools)
 bash bin/consumer-fixture.sh relocated-audit      # Audit moved to its own archive in an application with journal rows
-bash bin/consumer-fixture.sh --laravel=12 --version=2.0.0-rc.1 --keep
+bash bin/consumer-fixture.sh --laravel=13 --version=2.0.0-rc.1 --keep
 ```
 
 | Option | Meaning |

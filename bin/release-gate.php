@@ -98,17 +98,14 @@ function releaseGateErrors(array $data): array
 
     $expected = [];
     foreach (['8.3', '8.4', '8.5'] as $php) {
-        foreach (['12', '13'] as $laravel) {
-            if ($php === '8.5' && $laravel === '12') {
-                continue;
-            }
+        foreach (['13'] as $laravel) {
             foreach (['prefer-lowest', 'prefer-stable'] as $stability) {
                 $expected[] = "php{$php}-laravel{$laravel}-{$stability}";
             }
         }
     }
-    foreach (['pgsql', 'mysql', 'mariadb'] as $db) {
-        foreach (['12', '13'] as $laravel) {
+    foreach (['pgsql', 'mysql'] as $db) {
+        foreach (['13'] as $laravel) {
             $expected[] = "db-{$db}-laravel{$laravel}";
         }
     }

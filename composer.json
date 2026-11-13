@@ -20,8 +20,8 @@
         "brianium/paratest": "^7.20",
         "pestphp/pest": "^4.7",
         "livewire/livewire": "^4.4.6",
-        "orchestra/testbench": "^10.0|^11.0",
-        "orchestra/testbench-core": "^10.10|^11.0",
+        "orchestra/testbench": "^11.0",
+        "orchestra/testbench-core": "^11.0",
         "phpstan/phpstan": "^2.0",
         "larastan/larastan": "^3.0",
         "pestphp/pest-plugin-type-coverage": "^4.0",
@@ -55,7 +55,7 @@
     },
     "scripts": {
         "test": "php -d memory_limit=1G vendor/bin/pest --fail-on-skipped --exclude-group=engines --exclude-group=redis --exclude-group=replica --exclude-group=extended --exclude-group=mysql-engines",
-        "test:parallel": "vendor/bin/pest --fail-on-skipped --exclude-group=stand --parallel --processes=4 --passthru-php='-d memory_limit=1G'",
+        "test:parallel": "vendor/bin/pest --fail-on-skipped --exclude-group=engines --exclude-group=redis --exclude-group=replica --exclude-group=extended --exclude-group=mysql-engines --parallel --processes=4 --passthru-php='-d memory_limit=1G'",
         "test:changed": [
             "Composer\\Config::disableProcessTimeout",
             "@php bin/test-changed.php"

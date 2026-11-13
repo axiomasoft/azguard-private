@@ -56,14 +56,12 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        connection: [pgsql, mysql, mariadb]
+        connection: [pgsql, mysql]
         include:
           - connection: pgsql
             service: postgres
           - connection: mysql
             service: mysql
-          - connection: mariadb
-            service: mariadb
     env:
       PGSQL_PORT: 5432
       MYSQL_PORT: 3306

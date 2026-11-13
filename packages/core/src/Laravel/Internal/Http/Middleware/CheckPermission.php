@@ -83,9 +83,9 @@ final readonly class CheckPermission
         if ($decision === null || ! $decision->allowed()) {
             $route = $request->route();
             $attribute = $route instanceof Route ? $this->checks->attributeFor($route, self::ALIAS.':'.$permission.($on === null ? '' : ','.$on)) : null;
-            $message = $attribute->message ?? $this->translator->get('azguard::http.forbidden');
+            $message = $attribute?->message ?? $this->translator->get('azguard::http.forbidden');
 
-            Response::deny(is_string($message) ? $message : null, $decision?->reason->value)->withStatus($attribute->status ?? 403)->authorize();
+            Response::deny(is_string($message) ? $message : null, $decision?->reason->value)->withStatus($attribute?->status ?? 403)->authorize();
         }
 
         return $next($request);

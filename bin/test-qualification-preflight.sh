@@ -124,12 +124,12 @@ volume = {'authority-primary': 'authority_primary_test', 'authority-replica': 'a
 print(json.dumps([{'Config': {'Labels': {'com.docker.compose.service': service,
     'com.docker.compose.project': 'fixture', 'com.docker.compose.project.working_dir': os.environ.get('FIXTURE_WORKDIR', os.getcwd()),
     'com.docker.compose.project.config_files': os.getcwd()+'/docker-compose.yml', 'com.docker.compose.config-hash': 'canonical'},
-    'Env': ['PGDATA=/var/lib/postgresql/data']},
+    'Env': ['PGDATA=/var/lib/postgresql/18/docker']},
     'NetworkSettings': {'Ports': {target_port+'/tcp': [{'HostIp': '127.0.0.1', 'HostPort': host_port}]}, 'Networks': {'fixture': {'IPAddress': '172.18.0.2'}}},
     'State': {'Status': 'running', 'Health': {'Status': 'healthy'}},
-    'Mounts': ([{'Destination': '/var/lib/postgresql/data', 'Type': 'volume', 'Name': volume}] if volume else
+    'Mounts': ([{'Destination': '/var/lib/postgresql', 'Type': 'volume', 'Name': volume}] if volume else
                [{'Destination': '/data', 'Type': 'volume', 'Name': 'redis_data'}] if service == 'redis' else []),
-    'HostConfig': {'Tmpfs': {'/var/lib/postgresql/data': ''}}}]))
+    'HostConfig': {'Tmpfs': {'/var/lib/postgresql': ''}}}]))
 PY
 else
     printf '%s\n' fixture

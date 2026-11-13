@@ -229,8 +229,8 @@ function releaseViolations(array $workflows): array
     foreach (['release.yml validate-consumers' => $jobs['validate-consumers'] ?? []] as $where => $job) {
         $runs = releaseRuns($job);
 
-        if (($job['strategy']['matrix']['laravel'] ?? null) !== [12, 13]) {
-            $violations[] = "{$where}: the consumer archives must run on Laravel 12 and 13";
+        if (($job['strategy']['matrix']['laravel'] ?? null) !== [13]) {
+            $violations[] = "{$where}: the consumer archives must run on Laravel 13";
         }
 
         foreach (RELEASE_CONSUMER_MODES as $mode => $pattern) {
@@ -246,8 +246,8 @@ function releaseViolations(array $workflows): array
 
     $consumer = $workflows['tests.yml']['jobs']['consumer-fixture'] ?? [];
     $expectedPairs = [
-        ['php' => '8.3', 'laravel' => '12'], ['php' => '8.3', 'laravel' => '13'],
-        ['php' => '8.4', 'laravel' => '12'], ['php' => '8.4', 'laravel' => '13'],
+        ['php' => '8.3', 'laravel' => '13'],
+        ['php' => '8.4', 'laravel' => '13'],
         ['php' => '8.5', 'laravel' => '13'],
     ];
 
@@ -674,11 +674,11 @@ it('reports a broken release graph', function (Closure $break, string $violation
 
         return $w;
     }, 'release.yml validate-consumers: no relocated-audit consumer archive step'],
-    'validate-consumers on Laravel 13 only' => [static function (array $w): array {
-        $w['release.yml']['jobs']['validate-consumers']['strategy']['matrix']['laravel'] = [13];
+    'validate-consumers still on Laravel 12' => [static function (array $w): array {
+        $w['release.yml']['jobs']['validate-consumers']['strategy']['matrix']['laravel'] = [12, 13];
 
         return $w;
-    }, 'release.yml validate-consumers: the consumer archives must run on Laravel 12 and 13'],
+    }, 'release.yml validate-consumers: the consumer archives must run on Laravel 13'],
     'tests.yml consumer job on Laravel 13 only' => [static function (array $w): array {
         $w['tests.yml']['jobs']['consumer-fixture']['strategy']['matrix']['include'] = [['php' => '8.4', 'laravel' => '13']];
 
