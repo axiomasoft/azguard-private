@@ -25,6 +25,7 @@ use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\ExportAction;
 use Filament\Actions\Exports\Enums\ExportFormat;
+use Filament\Actions\Exports\Jobs\CompleteExport;
 use Filament\Actions\Exports\Jobs\ExportCompletion;
 use Filament\Actions\Exports\Jobs\PrepareCsvExport;
 use Filament\Actions\Exports\Models\Export;
@@ -154,7 +155,7 @@ it('V96 starts an export with the job that checks its rows again, carrying the v
         return $job instanceof AuthorizedPrepareCsvExport
             && (new ReflectionProperty($job, 'options'))->getValue($job)[AuthorizedExportCsv::OPTION]
                 === ['panel' => 'admin', 'permission' => 'orders.view', 'tenant' => null, 'model' => Order::class];
-    }), ExportCompletion::class]);
+    }), class_exists(CompleteExport::class) ? CompleteExport::class : ExportCompletion::class]);
 
     expect((new AuthorizedPrepareCsvExport(exportOf(User::query()->findOrFail(1)), EloquentSerializeFacade::serialize(Order::query()), ['number' => 'Number']))->getExportCsvJob())
         ->toBe(AuthorizedExportCsv::class);

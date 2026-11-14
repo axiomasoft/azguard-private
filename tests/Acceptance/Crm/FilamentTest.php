@@ -30,6 +30,7 @@ use AzGuard\Tests\Fixtures\Crm\Models\User;
 use AzGuard\Tests\Fixtures\Http\EntryPermission;
 use Filament\Actions\ExportAction;
 use Filament\Actions\Exports\Enums\ExportFormat;
+use Filament\Actions\Exports\Jobs\CompleteExport;
 use Filament\Actions\Exports\Jobs\ExportCompletion;
 use Filament\Actions\Exports\Models\Export;
 use Filament\Actions\Testing\TestAction;
@@ -170,7 +171,7 @@ it('R34 exports only the clients the caller may still view, in its organization'
         $options = (new ReflectionProperty($job, 'options'))->getValue($job)[AuthorizedExportCsv::OPTION];
 
         return $job instanceof AuthorizedPrepareCsvExport;
-    }), ExportCompletion::class]);
+    }), class_exists(CompleteExport::class) ? CompleteExport::class : ExportCompletion::class]);
     expect($options)->toBe(['panel' => 'crm', 'permission' => 'clients.view', 'tenant' => ['type' => 'crm.organization', 'id' => '1'], 'model' => Client::class]);
 
     Bus::swap($dispatcher);

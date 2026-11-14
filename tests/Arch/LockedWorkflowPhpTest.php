@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use Composer\Semver\Intervals;
 use Composer\Semver\VersionParser;
+use Symfony\Component\Process\Process;
 use Symfony\Component\Yaml\Yaml;
 
 /** @return list<string> */
@@ -49,7 +50,8 @@ function lockedWorkflowPhpViolations(array $workflow, array $lock): array
 
 it('uses a PHP runtime compatible with the root lock in every locked workflow job', function (): void {
     $root = dirname(__DIR__, 2);
-    $lock = json_decode(file_get_contents($root.'/composer.lock'), true, flags: JSON_THROW_ON_ERROR);
+    // Dependency matrix jobs solve a different graph in the working tree. Locked jobs install the committed graph.
+    $lock = json_decode((new Process(['git', 'show', 'HEAD:composer.lock'], $root))->mustRun()->getOutput(), true, flags: JSON_THROW_ON_ERROR);
     $violations = [];
     foreach (glob($root.'/.github/workflows/*.yml') as $file) {
         foreach (lockedWorkflowPhpViolations(Yaml::parseFile($file), $lock) as $violation) {
