@@ -26,7 +26,13 @@ final class RedisCache
             throw new RuntimeException('The benchmark requires the phpredis client.');
         }
 
-        return [$client, $client->getOption(Redis::OPT_PREFIX).$store->getPrefix()];
+        $clientPrefix = $client->getOption(Redis::OPT_PREFIX);
+
+        if (! is_string($clientPrefix)) {
+            throw new RuntimeException('The benchmark requires a string Redis prefix.');
+        }
+
+        return [$client, $clientPrefix.$store->getPrefix()];
     }
 
     /** @return array{string, list<string>} */

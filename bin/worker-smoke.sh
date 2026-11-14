@@ -74,7 +74,7 @@ composer create-project 'laravel/laravel:^13.0' "$work/app" --no-interaction --p
 cd "$work/app"
 composer config repositories.azguard artifact "$work/dist"
 composer require axiomasoft/azguard:2.0.0 --no-interaction --no-progress
-composer require --dev laravel/octane:2.12.0 spiral/roadrunner-cli:2.7.1 spiral/roadrunner-http:3.6.0 \
+composer require --dev laravel/octane:2.24.0 spiral/roadrunner-cli:2.7.1 spiral/roadrunner-http:3.6.0 \
     --with-all-dependencies --no-interaction --no-progress
 vendor/bin/rr get-binary --filter=3.0.1 --no-config --no-interaction
 ./rr --version

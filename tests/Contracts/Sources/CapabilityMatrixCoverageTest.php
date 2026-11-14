@@ -38,6 +38,7 @@ use Filament\Panel as FilamentPanel;
 use Filament\PanelRegistry as FilamentPanelRegistry;
 use Illuminate\Database\Eloquent\Model;
 use Livewire\LivewireServiceProvider;
+use PHPUnit\Logging\TestDox\NamePrettifier;
 use Symfony\Component\Process\Process;
 
 require_once __DIR__.'/../../Fixtures/Visibility/VisibilityWorld.php';
@@ -275,28 +276,26 @@ function builtInCapabilityExecutionErrors(array $coverage): array
     $scenarios = [];
     foreach ($coverage as $cells) {
         foreach ($cells as [, $file, $name]) {
-            $scenarios[$file.'::'.$name] = [$file, $name];
+            $scenarios[$file][$name] = $name;
         }
     }
     foreach (builtInTenantModeCoverage() as $variants) {
         foreach ($variants as [$file, $name]) {
-            $scenarios[$file.'::'.$name] = [$file, $name];
+            $scenarios[$file][$name] = $name;
         }
     }
 
     $errors = [];
     $running = [];
     $root = dirname(__DIR__, 3);
-    $launch = static function (string $file, string $name) use ($root): Process {
+    foreach ($scenarios as $file => $names) {
+        $report = tempnam(sys_get_temp_dir(), 'azguard-capability-');
+        $filter = '/(?:^|::)(?:it )?(?:'.implode('|', array_map(static fn (string $name): string => preg_quote($name, '/'), $names)).')(?: with data set .*)?$/';
         $process = new Process([PHP_BINARY, $root.'/vendor/bin/pest', __DIR__.'/'.$file,
-            '--filter='.$name, '--do-not-cache-result', '--fail-on-skipped', '--fail-on-incomplete', '--fail-on-risky', '--fail-on-empty-test-suite'], $root);
+            '--filter='.$filter, '--log-junit='.$report, '--do-not-cache-result', '--fail-on-skipped', '--fail-on-incomplete', '--fail-on-risky', '--fail-on-empty-test-suite'], $root);
         $process->setTimeout(180);
         $process->start();
-
-        return $process;
-    };
-    foreach ($scenarios as $id => [$file, $name]) {
-        $running[$id] = $launch($file, $name);
+        $running[$file] = ['process' => $process, 'names' => array_values($names), 'report' => $report];
 
         if (count($running) < 4) {
             continue;
@@ -308,17 +307,39 @@ function builtInCapabilityExecutionErrors(array $coverage): array
     return [...$errors, ...capabilityProcesses($running)];
 }
 
-/** @param array<string, Process> $running @return list<string> */
+/** @param array<string, array{process: Process, names: list<string>, report: string}> $running @return list<string> */
 function capabilityProcesses(array $running): array
 {
     $errors = [];
-    foreach ($running as $id => $process) {
-        $process->wait();
+    foreach ($running as $file => ['process' => $process, 'names' => $expected, 'report' => $report]) {
+        try {
+            $process->wait();
 
-        if ($process->isSuccessful()) {
-            continue;
+            if (! $process->isSuccessful()) {
+                $errors[] = $file.' did not pass: '.$process->getOutput().$process->getErrorOutput();
+
+                continue;
+            }
+
+            $xml = simplexml_load_file($report);
+            $actual = [];
+            foreach ($xml->xpath('//testcase') as $case) {
+                // Pest prefixes closure tests with "it "; data sets belong to the same referenced scenario.
+                $name = preg_replace('/ with data set .*$/', '', (string) $case['name']);
+                $actual[] = str_starts_with($name, 'it ') ? substr($name, 3) : $name;
+            }
+            $actual = array_values(array_unique($actual));
+            $prettifier = new NamePrettifier;
+            $expected = array_map(static fn (string $name): string => str_starts_with($name, 'test_') ? $prettifier->prettifyTestMethodName($name) : $name, $expected);
+            sort($actual);
+            sort($expected);
+
+            if ($actual !== $expected) {
+                $errors[] = $file.' executed a different scenario set: expected '.json_encode($expected).'; got '.json_encode($actual);
+            }
+        } finally {
+            @unlink($report);
         }
-        $errors[] = $id.' did not pass: '.$process->getOutput().$process->getErrorOutput();
     }
 
     return $errors;
