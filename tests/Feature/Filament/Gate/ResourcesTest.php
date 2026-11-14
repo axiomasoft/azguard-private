@@ -20,6 +20,8 @@ use AzGuard\Tests\Fixtures\Filament\Unguarded\QueryOrderResource;
 use Filament\Facades\Filament;
 use Illuminate\Support\Facades\Gate;
 
+use function Filament\get_authorization_response;
+
 /*
  * V102: two resources of one model are decided by their own keys; nothing is guessed from the model. A Filament panel
  * that enforces refuses a resource, page or widget that AzGuard does not decide. The Gate::before hook of the package
@@ -142,6 +144,15 @@ it('does not let a policy without the ability allow that Filament check', functi
         ->and(FilamentGate::before($member, 'delete', [Order::class]))->toBeNull();
 });
 
+it('does not let a policy before hook allow a missing ability through Filament', function (): void {
+    Gate::policy(Order::class, OrderBeforeOnlyPolicy::class);
+    $member = User::query()->findOrFail(1);
+    GateWorld::serve($member);
+
+    expect(get_authorization_response('viewAny', Order::class)->allowed())->toBeFalse()
+        ->and(Gate::forUser($member)->check('viewAny', Order::class))->toBeFalse();
+});
+
 it('refuses at boot a resource, page or widget that AzGuard does not decide while the panel enforces', function (array $fixture, string $class): void {
     foreach ($fixture as $property => $value) {
         FilamentFixture::${$property} = $value;
@@ -183,6 +194,14 @@ final class OrderDeleteOnlyPolicy
     public function delete(): bool
     {
         return true;
+    }
+}
+
+final class OrderBeforeOnlyPolicy
+{
+    public function before(): bool
+    {
+        return false;
     }
 }
 

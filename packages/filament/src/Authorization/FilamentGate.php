@@ -220,14 +220,16 @@ final class FilamentGate
         }
         $policy = $gate->getPolicyFor($model);
 
-        if ($policy === null) {
+        if (! is_object($policy)) {
             return false;
         }
 
         // A policy that does not define this ability must not fall through to Filament's allow.
         $method = str_contains($ability, '-') ? Str::camel($ability) : $ability;
 
-        return method_exists($policy, 'before') || method_exists($policy, $method) ? null : false;
+        // Laravel only calls a policy's before hook when the ability itself is callable. Filament does not invoke
+        // that hook either when it falls back here, so a before method alone cannot own a missing ability.
+        return method_exists($policy, $method) ? null : false;
     }
 
     /**

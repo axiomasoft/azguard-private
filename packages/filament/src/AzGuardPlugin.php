@@ -16,7 +16,6 @@ use AzGuard\Filament\Contracts\FilamentFormExtension;
 use AzGuard\Filament\Internal\Authorization\FilamentContext;
 use AzGuard\Filament\Internal\Authorization\FilamentKeys;
 use AzGuard\Filament\Internal\Authorization\FilamentSurface;
-use AzGuard\Filament\Internal\Authorization\RefusesSurfaceCalls;
 use AzGuard\Filament\Internal\Reflection\ClassTraits;
 use AzGuard\Filament\Pages\DoctorPage;
 use AzGuard\Filament\Pages\PanelsPage;
@@ -45,8 +44,6 @@ use Illuminate\Auth\Access\Response;
 use Illuminate\Contracts\Config\Repository;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
-use ReflectionClass;
-use ReflectionMethod;
 
 /**
  * Connects a Filament panel to a panel of AzGuard.
@@ -480,12 +477,13 @@ final class AzGuardPlugin implements Plugin
         }
 
         self::authorizeRecordsOfActions();
-        self::guardWidgets();
     }
 
     /**
      * A Filament panel that enforces decides every resource, page and widget it has through AzGuard; one that Filament
      * would decide alone would be open.
+     *
+     * @param  class-string  $class
      *
      * @throws InvalidConfigurationException
      */
@@ -496,25 +494,12 @@ final class AzGuardPlugin implements Plugin
             FilamentSurface::Page => [AuthorizesPage::class, ['canAccess']],
             FilamentSurface::Widget => [AuthorizesWidget::class, ['canView']],
         };
-        $file = (new ReflectionClass($trait))->getFileName();
 
-        foreach ($methods as $method) {
-            if (! ClassTraits::has($class, $trait) || (new ReflectionMethod($class, $method))->getFileName() !== $file) {
-                throw InvalidConfigurationException::failing('filament_enforce', $class.' in the Filament panel "'.$panel->getId().'", which enforces its permissions, is not decided by AzGuard: use '
-                    .$trait.' and keep its '.implode('() and ', $methods).'()'.($surface === FilamentSurface::Resource ? ' (change the query in modifyEloquentQuery())' : '')
-                    .', or exclude the class.');
-            }
+        if (! ClassTraits::keepsMethods($class, $trait, $methods)) {
+            throw InvalidConfigurationException::failing('filament_enforce', $class.' in the Filament panel "'.$panel->getId().'", which enforces its permissions, is not decided by AzGuard: use '
+                .$trait.' and keep its '.implode('() and ', $methods).'()'.($surface === FilamentSurface::Resource ? ' (change the query in modifyEloquentQuery())' : '')
+                .', or exclude the class.');
         }
-    }
-
-    /**
-     * A widget that a page returns at run time is unknown when the panel boots, so the keys cannot name it. In a panel
-     * that enforces, a widget is shown only when AzGuard decides it or the panel excludes it: any other widget is refused
-     * when Livewire mounts or hydrates it, so that no widget is open by omission.
-     */
-    private static function guardWidgets(): void
-    {
-        RefusesSurfaceCalls::guardWidgets();
     }
 
     /**
@@ -568,7 +553,6 @@ final class AzGuardPlugin implements Plugin
     private static function assertRelations(array $relations): void
     {
         $trait = AuthorizesRelationManager::class;
-        $file = (new ReflectionClass($trait))->getFileName();
 
         foreach ($relations as $relation) {
             if ($relation instanceof RelationGroup) {
@@ -578,10 +562,8 @@ final class AzGuardPlugin implements Plugin
             }
             $class = $relation instanceof RelationManagerConfiguration ? $relation->relationManager : $relation;
 
-            foreach (['canViewForRecord', 'getAuthorizationResponse', 'makeTable'] as $method) {
-                if (! ClassTraits::has($class, $trait) || (new ReflectionMethod($class, $method))->getFileName() !== $file) {
-                    throw self::invalid($class.' in an enforced resource must use '.$trait.' and keep its authorization and visibility methods.');
-                }
+            if (! ClassTraits::keepsMethods($class, $trait, ['canViewForRecord', 'getAuthorizationResponse', 'makeTable'])) {
+                throw self::invalid($class.' in an enforced resource must use '.$trait.' and keep its authorization and visibility methods.');
             }
 
             if (FilamentContext::relationResource($class) === null) {

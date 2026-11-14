@@ -17,18 +17,23 @@ use Filament\Actions\DetachAction;
 use Filament\Actions\DetachBulkAction;
 use Filament\Actions\DissociateAction;
 use Filament\Actions\DissociateBulkAction;
+use Filament\Actions\Exceptions\ActionNotResolvableException;
 use Filament\Actions\ExportAction;
 use Filament\Actions\ExportBulkAction;
 use Filament\Actions\ForceDeleteBulkAction;
 use Filament\Actions\ReplicateAction;
 use Filament\Actions\RestoreBulkAction;
+use Filament\Resources\Pages\Page as ResourcePage;
+use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Resources\Resource as FilamentResource;
 use Filament\Tables\Contracts\HasTable;
 use Filament\Widgets\Widget;
 use Illuminate\Auth\Access\Response;
 use Illuminate\Database\Eloquent\Model;
+use Livewire\ImplicitlyBoundMethod;
 use ReflectionFunction;
 use ReflectionProperty;
+use Throwable;
 
 /**
  * Default checks for custom actions, and a fresh check before a bulk callback can consume selected records or keys.
@@ -37,6 +42,8 @@ use ReflectionProperty;
  */
 final class AuthorizesActions
 {
+    private const array EARLY_BULK_HOOKS = ['beforeFormFilled', 'afterFormFilled', 'beforeFormValidated', 'afterFormValidated', 'mountUsing'];
+
     public static function configure(Action $action): void
     {
         // An action may be constructed before the request selects its panel. Decide at execution, not construction.
@@ -167,6 +174,53 @@ final class AuthorizesActions
         }
     }
 
+    /**
+     * Checks hooks that Filament runs before ActionCalling, while the explicit selection is still available.
+     *
+     * @param  array<mixed>  $params
+     */
+    public static function beforeCall(object $component, string $method, array $params): void
+    {
+        if (! in_array($method, ['mountAction', 'callMountedAction'], true)
+            || (! $component instanceof ResourcePage && ! $component instanceof RelationManager)) {
+            return;
+        }
+        $context = FilamentContext::serving();
+        $resource = FilamentContext::resourceOf($component);
+
+        if ($context?->enforced() !== true || $resource === null || $context->excludes('resources', $resource)) {
+            return;
+        }
+
+        if ($method === 'mountAction') {
+            try {
+                $resolved = ImplicitlyBoundMethod::resolveMethodDependencies(app(), [$component, $method], $params);
+            } catch (Throwable) {
+                abort(403);
+            }
+            $bound = is_array($resolved) && is_array($resolved['named'] ?? null) ? $resolved['named'] : [];
+            $name = $bound['name'] ?? null;
+            $arguments = $bound['arguments'] ?? [];
+            $actionContext = $bound['context'] ?? [];
+            abort_unless(is_string($name) && is_array($arguments) && is_array($actionContext), 403);
+
+            try {
+                $action = $component->getAction([
+                    ...($component->mountedActions ?? []),
+                    ['name' => $name, 'arguments' => $arguments, 'context' => $actionContext],
+                ], isMounting: false);
+            } catch (ActionNotResolvableException) {
+                return;
+            }
+        } else {
+            $action = $component->getMountedAction();
+        }
+
+        if ($action instanceof BulkAction && self::hasHooks($action, self::EARLY_BULK_HOOKS)) {
+            (new self)($action);
+        }
+    }
+
     /** @return list<string> */
     private static function keys(mixed $keys): array
     {
@@ -180,7 +234,7 @@ final class AuthorizesActions
         return array_values(array_unique($validated));
     }
 
-    /** The callback is still Filament's and has no custom `using()` process. */
+    /** The callback is still Filament's and has no custom process or lifecycle hooks that can consume raw keys. */
     private static function usesFilteredBulkSelection(BulkAction $action): bool
     {
         $callback = $action->getActionFunction();
@@ -198,7 +252,19 @@ final class AuthorizesActions
             return false;
         }
 
-        return (new ReflectionProperty($action, 'using'))->getValue($action) === null;
+        return ! self::hasHooks($action, ['using', 'before', 'after', ...self::EARLY_BULK_HOOKS]);
+    }
+
+    /** @param list<string> $hooks */
+    private static function hasHooks(Action $action, array $hooks): bool
+    {
+        foreach ($hooks as $hook) {
+            if ((new ReflectionProperty($action, $hook))->getValue($action) !== null) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /** Create and replicate save through the owner relationship, so they are an update of that owner. */

@@ -12,37 +12,11 @@ use AzGuard\Filament\Internal\Reflection\ClassTraits;
 use Filament\Pages\Page;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Widgets\Widget;
-use Livewire\Livewire;
 
 /** @internal */
 final class RefusesSurfaceCalls
 {
-    /** Registered for the process, not for the first Filament panel that happens to boot. */
-    public static function guardWidgets(): void
-    {
-        if (app()->bound('azguard.filament.widget-guard')) {
-            return;
-        }
-        app()->instance('azguard.filament.widget-guard', true);
-        $guard = static function (mixed $component): void {
-            if ($component instanceof RelationManager) {
-                self::refuseRelationManager($component);
-
-                return;
-            }
-
-            $context = $component instanceof Widget ? FilamentContext::serving() : null;
-
-            if ($context?->enforced() !== true || $context->excludes('widgets', $component::class)) {
-                return;
-            }
-            abort_unless(ClassTraits::has($component, AuthorizesWidget::class), 403);
-        };
-        Livewire::listen('mount', static fn (mixed $component) => $guard($component));
-        Livewire::listen('hydrate', static fn (mixed $component) => $guard($component));
-    }
-
-    private static function refuseRelationManager(object $component): void
+    public static function refuseRelationManager(RelationManager $component): void
     {
         $context = FilamentContext::serving();
 
@@ -51,10 +25,12 @@ final class RefusesSurfaceCalls
         }
         $owner = FilamentContext::ownerOf($component);
 
-        if (is_array($owner) && is_string($owner[0]) && $context->excludes('resources', $owner[0])) {
+        if (is_array($owner) && $context->excludes('resources', $owner[0])) {
             return;
         }
-        abort_unless(ClassTraits::has($component, AuthorizesRelationManager::class), 403);
+        abort_unless(ClassTraits::keepsMethods($component, AuthorizesRelationManager::class, ['canViewForRecord', 'getAuthorizationResponse', 'makeTable']), 403);
+        abort_unless(FilamentContext::relationResource($component::class) !== null, 403);
+        abort_unless($component::canViewForRecord($component->getOwnerRecord(), $component->getPageClass()), 403);
     }
 
     public function __invoke(object $component): void

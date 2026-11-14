@@ -522,7 +522,7 @@ final readonly class GrantEditor
         try {
             $type = (string) $context->type();
 
-            return ($this->scopeDirectories[$type] ??= $this->access->directories()->scopes($type))->describe($context, $lookup)?->label ?? $context->key();
+            return ($this->scopeDirectories[$type] ??= $this->access->directories()->scopes($type))->describe($context, $lookup)->label ?? $context->key();
         } catch (Throwable) {
             // The type of an orphaned grant may be gone from the panel; the row is still shown for cleanup.
             return $context->key();
@@ -534,7 +534,7 @@ final readonly class GrantEditor
     {
         $key = $subject->key();
 
-        $this->labels[$key] ??= ($this->subjectDirectory[0] ??= $this->access->directories()->subjects())->describe($subject, $lookup)?->label ?? $key;
+        $this->labels[$key] ??= ($this->subjectDirectory[0] ??= $this->access->directories()->subjects())->describe($subject, $lookup)->label ?? $key;
 
         return $this->labels[$key];
     }

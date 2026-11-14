@@ -10743,14 +10743,14 @@
             }
         },
         {
-            "current": "AzGuard\\Filament\\Internal\\Authorization\\RefusesWidgetBoot",
-            "current_path": "packages/filament/src/Internal/Authorization/RefusesWidgetBoot.php",
+            "current": "AzGuard\\Filament\\Internal\\Authorization\\RefusesSurfaceBoot",
+            "current_path": "packages/filament/src/Internal/Authorization/RefusesSurfaceBoot.php",
             "kind": "class",
             "lines": 45,
             "current_marker": "internal",
             "owner": "filament",
-            "target": "AzGuard\\Filament\\Internal\\Authorization\\RefusesWidgetBoot",
-            "target_path": "packages/filament/src/Internal/Authorization/RefusesWidgetBoot.php",
+            "target": "AzGuard\\Filament\\Internal\\Authorization\\RefusesSurfaceBoot",
+            "target_path": "packages/filament/src/Internal/Authorization/RefusesSurfaceBoot.php",
             "marker": "internal",
             "enum": null,
             "action": "keep",

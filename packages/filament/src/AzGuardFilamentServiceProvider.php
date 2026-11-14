@@ -9,8 +9,8 @@ use AzGuard\Filament\Authorization\FilamentGate;
 use AzGuard\Filament\Internal\Authorization\AuthorizesActions;
 use AzGuard\Filament\Internal\Authorization\FilamentContext;
 use AzGuard\Filament\Internal\Authorization\RefusesEditableColumns;
+use AzGuard\Filament\Internal\Authorization\RefusesSurfaceBoot;
 use AzGuard\Filament\Internal\Authorization\RefusesSurfaceCalls;
-use AzGuard\Filament\Internal\Authorization\RefusesWidgetBoot;
 use AzGuard\Filament\Internal\Console\FilamentGenerateCommand;
 use AzGuard\Filament\Internal\Exports\AuthorizesExports;
 use AzGuard\Filament\Internal\Exports\RefusesUnverifiableDownload;
@@ -26,6 +26,7 @@ use Illuminate\Contracts\Events\Dispatcher;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Routing\Router;
 use Illuminate\Support\ServiceProvider;
+use Livewire\ComponentHookRegistry;
 use Livewire\Livewire;
 
 #[Api(since: '1.0')]
@@ -37,10 +38,11 @@ final class AzGuardFilamentServiceProvider extends ServiceProvider
     {
         $this->mergeConfigFrom(__DIR__.'/../config/azguard-filament.php', 'azguard-filament');
         $this->app->bindIf(DownloadExport::class, RefusesUnverifiableDownload::class);
-        // Before Livewire registers its lifecycle hook, so a refused widget aborts prior to its own boot().
-        // Applications that do not install Livewire never bind this alias.
-        if ($this->app->bound('livewire')) {
-            $this->app->make('livewire')->componentHook(RefusesWidgetBoot::class);
+
+        // Before Livewire registers its lifecycle hook, so a refused component aborts prior to its own boot().
+        // Package discovery may register us before Livewire binds its container alias.
+        if (class_exists(ComponentHookRegistry::class)) {
+            ComponentHookRegistry::register(RefusesSurfaceBoot::class);
         }
     }
 
@@ -68,7 +70,7 @@ final class AzGuardFilamentServiceProvider extends ServiceProvider
         $this->app->make(Dispatcher::class)->listen(ActionCalling::class, AuthorizesExports::class);
         Livewire::listen('call', (new RefusesEditableColumns)(...));
         Livewire::listen('call', (new RefusesSurfaceCalls)(...));
-        RefusesSurfaceCalls::guardWidgets();
+        Livewire::listen('call', AuthorizesActions::beforeCall(...));
         $this->app->make('events')->listen(ServingFilament::class, static function (): void {
             $panel = Filament::getCurrentPanel();
 
