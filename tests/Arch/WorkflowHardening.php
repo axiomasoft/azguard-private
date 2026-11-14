@@ -17,6 +17,7 @@ const WORKFLOW_WRITE_PERMISSIONS = [
     'docs-deploy.yml' => ['deploy' => ['pages', 'id-token']],
     'codeql.yml' => ['analyze' => ['security-events']],
     'dependabot-auto-merge.yml' => ['auto-merge' => ['pull-requests'], 'sweep' => ['pull-requests']],
+    'pr-check.yml' => ['size' => ['pull-requests']],
     'packages/core/.github/workflows/provenance.yml' => ['provenance' => ['id-token', 'attestations'], 'relay-final-artifacts' => ['id-token', 'attestations']],
     'packages/core/.github/workflows/attestation-setup.yml' => ['probe' => ['id-token', 'attestations']],
 ];

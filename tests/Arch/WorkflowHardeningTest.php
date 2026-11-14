@@ -152,7 +152,9 @@ it('allows only the listed continue-on-error step and the listed write permissio
         ->and($write('packages/core/.github/workflows/provenance.yml', 'other', ['id-token' => 'write']))->toBe(['write-permission'])
         ->and($write('release.yml', 'artifacts', ['id-token' => 'write']))->toBe(['write-permission'])
         ->and($write('release.yml', 'other', ['contents' => 'write']))->toBe(['write-permission'])
-        ->and($write('pr-check.yml', 'size', ['pull-requests' => 'write']))->toBe(['write-permission'])
+        ->and($write('pr-check.yml', 'size', ['pull-requests' => 'write']))->toBe([])
+        ->and($write('pr-check.yml', 'size', ['contents' => 'write']))->toBe(['write-permission'])
+        ->and($write('pr-check.yml', 'title', ['pull-requests' => 'write']))->toBe(['write-permission'])
         ->and($write('release.yml', 'release', ['contents' => 'read']))->toBe([]);
 });
 

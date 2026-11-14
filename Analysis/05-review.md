@@ -38,7 +38,7 @@ scopes/видимость/хранилище, Filament, инфраструкту
 | P7 | Native bulk fast path допускается только без подменённых callbacks/process/lifecycle hooks. Для hooks до `ActionCalling` добавлена проверка selection до эффекта. Stock filtered delete сохранён. |
 | P8 | Дополнительно исправлен `WeakMap`: запись с `null` не проходит `offsetExists()`, поэтому cold worker оставлял hint закончившейся job. Nullable hint теперь обёрнут в массив; три регрессии для поздних JobProcessed/JobExceptionOccurred/JobFailed listeners проверяют dispatch следующей job без чужой панели. |
 | P9 | Путь/FQCN generated enum определяется конфигурацией, а не stdout. Чужой существующий PHP-файл из поддельного `Created` output остаётся нетронутым. |
-| P10 | Batch сверяет `tenantOf()` актуальной structural model, как scalar. Владение и фильтрация проверяются в одном SQL без N+1. |
+| P10 | Один batch SQL загружает актуальную structural model и результат фильтрующего EXISTS, затем PHP сверяет её `tenantOf()`, как scalar. Сам batch не добавляет запросов на каждый witness; SQL внутри пользовательского callback этим не ограничивается. |
 | P11 | Валидация table/short/scope закрывает инъекцию до SQL; добавлены негативные тесты. Для разрешённых lowercase identifiers дополнительные изменения DDL не нужны. |
 | P12 | Tenant audit key канонизируется рядом с subject/actor. |
 | P15 | Сохранены чистые role-coverage и signature caches. Signature cache переделан на **unbound** metadata: старая ReflectionFunction удерживала первый объект политики в процессе. `WeakReference` regression. Magic `__call` сохраняет сигнатуру фактически вызываемой closure. |
