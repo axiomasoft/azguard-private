@@ -336,7 +336,8 @@ jobs:
         run: composer install --prefer-dist --no-interaction --no-progress
 
       - name: Run tests with coverage
-        run: vendor/bin/pest --ci --fail-on-skipped --exclude-group=engines --exclude-group=redis --exclude-group=replica --exclude-group=extended --exclude-group=mysql-engines --parallel --processes=4 --passthru-php='-d memory_limit=1G' --coverage --min=85 --coverage-clover=coverage.xml
+        # Reusing a worker across test files loses captured lines; retain a fresh capture per file before merging.
+        run: vendor/bin/pest --ci --fail-on-skipped --exclude-group=engines --exclude-group=redis --exclude-group=replica --exclude-group=extended --exclude-group=mysql-engines --parallel --processes=4 --max-batch-size=1 --passthru-php='-d memory_limit=1G' --coverage --min=85 --coverage-clover=coverage.xml
         env:
           DB_CONNECTION: sqlite
           DB_DATABASE: ':memory:'

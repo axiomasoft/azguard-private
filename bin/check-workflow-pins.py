@@ -48,7 +48,7 @@ REVIEWED_WORKFLOWS = {
     'split.yml': '726b6360ba6304b23b31c15cd0267288ee3ec4cee02de4a7f91cccc29ff55ea5',
     'static-analysis.yml': '7bd5d7f4f93e78db32103a1615c0bd0bc364070077c7547d225e3e3f0f762fe4',
     'tests-nightly.yml': 'b3b8054b9e07c02a4f73ba3cd4f1e39fadb0bb7bca82c7074cea5594d5717701',
-    'tests.yml': '061ac7cea3977a7b64f44b01923bf70f8435d816b9d01cd1be4420084c6ca219',
+    'tests.yml': 'f89b792e1524d453502dcf3360e632a4704ffe131f421f6adbbceca3c2c04174',
     'workers.yml': '634ddc2c89a314f7843468b795965adc671640d0555acde3dce52ea9be82d3fc',
     'zizmor.yml': '8ff0493fa73450bedaf12224a0824143f9e1efcc308bd19d10d11f8f98ec0d57',
 }

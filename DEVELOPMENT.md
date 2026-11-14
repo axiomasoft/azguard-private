@@ -36,6 +36,7 @@ Mount or symlink the package directory into the app, then `composer update`.
 ## Development dependency lock
 
 The root `composer.lock` records the PHP 8.4 / Laravel 13 development graph.
+Use PHP 8.4 for locked commands and put it first on `PATH` for their child processes.
 Use `composer install` without updating the lock for locked CI, analysis,
 and release tooling; changes to that graph should be reviewed with
 the lock. This lock belongs to the monorepo and is excluded from archives; it
@@ -122,6 +123,10 @@ upgrading the report format.
 | `composer api:compat` | — | Compare the manifests and format fixtures with the compatibility baseline (see [RELEASING.md](RELEASING.md#compatibility-baseline)) |
 | `composer check` | — | Run the local gates: style, analysis, refactor, API manifest and compatibility, types, tests, coverage |
 | `composer fix` | — | Auto-fix style and apply refactorings |
+
+Coverage runs four workers with a fresh process for each test file (`--max-batch-size=1`). Reusing workers produced
+incomplete line capture despite a complete passing test inventory; file isolation restores the captured lines while
+retaining the 85% gate and all assertions. The ordinary SQLite lane keeps its faster long-lived workers.
 
 Feature tests use an in-memory SQLite database, so the `pdo_sqlite` /
 `sqlite3` PHP extensions must be enabled.
