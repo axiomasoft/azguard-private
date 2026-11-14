@@ -33,7 +33,7 @@ EXTERNAL = re.compile(r'^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+(?:/[A-Za-z0-9_.-]+)*@[0
 # review enforced outside this checker (for example, repository rules/CODEOWNERS).
 # Pin and permissions checks still apply to every snapshot.
 REVIEWED_WORKFLOWS = {
-    'bench.yml': '7c74b235f4378986e824240728c964dc86ffe667a8f665e001156181c5107f9d',
+    'bench.yml': '490eedb10a85d0a2fc115195bcd77dab58e39b061c52d19559d42794ce071fac',
     'code-style.yml': '160805e973fa68615fc313f2ffefbd1abceb806b0f6ccd0915ed7c659ecba5d8',
     'codeql.yml': 'd407745bb38fc13e8261bec697da0d7f679f23b8faa3b3170f89cb2dc595ecfb',
     'compatibility.yml': '3d3728c0af2f0f3cb5ebf591ebd85f8ff3ec29f748844ac235de19862ee44212',
@@ -41,14 +41,14 @@ REVIEWED_WORKFLOWS = {
     'docs-deploy.yml': '15efe0198116c95ea5205fc336f8eef90139efc68e157b00d1259c1dece6d5bf',
     'docs.yml': '4ae6826bdb0d02c9df13a82b4865c85bc21811b0f296412c8f02018422ba22d6',
     'pr-check.yml': 'b72cad5c81a8fe3d9692fd65af390ace4a63c705f7219dc6f8b5f929fd0bb493',
-    'release.yml': '878dddf80df5155e3d94a9e24366310ac32a6f2d3fecb37342ca18b38d5cf43e',
+    'release.yml': '364468e55cb421da6ad718a0f4be19ffe96e73edeec6358897fa6697ffb5bccc',
     'release-setup-probe.yml': '8786c2fc34a1e241e6f053e65361dfb5d4019d9769aa795d3adb8216dad6b6c2',
     'secret-scan.yml': '405d61d500751cb018bdb433d19fda6ef804ebce4f01e4052c1975646fd0c2b3',
     'security.yml': '9e08a93af21e23b6c11e04331eb9aeb7d41965e20bc5cf932ab9ad8a68fa77d4',
     'split.yml': '726b6360ba6304b23b31c15cd0267288ee3ec4cee02de4a7f91cccc29ff55ea5',
     'static-analysis.yml': '7bd5d7f4f93e78db32103a1615c0bd0bc364070077c7547d225e3e3f0f762fe4',
-    'tests-nightly.yml': 'f8a9a70f743fd556b8907537fa45c959d6f55b187d98d0f3d87bd9152a98021c',
-    'tests.yml': '411026df0df548c929ace048667c08378504b0a2334438de20e9007ff045f07d',
+    'tests-nightly.yml': 'b3b8054b9e07c02a4f73ba3cd4f1e39fadb0bb7bca82c7074cea5594d5717701',
+    'tests.yml': '061ac7cea3977a7b64f44b01923bf70f8435d816b9d01cd1be4420084c6ca219',
     'workers.yml': '634ddc2c89a314f7843468b795965adc671640d0555acde3dce52ea9be82d3fc',
     'zizmor.yml': '8ff0493fa73450bedaf12224a0824143f9e1efcc308bd19d10d11f8f98ec0d57',
 }
