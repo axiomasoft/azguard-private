@@ -288,6 +288,8 @@ function builtInCapabilityExecutionErrors(array $coverage): array
     $errors = [];
     $running = [];
     $root = dirname(__DIR__, 3);
+    // Server children inherit the parent's worker database: wait before another child can drop its tables.
+    $concurrency = env('DB_CONNECTION', 'sqlite') === 'sqlite' ? 4 : 1;
     foreach ($scenarios as $file => $names) {
         $report = tempnam(sys_get_temp_dir(), 'azguard-capability-');
         $filter = '/(?:^|::)(?:it )?(?:'.implode('|', array_map(static fn (string $name): string => preg_quote($name, '/'), $names)).')(?: with data set .*)?$/';
@@ -297,7 +299,7 @@ function builtInCapabilityExecutionErrors(array $coverage): array
         $process->start();
         $running[$file] = ['process' => $process, 'names' => array_values($names), 'report' => $report];
 
-        if (count($running) < 4) {
+        if (count($running) < $concurrency) {
             continue;
         }
         $errors = [...$errors, ...capabilityProcesses($running)];

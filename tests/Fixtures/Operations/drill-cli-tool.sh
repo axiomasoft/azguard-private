@@ -13,6 +13,7 @@ case "$(basename "$0")" in
         exec "${RUNBOOK_CLI_REAL_PHP:?}" "$@" ;;
     docker)
         printf '%s\n' "$*" >> "${RUNBOOK_CLI_DOCKER_LOG:?}"
+        if [[ "${1:-}" == info ]]; then printf '%s\n' "${RUNBOOK_CLI_DOCKER_SECURITY_OPTIONS:-[]}"; fi
         if [[ "${1:-}" == run ]]; then exit 23; fi
         exit 0 ;;
     *) exit 99 ;;

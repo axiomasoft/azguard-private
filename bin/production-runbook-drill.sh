@@ -96,10 +96,16 @@ if [[ "$mode" == redis ]]; then
     # No existing Redis endpoint, TCP port, database URL or credentials are accepted.
     socket_dir="$(mktemp -d "$root/build/production-runbook-drill/socket.XXXXXXXX")"
     container="azguard-runbook-$(basename "$report" | tr '[:upper:].' '[:lower:]-')"
+    redis_user="$(id -u):$(id -g)"
+    security_options="$(docker info --format '{{json .SecurityOptions}}')"
+    if php -r 'exit(in_array("name=rootless", json_decode($argv[1], true, 512, JSON_THROW_ON_ERROR) ?? [], true) ? 0 : 1);' "$security_options"; then
+        # Root in the rootless namespace maps to this host user; its other UIDs cannot enter the private bind.
+        redis_user=0:0
+    fi
     docker run -d --name "$container" --network none --read-only --cap-drop ALL \
-        --security-opt no-new-privileges --user "$(id -u):$(id -g)" \
+        --security-opt no-new-privileges --user "$redis_user" --entrypoint redis-server \
         --mount "type=bind,src=$socket_dir,dst=/drill" \
-        redis:7.4-alpine redis-server --port 0 --unixsocket /drill/redis.sock \
+        redis:7.4-alpine --port 0 --unixsocket /drill/redis.sock \
         --unixsocketperm 700 --save '' --appendonly no --dir /drill > "$report/container-id.txt"
     docker inspect --format '{{.Image}}' "$container" >> "$report/versions.txt"
     for ((i=0; i<100; i++)); do

@@ -54,5 +54,10 @@ result=0
 run_fixture 0 --fixture=disposable "--report=$output" || result=$?
 [[ "$result" == 23 ]] || exit 1
 verify_report redis 23
-[[ -s "$work/docker.log" ]] || exit 1
+grep -q -- "--user $(id -u):$(id -g) --entrypoint redis-server" "$work/docker.log"
+result=0
+RUNBOOK_CLI_DOCKER_SECURITY_OPTIONS='["name=rootless"]' run_fixture 0 --fixture=disposable "--report=$output" || result=$?
+[[ "$result" == 23 ]] || exit 1
+verify_report redis 23
+grep -q -- '--user 0:0 --entrypoint redis-server' "$work/docker.log"
 echo 'PASS: CLI parsing, safe report paths, report-v1 fields, success/failure exits and disposable Redis selection (stubs only).'
