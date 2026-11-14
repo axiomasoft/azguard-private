@@ -90,6 +90,7 @@ Core target: **2.0.0-rc.1**, followed by **2.0.0**. The Filament package is not 
   common runtime as scalar and batch decisions. Bigint grant and revision lookups preserve integer precision.
 - **core:** Policy signature caching releases policy instances, middleware inspection follows current route state, and
   grant readers and page cursors reject IDs outside the signed integer range.
+- **core:** A cold queue worker restores an absent panel hint before late completion or failure listeners dispatch another job.
 - **filament:** Deny missing policy abilities and unauthorized page, widget and dynamic relation-manager lifecycles before
   host boot effects. Bulk callbacks and lifecycle hooks validate explicit selections before effects.
 - **filament:** Generate permissions only at the configured scaffold path; console output cannot select an unrelated PHP file.

@@ -10,6 +10,11 @@ use AzGuard\Tests\Fixtures\Crm\CrmWorld;
 use AzGuard\Tests\Fixtures\Http\HttpWorld;
 use AzGuard\Tests\Fixtures\Queue\PanelProbeJob;
 use Illuminate\Database\Eloquent\Relations\Relation;
+use Illuminate\Queue\Events\JobExceptionOccurred;
+use Illuminate\Queue\Events\JobFailed;
+use Illuminate\Queue\Events\JobProcessed;
+use Illuminate\Queue\Events\JobProcessing;
+use Illuminate\Queue\Jobs\SyncJob;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Context;
 use Illuminate\Support\Facades\Route;
@@ -108,3 +113,25 @@ it('V103 refuses the short names of a job whose panel no longer exists and keeps
         ->and(PanelProbeJob::$runs[0]['explicit'])->toBeTrue()
         ->and(app(CurrentPanel::class)->rejected())->toBeNull();
 });
+
+it('restores an absent worker hint before a late job listener dispatches another job', function (string $event): void {
+    Context::addHidden('azguard.panel', 'crm');
+    $payload = Context::dehydrate();
+    Context::forgetHidden('azguard.panel');
+    $job = new SyncJob(app(), json_encode(['illuminate:log:context' => $payload], JSON_THROW_ON_ERROR), 'sync', 'default');
+    app('events')->dispatch(new JobProcessing('sync', $job));
+    expect(app(CurrentPanel::class)->get()?->id())->toBe('crm')->and(Context::getHidden('azguard.panel'))->toBe('crm');
+    $hintSeen = 'listener did not run';
+    app('events')->listen($event, function (object $finishedEvent) use (&$hintSeen, $job): void {
+        if ($finishedEvent->job !== $job) {
+            return;
+        }
+        $hintSeen = Context::getHidden('azguard.panel');
+        PanelProbeJob::dispatch();
+    });
+    $finished = $event === JobProcessed::class ? new JobProcessed('sync', $job) : new $event('sync', $job, new RuntimeException('job failed'));
+    app('events')->dispatch($finished);
+
+    expect($hintSeen)->toBeNull()->and(Context::hasHidden('azguard.panel'))->toBeFalse()
+        ->and(PanelProbeJob::$runs[0]['panel'])->toBeNull()->and(app(CurrentPanel::class)->get())->toBeNull();
+})->with([JobProcessed::class, JobExceptionOccurred::class, JobFailed::class]);
