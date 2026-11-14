@@ -80,6 +80,9 @@ scopes/видимость/хранилище, Filament, инфраструкту
   пример подтверждает причину; writer выделен в небольшой `@internal CountedRowsWriter`. Публичная поверхность
   и contract assertions сохранены, full PHPStan проходит без ignores/baseline. У отказного `incrementOrCreate`
   уточнён смысл строкового имени колонки и проверен отказ неизвестной колонки без SQL.
+- Следующий за PHPStan type-coverage gate выявил отдельную гонку: plugin после 100 ms ожидания lock разрешал
+  конкурентную перезапись общего PHP cache, что давало parse error. Канонический `composer test:types` ограничивает
+  Pokio одним worker через публичный `FORK_MEM_PER_PROC`; порог 98% сохранён, vendor не меняется.
 - Rector 2.8 добавил новый вариант преобразования `null` checks в `instanceof`. Он отключён по уже принятому
   правилу явных nullable checks, как прежнее эквивалентное правило; массовые косметические изменения не внесены.
 - При повторном использовании coverage workers полный JUnit сохранял все тесты, но Clover терял строки,
@@ -88,6 +91,8 @@ scopes/видимость/хранилище, Filament, инфраструкту
   Изоляция включена только в coverage entry points; обычная SQLite-полоса сохраняет долгоживущие workers.
 - CodeQL успешно анализировал код, но новый upload-artifact отвергал старый относительный путь с `..`.
   Отчёты и SHA-bound metadata теперь хранятся и публикуются из абсолютного каталога `runner.temp`.
+  JS/TS extractor пропускал скрытый каталог с единственным TypeScript-файлом; `docs/.vitepress` добавлен
+  явным корнем обхода вместе с прежним корнем `.`.
   Size labeler получил только нужный `pull-requests: write` в своём job, без checkout и без `pull_request_target`;
   fork PR не получает такой token. Security policy по-прежнему запрещает эту привилегию другим jobs.
 - У private ownership oracle восстановлено исходное форматирование. Проверено равенство декодированных JSON-данных,
@@ -154,6 +159,7 @@ lock; окончательное доказательство — новый п�
 | PostgreSQL primary/replica | **2 passed, 98 assertions** | `build/review-replica-locked.log` |
 | Extended / глубокие fuzz-сценарии | **4 passed, 231804 assertions** | `build/review-extended-locked.log` |
 | Очередь, включая nullable hint и поздние listeners | **11 passed, 93 assertions** | `tests/Feature/Laravel/QueueContextTest.php`, `tests/Feature/Authorization/QueueContextTest.php` |
+| Type coverage, cold cache, один worker | **99.9%, порог 98%** | `build/review-type-coverage-serial-cold.log` |
 | PHPStan max / Pint / Rector | **0 errors / passed / 0 changes** | `build/review-phpstan-final.log`, `review-pint-locked.log`, `review-rector-final.log` |
 
 Время тестов изолированного coverage-прогона — 497.55 с без последующей агрегации отчётов. Это не утверждение

@@ -69,7 +69,7 @@
         "refactor": "vendor/bin/rector process",
         "refactor:check": "vendor/bin/rector process --dry-run",
         "analyse": "vendor/bin/phpstan analyse --memory-limit=1G",
-        "test:types": "php -d memory_limit=1G vendor/bin/pest --type-coverage --min=98",
+        "test:types": "FORK_MEM_PER_PROC=9223372036854775807 php -d memory_limit=1G vendor/bin/pest --type-coverage --min=98",
         "check:coverage": "bash bin/coverage-gate.sh",
         "bench": "php -d memory_limit=2G tests/Benchmarks/Suite.php --markdown",
         "bench:load": [
@@ -105,6 +105,7 @@
         ]
     },
     "scripts-descriptions": {
+        "test:types": "Type coverage at 98% with one Pokio worker. FORK_MEM_PER_PROC only limits concurrency; it allocates no memory and avoids the plugin's unlocked cache fallback.",
         "check": "Run required local gates: style, static analysis, Rector, API manifest and compatibility, type coverage, tests and line coverage. Fails on a skipped test or a missing coverage driver (opt out only with AZGUARD_ALLOW_NO_COVERAGE=1).",
         "fix": "Auto-fix code style (Pint) and apply Rector refactorings.",
         "check:coverage": "Line coverage gate (--min=85) with an unlimited memory limit.",

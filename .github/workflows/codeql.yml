@@ -42,6 +42,11 @@ jobs:
         uses: github/codeql-action/init@ce5e7eeac396d720fe2d802714996c8ce561e311 # v3.39.0
         with:
           languages: ${{ matrix.language }}
+          # Keep the root scan and enter the hidden directory containing the docs TypeScript configuration.
+          config: |
+            paths:
+              - .
+              - docs/.vitepress
 
       - name: Perform CodeQL Analysis
         id: analyze

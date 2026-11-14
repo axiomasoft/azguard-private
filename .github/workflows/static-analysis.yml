@@ -54,4 +54,4 @@ jobs:
         run: vendor/bin/phpstan analyse -c phpstan.neon --memory-limit=1G --no-progress
 
       - name: Type coverage (Pest)
-        run: vendor/bin/pest --type-coverage --min=98
+        run: composer test:types
