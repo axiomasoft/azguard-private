@@ -89,16 +89,3 @@ qualification has passed. Exact framework and tool behavior must also match the 
   [verification CLI](https://cli.github.com/manual/gh_attestation_verify): verify archive digests,
   build identity and SBOM predicates separately from Git tag signatures, including the monorepo
   to public package tree mapping.
-
-### PLAN2 execution coordination (2026-10-30)
-
-- Local design reference: `agelto/plans/2026.10.23-№1-PROCESS-CORE/autopilot-prompt.txt`
-  in the connected Agelto checkout, read on 2026-10-30. The AzGuard adaptation is
-  `plans/2026.10.30-№1-AZGUARD-AUDIT-HARDENING/autopilot-prompt.txt`.
-  It retains the Planner → conductor → registration → next cycle, small owning fixes
-  and bounded recovery. Agelto-specific rig, capacity receipts, diagnostic agents and
-  autopilot review are excluded. This is an adaptation, not a vendored source copy.
-- Execution contracts checked against the installed Swissknifeman planner 0.34.1:
-  plan-protocol v4, planner-orch orchestration overlays, and orch agent-mode/conductor
-  commands. Exact GPT-6.1 Terra/Sol routes are owner-selected. Native dry-run verifies
-  launch construction; it does not establish live model entitlement.
