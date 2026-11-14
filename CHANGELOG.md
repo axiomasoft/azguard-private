@@ -85,7 +85,14 @@ Core target: **2.0.0-rc.1**, followed by **2.0.0**. The Filament package is not 
 
 ### Fixed
 
-- **core:** Restore signed array-cache reads on Laravel 12.0 while rejecting malformed or unsigned values before deserialization.
+- **core:** Read signed array-cache entries through Laravel 13's raw store API while rejecting malformed or unsigned values before deserialization.
+- **core:** Batch scope checks verify live tenant ownership, and exact visibility applies definition filters with the same
+  common runtime as scalar and batch decisions. Bigint grant and revision lookups preserve integer precision.
+- **core:** Policy signature caching releases policy instances, middleware inspection follows current route state, and
+  grant readers and page cursors reject IDs outside the signed integer range.
+- **filament:** Deny missing policy abilities and unauthorized page, widget and dynamic relation-manager lifecycles before
+  host boot effects. Bulk callbacks and lifecycle hooks validate explicit selections before effects.
+- **filament:** Generate permissions only at the configured scaffold path; console output cannot select an unrelated PHP file.
 - **core:** Shared permission-set reads retain reconstructed factory values, detaching serialized decision-field
   references before placing contributions in request memo storage.
 - **core:** Exact visibility for resources without a scope mapping ignores concrete assignments, including the `global`
