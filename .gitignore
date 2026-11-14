@@ -51,11 +51,10 @@ AGENTS.md
 .swissknife/
 .swissknife.json
 # Local planning, agent receipts and run logs are development infrastructure.
-# /plans/
+/Analysis/
+/plans/
 
 # Raw samples and the SQLite file of the load bench
 /bench/.runs/
 # Pinned security tools (bin/security-tools.sh)
 var/tools/
-
-plans/*/artifacts/**/*.jsonl
