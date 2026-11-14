@@ -25,6 +25,7 @@ WRITE_PERMISSIONS = {
     ('release.yml', 'release'): {'contents'},
     ('dependabot-auto-merge.yml', 'auto-merge'): {'pull-requests'},
     ('dependabot-auto-merge.yml', 'sweep'): {'pull-requests'},
+    ('pr-check.yml', 'size'): {'pull-requests'},
 }
 EXTERNAL = re.compile(r'^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+(?:/[A-Za-z0-9_.-]+)*@[0-9a-f]{40}$')
 # Exact workflow snapshots are the review boundary, not a shell-safety proof.
@@ -35,12 +36,12 @@ EXTERNAL = re.compile(r'^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+(?:/[A-Za-z0-9_.-]+)*@[0
 REVIEWED_WORKFLOWS = {
     'bench.yml': '490eedb10a85d0a2fc115195bcd77dab58e39b061c52d19559d42794ce071fac',
     'code-style.yml': '160805e973fa68615fc313f2ffefbd1abceb806b0f6ccd0915ed7c659ecba5d8',
-    'codeql.yml': 'd407745bb38fc13e8261bec697da0d7f679f23b8faa3b3170f89cb2dc595ecfb',
+    'codeql.yml': '4f43408b59a9eb19c50870d63df0d19f427ca9c64c2aec52851d63e990735fe2',
     'compatibility.yml': '3d3728c0af2f0f3cb5ebf591ebd85f8ff3ec29f748844ac235de19862ee44212',
     'dependabot-auto-merge.yml': '37976e5af8911e7ba507395c74cf5d453f9ddbafc3b627ba87118e6eab8f0a54',
     'docs-deploy.yml': '15efe0198116c95ea5205fc336f8eef90139efc68e157b00d1259c1dece6d5bf',
     'docs.yml': '4ae6826bdb0d02c9df13a82b4865c85bc21811b0f296412c8f02018422ba22d6',
-    'pr-check.yml': 'b72cad5c81a8fe3d9692fd65af390ace4a63c705f7219dc6f8b5f929fd0bb493',
+    'pr-check.yml': '23625feba2ba1d75d5f2babd9fde39ca0d275f126ce68ada9ce26ad2d6c5c463',
     'release.yml': '364468e55cb421da6ad718a0f4be19ffe96e73edeec6358897fa6697ffb5bccc',
     'release-setup-probe.yml': '8786c2fc34a1e241e6f053e65361dfb5d4019d9769aa795d3adb8216dad6b6c2',
     'secret-scan.yml': '405d61d500751cb018bdb433d19fda6ef804ebce4f01e4052c1975646fd0c2b3',

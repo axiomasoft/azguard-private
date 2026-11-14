@@ -74,7 +74,7 @@ scopes/видимость/хранилище, Filament, инфраструкту
 - Redis runbook учитывает rootless Docker UID mapping, сохраняя каталог/socket `700`, network isolation и cap-drop.
 - Composer audit обнаружил **11 advisory** в шести зафиксированных пакетах. Обновлены только Laravel `13.40.0`
   и пять Symfony-компонентов `8.1.11`; остальные версии и manifest constraints сохранены. После обновления Composer
-  audit, OSV, license/plugin policies и Zizmor зелёные. Четыре изменённых workflow проверены полностью, затем обновлены
+  audit, OSV, license/plugin policies и Zizmor зелёные. Изменённые workflows проверены полностью, затем обновлены
   их review digests; политика безопасности не ослаблена.
 - На точном lock выявлен баг PHPStan 2.3.4/2.3.5 с вложенным anonymous class внутри trait. Независимый минимальный
   пример подтверждает причину; writer выделен в небольшой `@internal CountedRowsWriter`. Публичная поверхность
@@ -86,6 +86,12 @@ scopes/видимость/хранилище, Filament, инфраструкту
   которые существующие тесты уверенно покрывали в отдельных прогонах. Новый процесс на каждый файл
   (`--max-batch-size=1`, четыре worker) восстановил **93.6%** на тех же исходниках и прежнем пороге **85%**.
   Изоляция включена только в coverage entry points; обычная SQLite-полоса сохраняет долгоживущие workers.
+- CodeQL успешно анализировал код, но новый upload-artifact отвергал старый относительный путь с `..`.
+  Отчёты и SHA-bound metadata теперь хранятся и публикуются из абсолютного каталога `runner.temp`.
+  Size labeler получил только нужный `pull-requests: write` в своём job, без checkout и без `pull_request_target`;
+  fork PR не получает такой token. Security policy по-прежнему запрещает эту привилегию другим jobs.
+- У private ownership oracle восстановлено исходное форматирование. Проверено равенство декодированных JSON-данных,
+  checksum обновлён; diff против main сократился с тысяч строк форматирования до 106 добавленных строк.
 
 Первичные advisory: [Laravel concurrency injection](https://github.com/advisories/GHSA-63hm-g96r-2m2q),
 [Symfony YAML DoS](https://github.com/symfony/symfony/security/advisories/GHSA-hwfg-qwvh-2wfx).
@@ -163,3 +169,6 @@ lock; окончательное доказательство — новый п�
 
 Это ревью и regression qualification данной ветки. Оно не заменяет полную release-матрицу, длительный soak,
 проверку production TLS/ACL и публикационные доказательства; релиз и теги в эту задачу не входят.
+Локальный preflight сохранён в `build/qualification/preflight.json`: проверки среды выполнены, но общий статус не
+засчитывался как зелёный из-за `unavailable` orchestration и actionlint/zizmor в обычном `PATH`. Реальные scanner/policy
+запуски проверены отдельно закреплёнными инструментами; это не основание объявлять готовым production-релиз.

@@ -67,6 +67,15 @@ jobs:
         self.check_bad(BASE.replace('persist-credentials: false', 'persist-credentials: true'))
         self.check_bad(BASE.replace('        with: {persist-credentials: false}\n', ''))
 
+    def test_size_label_permissions_are_job_specific(self):
+        text = (pins.ROOT / '.github/workflows/pr-check.yml').read_text()
+        self.assertEqual([], pins.check_workflow(text, 'pr-check.yml'))
+        unsafe = text.replace('  title:\n', '  title:\n    permissions: {contents: read, pull-requests: write}\n')
+        self.assertNotEqual(text, unsafe)
+        with mock.patch.dict(pins.REVIEWED_WORKFLOWS, {'pr-check.yml': hashlib.sha256(unsafe.encode()).hexdigest()}):
+            self.assertTrue(any('title: forbidden permission pull-requests: write' in error
+                                for error in pins.check_workflow(unsafe, 'pr-check.yml')))
+
     def test_untrusted_inline_and_privileged_trigger(self):
         self.check_bad(BASE.replace('echo safe', 'echo ${{ github.event.pull_request.title }}'))
         self.check_bad(BASE.replace('echo safe', "echo ${{ github['event'].pull_request.title }}"))
