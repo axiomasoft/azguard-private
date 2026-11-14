@@ -170,6 +170,7 @@ final class WriteGuardedBuilder extends Builder
     }
 
     /** @param array<mixed> $attributes
+     * @param string $column Every column name is refused before any model property lookup.
      * @param array<mixed> $extra */
     final public function incrementOrCreate(array $attributes, string $column = 'count', mixed $default = 1, mixed $step = 1, array $extra = []): never
     {

@@ -110,6 +110,7 @@ function guardedBuilderMethods(): array
         'firstOrCreate' => ['firstOrCreate', [['id' => 1]]], 'updateOrCreate' => ['updateOrCreate', [['id' => 1], ['origin' => 'import']]],
         'createOrFirst' => ['createOrFirst', [['id' => 1]]], 'createQuietly' => ['createQuietly', [['id' => 1]]],
         'forceCreateQuietly' => ['forceCreateQuietly', [['id' => 1]]], 'incrementOrCreate' => ['incrementOrCreate', [['id' => 1]]],
+        'incrementOrCreate unknown column' => ['incrementOrCreate', [['id' => 1], 'not_a_model_property']],
         'touch' => ['touch', []],
     ];
 }

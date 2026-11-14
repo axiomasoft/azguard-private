@@ -10783,6 +10783,27 @@
                 "tests": 0,
                 "stubs_config_migrations": []
             }
+        },
+        {
+            "current": "AzGuard\\Testing\\Internal\\Contracts\\CountedRowsWriter",
+            "current_path": "packages/core/src/Testing/Internal/Contracts/CountedRowsWriter.php",
+            "kind": "class",
+            "lines": 26,
+            "current_marker": "internal",
+            "owner": "core",
+            "target": "AzGuard\\Testing\\Internal\\Contracts\\CountedRowsWriter",
+            "target_path": "packages/core/src/Testing/Internal/Contracts/CountedRowsWriter.php",
+            "marker": "internal",
+            "enum": null,
+            "action": "keep",
+            "phase": "—",
+            "reason": "internal helper; FQCN unchanged",
+            "used_by": {
+                "core": 1,
+                "filament": 0,
+                "tests": 0,
+                "stubs_config_migrations": []
+            }
         }
     ]
 }
