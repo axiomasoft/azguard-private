@@ -166,6 +166,10 @@ final class PostController
 controller can still leave the attribute unread, and `azguard.panel` applies it in that case. With `->requireRouteChecks()` on the panel, an action with neither attribute throws
 `MissingPermissionCheckException` in `local` and `testing` and answers 403 elsewhere.
 
+Laravel's explicit `withoutMiddleware()` exclusions also apply to these attributes. Without strict mode, removing a
+check deliberately leaves that route unchecked. Enable `requireRouteChecks()` when every panel action must retain a
+check; use `#[SkipPermissionCheck]` for an intentional exception to that rule.
+
 ## Frontend abilities
 
 ```php

@@ -35,12 +35,6 @@ final class RouteChecks
     /** @var array<string, list<CheckPermission>> attribute lists do not depend on the route instance */
     private array $attributeCache = [];
 
-    /** @var array<int, list<mixed>> resolved gathered middleware for one route object */
-    private array $gatheredCache = [];
-
-    /** @var list<mixed>|null */
-    private ?array $checkPrefixes = null;
-
     /**
      * The permission attributes that apply to the action of the route; none for a closure route.
      *
@@ -145,7 +139,7 @@ final class RouteChecks
             ...$route->gatherMiddleware(),
             ...array_map(static fn (CheckPermission $check): Closure|string => $check->middleware, $this->attributes($route)),
         ], $excluded);
-        $prefixes = $this->prefixes($router);
+        $prefixes = $router->resolveMiddleware([CheckPermissionMiddleware::ALIAS.':', 'can:']);
 
         foreach ($middleware as $check) {
             if (! is_string($check)) {
@@ -181,15 +175,7 @@ final class RouteChecks
     /** @return list<mixed> */
     private function gathered(Route $route): array
     {
-        $id = spl_object_id($route);
-
-        return $this->gatheredCache[$id] ??= app(Router::class)->resolveMiddleware($route->gatherMiddleware(), $route->excludedMiddleware());
-    }
-
-    /** @return list<mixed> */
-    private function prefixes(Router $router): array
-    {
-        return $this->checkPrefixes ??= $router->resolveMiddleware([CheckPermissionMiddleware::ALIAS.':', 'can:']);
+        return array_values(app(Router::class)->resolveMiddleware($route->gatherMiddleware(), $route->excludedMiddleware()));
     }
 
     private function skipped(Route $route): bool

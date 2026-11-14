@@ -27,7 +27,6 @@ function validCodeToken(FuzzInput $input): string
 /** @param callable(string): (StateToken|CodeStateToken) $parse */
 function tokenProperties(int $seed, int $iterations, callable $parse, Closure $valid): void
 {
-    $accepted = 0;
     $generator = static function (FuzzInput $input) use ($valid): string {
         return match ($input->int(0, 2)) {
             0 => $input->string(),
@@ -35,14 +34,12 @@ function tokenProperties(int $seed, int $iterations, callable $parse, Closure $v
         };
     };
 
-    FuzzInput::run($seed, $iterations, static function (string $value, string $label) use ($parse, &$accepted): void {
+    FuzzInput::run($seed, $iterations, static function (string $value, string $label) use ($parse): void {
         try {
             $token = $parse($value);
         } catch (InvalidIdentityException) {
             return;
         }
-        $accepted++;
-
         // An accepted token re-reads from its own text to an equal token.
         expect($parse($token->toString())->equals($token))->toBeTrue("round trip: $label");
     }, $generator);

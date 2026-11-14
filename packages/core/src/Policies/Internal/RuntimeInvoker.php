@@ -9,6 +9,7 @@ use Illuminate\Contracts\Container\Container;
 use Illuminate\Database\Eloquent\Model;
 use ReflectionFunction;
 use ReflectionIntersectionType;
+use ReflectionMethod;
 use ReflectionNamedType;
 use ReflectionParameter;
 use ReflectionType;
@@ -91,32 +92,47 @@ final readonly class RuntimeInvoker
     }
 
     /**
-     * Parameter metadata of a class method is stable. The closure that actually runs stays the one just built, so a
-     * cached signature cannot call the first policy instance again. Fresh closures are not stored.
+     * Cache unbound declaration metadata only. Reflecting a bound closure would retain its policy instance across
+     * requests in a long-lived worker. Closures and magic methods are reflected only for this invocation.
      *
      * @return list<ReflectionParameter>
      */
     private static function parameters(callable $callback, Closure $closure): array
     {
-        $key = null;
+        $target = null;
+        $method = null;
 
         if (is_array($callback)) {
             $target = is_object($callback[0]) ? $callback[0]::class : $callback[0];
-            $key = $target.'::'.$callback[1];
-        } elseif (is_string($callback)) {
-            $key = $callback;
+            $method = $callback[1];
+        } elseif (is_string($callback) && str_contains($callback, '::')) {
+            [$target, $method] = explode('::', $callback, 2);
         } elseif (is_object($callback) && ! $callback instanceof Closure) {
-            $key = $callback::class.'::__invoke';
+            $target = $callback::class;
+            $method = '__invoke';
         }
 
-        if ($key === null) {
-            return (new ReflectionFunction($closure))->getParameters();
+        /** @var array<string, list<ReflectionParameter>> $parameters */
+        static $parameters = [];
+
+        if ($target !== null && method_exists($target, $method)) {
+            $key = $target.'::'.$method;
+
+            if (isset($parameters[$key])) {
+                return $parameters[$key];
+            }
+            $reflection = new ReflectionMethod($target, $method);
+
+            if ($reflection->isPublic()) {
+                return $parameters[$key] = $reflection->getParameters();
+            }
         }
 
-        /** @var array<string, ReflectionFunction> $functions */
-        static $functions = [];
+        if (is_string($callback) && ! str_contains($callback, '::')) {
+            return $parameters[$callback] ??= (new ReflectionFunction($callback))->getParameters();
+        }
 
-        return ($functions[$key] ??= new ReflectionFunction($closure))->getParameters();
+        return (new ReflectionFunction($closure))->getParameters();
     }
 
     private function accepts(?ReflectionType $type, mixed $value): bool

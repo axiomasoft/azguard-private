@@ -224,7 +224,7 @@ final readonly class GrantWriter
         return [$until, $this->reads->fields($kind)->toRow($fields)];
     }
 
-    /** @return array{actor_type: ?string, actor_id: ?string, actor_reason: ?string} */
+    /** @return array{actor_type: ?string, actor_id: int|string|null, actor_reason: ?string} */
     private function actor(?ActorRef $actor): array
     {
         return ['actor_type' => $actor?->type,

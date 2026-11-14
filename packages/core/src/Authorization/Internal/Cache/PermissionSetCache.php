@@ -224,7 +224,8 @@ final class PermissionSetCache
         }
 
         if ($store instanceof ArrayStore) {
-            $item = $this->arrayItem($store, $key);
+            // all(false) reads raw bytes without deserializing them before MAC verification.
+            $item = $this->arrayItem($store->all(false)[$key] ?? null);
 
             if ($item === null) {
                 return null;
@@ -265,7 +266,7 @@ final class PermissionSetCache
     private function forgetEnvelope(mixed $store, string $key, mixed $raw): void
     {
         if ($store instanceof ArrayStore) {
-            if (($this->arrayItem($store, $key)['value'] ?? null) === $raw) {
+            if (($this->arrayItem($store->all(false)[$key] ?? null)['value'] ?? null) === $raw) {
                 $store->forget($key);
             }
         } elseif ($store instanceof RedisStore && is_string($raw) && $this->supportsStore($store)) {
@@ -281,16 +282,9 @@ final class PermissionSetCache
     }
 
     /** @return array{value: mixed, expiresAt: float|int}|null */
-    private function arrayItem(ArrayStore $store, string $key): ?array
+    private function arrayItem(mixed $item): ?array
     {
-        // all(false) is the raw store. get() may deserialize before the MAC check.
-        $storage = $store->all(false);
-
-        if (! is_array($storage)) {
-            throw new UnexpectedValueException('Invalid array cache storage.');
-        }
-        $item = $storage[$key] ?? null;
-
+        // Validate raw storage even when corruption violates ArrayStore's documented entry shape.
         if ($item === null) {
             return null;
         }
