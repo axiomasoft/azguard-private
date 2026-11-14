@@ -92,6 +92,20 @@ it('reads fresh fields and rechecks authoritative owner instead of a stale resol
     expect(EligibilityBuilder::matches($this->nativeDefinition, $this->nativeResolved, [], $this->nativeRuntime, app()))->toBeFalse();
 });
 
+it('rechecks the authoritative owner of every batch witness in one query', function (string $owner, bool $expected): void {
+    NativeProject::query()->whereKey(1)->update(['owner' => $owner]);
+    $filters = [fn (Builder $query) => $query->active()];
+    expect(EligibilityBuilder::matches($this->nativeDefinition, $this->nativeResolved, $filters, $this->nativeRuntime, app()))->toBe($expected);
+    $witnesses = array_fill_keys(range(0, 99), [$this->nativeResolved, $this->nativeRuntime]);
+    DB::flushQueryLog();
+
+    $answers = EligibilityBuilder::matchesMany($this->nativeDefinition, $witnesses, $filters, app());
+
+    expect($answers)->toBe(array_fill(0, 100, $expected))
+        ->and(DB::getQueryLog())->toHaveCount(1)
+        ->and(count(DB::getQueryLog()[0]['bindings']))->toBeLessThanOrEqual(1000);
+})->with(['same owner' => ['A', true], 'changed owner' => ['B', false]]);
+
 it('calls a closure filter with the query and the runtime and fails one that needs a missing user', function (): void {
     expect(EligibilityBuilder::matches($this->nativeDefinition, $this->nativeResolved, [
         function (Builder $query, AssignmentScopeRuntime $runtime): void {

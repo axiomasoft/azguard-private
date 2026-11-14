@@ -11,6 +11,7 @@ use AzGuard\Exceptions\UnsupportedDirectWriteException;
 use AzGuard\Kernel\Grammar\PermissionGrammar;
 use AzGuard\Kernel\Identity\IdentityCodec;
 use AzGuard\Panels\Reads;
+use AzGuard\Storage\Internal\Schema\HostKeyColumns;
 use AzGuard\Storage\Models\Permission;
 use AzGuard\Storage\Models\PermissionGrant;
 use AzGuard\Storage\Models\RoleGrant;
@@ -375,6 +376,7 @@ final class Storage
         $subjects = $this->pendingSubjects[$panel] ?? [];
         ksort($subjects, SORT_STRING);
         foreach ($subjects as [$type, $id]) {
+            $id = HostKeyColumns::bound($this->hostKeys, $id);
             $this->table('subject_revisions')->insertOrIgnore(['panel' => $panel, 'subject_type' => $type, 'subject_id' => $id, 'revision' => 0]);
             $this->table('subject_revisions')->where('panel', $panel)->where('subject_type', $type)->where('subject_id', $id)->increment('revision');
         }

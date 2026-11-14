@@ -9,6 +9,7 @@ use AzGuard\Kernel\Grammar\PermissionGrammar;
 use AzGuard\Kernel\Identity\IdentityCodec;
 use AzGuard\Kernel\Internal\Narrow;
 use AzGuard\Panels\Reads;
+use AzGuard\Storage\Internal\Schema\HostKeyColumns;
 use Closure;
 use Illuminate\Database\Connection;
 use Illuminate\Database\Eloquent\Model;
@@ -248,6 +249,7 @@ final class StorageReadSession
         PermissionGrammar::assertPanelId($panel);
         $this->storage->authorityTransaction($panel);
         $this->assertSchema();
+        $subjectId = HostKeyColumns::bound($this->storage->hostKeys(), $subjectId);
         $row = $this->table('panel_state as ps')
             ->leftJoin($this->storage->prefix().'subject_revisions as sr', static function (JoinClause $join) use ($subjectType, $subjectId): void {
                 $join->on('sr.panel', '=', 'ps.panel')->where('sr.subject_type', '=', $subjectType)->where('sr.subject_id', '=', $subjectId);
@@ -279,6 +281,7 @@ final class StorageReadSession
         $this->assertSchema();
         [$state, $revisions] = [null, []];
         foreach (array_chunk(array_values(array_unique($subjectIds)), self::OBSERVED_CHUNK) as $chunk) {
+            $chunk = array_map(fn (string $id): int|string => HostKeyColumns::bound($this->storage->hostKeys(), $id), $chunk);
             $rows = $this->table('panel_state as ps')
                 ->leftJoin($this->storage->prefix().'subject_revisions as sr', static function (JoinClause $join) use ($subjectType, $chunk): void {
                     $join->on('sr.panel', '=', 'ps.panel')->where('sr.subject_type', '=', $subjectType)->whereIn('sr.subject_id', $chunk);

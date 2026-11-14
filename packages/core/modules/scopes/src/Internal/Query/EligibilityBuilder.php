@@ -80,15 +80,27 @@ final class EligibilityBuilder
                 $branch = self::structural($definition);
                 ModelKey::where($branch, $resolved->ref->id());
                 self::apply($definition, $branch, $filters, $runtime, $container);
+
                 // A witness tag prevents one passing role/field predicate from granting a sibling witness.
+                // Keep the live model in the same query: tenantOf() is the ownership authority, not the witness.
+                if ($branch->getQuery()->columns === null) {
+                    $branch->select($branch->getModel()->qualifyColumn('*'));
+                }
                 $branch->selectRaw('? as azguard_batch_witness', [$i]);
-                $query = $query === null ? $branch->toBase() : $query->unionAll($branch->toBase());
+                $query = $query === null ? $branch : $query->unionAll($branch->toBase());
             } catch (Throwable $error) {
                 $results[$keys[$i]] = $error;
             }
         }
         foreach ($query?->get() ?? [] as $row) {
-            $results[$keys[self::witness($row->azguard_batch_witness)]] = true;
+            $key = $keys[self::witness($row->getRawOriginal('azguard_batch_witness'))];
+            unset($row['azguard_batch_witness']);
+
+            try {
+                $results[$key] = $definition->tenantOf($row)->equals($witnesses[$key][0]->tenant);
+            } catch (Throwable $error) {
+                $results[$key] = $error;
+            }
         }
 
         return $results;
