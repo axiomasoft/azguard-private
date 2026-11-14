@@ -36,6 +36,7 @@ Mount or symlink the package directory into the app, then `composer update`.
 ## Development dependency lock
 
 The root `composer.lock` records the PHP 8.4 / Laravel 13 development graph.
+Use PHP 8.4 for locked commands and put it first on `PATH` for their child processes.
 Use `composer install` without updating the lock for locked CI, analysis,
 and release tooling; changes to that graph should be reviewed with
 the lock. This lock belongs to the monorepo and is excluded from archives; it
@@ -123,6 +124,10 @@ upgrading the report format.
 | `composer check` | — | Run the local gates: style, analysis, refactor, API manifest and compatibility, types, tests, coverage |
 | `composer fix` | — | Auto-fix style and apply refactorings |
 
+Coverage runs four workers with a fresh process for each test file (`--max-batch-size=1`). Reusing workers produced
+incomplete line capture despite a complete passing test inventory; file isolation restores the captured lines while
+retaining the 85% gate and all assertions. The ordinary SQLite lane keeps its faster long-lived workers.
+
 Feature tests use an in-memory SQLite database, so the `pdo_sqlite` /
 `sqlite3` PHP extensions must be enabled.
 
@@ -135,7 +140,7 @@ lane; [tests/README.md](tests/README.md) has the zone map and the lane rules.
 `composer test` runs against SQLite `:memory:` by default and excludes the
 `engines`, `redis` and `replica` groups. Those require their dedicated test services;
 excluding them does not qualify those backends. To exercise the
-package against real database engines (Postgres 16, MySQL 8, MariaDB 10.11) and Redis, bring
+package against real database engines (Postgres 18, MySQL 9.7, and the optional local MariaDB 10.11) and Redis, bring
 up the local stand:
 
 ```bash
@@ -145,8 +150,8 @@ make ps                # check status
 make down               # stop and remove the stand
 ```
 
-`docker-compose.yml` defines four default services — `postgres` (Postgres 16), `mysql`
-(MySQL 8), `mariadb` (MariaDB 10.11), `redis` (Redis 7) — each with a healthcheck.
+`docker-compose.yml` defines four default services — `postgres` (Postgres 18), `mysql`
+(MySQL 9.7), `mariadb` (MariaDB 10.11, local only), `redis` (Redis 7) — each with a healthcheck.
 The three test databases store data on tmpfs (a 2 GiB limit per service); Redis keeps its named volume.
 These database containers deliberately disable crash durability: PostgreSQL disables `fsync`,
 `synchronous_commit` and `full_page_writes`; MySQL disables binlog, commit-time log flushing and
@@ -164,7 +169,7 @@ With the stand up, run the database lane against a real engine with
 `database`: storage, database sources, the change pipeline, SQL visibility, directories, parity, contracts); the
 rest of the suite runs once on SQLite (`composer test`). The lane switches `DB_CONNECTION` and otherwise shares
 `tests/TestCase.php`'s env-driven connection config with the sqlite default. CI runs sqlite (`tests.yml` main job),
-the PG/MySQL/MariaDB lane on Laravel 12 and 13 (`test-db-matrix` job) and a dedicated Redis lane (`test-redis`) on
+the PostgreSQL and MySQL lanes on Laravel 13 (`test-db-matrix` job) and a dedicated Redis lane (`test-redis`) on
 every push/PR; the scale tests and all parity seeds run nightly (`tests-nightly.yml`). **All lanes are required for
 merge** — sqlite alone self-skips database-specific code, and array-store tests do not prove cross-process Redis
 lock behaviour.

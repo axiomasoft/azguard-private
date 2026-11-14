@@ -5,21 +5,35 @@ declare(strict_types=1);
 namespace AzGuard\Filament\Internal\Authorization;
 
 use AzGuard\Filament\Authorization\FilamentGate;
+use Closure;
 use Filament\Actions\Action;
 use Filament\Actions\AssociateAction;
 use Filament\Actions\AttachAction;
 use Filament\Actions\BulkAction;
 use Filament\Actions\Contracts\HasActions;
+use Filament\Actions\CreateAction;
+use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\DetachAction;
 use Filament\Actions\DetachBulkAction;
 use Filament\Actions\DissociateAction;
 use Filament\Actions\DissociateBulkAction;
+use Filament\Actions\Exceptions\ActionNotResolvableException;
 use Filament\Actions\ExportAction;
 use Filament\Actions\ExportBulkAction;
+use Filament\Actions\ForceDeleteBulkAction;
+use Filament\Actions\ReplicateAction;
+use Filament\Actions\RestoreBulkAction;
+use Filament\Resources\Pages\Page as ResourcePage;
+use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Resources\Resource as FilamentResource;
 use Filament\Tables\Contracts\HasTable;
+use Filament\Widgets\Widget;
 use Illuminate\Auth\Access\Response;
 use Illuminate\Database\Eloquent\Model;
+use Livewire\ImplicitlyBoundMethod;
+use ReflectionFunction;
+use ReflectionProperty;
+use Throwable;
 
 /**
  * Default checks for custom actions, and a fresh check before a bulk callback can consume selected records or keys.
@@ -28,6 +42,8 @@ use Illuminate\Database\Eloquent\Model;
  */
 final class AuthorizesActions
 {
+    private const array EARLY_BULK_HOOKS = ['beforeFormFilled', 'afterFormFilled', 'beforeFormValidated', 'afterFormValidated', 'mountUsing'];
+
     public static function configure(Action $action): void
     {
         // An action may be constructed before the request selects its panel. Decide at execution, not construction.
@@ -37,19 +53,40 @@ final class AuthorizesActions
             $context = FilamentContext::serving();
             $resource = FilamentContext::resourceOf($livewire);
 
-            if ($context?->enforced() !== true || $resource === null || $context->excludes('resources', $resource)) {
+            if ($context?->enforced() !== true || ($resource !== null && $context->excludes('resources', $resource))) {
                 return $otherwise ?? Response::allow();
             }
 
-            if (self::changesRelation($action)) {
-                return $otherwise ?? self::relation($action, $livewire, $resource);
+            if ($resource === null) {
+                if ($livewire instanceof Widget && $context->excludes('widgets', $livewire::class)) {
+                    return $otherwise ?? Response::allow();
+                }
+
+                // A widget table has no resource. An empty default response must not allow a row action.
+                return $otherwise ?? ($livewire instanceof Widget ? Response::deny() : Response::allow());
+            }
+
+            if (self::changesRelation($action) || (self::writesOwnerRow($action) && FilamentContext::ownerOf($livewire) !== null)) {
+                $owner = self::relation($action, $livewire, $resource);
+
+                if (! $owner->allowed()) {
+                    return $owner;
+                }
+
+                return ($otherwise !== null && ! $otherwise->allowed()) ? $otherwise : ($otherwise ?? $owner);
             }
             $record = $action->getRecord();
             $ability = self::ability($action);
             $bulkQuery = $action instanceof BulkAction && $livewire instanceof HasTable && $livewire->getTable()->hasQuery();
 
-            return $otherwise ?? FilamentGate::resource($resource, $bulkQuery && ! str_ends_with($ability, '_any') ? $ability.'_any' : $ability,
+            $decision = FilamentGate::resource($resource, $bulkQuery && ! str_ends_with($ability, '_any') ? $ability.'_any' : $ability,
                 $record instanceof Model && ! self::exports($action) ? $record : null);
+
+            if (! $decision->allowed()) {
+                return $decision;
+            }
+
+            return ($otherwise !== null && ! $otherwise->allowed()) ? $otherwise : $decision;
         });
 
         if (! $action instanceof BulkAction) {
@@ -69,6 +106,10 @@ final class AuthorizesActions
 
             if ($resource !== null && self::changesRelation($action)) {
                 return self::relation($action, $livewire, $resource);
+            }
+
+            if ($resource === null && $livewire instanceof Widget && $context->excludes('widgets', $livewire::class)) {
+                return Response::allow();
             }
 
             return $resource === null ? Response::deny() : FilamentGate::resource($resource, self::exports($action) ? 'view' : self::ability($action), $record);
@@ -104,8 +145,9 @@ final class AuthorizesActions
             $action->fetchSelectedRecords();
         }
 
-        if ($livewire->getDefaultActionIndividualRecordAuthorizationResponseResolver($action) !== null) {
-            // Native bulk actions consume Filament's filtered collection and report individual failures.
+        if ($livewire->getDefaultActionIndividualRecordAuthorizationResponseResolver($action) !== null
+            && self::usesFilteredBulkSelection($action)) {
+            // Stock delete, force-delete and restore consume Filament's filtered collection.
             $action->fetchSelectedRecords();
 
             return;
@@ -132,6 +174,53 @@ final class AuthorizesActions
         }
     }
 
+    /**
+     * Checks hooks that Filament runs before ActionCalling, while the explicit selection is still available.
+     *
+     * @param  array<mixed>  $params
+     */
+    public static function beforeCall(object $component, string $method, array $params): void
+    {
+        if (! in_array($method, ['mountAction', 'callMountedAction'], true)
+            || (! $component instanceof ResourcePage && ! $component instanceof RelationManager)) {
+            return;
+        }
+        $context = FilamentContext::serving();
+        $resource = FilamentContext::resourceOf($component);
+
+        if ($context?->enforced() !== true || $resource === null || $context->excludes('resources', $resource)) {
+            return;
+        }
+
+        if ($method === 'mountAction') {
+            try {
+                $resolved = ImplicitlyBoundMethod::resolveMethodDependencies(app(), [$component, $method], $params);
+            } catch (Throwable) {
+                abort(403);
+            }
+            $bound = is_array($resolved) && is_array($resolved['named'] ?? null) ? $resolved['named'] : [];
+            $name = $bound['name'] ?? null;
+            $arguments = $bound['arguments'] ?? [];
+            $actionContext = $bound['context'] ?? [];
+            abort_unless(is_string($name) && is_array($arguments) && is_array($actionContext), 403);
+
+            try {
+                $action = $component->getAction([
+                    ...($component->mountedActions ?? []),
+                    ['name' => $name, 'arguments' => $arguments, 'context' => $actionContext],
+                ], isMounting: false);
+            } catch (ActionNotResolvableException) {
+                return;
+            }
+        } else {
+            $action = $component->getMountedAction();
+        }
+
+        if ($action instanceof BulkAction && self::hasHooks($action, self::EARLY_BULK_HOOKS)) {
+            (new self)($action);
+        }
+    }
+
     /** @return list<string> */
     private static function keys(mixed $keys): array
     {
@@ -143,6 +232,45 @@ final class AuthorizesActions
         }
 
         return array_values(array_unique($validated));
+    }
+
+    /** The callback is still Filament's and has no custom process or lifecycle hooks that can consume raw keys. */
+    private static function usesFilteredBulkSelection(BulkAction $action): bool
+    {
+        $callback = $action->getActionFunction();
+
+        if (! $callback instanceof Closure) {
+            return false;
+        }
+        $scope = (new ReflectionFunction($callback))->getClosureScopeClass()?->getName();
+
+        if (! in_array($scope, [
+            DeleteBulkAction::class,
+            ForceDeleteBulkAction::class,
+            RestoreBulkAction::class,
+        ], true)) {
+            return false;
+        }
+
+        return ! self::hasHooks($action, ['using', 'before', 'after', ...self::EARLY_BULK_HOOKS]);
+    }
+
+    /** @param list<string> $hooks */
+    private static function hasHooks(Action $action, array $hooks): bool
+    {
+        foreach ($hooks as $hook) {
+            if ((new ReflectionProperty($action, $hook))->getValue($action) !== null) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /** Create and replicate save through the owner relationship, so they are an update of that owner. */
+    private static function writesOwnerRow(Action $action): bool
+    {
+        return $action instanceof CreateAction || $action instanceof ReplicateAction;
     }
 
     /** Whether the action links or unlinks the record of another resource to the record that owns the relation. */

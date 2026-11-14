@@ -56,4 +56,12 @@ final class HostKeyColumns
 
         return $value;
     }
+
+    /** A bigint host key is bound as an int so MySQL does not compare the decimal string as a double. */
+    public static function bound(string $hostKeys, int|string $id): int|string
+    {
+        $canonical = self::canonical($hostKeys, $id);
+
+        return $hostKeys === 'bigint' ? (int) $canonical : $canonical;
+    }
 }

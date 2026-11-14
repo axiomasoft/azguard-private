@@ -14,6 +14,8 @@ use AzGuard\Changes\GrantRecord;
 use AzGuard\Exceptions\StaleSelectionException;
 use AzGuard\Exceptions\UnsupportedDirectWriteException;
 use AzGuard\Kernel\Identity\ActorRef;
+use AzGuard\Kernel\Identity\PermissionPattern;
+use AzGuard\Kernel\Identity\RoleKey;
 use AzGuard\Kernel\Identity\SubjectRef;
 use AzGuard\Storage\Internal\Schema\HostKeyColumns;
 use AzGuard\Storage\Internal\Storage;
@@ -129,7 +131,7 @@ final readonly class GrantWriter
             'panel' => $change->panel,
             'tenant_key' => $change->scope->tenant->key(), 'tenant_type' => $change->scope->tenant->type(), 'tenant_id' => $change->scope->tenant->id(),
             $kind => $change->role?->key() ?? $change->permission?->local(),
-            'subject_type' => $subject->type(), 'subject_id' => HostKeyColumns::canonical($this->storage->hostKeys(), $subject->id()),
+            'subject_type' => $subject->type(), 'subject_id' => HostKeyColumns::bound($this->storage->hostKeys(), $subject->id()),
             'context_key' => $change->scope->context->key(), 'context_type' => $change->scope->context->type(), 'context_id' => $change->scope->context->id(),
             'origin' => $change->origin, 'expires_at' => $until === null ? null : self::stamp($until),
             ...$this->actor($change->actor), ...$row['columns'],
@@ -164,8 +166,8 @@ final readonly class GrantWriter
     {
         $existing = $this->reads->find($change->grantId ?? '', $change->scope->tenant, $change->origin);
 
-        if ($existing === null || ! $existing->scope->equals($change->scope) || $existing->subject != $change->subject
-            || $existing->role != $change->role || $existing->permission != $change->permission) {
+        if ($existing === null || ! $existing->scope->equals($change->scope) || self::mismatches($existing->subject, $change->subject)
+            || self::mismatches($existing->role, $change->role) || self::mismatches($existing->permission, $change->permission)) {
             throw new StaleSelectionException('The selected grant no longer exists in this panel, tenant and origin.');
         }
 
@@ -222,11 +224,11 @@ final readonly class GrantWriter
         return [$until, $this->reads->fields($kind)->toRow($fields)];
     }
 
-    /** @return array{actor_type: ?string, actor_id: ?string, actor_reason: ?string} */
+    /** @return array{actor_type: ?string, actor_id: int|string|null, actor_reason: ?string} */
     private function actor(?ActorRef $actor): array
     {
         return ['actor_type' => $actor?->type,
-            'actor_id' => $actor?->id === null ? null : HostKeyColumns::canonical($this->storage->hostKeys(), $actor->id),
+            'actor_id' => $actor?->id === null ? null : HostKeyColumns::bound($this->storage->hostKeys(), $actor->id),
             'actor_reason' => $actor?->reason];
     }
 
@@ -247,9 +249,24 @@ final readonly class GrantWriter
         return $moment->setTimezone(new DateTimeZone('UTC'))->format('Y-m-d H:i:s');
     }
 
+    private static function mismatches(SubjectRef|RoleKey|PermissionPattern|null $one, SubjectRef|RoleKey|PermissionPattern|null $other): bool
+    {
+        if ($one === null || $other === null) {
+            return $one !== $other;
+        }
+
+        return $one::class !== $other::class || ! $one->equals($other);
+    }
+
     private static function number(string $id): int
     {
-        return (int) substr($id, (int) strpos($id, ':') + 1);
+        $numeric = substr($id, (int) strpos($id, ':') + 1);
+
+        if (preg_match('/\A[1-9][0-9]*\z/', $numeric) !== 1 || (string) (int) $numeric !== $numeric) {
+            throw new UnsupportedDirectWriteException('The grant id is outside the integer key range.');
+        }
+
+        return (int) $numeric;
     }
 
     private static function eventId(): string

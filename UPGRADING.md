@@ -8,7 +8,7 @@ signed tags and artifact attestations as described in `RELEASING.md`.
 
 ## From 1.x to 2.0
 
-`2.0.0` requires PHP 8.3–8.5 and Laravel 12 or 13 (`illuminate/*` `^12.0|^13.0`); upgrade Laravel 11 applications before updating either package. Review and apply the following breaking changes and migration requirements:
+`2.0.0` requires PHP 8.3–8.5 and Laravel 13 (`illuminate/*` `^13.0`); upgrade Laravel 11 and 12 applications before updating either package. Review and apply the following breaking changes and migration requirements:
 
 1. **`FiltersQueries::exactSelections()` and closed SQL visibility predicates:**
    - Sources implementing `AzGuard\Contracts\Sources\FiltersQueries` must return an exact `AssignmentScopeSelection` from `exactSelections()` or `null` when a selection cannot be represented in SQL.

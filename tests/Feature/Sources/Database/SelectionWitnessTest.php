@@ -13,8 +13,10 @@ use AzGuard\Kernel\Identity\PermissionPattern;
 use AzGuard\Kernel\Identity\SubjectRef;
 use AzGuard\Kernel\Identity\TenantRef;
 use AzGuard\Sources\Database\DatabaseSource;
+use AzGuard\Storage\Internal\StorageMutation;
 use AzGuard\Storage\Schema\StorageSchema;
 use AzGuard\Tests\Fixtures\Sources\Database\DatabaseWorld;
+use Illuminate\Database\Events\QueryExecuted;
 
 beforeEach(function (): void {
     app(StorageSchema::class)->create('default');
@@ -59,6 +61,37 @@ it('uses everywhere for tenant-wide witnesses without inventing an Allow', funct
     $empty = $source->contextsCovering(SubjectRef::of('user', 2), PermissionKey::of('admin', 'documents.view'), 'project', $frame);
     expect($empty)->not->toBeNull()->and($empty->refs())->toBe([])->and($empty->contributions())->toBe([])->and($empty->isEverywhere())->toBeFalse();
 });
+
+it('reads every selection witness in one bounded statement and retains the exact budget', function (int $count): void {
+    $scope = AccessScope::in(TenantRef::global(), AssignmentScopeRef::of('project', 7));
+    $rows = array_map(static fn (int $index): array => DatabaseWorld::row(scope: $scope, overrides: ['origin' => 'origin-'.$index]), range(1, $count));
+    DatabaseWorld::storage()->mutate('admin', static function (StorageMutation $mutation) use ($rows): void {
+        foreach (array_chunk($rows, 50) as $chunk) {
+            $mutation->table('role_grants')->insert($chunk);
+        }
+        $mutation->touch('admin');
+    });
+    $source = DatabaseSource::make()->rolesOnly();
+    [, $frame] = DatabaseWorld::compile($source);
+    $statements = [];
+    DatabaseWorld::storage()->connection()->listen(static function (QueryExecuted $query) use (&$statements): void {
+        if (str_starts_with(strtolower(ltrim($query->sql)), 'select') && str_contains($query->sql, 'azg_role_grants')) {
+            $statements[] = $query->sql;
+        }
+    });
+    $select = fn (): AssignmentScopeSelection => $source->contextsCovering(SubjectRef::of('user', 1), PermissionKey::of('admin', 'documents.view'), 'project', $frame);
+
+    if ($count > 10000) {
+        expect($select)->toThrow(InvalidSourceContributionException::class, '10000 assignment witness budget');
+    } else {
+        $selection = $select();
+        expect($selection->refs())->toHaveCount(1)
+            ->and($selection->contributions())->toHaveCount($count)
+            ->and($selection->contributions()[0]->origin)->toBe('origin-1')
+            ->and($selection->contributions()[$count - 1]->origin)->toBe('origin-'.$count);
+    }
+    expect($statements)->toHaveCount(1);
+})->with([501, 10000, 10001]);
 
 it('validates selection lists and preserves witnesses separately from candidate refs', function (): void {
     $ref = AssignmentScopeRef::of('project', '7');

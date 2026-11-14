@@ -20,4 +20,13 @@ trait AuthorizesPage
     {
         return FilamentGate::page(static::class)->allowed();
     }
+
+    /**
+     * Livewire runs boot before the page mount and before Filament's canAccess hook, so a refused page must not
+     * execute its own mount (doctor, settings, schema) and only then answer 403.
+     */
+    public function bootAuthorizesPage(): void
+    {
+        abort_unless(static::canAccess(), 403);
+    }
 }

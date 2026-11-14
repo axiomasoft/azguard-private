@@ -34,7 +34,7 @@ class PreflightTest(unittest.TestCase):
         self.workdir = str(self.root)
         self.config_files = str(self.root / 'docker-compose.yml')
         self.config_hash = 'canonical'
-        self.pgdata = '/var/lib/postgresql/data'
+        self.pgdata = '/var/lib/postgresql/18/docker'
         self.mounts = None
         self.volume_project = 'fixture'
         self.cluster = '123456'
@@ -73,7 +73,7 @@ class PreflightTest(unittest.TestCase):
                           'redis' if self.environment.get('QUALIFICATION_REDIS') == '1' else 'postgres')
                 target, port = {'redis': ('6379', '26379'), 'authority-primary': ('5432', '25433'),
                                 'authority-replica': ('5432', '25434')}.get(service, ('5432', '5432'))
-                data = '/data' if service == 'redis' else '/var/lib/postgresql/data'
+                data = '/data' if service == 'redis' else '/var/lib/postgresql'
                 volume = {'redis': 'redis_data', 'authority-primary': 'authority_primary_test',
                           'authority-replica': 'authority_replica_test'}.get(service)
                 mounts = self.mounts if self.mounts is not None else ([

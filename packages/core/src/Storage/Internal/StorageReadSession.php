@@ -5,11 +5,11 @@ declare(strict_types=1);
 namespace AzGuard\Storage\Internal;
 
 use AzGuard\Exceptions\InvalidConfigurationException;
-use AzGuard\Exceptions\StorageMismatchException;
 use AzGuard\Kernel\Grammar\PermissionGrammar;
 use AzGuard\Kernel\Identity\IdentityCodec;
 use AzGuard\Kernel\Internal\Narrow;
 use AzGuard\Panels\Reads;
+use AzGuard\Storage\Internal\Schema\HostKeyColumns;
 use Closure;
 use Illuminate\Database\Connection;
 use Illuminate\Database\Eloquent\Model;
@@ -249,6 +249,7 @@ final class StorageReadSession
         PermissionGrammar::assertPanelId($panel);
         $this->storage->authorityTransaction($panel);
         $this->assertSchema();
+        $subjectId = HostKeyColumns::bound($this->storage->hostKeys(), $subjectId);
         $row = $this->table('panel_state as ps')
             ->leftJoin($this->storage->prefix().'subject_revisions as sr', static function (JoinClause $join) use ($subjectType, $subjectId): void {
                 $join->on('sr.panel', '=', 'ps.panel')->where('sr.subject_type', '=', $subjectType)->where('sr.subject_id', '=', $subjectId);
@@ -280,6 +281,7 @@ final class StorageReadSession
         $this->assertSchema();
         [$state, $revisions] = [null, []];
         foreach (array_chunk(array_values(array_unique($subjectIds)), self::OBSERVED_CHUNK) as $chunk) {
+            $chunk = array_map(fn (string $id): int|string => HostKeyColumns::bound($this->storage->hostKeys(), $id), $chunk);
             $rows = $this->table('panel_state as ps')
                 ->leftJoin($this->storage->prefix().'subject_revisions as sr', static function (JoinClause $join) use ($subjectType, $chunk): void {
                     $join->on('sr.panel', '=', 'ps.panel')->where('sr.subject_type', '=', $subjectType)->whereIn('sr.subject_id', $chunk);
@@ -392,22 +394,14 @@ final class StorageReadSession
             return;
         }
         $expected = $this->storage->schema();
-        $found = null;
 
         try {
-            $row = $this->table('storage_state')->where('id', 1)->first();
-
-            if ($row !== null) {
-                $found = is_string($row->schema) ? json_decode($row->schema, true, flags: JSON_THROW_ON_ERROR) : null;
-            }
+            $found = StoredSchema::decoded($this->table('storage_state')->where('id', 1)->first());
         } catch (QueryException|JsonException $error) {
-            throw new StorageMismatchException('Storage '.$this->storage->id().' expected '.json_encode($expected).'; cannot read storage_state: '.$error->getMessage(), 0, $error);
+            StoredSchema::unreadable($this->storage->id(), $expected, $error);
         }
 
-        if (! is_array($found) || count($found) !== count($expected)
-            || array_filter($expected, static fn (int|string $value, string $key): bool => ($found[$key] ?? null) !== $value, ARRAY_FILTER_USE_BOTH) !== []) {
-            throw new StorageMismatchException('Storage '.$this->storage->id().' expected '.json_encode($expected).'; found '.json_encode($found).'.');
-        }
+        StoredSchema::matches($this->storage->id(), $expected, $found);
         $this->schemaChecked = true;
     }
 }

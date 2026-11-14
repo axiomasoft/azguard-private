@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace AzGuard\Attributes\Internal;
 
 /**
- * What both forms of `#[CheckPermission]` share: whether the check applies to an action of the controller.
+ * Whether `#[CheckPermission]` applies to an action of the controller.
  *
  * @internal
  */

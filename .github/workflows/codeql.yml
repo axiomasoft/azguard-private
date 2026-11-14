@@ -42,25 +42,31 @@ jobs:
         uses: github/codeql-action/init@ce5e7eeac396d720fe2d802714996c8ce561e311 # v3.39.0
         with:
           languages: ${{ matrix.language }}
+          # Keep the root scan and enter the hidden directory containing the docs TypeScript configuration.
+          config: |
+            paths:
+              - .
+              - docs/.vitepress
 
       - name: Perform CodeQL Analysis
         id: analyze
         uses: github/codeql-action/analyze@ce5e7eeac396d720fe2d802714996c8ce561e311 # v3.39.0
         with:
           category: '/language:${{ matrix.language }}/'
-          output: ../codeql-results
+          output: ${{ runner.temp }}/codeql-results
 
       - name: Enforce report and bind it to the checked-out commit
         if: always()
         env:
           SCAN_OUTCOME: ${{ steps.analyze.outcome }}
           SCAN_LANGUAGE: ${{ matrix.language }}
-        run: python3 bin/check-security-results.py --scanner "codeql-$SCAN_LANGUAGE" --outcome "$SCAN_OUTCOME" --sha "$GITHUB_SHA" --report-dir ../codeql-results --metadata ../codeql-results/metadata.json
+          REPORT_DIR: ${{ runner.temp }}/codeql-results
+        run: python3 bin/check-security-results.py --scanner "codeql-$SCAN_LANGUAGE" --outcome "$SCAN_OUTCOME" --sha "$GITHUB_SHA" --report-dir "$REPORT_DIR" --metadata "$REPORT_DIR/metadata.json"
 
       - name: Upload analysis evidence
         if: always()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: codeql-${{ matrix.language }}-${{ github.sha }}-${{ github.run_attempt }}
-          path: ../codeql-results/
+          path: ${{ runner.temp }}/codeql-results/
           if-no-files-found: error

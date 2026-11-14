@@ -250,7 +250,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        laravel: [12, 13]
+        laravel: [13]
     env:
       LARAVEL: ${{ matrix.laravel }}
 

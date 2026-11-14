@@ -8,7 +8,7 @@
         },
         "catalog": {
             "src": ["packages/core/src/Catalog", "packages/core/src/Panels", "packages/core/src/Roles", "packages/core/src/Permissions", "packages/core/src/Configuration", "packages/core/src/Plugins", "packages/core/src/Policies", "packages/core/src/Schema", "packages/core/src/Events"],
-            "tests": ["Unit/Catalog", "Unit/Panels", "Unit/Roles", "Unit/Configuration", "Unit/Plugins", "Unit/Schema", "Feature/Catalog", "Feature/Panels", "Feature/Configuration", "Feature/Plugins", "Feature/Policies", "Feature/Schema", "Feature/Events", "Feature/Modules"],
+            "tests": ["Unit/Catalog", "Unit/Panels", "Unit/Roles", "Unit/Configuration", "Unit/Plugins", "Unit/Schema", "Unit/Policies", "Feature/Catalog", "Feature/Panels", "Feature/Configuration", "Feature/Plugins", "Feature/Policies", "Feature/Schema", "Feature/Events", "Feature/Modules"],
             "uses": ["kernel"]
         },
         "storage": {

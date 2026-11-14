@@ -91,6 +91,10 @@ it('gives the generators the discovery folder names core reads, with the same de
     expect(ScaffoldConfig::fromRepository($custom)->folder('unknown'))->toBeNull()
         ->and(fn () => ScaffoldConfig::fromRepository(new Repository(['azguard' => ['discovery' => ['roles' => '']]])))
         ->toThrow(InvalidConfigurationException::class, 'azguard.discovery.roles must be a folder name')
+        ->and(fn () => AzGuardConfig::fromRepository(new Repository(['azguard' => ['discovery' => ['roles' => '../tmp']]])))
+        ->toThrow(InvalidConfigurationException::class, 'identifier segments')
+        ->and(fn () => ScaffoldConfig::fromRepository(new Repository(['azguard' => ['discovery' => ['roles' => 'Roles;Exit']]])))
+        ->toThrow(InvalidConfigurationException::class, 'identifier segments')
         ->and(fn () => ScaffoldConfig::fromRepository(new Repository(['azguard' => ['scaffold' => ['folder' => 'x']]])))
         ->toThrow(InvalidConfigurationException::class, 'Unknown key in azguard.scaffold: folder');
 });

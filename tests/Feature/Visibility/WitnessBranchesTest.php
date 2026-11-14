@@ -77,6 +77,25 @@ it('constrains a queryable external scope adapter without letting it replace own
     expect($visibility->visibleTo($panel, VisibilityProject::query(), W::subject(), 'orders.view')->pluck('id')->all())->toBe([1]);
 });
 
+it('runs definition filters with the same common runtime for scalar batch and visible decisions', function (bool $role): void {
+    W::$projectScope = (new VisibilityProjectScope)->filter(static function (Builder $query, AssignmentScopeRuntime $runtime): void {
+        if ($runtime->grant !== null || $runtime->role !== null) {
+            $query->whereRaw('1 = 0');
+        }
+    });
+    $source = $role ? new VisibilitySource(roles: [W::role(1)]) : new VisibilitySource(direct: [W::grant(1)]);
+    [$visibility, $panel, $authorizer] = W::compile($source);
+    $requests = VisibilityProject::query()->orderBy('id')->get()->map(
+        fn (VisibilityProject $record) => AccessRequest::for(W::subject(), PermissionKey::of('admin', 'orders.view'))->on(null, $record),
+    )->all();
+    $scalar = array_map(fn (AccessRequest $request): bool => $authorizer->decide($panel, $request)->allowed(), $requests);
+    $set = $authorizer->decideMany($requests);
+
+    expect($scalar)->toBe([true, false, false, false])
+        ->and(array_map(fn (int $index): bool => $set->get($index)->allowed(), array_keys($requests)))->toBe($scalar)
+        ->and($visibility->visibleTo($panel, VisibilityProject::query(), W::subject(), 'orders.view')->orderBy('id')->pluck('id')->all())->toBe([1]);
+})->with(['direct grant' => [false], 'role grant' => [true]]);
+
 it('blocks native scope filter structure changes and caught terminal query execution', function (bool $terminal): void {
     W::$projectScope = (new VisibilityProjectScope)->filter(static function (Builder $query) use ($terminal): void {
         if ($terminal) {

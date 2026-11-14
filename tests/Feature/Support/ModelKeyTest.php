@@ -55,6 +55,16 @@ it('finds only the row whose key is the id as written', function (): void {
         ->and(ModelKey::of(Project::query()->findOrFail(1)))->toBe('1');
 });
 
+it('binds integer model keys as integers including the precision boundary', function (): void {
+    $large = '9007199254740993';
+    Project::query()->insert(['id' => (int) $large, 'organization_id' => 'large']);
+    $query = ModelKey::where(Project::query(), $large);
+
+    expect($query->getBindings())->toBe([(int) $large])
+        ->and($query->first()?->getKey())->toBe((int) $large)
+        ->and(ModelKey::find(Project::query(), $large)?->getAttribute('organization_id'))->toBe('large');
+});
+
 it('answers an id the key cannot hold without a query', function (): void {
     $queries = 0;
     DB::listen(function () use (&$queries): void {

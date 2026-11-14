@@ -564,10 +564,26 @@ final readonly class AzGuardConfig
                 );
             }
 
-            $names[$key] = trim(str_replace('\\', '/', $value), '/');
+            $names[$key] = self::discoveryFolder($key, $value);
         }
 
         return $names;
+    }
+
+    /** A relative folder of identifier segments. `..` and punctuation never become a path or a PHP namespace. */
+    private static function discoveryFolder(string $key, string $value): string
+    {
+        $folder = trim(str_replace('\\', '/', $value), '/');
+
+        foreach (explode('/', $folder) as $segment) {
+            if (preg_match('/\A[A-Za-z_][A-Za-z0-9_]*\z/', $segment) !== 1) {
+                throw new InvalidConfigurationException(
+                    'azguard.discovery.'.$key.' must be a folder of identifier segments, got "'.$value.'".',
+                );
+            }
+        }
+
+        return $folder;
     }
 
     /**

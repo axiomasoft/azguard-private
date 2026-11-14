@@ -7,7 +7,9 @@ namespace AzGuard\Filament;
 use AzGuard\Attributes\Api;
 use AzGuard\Filament\Authorization\FilamentGate;
 use AzGuard\Filament\Internal\Authorization\AuthorizesActions;
+use AzGuard\Filament\Internal\Authorization\FilamentContext;
 use AzGuard\Filament\Internal\Authorization\RefusesEditableColumns;
+use AzGuard\Filament\Internal\Authorization\RefusesSurfaceBoot;
 use AzGuard\Filament\Internal\Authorization\RefusesSurfaceCalls;
 use AzGuard\Filament\Internal\Console\FilamentGenerateCommand;
 use AzGuard\Filament\Internal\Exports\AuthorizesExports;
@@ -15,10 +17,16 @@ use AzGuard\Filament\Internal\Exports\RefusesUnverifiableDownload;
 use Filament\Actions\Action;
 use Filament\Actions\Events\ActionCalling;
 use Filament\Actions\Exports\Http\Controllers\DownloadExport;
+use Filament\Events\ServingFilament;
+use Filament\Facades\Filament;
+use Filament\Resources\Pages\ManageRelatedRecords;
+use Filament\Tables\Table;
 use Illuminate\Contracts\Auth\Access\Gate;
 use Illuminate\Contracts\Events\Dispatcher;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Routing\Router;
 use Illuminate\Support\ServiceProvider;
+use Livewire\ComponentHookRegistry;
 use Livewire\Livewire;
 
 #[Api(since: '1.0')]
@@ -30,6 +38,12 @@ final class AzGuardFilamentServiceProvider extends ServiceProvider
     {
         $this->mergeConfigFrom(__DIR__.'/../config/azguard-filament.php', 'azguard-filament');
         $this->app->bindIf(DownloadExport::class, RefusesUnverifiableDownload::class);
+
+        // Before Livewire registers its lifecycle hook, so a refused component aborts prior to its own boot().
+        // Package discovery may register us before Livewire binds its container alias.
+        if (class_exists(ComponentHookRegistry::class)) {
+            ComponentHookRegistry::register(RefusesSurfaceBoot::class);
+        }
     }
 
     public function boot(): void
@@ -42,10 +56,32 @@ final class AzGuardFilamentServiceProvider extends ServiceProvider
         }
 
         Action::configureUsing(AuthorizesActions::configure(...));
+        Table::configureUsing(static function (Table $table): void {
+            if (! $table->getLivewire() instanceof ManageRelatedRecords) {
+                return;
+            }
+            $table->modifyQueryUsing(static function (Builder $query) use ($table): Builder {
+                $resource = FilamentContext::resourceOf($table->getLivewire());
+
+                return $resource === null ? $query : FilamentGate::visible($resource, $query);
+            });
+        });
         $this->app->make(Dispatcher::class)->listen(ActionCalling::class, AuthorizesActions::class);
         $this->app->make(Dispatcher::class)->listen(ActionCalling::class, AuthorizesExports::class);
         Livewire::listen('call', (new RefusesEditableColumns)(...));
         Livewire::listen('call', (new RefusesSurfaceCalls)(...));
+        Livewire::listen('call', AuthorizesActions::beforeCall(...));
+        $this->app->make('events')->listen(ServingFilament::class, static function (): void {
+            $panel = Filament::getCurrentPanel();
+
+            if ($panel === null || ! $panel->hasTenancy()) {
+                return;
+            }
+
+            foreach ($panel->getResources() as $resource) {
+                $resource::registerTenancyModelGlobalScope($panel);
+            }
+        });
         $this->app->booted($this->repeatPanelEntryOnLivewireUpdates(...));
         $this->app->booted($this->refuseUnownedFilamentChecks(...));
     }

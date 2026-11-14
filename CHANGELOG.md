@@ -25,7 +25,7 @@ Core target: **2.0.0-rc.1**, followed by **2.0.0**. The Filament package is not 
 - Source implementations still require only their existing capability interfaces. `SourceDescription` and
   `azguard:panels:list --sources --json` add `volatility` and a declaration-only `matrix`; consumers must not treat
   conditional visibility as an Allow. See [custom sources](docs/guides/custom-sources.md) for the v2 format and doctor findings.
-- Upgrade Laravel 11 applications to Laravel 12 or 13 before updating either package.
+- Upgrade Laravel 11 and 12 applications to Laravel 13 before updating either package.
 - Treat `StorageDescriptor::$connection` as a resolved connection name, never null. Consumers that used null to mean
   the current default must use the returned name and explicitly choose a new storage when changing connections.
 - Replace direct use of the internal constructors and methods listed below with supported factories and extension
@@ -56,8 +56,8 @@ Core target: **2.0.0-rc.1**, followed by **2.0.0**. The Filament package is not 
 
 ### Changed
 
-- **core, filament:** Laravel 11 is no longer supported; the packages require Laravel 12 or 13 (`illuminate/*` `^12.0|^13.0`)
-  and PHP 8.3–8.5, with Filament `^5.8.4`.
+- **core, filament:** Laravel 11 and 12 are no longer supported; the packages require Laravel 13 (`illuminate/*` `^13.0`)
+  and PHP 8.3–8.5, with Filament `^5.8.4`. CI qualifies MySQL 9.7 and PostgreSQL 18. MariaDB is not a CI lane.
 - **core:** `RelationSource` now rereads host membership for each check, so membership revoked during a request is not reused.
 - **core:** `azguard:doctor` reports a missing `catalog.build_id` in production as an error (not a warning) when the
   catalog cache file exists or a panel uses a persistent cache store; the check key and finding id are unchanged.
@@ -85,7 +85,15 @@ Core target: **2.0.0-rc.1**, followed by **2.0.0**. The Filament package is not 
 
 ### Fixed
 
-- **core:** Restore signed array-cache reads on Laravel 12.0 while rejecting malformed or unsigned values before deserialization.
+- **core:** Read signed array-cache entries through Laravel 13's raw store API while rejecting malformed or unsigned values before deserialization.
+- **core:** Batch scope checks verify live tenant ownership, and exact visibility applies definition filters with the same
+  common runtime as scalar and batch decisions. Bigint grant and revision lookups preserve integer precision.
+- **core:** Policy signature caching releases policy instances, middleware inspection follows current route state, and
+  grant readers and page cursors reject IDs outside the signed integer range.
+- **core:** A cold queue worker restores an absent panel hint before late completion or failure listeners dispatch another job.
+- **filament:** Deny missing policy abilities and unauthorized page, widget and dynamic relation-manager lifecycles before
+  host boot effects. Bulk callbacks and lifecycle hooks validate explicit selections before effects.
+- **filament:** Generate permissions only at the configured scaffold path; console output cannot select an unrelated PHP file.
 - **core:** Shared permission-set reads retain reconstructed factory values, detaching serialized decision-field
   references before placing contributions in request memo storage.
 - **core:** Exact visibility for resources without a scope mapping ignores concrete assignments, including the `global`

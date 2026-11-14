@@ -112,7 +112,13 @@ final readonly class ActionWriter
 
     private static function number(string $id): int
     {
-        return (int) substr($id, (int) strpos($id, ':') + 1);
+        $numeric = substr($id, (int) strpos($id, ':') + 1);
+
+        if (preg_match('/\A[1-9][0-9]*\z/', $numeric) !== 1 || (string) (int) $numeric !== $numeric) {
+            throw new UnsupportedDirectWriteException('The permission id is outside the integer key range.');
+        }
+
+        return (int) $numeric;
     }
 
     private static function eventId(): string

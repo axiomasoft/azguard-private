@@ -297,14 +297,14 @@ final readonly class QueryScopeDirectory implements AssignmentScopeDirectory
         $pattern = '%'.str_replace(['!', '%', '_'], ['!!', '!%', '!_'], $term).'%';
         $operator = $driver === 'pgsql' ? 'ilike' : 'like';
         $columns = self::searchColumns($model);
-        // An integer key never equals free text; comparing them would fail on a strict engine.
-        $keyCanEqual = ! ModelKey::isInteger($model) || (ctype_digit($term) && strlen($term) <= 18);
+        // An integer key equals only a canonical id. '05' must not match row 5.
+        $keyCanEqual = ModelKey::canHold($model, $term);
 
         $query->where(function (Builder $group) use ($model, $term, $pattern, $operator, $columns, $keyCanEqual): void {
             $matchers = 0;
 
             if ($keyCanEqual) {
-                $group->orWhere($model->getQualifiedKeyName(), $term);
+                $group->orWhere($model->getQualifiedKeyName(), ModelKey::isInteger($model) ? (int) $term : $term);
                 $matchers++;
             }
 

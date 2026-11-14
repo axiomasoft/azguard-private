@@ -25,11 +25,13 @@ use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\ExportAction;
 use Filament\Actions\Exports\Enums\ExportFormat;
+use Filament\Actions\Exports\Jobs\CompleteExport;
 use Filament\Actions\Exports\Jobs\ExportCompletion;
 use Filament\Actions\Exports\Jobs\PrepareCsvExport;
 use Filament\Actions\Exports\Models\Export;
 use Filament\Actions\Testing\TestAction;
 use Filament\Facades\Filament;
+use Filament\Forms\Components\TextInput;
 use Filament\Tables\Columns\CheckboxColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Columns\TextInputColumn;
@@ -153,7 +155,7 @@ it('V96 starts an export with the job that checks its rows again, carrying the v
         return $job instanceof AuthorizedPrepareCsvExport
             && (new ReflectionProperty($job, 'options'))->getValue($job)[AuthorizedExportCsv::OPTION]
                 === ['panel' => 'admin', 'permission' => 'orders.view', 'tenant' => null, 'model' => Order::class];
-    }), ExportCompletion::class]);
+    }), class_exists(CompleteExport::class) ? CompleteExport::class : ExportCompletion::class]);
 
     expect((new AuthorizedPrepareCsvExport(exportOf(User::query()->findOrFail(1)), EloquentSerializeFacade::serialize(Order::query()), ['number' => 'Number']))->getExportCsvJob())
         ->toBe(AuthorizedExportCsv::class);
@@ -321,6 +323,57 @@ it('runs a custom bulk callback when every selected record is authorized', funct
         ->callAction(TestAction::make('delete')->table()->bulk());
 
     expect(Order::query()->pluck('id')->sort()->values()->all())->toBe([3, 4]);
+});
+
+it('refuses a native bulk lifecycle hook before it can consume unauthorized raw keys', function (string $hook): void {
+    GateWorld::serve(GateWorld::grant(['orders.view_any', 'orders.view', 'orders.delete_any', 'orders.delete']));
+    FilamentFixture::$toolbarActions = [DeleteBulkAction::make()
+        ->{$hook}(static fn (ListOrders $livewire) => Order::query()->whereKey($livewire->selectedTableRecords)->delete())];
+
+    Livewire::test(ListOrders::class)->selectTableRecords([1, 4])
+        ->mountAction(TestAction::make('delete')->table()->bulk())
+        ->call('callMountedAction')->assertForbidden();
+
+    expect(Order::query()->whereKey([1, 4])->count())->toBe(2);
+})->with(['before', 'after']);
+
+it('checks the bulk selection before mount and validation hooks consume raw keys', function (string $hook): void {
+    GateWorld::serve(GateWorld::grant(['orders.view_any', 'orders.view', 'orders.delete_any', 'orders.delete']));
+    FilamentFixture::$toolbarActions = [DeleteBulkAction::make()->schema([TextInput::make('reason')->default('review')])
+        ->{$hook}(static fn (ListOrders $livewire) => Order::query()->whereKey($livewire->selectedTableRecords)->delete())];
+    Livewire::test(ListOrders::class)->selectTableRecords([1, 4])
+        ->mountAction(TestAction::make('delete')->table()->bulk())->assertForbidden();
+
+    expect(Order::query()->whereKey([1, 4])->count())->toBe(2);
+})->with(['beforeFormFilled', 'afterFormFilled', 'beforeFormValidated', 'afterFormValidated', 'mountUsing']);
+
+it('rechecks a mounted bulk selection before a validation hook runs', function (string $hook): void {
+    GateWorld::serve(GateWorld::grant(['orders.view_any', 'orders.view', 'orders.delete_any', 'orders.delete']));
+    FilamentFixture::$toolbarActions = [DeleteBulkAction::make()->schema([TextInput::make('reason')->default('review')])
+        ->{$hook}(static fn (ListOrders $livewire) => Order::query()->whereKey($livewire->selectedTableRecords)->delete())];
+    $page = Livewire::test(ListOrders::class)->selectTableRecords([1])
+        ->mountAction(TestAction::make('delete')->table()->bulk())->assertSuccessful();
+    Order::query()->whereKey(1)->update(['locked' => true]);
+
+    $page->call('callMountedAction')->assertForbidden();
+
+    expect(Order::query()->whereKey(1)->exists())->toBeTrue();
+})->with(['beforeFormValidated', 'afterFormValidated']);
+
+it('runs a bulk validation hook once when every selected record is authorized', function (): void {
+    GateWorld::serve(GateWorld::grant(['orders.view_any', 'orders.view', 'orders.delete_any', 'orders.delete']));
+    $calls = 0;
+    FilamentFixture::$toolbarActions = [DeleteBulkAction::make()->schema([TextInput::make('reason')->default('review')])
+        ->beforeFormValidated(static function () use (&$calls): void {
+            $calls++;
+        })];
+
+    Livewire::test(ListOrders::class)->selectTableRecords([1])
+        ->callAction(TestAction::make('delete')->table()->bulk())->assertSuccessful();
+
+    expect($calls)->toBe(1)
+        ->and(Order::query()->whereKey(1)->exists())->toBeFalse()
+        ->and(Order::query()->whereKey(4)->exists())->toBeTrue();
 });
 
 it('refuses a raw column action closure that bypasses the action authorization surface', function (): void {

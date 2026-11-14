@@ -6,6 +6,7 @@ use Rector\CodeQuality\Rector\Catch_\ThrowWithPreviousExceptionRector;
 use Rector\CodeQuality\Rector\ClassMethod\LocallyCalledStaticMethodToNonStaticRector;
 use Rector\CodeQuality\Rector\FuncCall\SimplifyRegexPatternRector;
 use Rector\CodeQuality\Rector\Identical\FlipTypeControlToUseExclusiveTypeRector;
+use Rector\CodeQuality\Rector\If_\ExplicitNullableObjectInstanceRector;
 use Rector\Config\RectorConfig;
 use Rector\DeadCode\Rector\ClassMethod\RemoveEmptyClassMethodRector;
 use Rector\DeadCode\Rector\ClassMethod\RemoveUnusedPublicMethodParameterRector;
@@ -21,6 +22,11 @@ use Rector\Set\ValueObject\SetList;
 // non-nullable properties. The rule exists from Rector 2.7: an older install has nothing to skip, and naming a missing
 // rule would stop every run.
 $skipped = class_exists(TernaryToNullsafeCoalesceRector::class) ? [TernaryToNullsafeCoalesceRector::class] : [];
+
+// Rector 2.8 adds another null-to-instanceof rule; keep the same explicit nullable checks adopted below.
+if (class_exists(ExplicitNullableObjectInstanceRector::class)) {
+    $skipped[] = ExplicitNullableObjectInstanceRector::class;
+}
 
 return RectorConfig::configure()
     ->withPaths([

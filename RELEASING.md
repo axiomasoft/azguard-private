@@ -148,7 +148,6 @@ After an authorized publication, verify the core split tree and install the core
 
 ```bash
 bash bin/split-verify.sh v2.0.0-rc.1
-bash bin/consumer-fixture.sh --source=packagist --version=2.0.0-rc.1 --laravel=12
 bash bin/consumer-fixture.sh --source=packagist --version=2.0.0-rc.1 --laravel=13
 ```
 

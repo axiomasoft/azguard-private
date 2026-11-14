@@ -58,6 +58,7 @@ use Illuminate\Queue\Events\JobExceptionOccurred;
 use Illuminate\Queue\Events\JobFailed;
 use Illuminate\Queue\Events\JobProcessed;
 use Illuminate\Queue\Events\JobProcessing;
+use Illuminate\Routing\Events\RouteMatched;
 use Illuminate\Routing\Router;
 use Illuminate\Support\ServiceProvider;
 
@@ -111,6 +112,8 @@ final class AzGuardServiceProvider extends ServiceProvider
         $this->app->scoped(WithinContext::class);
 
         $this->app->singleton(PanelContext::class);
+        // Before the framework hydrates a job, so the request hint can be restored when the job ends.
+        $this->app->make('events')->listen(JobProcessing::class, [PanelContext::class, 'snapshot']);
         $this->app->singleton(EventObservers::class);
         $this->app->singleton(SourceManager::class, static fn (Application $app): SourceManager => new SourceManager($app));
 
@@ -129,6 +132,7 @@ final class AzGuardServiceProvider extends ServiceProvider
         $this->registerConfiguredPanels();
         $router = $this->app->make(Router::class);
         $router->aliasMiddleware(EnterPanel::ALIAS, EnterPanel::class);
+        $this->app->make('events')->listen(RouteMatched::class, [EnterPanel::class, 'outside']);
         $router->aliasMiddleware(CheckPermission::ALIAS, CheckPermission::class);
 
         if ($this->app->make(AzGuardConfig::class)->gateEnabled()) {

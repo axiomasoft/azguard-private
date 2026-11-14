@@ -191,24 +191,43 @@ final class FilamentGenerateCommand extends Command
             return false;
         }
 
-        if (preg_match('/(?:Created|Overwritten)\s+(\S+Permission\.php)/', $text, $created) !== 1) {
-            $this->components->error('The generator did not say where it wrote the enum of '.$group['group'].'.');
+        // Output is a log, not a file reference: a stub or an overridden command may print other paths.
+        $config = $this->laravel->make('config');
+        $directory = $config->get('azguard.scaffold.path', 'app/Guards');
+        $namespace = $config->get('azguard.scaffold.namespace', 'App\\Guards');
+        $folder = $config->get('azguard.discovery.permissions', 'Permissions');
+
+        if (! is_string($directory) || ! is_string($namespace) || ! is_string($folder)) {
+            $this->components->error('The generator configuration must name a directory, namespace and permissions folder.');
 
             return false;
         }
-        $path = base_path($created[1]);
-        $source = (string) file_get_contents($path);
+        $panelName = Str::studly($panel);
+        $segments = array_map(Str::studly(...), explode('/', $group['group']));
+        $name = Str::singular($segments[array_key_last($segments)]).'Permission';
+        $relative = $panelName.'/'.trim(str_replace('\\', '/', $folder), '/').'/'.implode('/', $segments).'/'.$name;
+        $expected = trim($namespace, '\\').'\\'.str_replace('/', '\\', $relative);
+        $path = base_path(rtrim(str_replace('\\', '/', $directory), '/').'/'.$relative.'.php');
+        $root = realpath(base_path());
+        $real = realpath($path);
+
+        if ($root === false || $real === false || ! str_starts_with($real, $root.DIRECTORY_SEPARATOR)) {
+            $this->components->error('The generator did not write the expected enum inside the application for '.$group['group'].'.');
+
+            return false;
+        }
+        $source = (string) file_get_contents($real);
+        $path = $real;
+        $enum = EnumMarks::classOf($source);
+
+        if ($enum !== $expected) {
+            $this->components->error('The enum written for '.$group['group'].' does not declare '.$expected.'.');
+
+            return false;
+        }
         file_put_contents($path, EnumMarks::add($source, array_map(static fn (string $class): array => ['attribute' => ForFilament::class, 'class' => $class], $group['classes'])));
 
         if ($this->option('with-policy') === true && $authority === 'grants') {
-            $enum = EnumMarks::classOf($source);
-
-            if ($enum === null) {
-                $this->components->error('The enum written to '.$created[1].' could not be read.');
-
-                return false;
-            }
-
             if (! enum_exists($enum, false)) {
                 require_once $path;
             }

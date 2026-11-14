@@ -34,6 +34,18 @@ use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Database\Eloquent\Model;
 use Livewire\Livewire;
 
+function pullDenialNotifications(): Notifications
+{
+    if (class_exists(NotificationMailbox::class)) {
+        app(NotificationMailbox::class)->flush();
+    }
+    $notifications = new Notifications;
+    $notifications->mount();
+    $notifications->pullNotificationsFromSession();
+
+    return $notifications;
+}
+
 final class SecretThrowingFilamentSource implements FiltersQueries, ProvidesGrants
 {
     public static bool $throw = false;
@@ -116,10 +128,7 @@ it('keeps the bulk denial notification generic', function (): void {
     GateWorld::serve(GateWorld::grant(['orders.view_any', 'orders.view', 'orders.delete_any', 'orders.delete']));
     $component = Livewire::test(ListOrders::class)->selectTableRecords([1, 4])
         ->callAction(TestAction::make('delete')->table()->bulk());
-    app(NotificationMailbox::class)->flush();
-    $notifications = new Notifications;
-    $notifications->mount();
-    $notifications->pullNotificationsFromSession();
+    $notifications = pullDenialNotifications();
     $payload = json_encode($notifications->notifications->toArray(), JSON_THROW_ON_ERROR);
     expect($notifications->notifications)->toHaveCount(1)
         ->and($payload)->toContain('delete')->not->toContain('not_granted', 'source', 'trace', 'grant', 'scope', 'exception');
@@ -164,10 +173,7 @@ it('does not disclose exception messages, table names, or source and policy clas
 
     Livewire::test(ListOrders::class)->selectTableRecords([1, 2])
         ->callAction(TestAction::make('delete')->table()->bulk());
-    app(NotificationMailbox::class)->flush();
-    $notifications = new Notifications;
-    $notifications->mount();
-    $notifications->pullNotificationsFromSession();
+    $notifications = pullDenialNotifications();
     $policyPayload = json_encode($notifications->notifications->toArray(), JSON_THROW_ON_ERROR);
     expect($notifications->notifications)->toHaveCount(1)
         ->and($policyPayload)->toContain('delete')
@@ -185,10 +191,7 @@ it('does not disclose exception messages, table names, or source and policy clas
     SecretThrowingFilamentSource::$throwOnResourceOnly = true;
     Livewire::test(ListOrders::class)->selectTableRecords([1, 2])
         ->callAction(TestAction::make('delete')->table()->bulk());
-    app(NotificationMailbox::class)->flush();
-    $sourceNotifications = new Notifications;
-    $sourceNotifications->mount();
-    $sourceNotifications->pullNotificationsFromSession();
+    $sourceNotifications = pullDenialNotifications();
     $sourcePayload = json_encode($sourceNotifications->notifications->toArray(), JSON_THROW_ON_ERROR);
     expect($sourceNotifications->notifications)->toHaveCount(1)
         ->and($sourcePayload)->toContain('delete')

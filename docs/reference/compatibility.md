@@ -138,19 +138,18 @@ A reader of these formats must ignore keys it does not know.
 
 ## Supported platforms
 
-Composer's requirements permit PHP `^8.3` and Illuminate `^12.0|^13.0`. The tested support promise is the following
-five pairs, matching `.github/workflows/tests.yml` and `bin/consumer-matrix.sh`:
+Composer's requirements permit PHP `^8.3` and Illuminate `^13.0`. The tested support promise is the following
+three pairs, matching `.github/workflows/tests.yml` and `bin/consumer-matrix.sh`:
 
 | PHP | Laravel | Dependency resolution |
 |---|---|---|
-| 8.3 | 12 | lowest and latest |
-| 8.4 | 12 | lowest and latest |
 | 8.3 | 13 | lowest and latest |
 | 8.4 | 13 | lowest and latest |
 | 8.5 | 13 | lowest and latest |
 
-PHP 8.5 with Laravel 12 and Laravel 11 are outside this promise. The SQLite lane covers these pairs; separate
-server lanes use the pinned MySQL 8, MariaDB 10.11, PostgreSQL 16 and Redis 7 images from `docker-compose.yml`.
+Laravel 11 and 12 are outside this promise. The SQLite lane covers these pairs; separate
+server lanes use the pinned MySQL 9.7, PostgreSQL 18 and Redis 7 images from `docker-compose.yml`.
+MariaDB 10.11 remains on the local Compose stand and is not part of CI.
 These are tested engine lines, not a claim that every engine version or platform cross-product was qualified.
 
 The Filament package requires `filament/filament: ^5.8.4` (5.8.4 or later within major 5), and

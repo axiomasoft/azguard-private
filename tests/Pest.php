@@ -51,8 +51,11 @@ uses()->group('crm')->beforeEach(fn () => CrmWorld::seed())
     })->in('Acceptance/Crm');
 
 // `stand` marks every test the parallel SQLite run leaves out: those that need an external service (database engines,
-// replica, Redis) and the `extended` ones (scale, nightly). The run excludes this one umbrella group. `server-skip` marks every test the parallel run of a server driver leaves out: those
-// of `stand` and the SQLite-only ones. ParaTest honours only the first --exclude-group, so each run excludes one group.
+// replica, Redis) and the `extended` ones (scale, nightly). `server-skip` marks every test the parallel run of a server
+// driver leaves out: those of `stand` and the SQLite-only ones. A ParaTest worker passes each repeated `--exclude-group`
+// as two argv tokens. Pest's popArgument() array_flips that list and keeps one copy of the flag, so only the first group
+// would survive. PreserveRepeatedGroups joins the pair into `--exclude-group=<name>` before that flip, and the same for
+// `--group`. The deep fuzz tests are `extended` without `stand`, so the SQLite lane must still exclude `extended` by name.
 uses()->group('stand', 'server-skip')->beforeEach(function (): void {
     if (! in_array(env('DB_CONNECTION', 'sqlite'), ['pgsql', 'mysql', 'mariadb'], true)) {
         $this->markTestSkipped('Engine suite requires PostgreSQL, MySQL or MariaDB.');

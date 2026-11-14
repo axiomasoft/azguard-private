@@ -38,7 +38,7 @@ jobs:
           - { driver: pgsql, cache: redis }
     services:
       postgres:
-        image: postgres:16-alpine@sha256:721873c34ceb9f8d8fc265984940dc982404c105f19ad51be9fdc5970a6080ea
+        image: postgres:18.7-alpine@sha256:75dcac3dfb1cd01ca3536910bbc84128759362f8b118bf8c55b38a94f68f3b73
         env:
           POSTGRES_DB: azguard_test
           POSTGRES_USER: azguard

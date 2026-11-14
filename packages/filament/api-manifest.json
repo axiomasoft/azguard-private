@@ -855,6 +855,18 @@
             "properties": [],
             "methods": [
                 {
+                    "name": "bootAuthorizesPage",
+                    "visibility": "public",
+                    "static": false,
+                    "abstract": false,
+                    "final": false,
+                    "parameters": [],
+                    "return": "void",
+                    "returnsReference": false,
+                    "namedArguments": true,
+                    "contracts": []
+                },
+                {
                     "name": "canAccess",
                     "visibility": "public",
                     "static": true,
@@ -1619,6 +1631,18 @@
             ],
             "methods": [
                 {
+                    "name": "bootAuthorizesPage",
+                    "visibility": "public",
+                    "static": false,
+                    "abstract": false,
+                    "final": false,
+                    "parameters": [],
+                    "return": "void",
+                    "returnsReference": false,
+                    "namedArguments": true,
+                    "contracts": []
+                },
+                {
                     "name": "canAccess",
                     "visibility": "public",
                     "static": true,
@@ -1722,6 +1746,18 @@
                 }
             ],
             "methods": [
+                {
+                    "name": "bootAuthorizesPage",
+                    "visibility": "public",
+                    "static": false,
+                    "abstract": false,
+                    "final": false,
+                    "parameters": [],
+                    "return": "void",
+                    "returnsReference": false,
+                    "namedArguments": true,
+                    "contracts": []
+                },
                 {
                     "name": "canAccess",
                     "visibility": "public",

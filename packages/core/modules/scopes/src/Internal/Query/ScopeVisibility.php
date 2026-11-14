@@ -19,10 +19,9 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 
 /**
- * The exact SQL form of `ScopeEligibility` for lists: the native filters of the definition and, for a contribution
- * with a role, of its bindings, each as its own AND group, and the access adapter in a separate guarded group beside
- * them. A runtime without a concrete context whose filters or adapter would inspect it is refused, so core specializes
- * it per context.
+ * The exact SQL form of `ScopeEligibility` for lists: definition filters for the common runtime, role-binding filters
+ * for a role contribution, and the access adapter for either runtime, each in its own guarded group. A runtime without
+ * a concrete context whose filters or adapter would inspect it is refused, so core specializes it per context.
  */
 final readonly class ScopeVisibility
 {
@@ -36,7 +35,9 @@ final readonly class ScopeVisibility
      */
     public function eligibleContexts(AssignmentScopeRuntime $runtime, QueryableAssignmentScopeDefinition $definition, Builder $contexts): bool
     {
-        $configurations = [$definition, ...($runtime->role === null ? [] : RoleBindings::of($runtime->role, $definition, $this->container))];
+        $configurations = $runtime->role === null
+            ? ($runtime->grant === null ? [$definition] : [])
+            : RoleBindings::of($runtime->role, $definition, $this->container);
         $adapter = $this->declaredAdapter($runtime, $definition);
         $filtered = array_filter($configurations, static fn (AssignmentScopeDefinition $configuration): bool => self::filters($configuration) !== []) !== [];
 

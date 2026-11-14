@@ -20,6 +20,8 @@ use AzGuard\Tests\Fixtures\Filament\Resources\OrderResource;
 use AzGuard\Tests\Fixtures\Filament\Widgets\Keyed\SalesWidget as KeyedSalesWidget;
 use AzGuard\Tests\Fixtures\Filament\Widgets\Stats\SalesWidget as StatsSalesWidget;
 use Filament\Facades\Filament;
+use Illuminate\Console\Command;
+use Illuminate\Contracts\Console\Kernel;
 use Illuminate\Support\Facades\Artisan;
 
 /*
@@ -211,6 +213,40 @@ it('V75 does not overwrite a second run without --force, and does with it', func
 
     expect(runGenerate(['--only' => ['OrderResource'], '--force' => true]))->toBe(0)
         ->and($this->generated->read($path))->not->toContain('// owner edit');
+});
+
+it('does not choose an existing application file from the generator output', function (): void {
+    $path = 'app/ForeignPermission.php';
+    $source = "<?php\nnamespace Foreign;\nenum ForeignPermission: string\n{\n    case Secret = 'foreign.secret';\n}\n";
+    file_put_contents($this->generated->path($path), $source);
+    $command = new class extends Command
+    {
+        /** @var string */
+        protected $signature = 'azguard:make:permission {panel} {group} {--authority=} {--case=*} {--model=} {--force}';
+
+        public function handle(): int
+        {
+            $this->line('Created app/ForeignPermission.php');
+
+            return self::SUCCESS;
+        }
+    };
+    app(Kernel::class)->registerCommand($command);
+
+    expect(runGenerate(['--only' => ['OrderResource']]))->toBe(1)
+        ->and($this->generated->read($path))->toBe($source);
+});
+
+it('marks the exact generated enum under a custom scaffold and discovery folder', function (): void {
+    config(['azguard.scaffold' => ['path' => 'app/Domain Guards', 'namespace' => $this->generated->namespace.'\\Access'],
+        'azguard.discovery.permissions' => 'Definitions/Permissions']);
+    mkdir($this->generated->path('app/Domain Guards/Admin'), 0o755, true);
+
+    expect(runGenerate(['--only' => ['OrderResource'], '--with-policy' => true]))->toBe(0)
+        ->and($this->generated->read('app/Domain Guards/Admin/Definitions/Permissions/Sales/Orders/OrderPermission.php'))
+        ->toContain('namespace '.$this->generated->namespace.'\\Access\\Admin\\Definitions\\Permissions\\Sales\\Orders;', '#[ForFilament(OrderResource::class)]')
+        ->and($this->generated->read('app/Domain Guards/Admin/Policies/Sales/Orders/OrderPolicy.php'))
+        ->toContain('#[PolicyFor(OrderPermission::class)]');
 });
 
 it('prints the plan and writes nothing with --dry-run', function (): void {

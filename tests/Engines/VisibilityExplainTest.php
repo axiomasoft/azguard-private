@@ -29,7 +29,7 @@ function visibilityChosenIndexes(array $plan): array
 {
     $indexes = [];
     foreach ($plan as $key => $value) {
-        if (in_array($key, ['key', 'Index Name'], true) && is_string($value)) {
+        if (in_array($key, ['key', 'index_name', 'Index Name'], true) && is_string($value)) {
             $indexes[] = $value;
         } elseif (is_array($value)) {
             $indexes = [...$indexes, ...visibilityChosenIndexes($value)];
@@ -129,13 +129,13 @@ it('V33 R58 explains real authority and resource SQL on 100000 clients using phy
     $host = visibilityChosenIndexes($plans['host-index']['plan']);
     $hostIndexes = array_column(array_filter(Schema::getIndexes('clients'),
         fn (array $index) => in_array('organization_id', $index['columns'], true) && in_array('project_id', $index['columns'], true)), 'name');
-    expect($authority)->toContain('azg_rg_subject')->and(array_intersect($host, $hostIndexes))->not->toBe([]);
     $indexes = Schema::getIndexes('azg_role_grants');
-    $subject = array_values(array_filter($indexes, fn (array $index) => $index['name'] === 'azg_rg_subject'));
-    expect($subject[0]['columns'])->toBe(['panel', 'tenant_key', 'subject_type', 'subject_id', 'context_key']);
 
     if ($artifactDir = getenv('VISIBILITY_EVIDENCE_DIR')) {
         file_put_contents($artifactDir.'/explain-'.$driver.'.json', json_encode(['clients' => 100000, 'scopes' => 100,
             'allowed' => count($ids), 'max_parameters' => count($query->getBindings()), 'indexes' => $indexes, 'plans' => $plans], JSON_PRETTY_PRINT | JSON_THROW_ON_ERROR));
     }
+    expect($authority)->toContain('azg_rg_subject')->and(array_intersect($host, $hostIndexes))->not->toBe([]);
+    $subject = array_values(array_filter($indexes, fn (array $index) => $index['name'] === 'azg_rg_subject'));
+    expect($subject[0]['columns'])->toBe(['panel', 'tenant_key', 'subject_type', 'subject_id', 'context_key']);
 })->group('engines', 'visibility-engines');

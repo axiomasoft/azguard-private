@@ -13,9 +13,9 @@ use AzGuard\Facades\AzGuard;
 use AzGuard\Panels\Panel;
 use AzGuard\Panels\PanelBuilder;
 use AzGuard\Sources\Database\DatabaseSource;
-use AzGuard\Storage\StorageDescriptor;
 use AzGuard\Testing\Internal\Contracts\ContractPermission;
 use AzGuard\Testing\Internal\Contracts\ContractWorld;
+use AzGuard\Testing\Internal\Contracts\CountedRowsWriter;
 use AzGuard\Testing\Internal\Contracts\WriteLog;
 use Closure;
 use Illuminate\Database\Eloquent\Model;
@@ -246,7 +246,7 @@ trait ChangeParticipantContractTests
                 $this->writer = $rows;
                 $this->attempts[] = [];
                 $attempt = count($this->attempts) - 1;
-                $counted = new readonly class($rows, function (Closure $insert, string $table, int $count) use ($attempt): void {
+                $counted = new CountedRowsWriter($rows, function (Closure $insert, string $table, int $count) use ($attempt): void {
                     $this->writing = true;
 
                     try {
@@ -255,22 +255,7 @@ trait ChangeParticipantContractTests
                     } finally {
                         $this->writing = false;
                     }
-                }) implements OwnedRowsWriter
-                {
-
-                    /** @param Closure(Closure(): void, string, int): void $through */
-                    public function __construct(private OwnedRowsWriter $rows, private Closure $through) {}
-
-                    public function storage(): StorageDescriptor
-                    {
-                        return $this->rows->storage();
-                    }
-
-                    public function insert(string $table, array $rows): void
-                    {
-                        ($this->through)(fn () => $this->rows->insert($table, $rows), $table, count($rows));
-                    }
-                };
+                });
                 $this->recording = true;
 
                 try {

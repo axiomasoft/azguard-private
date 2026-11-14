@@ -101,11 +101,6 @@ abstract class MakeCommand extends GeneratorCommand
         return new StubStore($this->laravel->basePath(), $this->files);
     }
 
-    protected function file(Place $place, string $class, string $contents): GeneratedFile
-    {
-        return new GeneratedFile($place->file($class), $contents);
-    }
-
     /**
      * The folder of a kind in the panel of `--panel` (which must have its directory) or in what panels share with
      * `--shared`: exactly one of the two options.

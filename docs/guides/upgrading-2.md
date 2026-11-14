@@ -6,7 +6,7 @@ the historical changelog is not proof of publication. Review these changes befor
 
 ## Dependencies and package versions
 
-Upgrade Laravel 11 applications first. Supported pairs are PHP 8.3/8.4 with Laravel 12 and PHP 8.3/8.4/8.5
+Upgrade Laravel 11 and 12 applications first. Supported pairs are PHP 8.3, 8.4 and 8.5
 with Laravel 13. The plugin requires Filament `^5.8.4`. Composer `self.version` binds the plugin to the exact
 core version, including the prerelease suffix; update local development identities together. For a core RC evaluation,
 select `axiomasoft/azguard:2.0.0-rc.1` explicitly once the RC is published. A development path

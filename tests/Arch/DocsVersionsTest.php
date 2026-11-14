@@ -35,14 +35,15 @@ it('declares one Laravel range for every illuminate package of the core', functi
         }
     }
 
-    expect(array_keys($ranges))->toHaveCount(1)->and(documentedConstraints()['laravel'])->toBe([12, 13]);
+    expect(array_keys($ranges))->toHaveCount(1)->and(documentedConstraints()['laravel'])->toBe([13]);
 });
 
 it('documents the supported Laravel majors and the PHP floor of the package', function (): void {
     $constraints = documentedConstraints();
     $root = dirname(__DIR__, 2);
-    $laravel = implode(' or ', $constraints['laravel']);
-    $range = $constraints['laravel'][0].'–'.$constraints['laravel'][array_key_last($constraints['laravel'])];
+    $majors = $constraints['laravel'];
+    $laravel = implode(' or ', $majors);
+    $range = count($majors) === 1 ? (string) $majors[0] : $majors[0].'–'.$majors[array_key_last($majors)];
 
     $readme = (string) file_get_contents($root.'/README.md');
     $introduction = (string) file_get_contents($root.'/docs/getting-started/introduction.md');

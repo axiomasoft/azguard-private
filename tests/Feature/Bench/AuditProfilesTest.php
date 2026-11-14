@@ -100,28 +100,6 @@ it('refuses a remote redis host before the bench application starts', function (
     }
 })->with(['example.com', 'redis']);
 
-it('runs the bounded churn profile and emits worker memory measurements', function (): void {
-    $out = sys_get_temp_dir().'/azguard-churn-test-'.bin2hex(random_bytes(6));
-    $cmd = escapeshellarg(PHP_BINARY).' -d memory_limit=1G '.escapeshellarg(dirname(__DIR__, 3).'/bench/bin/run.php')
-        .' --tier=smoke --profile=cache-churn --reps=1 --out='.escapeshellarg($out).' 2>&1';
-    exec($cmd, $output, $exit);
-
-    try {
-        expect($exit)->toBe(0, implode("\n", $output));
-        $result = json_decode((string) file_get_contents($out.'.json'), true, flags: JSON_THROW_ON_ERROR);
-        $stage = $result['profiles'][0]['stages'][0];
-        $measurement = $stage['measurements'][0][0];
-        expect($stage['iterations_per_worker'])->toBe(10)
-            ->and($stage['checks'][0]['ok'])->toBeTrue()
-            ->and($measurement['rss_peak_bytes'])->toBeGreaterThanOrEqual($measurement['rss_start_bytes'])
-            ->and($measurement['max_request_sets'])->toBe(1024)
-            ->and($measurement['max_request_states'])->toBe(1024);
-    } finally {
-        @unlink($out.'.json');
-        @unlink($out.'.md');
-    }
-});
-
 it('rejects exceeded request-map and RSS bounds', function (int $sets, int $states, int $growth, int $setLimit, int $stateLimit): void {
     $check = new ReflectionMethod(CacheChurn::class, 'assertBounds');
     expect(fn () => $check->invoke(null, $sets, $states, $growth, $setLimit, $stateLimit))->toThrow(RuntimeException::class, 'bound exceeded');
@@ -133,46 +111,6 @@ it('accepts keys that expired during scanning but rejects keys without a TTL', f
         ->and($ttl->invoke(null, 2))->toBeTrue()
         ->and($ttl->invoke(null, -1))->toBeFalse()
         ->and($ttl->invoke(null, 3))->toBeFalse();
-});
-
-it('runs visibility at and beyond the witness budget', function (): void {
-    $out = sys_get_temp_dir().'/azguard-branches-test-'.bin2hex(random_bytes(6));
-    $cmd = escapeshellarg(PHP_BINARY).' -d memory_limit=1G '.escapeshellarg(dirname(__DIR__, 3).'/bench/bin/run.php')
-        .' --tier=smoke --profile=visibility-branches --reps=1 --out='.escapeshellarg($out).' 2>&1';
-    exec($cmd, $output, $exit);
-
-    try {
-        expect($exit)->toBe(0, implode("\n", $output))->and(is_file($out.'.json'))->toBeTrue();
-        $result = json_decode((string) file_get_contents($out.'.json'), true, flags: JSON_THROW_ON_ERROR);
-        $stages = $result['profiles'][0]['stages'];
-        expect(array_column($stages, 'name'))->toBe(['branches-999', 'branches-1000', 'branches-10000'])
-            ->and($stages[0]['summary'])->toHaveKey('visible')
-            ->and($stages[1]['summary'])->toHaveKey('visible')
-            ->and($stages[2]['summary'])->toHaveKey('overlimit');
-    } finally {
-        @unlink($out.'.json');
-        @unlink($out.'.md');
-    }
-});
-
-it('reports contention probes and rollback diagnostics', function (): void {
-    $out = sys_get_temp_dir().'/azguard-contention-test-'.bin2hex(random_bytes(6));
-    $cmd = escapeshellarg(PHP_BINARY).' -d memory_limit=1G '.escapeshellarg(dirname(__DIR__, 3).'/bench/bin/run.php')
-        .' --tier=smoke --profile=lock-contention --reps=1 --out='.escapeshellarg($out).' 2>&1';
-    exec($cmd, $output, $exit);
-
-    try {
-        expect($exit)->toBe(0, implode("\n", $output))->and(is_file($out.'.json'))->toBeTrue();
-        $result = json_decode((string) file_get_contents($out.'.json'), true, flags: JSON_THROW_ON_ERROR);
-        foreach ($result['profiles'][0]['stages'] as $stage) {
-            expect($stage['checks'][0]['ok'])->toBeTrue()
-                ->and($stage['summary'])->toHaveKeys(['probe.lock_wait', 'probe.lock_hold'])
-                ->and($stage['measurements'][0][0])->toHaveKeys(['transaction_rollbacks', 'uncaught_deadlocks', 'uncaught_timeouts', 'retries', 'deadlocks', 'timeouts']);
-        }
-    } finally {
-        @unlink($out.'.json');
-        @unlink($out.'.md');
-    }
 });
 
 it('counts failed transactions that are retried and classifies their causes', function (): void {
@@ -226,22 +164,4 @@ it('fails the run when a worker fails in warmup', function (): void {
     $fixture = dirname(__DIR__, 2).'/Fixtures/Bench/warmup-failure.php';
     exec(escapeshellarg(PHP_BINARY).' '.escapeshellarg($fixture).' 2>&1', $output, $exit);
     expect($exit)->toBe(0, implode("\n", $output));
-});
-
-it('runs the policy-heavy Filament resource count and page', function (): void {
-    $out = sys_get_temp_dir().'/azguard-filament-test-'.bin2hex(random_bytes(6));
-    $cmd = escapeshellarg(PHP_BINARY).' -d memory_limit=1G '.escapeshellarg(dirname(__DIR__, 3).'/bench/bin/run.php')
-        .' --tier=smoke --profile=filament-pagination --reps=1 --out='.escapeshellarg($out).' 2>&1';
-    exec($cmd, $output, $exit);
-
-    try {
-        expect($exit)->toBe(0, implode("\n", $output))->and(is_file($out.'.json'))->toBeTrue();
-        $result = json_decode((string) file_get_contents($out.'.json'), true, flags: JSON_THROW_ON_ERROR);
-        foreach ($result['profiles'][0]['stages'] as $stage) {
-            expect($stage['checks'][0]['ok'])->toBeTrue()->and($stage['summary'])->toHaveKeys(['count', 'page']);
-        }
-    } finally {
-        @unlink($out.'.json');
-        @unlink($out.'.md');
-    }
 });

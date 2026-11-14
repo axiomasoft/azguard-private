@@ -39,4 +39,10 @@ final readonly class ActorRef
     {
         return new self(self::SYSTEM_TYPE, null, $reason);
     }
+
+    /** Strict on every field. Object `==` treats distinct canonical ids such as `007` and `7` as the same actor. */
+    public function equals(?self $other): bool
+    {
+        return $other !== null && $this->type === $other->type && $this->id === $other->id && $this->reason === $other->reason;
+    }
 }

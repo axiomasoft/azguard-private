@@ -121,6 +121,10 @@ final readonly class ScopedGrantManager implements GrantManager
             throw new InvalidArgumentException('The cursor belongs to another panel, tenant, origin, filter or code build.');
         }
 
+        if ((string) (int) $parts[2] !== $parts[2]) {
+            throw new InvalidArgumentException('The cursor is not a cursor of a grant page.');
+        }
+
         return [$parts[1] === 'role' ? 'role' : 'permission', (int) $parts[2]];
     }
 

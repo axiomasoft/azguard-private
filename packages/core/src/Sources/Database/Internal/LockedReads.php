@@ -171,7 +171,7 @@ final class LockedReads
     public function grants(string $kind, TenantRef $tenant, SubjectRef $subject, ?string $key, ?AssignmentScopeRef $context, string $origin): array
     {
         $query = $this->partition($kind, $tenant, $origin)->where('subject_type', $subject->type())
-            ->where('subject_id', HostKeyColumns::canonical($this->storage->hostKeys(), $subject->id()));
+            ->where('subject_id', HostKeyColumns::bound($this->storage->hostKeys(), $subject->id()));
 
         if ($key !== null) {
             $query->where($kind, $key);
@@ -222,12 +222,12 @@ final class LockedReads
     /** A stored grant by id inside the panel, tenant and origin; a foreign id is not found. */
     public function find(string $id, TenantRef $tenant, string $origin): ?GrantRecord
     {
-        if (preg_match('/\A(role|permission):([1-9][0-9]{0,18})\z/', $id, $parts) !== 1) {
+        if (preg_match('/\A(role|permission):([1-9][0-9]{0,18})\z/', $id, $parts) !== 1 || (string) (int) $parts[2] !== $parts[2]) {
             return null;
         }
         /** @var 'role'|'permission' $kind */
         $kind = $parts[1];
-        $row = $this->partition($kind, $tenant, $origin)->where('id', $parts[2])->first();
+        $row = $this->partition($kind, $tenant, $origin)->where('id', (int) $parts[2])->first();
 
         return $row === null ? null : $this->record($kind, $row);
     }

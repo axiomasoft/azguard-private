@@ -10,6 +10,7 @@ use AzGuard\Kernel\Identity\AssignmentScopeRef;
 use AzGuard\Kernel\Identity\SubjectRef;
 use AzGuard\Kernel\Identity\TenantRef;
 use AzGuard\Panels\PanelBuilder;
+use AzGuard\Scopes\BaseAssignmentScope;
 use AzGuard\Scopes\Internal\Query\EligibilityBuilder;
 use AzGuard\Tests\Fixtures\Panels\AdminPanel;
 use AzGuard\Tests\Fixtures\Panels\PanelWorld;
@@ -17,6 +18,7 @@ use AzGuard\Tests\Fixtures\Panels\User;
 use AzGuard\Tests\Modules\Scopes\Fixtures\NativeProject;
 use AzGuard\Tests\Modules\Scopes\Fixtures\NativeScope;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Query\Builder as Query;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
@@ -91,6 +93,70 @@ it('reads fresh fields and rechecks authoritative owner instead of a stale resol
     NativeProject::query()->whereKey(1)->update(['owner' => 'B', 'active' => true]);
     expect(EligibilityBuilder::matches($this->nativeDefinition, $this->nativeResolved, [], $this->nativeRuntime, app()))->toBeFalse();
 });
+
+it('rechecks the authoritative owner of every batch witness in one query', function (string $owner, bool $expected): void {
+    NativeProject::query()->whereKey(1)->update(['owner' => $owner]);
+    $filters = [fn (Builder $query) => $query->active()];
+    expect(EligibilityBuilder::matches($this->nativeDefinition, $this->nativeResolved, $filters, $this->nativeRuntime, app()))->toBe($expected);
+    $witnesses = array_fill_keys(range(0, 99), [$this->nativeResolved, $this->nativeRuntime]);
+    DB::flushQueryLog();
+
+    $answers = EligibilityBuilder::matchesMany($this->nativeDefinition, $witnesses, $filters, app());
+
+    expect($answers)->toBe(array_fill(0, 100, $expected))
+        ->and(DB::getQueryLog())->toHaveCount(1)
+        ->and(count(DB::getQueryLog()[0]['bindings']))->toBeLessThanOrEqual(1000);
+})->with(['same owner' => ['A', true], 'changed owner' => ['B', false]]);
+
+it('checks the first structural owner separately from filtered joined projections in a batch', function (string $filteredOwner, bool $expected): void {
+    Schema::create('native_owners', function (Blueprint $table): void {
+        $table->id();
+        $table->unsignedInteger('project_id');
+        $table->string('owner');
+    });
+    DB::table('native_owners')->insert([
+        ['id' => 1, 'project_id' => 1, 'owner' => 'B'],
+        ['id' => 2, 'project_id' => 1, 'owner' => 'A'],
+    ]);
+    $definition = new class extends BaseAssignmentScope
+    {
+        public function type(): string
+        {
+            return 'native.project';
+        }
+
+        public function query(): Builder
+        {
+            return NativeProject::query()->select('native_projects.id', 'native_owners.owner')->selectRaw('? as projected', ['kept'])
+                ->join('native_owners', 'native_owners.project_id', '=', 'native_projects.id')
+                ->orderByRaw('case when native_owners.owner = ? then 0 else 1 end', ['B'])->orderBy('native_owners.id');
+        }
+
+        public function tenantOf(Model $record): TenantRef
+        {
+            if ($record->getAttribute('projected') !== 'kept') {
+                throw new RuntimeException('The structural projection was lost.');
+            }
+
+            return TenantRef::of('org', $record->getAttribute('owner'));
+        }
+    };
+    $resolved = $definition->resolve(AssignmentScopeRef::of('native.project', 1));
+    $runtime = new AssignmentScopeRuntime(
+        $this->nativeRuntime->panel, AccessScope::in(TenantRef::of('org', 'B'), $resolved->ref),
+        $this->nativeRuntime->subject, null, null, null, ActorRef::system(), null,
+        $this->nativeRuntime->now, AssignmentScopePhase::Access,
+    );
+    $filters = [fn (Builder $query) => $query->where('native_owners.owner', $filteredOwner)];
+    expect(EligibilityBuilder::matches($definition, $resolved, $filters, $runtime, app()))->toBe($expected);
+    DB::flushQueryLog();
+
+    $answers = EligibilityBuilder::matchesMany($definition, array_fill_keys(range(0, 99), [$resolved, $runtime]), $filters, app());
+
+    expect($answers)->toBe(array_fill(0, 100, $expected))
+        ->and(DB::getQueryLog())->toHaveCount(1)
+        ->and(count(DB::getQueryLog()[0]['bindings']))->toBeLessThanOrEqual(999);
+})->with(['a different joined owner passes' => ['A', true], 'no joined owner passes' => ['missing', false]]);
 
 it('calls a closure filter with the query and the runtime and fails one that needs a missing user', function (): void {
     expect(EligibilityBuilder::matches($this->nativeDefinition, $this->nativeResolved, [

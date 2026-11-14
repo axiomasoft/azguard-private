@@ -10699,6 +10699,111 @@
    "phase": "P4",
    "reason": "internal context for primary authority reads",
    "used_by": null
+  },
+  {
+   "current": "AzGuard\\Context\\Internal\\RequiredTenant",
+   "current_path": "packages/core/src/Context/Internal/RequiredTenant.php",
+   "kind": "class",
+   "lines": 32,
+   "current_marker": "internal",
+   "owner": "core",
+   "target": "AzGuard\\Context\\Internal\\RequiredTenant",
+   "target_path": "packages/core/src/Context/Internal/RequiredTenant.php",
+   "marker": "internal",
+   "enum": null,
+   "action": "keep",
+   "phase": "—",
+   "reason": "internal helper; FQCN unchanged",
+   "used_by": {
+    "core": 0,
+    "filament": 0,
+    "tests": 0,
+    "stubs_config_migrations": []
+   }
+  },
+  {
+   "current": "AzGuard\\Storage\\Internal\\StoredSchema",
+   "current_path": "packages/core/src/Storage/Internal/StoredSchema.php",
+   "kind": "class",
+   "lines": 40,
+   "current_marker": "internal",
+   "owner": "core",
+   "target": "AzGuard\\Storage\\Internal\\StoredSchema",
+   "target_path": "packages/core/src/Storage/Internal/StoredSchema.php",
+   "marker": "internal",
+   "enum": null,
+   "action": "keep",
+   "phase": "—",
+   "reason": "internal helper; FQCN unchanged",
+   "used_by": {
+    "core": 0,
+    "filament": 0,
+    "tests": 0,
+    "stubs_config_migrations": []
+   }
+  },
+  {
+   "current": "AzGuard\\Filament\\Internal\\Authorization\\RefusesSurfaceBoot",
+   "current_path": "packages/filament/src/Internal/Authorization/RefusesSurfaceBoot.php",
+   "kind": "class",
+   "lines": 45,
+   "current_marker": "internal",
+   "owner": "filament",
+   "target": "AzGuard\\Filament\\Internal\\Authorization\\RefusesSurfaceBoot",
+   "target_path": "packages/filament/src/Internal/Authorization/RefusesSurfaceBoot.php",
+   "marker": "internal",
+   "enum": null,
+   "action": "keep",
+   "phase": "—",
+   "reason": "internal helper; FQCN unchanged",
+   "used_by": {
+    "core": 0,
+    "filament": 0,
+    "tests": 0,
+    "stubs_config_migrations": []
+   }
+  },
+  {
+   "current": "AzGuard\\Filament\\Internal\\Reflection\\ClassTraits",
+   "current_path": "packages/filament/src/Internal/Reflection/ClassTraits.php",
+   "kind": "class",
+   "lines": 24,
+   "current_marker": "internal",
+   "owner": "filament",
+   "target": "AzGuard\\Filament\\Internal\\Reflection\\ClassTraits",
+   "target_path": "packages/filament/src/Internal/Reflection/ClassTraits.php",
+   "marker": "internal",
+   "enum": null,
+   "action": "keep",
+   "phase": "—",
+   "reason": "internal helper; FQCN unchanged",
+   "used_by": {
+    "core": 0,
+    "filament": 0,
+    "tests": 0,
+    "stubs_config_migrations": []
+   }
+  },
+  {
+   "current": "AzGuard\\Testing\\Internal\\Contracts\\CountedRowsWriter",
+   "current_path": "packages/core/src/Testing/Internal/Contracts/CountedRowsWriter.php",
+   "kind": "class",
+   "lines": 26,
+   "current_marker": "internal",
+   "owner": "core",
+   "target": "AzGuard\\Testing\\Internal\\Contracts\\CountedRowsWriter",
+   "target_path": "packages/core/src/Testing/Internal/Contracts/CountedRowsWriter.php",
+   "marker": "internal",
+   "enum": null,
+   "action": "keep",
+   "phase": "—",
+   "reason": "internal helper; FQCN unchanged",
+   "used_by": {
+    "core": 1,
+    "filament": 0,
+    "tests": 0,
+    "stubs_config_migrations": []
+   }
   }
  ]
 }

@@ -11,7 +11,8 @@ releases are in [RELEASING.md](RELEASING.md). Report vulnerabilities privately a
 3. Run `composer check` (style, static analysis, Rector, API manifest, type coverage, tests, line coverage). It fails
    without a coverage driver; install pcov or Xdebug.
 4. After a change to a type marked `#[Api]` or `#[Spi]`, run `composer api:manifest` and commit both manifests.
-5. Open a pull request to `main`. All CI checks must be green; one approval is required.
+5. Open a pull request to `main` after review and resolve the findings. All CI checks must be green. The maintained
+   `.github/rulesets/main.json` requires a pull request and resolved review threads, with no numeric approval gate.
 
 The project does not write or run mutation tests and does not use mutation-testing gates.
 

@@ -9,6 +9,7 @@ use AzGuard\Exceptions\InvalidConfigurationException;
 use AzGuard\Exceptions\UnknownPermissionException;
 use AzGuard\Exceptions\VisibilityNotSupportedException;
 use AzGuard\Filament\Internal\Authorization\FilamentContext;
+use AzGuard\Filament\Internal\Reflection\ClassTraits;
 use AzGuard\Kernel\Decision\AccessRequest;
 use AzGuard\Kernel\Identity\PermissionKey;
 use AzGuard\Laravel\Gate\GateBridge;
@@ -26,6 +27,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 use Throwable;
 use UnitEnum;
 
@@ -88,7 +90,7 @@ final class FilamentGate
                 }
                 $query = $record->newQuery()->useWritePdo();
 
-                if (in_array(SoftDeletes::class, class_uses_recursive($record), true)
+                if (ClassTraits::has($record, SoftDeletes::class)
                     && in_array(FilamentContext::ability($action), ['restore', 'force_delete'], true)) {
                     $query->withoutGlobalScope(SoftDeletingScope::class);
                 }
@@ -213,7 +215,21 @@ final class FilamentGate
         };
         $gate = app(Gate::class);
 
-        return $model === null || $gate->has($ability) || $gate->getPolicyFor($model) !== null ? null : false;
+        if ($model === null || $gate->has($ability)) {
+            return null;
+        }
+        $policy = $gate->getPolicyFor($model);
+
+        if (! is_object($policy)) {
+            return false;
+        }
+
+        // A policy that does not define this ability must not fall through to Filament's allow.
+        $method = str_contains($ability, '-') ? Str::camel($ability) : $ability;
+
+        // Laravel only calls a policy's before hook when the ability itself is callable. Filament does not invoke
+        // that hook either when it falls back here, so a before method alone cannot own a missing ability.
+        return method_exists($policy, $method) ? null : false;
     }
 
     /**

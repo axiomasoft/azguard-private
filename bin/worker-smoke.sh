@@ -70,11 +70,11 @@ cp -a "$root/packages/core/." "$work/package/"
 php -r '$p=$argv[1]; $j=json_decode(file_get_contents($p), true, 512, JSON_THROW_ON_ERROR); $j["version"]="2.0.0"; file_put_contents($p,json_encode($j,JSON_PRETTY_PRINT|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR)."\n");' "$work/package/composer.json"
 composer archive --format=zip --dir="$work/dist" --working-dir="$work/package" --no-interaction
 sha256sum "$work/dist/"*.zip
-composer create-project 'laravel/laravel:^12.0' "$work/app" --no-interaction --prefer-dist --no-progress
+composer create-project 'laravel/laravel:^13.0' "$work/app" --no-interaction --prefer-dist --no-progress
 cd "$work/app"
 composer config repositories.azguard artifact "$work/dist"
 composer require axiomasoft/azguard:2.0.0 --no-interaction --no-progress
-composer require --dev laravel/octane:2.12.0 spiral/roadrunner-cli:2.7.1 spiral/roadrunner-http:3.6.0 \
+composer require --dev laravel/octane:2.24.0 spiral/roadrunner-cli:2.7.1 spiral/roadrunner-http:3.6.0 \
     --with-all-dependencies --no-interaction --no-progress
 vendor/bin/rr get-binary --filter=3.0.1 --no-config --no-interaction
 ./rr --version

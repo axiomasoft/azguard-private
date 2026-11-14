@@ -79,6 +79,10 @@ final class ModelKey
         $held = array_values(array_filter(is_array($ids) ? $ids : [$ids],
             static fn (?string $id): bool => $id !== null && self::canHold($model, $id)));
 
+        if (self::isInteger($model)) {
+            $held = array_map(static fn (string $id): int => (int) $id, $held);
+        }
+
         return $held === [] ? $query->whereRaw('0 = 1') : $query->whereKey(is_array($ids) ? $held : $held[0]);
     }
 
@@ -96,7 +100,8 @@ final class ModelKey
         if ($id === null || ! self::canHold($query->getModel(), $id)) {
             return null;
         }
-        $found = $query->whereKey($id)->first();
+        $bound = self::isInteger($query->getModel()) ? (int) $id : $id;
+        $found = $query->whereKey($bound)->first();
 
         return $found !== null && self::matches($found, $id) ? $found : null;
     }

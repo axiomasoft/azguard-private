@@ -26,7 +26,16 @@ final class DdlSnapshot
             'sqlite' => $connection->select("SELECT name, sql AS definition FROM sqlite_master WHERE type='trigger' AND tbl_name=? ORDER BY name", [$table]),
             default => $connection->select('SELECT c.CONSTRAINT_NAME AS name, c.CHECK_CLAUSE AS definition FROM information_schema.CHECK_CONSTRAINTS c JOIN information_schema.TABLE_CONSTRAINTS t ON t.CONSTRAINT_SCHEMA=c.CONSTRAINT_SCHEMA AND t.CONSTRAINT_NAME=c.CONSTRAINT_NAME WHERE t.TABLE_SCHEMA=DATABASE() AND t.TABLE_NAME=? ORDER BY c.CONSTRAINT_NAME', [$table]),
         };
-        $constraints = array_map(static fn (object $row): array => (array) $row, $constraints);
+        $constraints = array_map(static function (object $row) use ($connection): array {
+            $constraint = (array) $row;
+
+            if ($connection->getDriverName() === 'mysql') {
+                // MySQL can report the ASCII sentinel with either introducer; the binary column owns its semantics.
+                $constraint['definition'] = str_replace("_binary\\'global\\'", "_utf8mb4\\'global\\'", $constraint['definition']);
+            }
+
+            return $constraint;
+        }, $constraints);
         foreach (array_merge($indexes, $constraints) as $named) {
             expect(strlen($named['name']))->toBeLessThanOrEqual(63);
         }

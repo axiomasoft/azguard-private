@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace AzGuard\Tests\Fixtures\Filament;
 
+use AzGuard\Filament\AzGuardFilamentServiceProvider;
 use AzGuard\Storage\Schema\StorageSchema;
 use AzGuard\Tests\Fixtures\Filament\Guards\AdminGuardPanel;
 use AzGuard\Tests\Fixtures\Filament\Guards\BackofficeGuardPanel;
@@ -107,8 +108,12 @@ trait BootsFilament
     protected function getPackageProviders($app): array
     {
         FilamentFixture::ensure();
+        $packageProviders = array_values(array_filter(parent::getPackageProviders($app),
+            static fn (string $provider): bool => $provider !== AzGuardFilamentServiceProvider::class));
 
         return [
+            // Package discovery may register the integration before Livewire binds its alias.
+            AzGuardFilamentServiceProvider::class,
             LivewireServiceProvider::class,
             BladeIconsServiceProvider::class,
             BladeHeroiconsServiceProvider::class,
@@ -122,7 +127,7 @@ trait BootsFilament
             TablesServiceProvider::class,
             WidgetsServiceProvider::class,
             FilamentServiceProvider::class,
-            ...parent::getPackageProviders($app),
+            ...$packageProviders,
             AdminFilamentProvider::class,
             BackofficeFilamentProvider::class,
             TenantedFilamentProvider::class,

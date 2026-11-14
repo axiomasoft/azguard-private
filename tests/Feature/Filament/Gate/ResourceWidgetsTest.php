@@ -91,7 +91,9 @@ it('refuses at run time a widget that no key names and no trait decides', functi
     GateWorld::seed();
     GateWorld::serve(GateWorld::grant(['orders.view_any']));
 
+    DynamicWidget::$booted = 0;
     Livewire::test(DynamicWidget::class)->assertForbidden();
+    expect(DynamicWidget::$booted)->toBe(0);
 });
 
 it('shows at run time a widget the panel excludes', function (): void {
@@ -101,7 +103,9 @@ it('shows at run time a widget the panel excludes', function (): void {
     GateWorld::seed();
     GateWorld::serve(GateWorld::grant(['orders.view_any']));
 
+    DynamicWidget::$booted = 0;
     Livewire::test(DynamicWidget::class)->assertSuccessful();
+    expect(DynamicWidget::$booted)->toBeGreaterThan(0);
 });
 
 it('refuses the page that returns a dynamic widget nothing decides, and renders it when the panel excludes the widget', function (): void {

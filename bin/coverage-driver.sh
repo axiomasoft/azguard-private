@@ -31,7 +31,7 @@ azguard_coverage_php() {
 
         AZGUARD_COVERAGE_PHP="$bin"
         # PHPUnit refuses to collect coverage when PCOV and Xdebug are both
-        # loaded. CI uses Xdebug; disable PCOV when both are present.
+        # loaded. Disable PCOV when both are present, including in worker processes.
         if "$bin" -m 2>/dev/null | grep -qi '^pcov$' \
             && "$bin" -m 2>/dev/null | grep -qi '^xdebug$'; then
             AZGUARD_COVERAGE_PHP_ARGS=(-d pcov.enabled=0)

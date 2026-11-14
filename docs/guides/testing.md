@@ -5,7 +5,7 @@ engine, so they exercise the same policies, scopes and caches as production.
 
 ## Maintainer database stand
 
-The repository's `docker-compose.yml` runs PostgreSQL 16, MySQL 8 and MariaDB 10.11 as disposable
+The repository's `docker-compose.yml` runs PostgreSQL 18, MySQL 9.7 and MariaDB 10.11 as disposable
 test databases on tmpfs, with a 2 GiB limit each. Crash durability is deliberately disabled;
 data disappears when a database container stops. Test schemas are still dropped and migrated
 before each test. Redis and the real PostgreSQL replica profile retain persistent volumes.

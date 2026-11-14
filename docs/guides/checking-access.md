@@ -162,9 +162,13 @@ final class PostController
 }
 ```
 
-`#[CheckPermission]` adds `azguard.can`. Laravel 13 applies it as controller middleware. On Laravel 12,
-`azguard.panel` applies it. With `->requireRouteChecks()` on the panel, an action with neither attribute throws
+`#[CheckPermission]` adds `azguard.can`. Laravel 13 applies it as controller middleware. On 13.0–13.4 a parent
+controller can still leave the attribute unread, and `azguard.panel` applies it in that case. With `->requireRouteChecks()` on the panel, an action with neither attribute throws
 `MissingPermissionCheckException` in `local` and `testing` and answers 403 elsewhere.
+
+Laravel's explicit `withoutMiddleware()` exclusions also apply to these attributes. Without strict mode, removing a
+check deliberately leaves that route unchecked. Enable `requireRouteChecks()` when every panel action must retain a
+check; use `#[SkipPermissionCheck]` for an intentional exception to that rule.
 
 ## Frontend abilities
 

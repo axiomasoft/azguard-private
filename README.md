@@ -7,7 +7,7 @@
 [![Latest Version](https://img.shields.io/packagist/v/axiomasoft/azguard.svg)](https://packagist.org/packages/axiomasoft/azguard)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-Code-first authorization for Laravel 12–13 with an optional Filament 5 plugin.
+Code-first authorization for Laravel 13 with an optional Filament 5 plugin.
 
 - Permissions are backed enums and roles are PHP classes. Grants live in your database.
 - Every check goes through one decision pipeline: `hasPermission()`, `@can`, middleware, controller attributes,
@@ -92,11 +92,11 @@ the Filament package is retained for development.
 
 ## Requirements
 
-The 2.0 line supports PHP 8.3–8.5 and Laravel 12 or 13: PHP 8.3/8.4 with Laravel 12, and PHP 8.3/8.4/8.5
-with Laravel 13.
+The 2.0 line supports PHP 8.3–8.5 and Laravel 13.
 The Filament plugin requires Filament `^5.8.4` and the exact same AzGuard core version (`self.version`).
-CI resolves lowest and latest dependencies for each of these five pairs on SQLite. Server lanes use
-MySQL 8, MariaDB 10.11, PostgreSQL 16 and Redis 7; these lanes do not represent every platform cross-product.
+CI resolves lowest and latest dependencies for PHP 8.3, 8.4 and 8.5 with Laravel 13 on SQLite. Server lanes use
+MySQL 9.7 and PostgreSQL 18, plus Redis 7. MariaDB stays available on the local Compose stand and is not a CI lane.
+These lanes do not represent every platform cross-product.
 See the [compatibility policy](docs/reference/compatibility.md) and [2.0 upgrade guide](docs/guides/upgrading-2.md).
 
 ## Contributing and security

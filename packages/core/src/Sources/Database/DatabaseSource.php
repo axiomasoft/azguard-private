@@ -820,7 +820,7 @@ final class DatabaseSource implements ChecksHealth, DescribesSchema, FencesReads
         $origins = [];
         foreach (['role_grants', 'permission_grants'] as $table) {
             foreach ($storage->table($table)->where('panel', $panel->id())->where('tenant_key', $tenant->key())
-                ->where('subject_type', $subject->type())->where('subject_id', HostKeyColumns::canonical($storage->hostKeys(), $subject->id()))
+                ->where('subject_type', $subject->type())->where('subject_id', HostKeyColumns::bound($storage->hostKeys(), $subject->id()))
                 ->distinct()->pluck('origin') as $origin) {
                 if (is_string($origin)) {
                     $origins[$origin] = true;
@@ -1061,7 +1061,7 @@ final class DatabaseSource implements ChecksHealth, DescribesSchema, FencesReads
                     foreach (array_chunk($scopes, 100) as $chunk) {
                         $query = $session->table($kind === 'role_grant' ? 'role_grants' : 'permission_grants')
                             ->where('panel', $context->panel()->id())->where('subject_type', $type)
-                            ->whereIn('subject_id', array_map(strval(...), $ids))
+                            ->whereIn('subject_id', array_map(static fn (int|string $id): int|string => HostKeyColumns::bound($hostKeys, $id), $ids))
                             ->where(function (Builder $query) use ($chunk): void {
                                 foreach ($chunk as $scope) {
                                     $query->orWhere(fn (Builder $pair): Builder => $pair->where('tenant_key', $scope->tenant->key())->where('context_key', $scope->context->key()));
@@ -1308,7 +1308,7 @@ final class DatabaseSource implements ChecksHealth, DescribesSchema, FencesReads
         $storage = $this->resolvedStorage();
         $query = $session->table($kind === 'role_grant' ? 'role_grants' : 'permission_grants')
             ->where('panel', $context->panel()->id())->where('subject_type', $subject->type())
-            ->where('subject_id', HostKeyColumns::canonical($storage->hostKeys(), $subject->id()));
+            ->where('subject_id', HostKeyColumns::bound($storage->hostKeys(), $subject->id()));
 
         if ($contextType !== null) {
             $tenants = [$context->scope()->tenant->key()];
@@ -1340,14 +1340,14 @@ final class DatabaseSource implements ChecksHealth, DescribesSchema, FencesReads
             return $rows;
         }
         // Visibility enumeration has an explicit budget; every raw witness survives ref deduplication.
-        $query->orderBy('id')->chunkById(500, function ($chunk) use (&$rows): void {
-            foreach ($chunk as $row) {
-                if (count($rows) >= 10000) {
-                    throw new InvalidSourceContributionException('Database selection exceeds the 10000 assignment witness budget.');
-                }
-                $rows[] = Narrow::row($row);
-            }
-        });
+        $selected = $query->orderBy('id')->limit(10001)->get();
+
+        if ($selected->count() > 10000) {
+            throw new InvalidSourceContributionException('Database selection exceeds the 10000 assignment witness budget.');
+        }
+        foreach ($selected as $row) {
+            $rows[] = Narrow::row($row);
+        }
 
         return $rows;
     }

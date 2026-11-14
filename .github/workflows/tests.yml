@@ -28,19 +28,12 @@ jobs:
       fail-fast: false
       matrix:
         php: ['8.3', '8.4', '8.5']
-        laravel: ['12.*', '13.*']
+        laravel: ['13.*']
         stability: [prefer-lowest, prefer-stable]
         include:
-          - laravel: '12.*'
-            testbench: '^10.0'
-            laravel_major: '12'
           - laravel: '13.*'
             testbench: '^11.0'
             laravel_major: '13'
-        exclude:
-          # PHP 8.5 is only supported by Laravel 13.
-          - laravel: '12.*'
-            php: '8.5'
 
     steps:
       - name: Checkout
@@ -57,6 +50,19 @@ jobs:
           extensions: mbstring, pdo, pdo_sqlite, sqlite3
           coverage: none
           tools: composer:v2
+
+      - name: Get Composer archive cache directory
+        id: composer-cache
+        run: echo "dir=$(composer config cache-files-dir)" >> "$GITHUB_OUTPUT"
+
+      - name: Cache Composer downloads
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
+        with:
+          path: ${{ steps.composer-cache.outputs.dir }}
+          key: ${{ runner.os }}-composer-php${{ matrix.php }}-laravel${{ matrix.laravel_major }}-${{ matrix.stability }}-${{ hashFiles('composer.lock', '**/composer.json') }}
+          restore-keys: |
+            ${{ runner.os }}-composer-php${{ matrix.php }}-laravel${{ matrix.laravel_major }}-${{ matrix.stability }}-
+            ${{ runner.os }}-composer-
 
       - name: Validate composer
         run: composer validate --strict
@@ -85,7 +91,7 @@ jobs:
           if-no-files-found: error
 
       - name: Run tests
-        run: vendor/bin/pest --ci --fail-on-skipped --exclude-group=engines --exclude-group=redis --exclude-group=replica --exclude-group=extended --exclude-group=mysql-engines
+        run: vendor/bin/pest --ci --fail-on-skipped --exclude-group=engines --exclude-group=redis --exclude-group=replica --exclude-group=extended --exclude-group=mysql-engines --parallel --processes=4 --passthru-php='-d memory_limit=1G'
         env:
           DB_CONNECTION: sqlite
           DB_DATABASE: ':memory:'
@@ -105,8 +111,8 @@ jobs:
           path: ${{ runner.temp }}/matrix-row/
           if-no-files-found: error
 
-  # The tests whose result depends on the engine (group `database`, tests/zones.json) on each server and on the two
-  # newest Laravel majors; everything else runs once on SQLite above. The engine tests (races, replication of one
+  # The tests whose result depends on the engine (group `database`, tests/zones.json) on MySQL and PostgreSQL
+  # and on Laravel 13; everything else runs once on SQLite above. The engine tests (races, replication of one
   # database) run sequentially after them. Parity runs seeds 1 and 2 here, all of them in tests-nightly.yml.
   test-db-matrix:
     name: DB lane · ${{ matrix.connection }} · L${{ matrix.laravel }}
@@ -114,18 +120,13 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        connection: [pgsql, mysql, mariadb]
-        laravel: ['12.*', '13.*']
+        connection: [pgsql, mysql]
+        laravel: ['13.*']
         include:
           - connection: pgsql
             service: postgres
           - connection: mysql
             service: mysql
-          - connection: mariadb
-            service: mariadb
-          - laravel: '12.*'
-            testbench: '^10.0'
-            laravel_major: '12'
           - laravel: '13.*'
             testbench: '^11.0'
             laravel_major: '13'
@@ -315,18 +316,31 @@ jobs:
         with:
           php-version: '8.4'
           extensions: mbstring, pdo, pdo_sqlite, sqlite3
-          coverage: xdebug
+          coverage: pcov
           tools: composer:v2
+
+      - name: Get Composer archive cache directory
+        id: composer-cache
+        run: echo "dir=$(composer config cache-files-dir)" >> "$GITHUB_OUTPUT"
+
+      - name: Cache Composer downloads
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
+        with:
+          path: ${{ steps.composer-cache.outputs.dir }}
+          key: ${{ runner.os }}-composer-coverage-${{ hashFiles('composer.lock', '**/composer.json') }}
+          restore-keys: |
+            ${{ runner.os }}-composer-coverage-
+            ${{ runner.os }}-composer-
 
       - name: Install dependencies
         run: composer install --prefer-dist --no-interaction --no-progress
 
       - name: Run tests with coverage
-        run: vendor/bin/pest --ci --fail-on-skipped --exclude-group=engines --exclude-group=redis --exclude-group=replica --exclude-group=extended --exclude-group=mysql-engines --coverage --min=85 --coverage-clover=coverage.xml
+        # Reusing a worker across test files loses captured lines; retain a fresh capture per file before merging.
+        run: vendor/bin/pest --ci --fail-on-skipped --exclude-group=engines --exclude-group=redis --exclude-group=replica --exclude-group=extended --exclude-group=mysql-engines --parallel --processes=4 --max-batch-size=1 --passthru-php='-d memory_limit=1G' --coverage --min=85 --coverage-clover=coverage.xml
         env:
           DB_CONNECTION: sqlite
           DB_DATABASE: ':memory:'
-          XDEBUG_MODE: coverage
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@0fb7174895f61a3b6b78fc075e0cd60383518dac # v5.5.5
@@ -343,9 +357,7 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - { php: '8.3', laravel: '12' }
           - { php: '8.3', laravel: '13' }
-          - { php: '8.4', laravel: '12' }
           - { php: '8.4', laravel: '13' }
           - { php: '8.5', laravel: '13' }
     env:

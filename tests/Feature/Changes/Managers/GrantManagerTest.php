@@ -85,6 +85,28 @@ it('R37 refuses an update of a foreign id as a stale selection and writes nothin
         ->and([W::rows(), W::version()])->toBe($rows);
 });
 
+it('refuses overflowing grant ids and cursors without changing the last signed integer row', function (): void {
+    CrmWorld::storage()->mutate('crm', function ($mutation): void {
+        $mutation->table('role_grants')->where('id', (int) substr($this->a, 5))->update(['id' => PHP_INT_MAX]);
+        $mutation->touch('crm');
+    });
+    $maximum = 'role:'.PHP_INT_MAX;
+    $overflow = 'role:9223372036854775808';
+    $before = W::rows();
+    expect($this->grants->find($maximum)?->id)->toBe($maximum)
+        ->and($this->grants->find($overflow))->toBeNull()
+        ->and(fn () => $this->grants->update($overflow, new GrantDetails(null, [])))->toThrow(StaleSelectionException::class)
+        ->and(fn () => $this->grants->revokeMany([$overflow]))->toThrow(StaleSelectionException::class)
+        ->and(W::rows())->toBe($before);
+
+    $page = $this->grants->page(new GrantFilter(limit: 1));
+    [, $digest] = json_decode((string) base64_decode(strtr($page->nextCursor ?? '', '-_', '+/')), true, flags: JSON_THROW_ON_ERROR);
+    $cursor = static fn (string $id): string => rtrim(strtr(base64_encode(json_encode([$id, $digest], JSON_THROW_ON_ERROR)), '+/', '-_'), '=');
+
+    expect(managerIds($this->grants->page(new GrantFilter(limit: 1, cursor: $cursor($maximum)))))->toBe([$this->permission])
+        ->and(fn () => $this->grants->page(new GrantFilter(limit: 1, cursor: $cursor($overflow))))->toThrow(InvalidArgumentException::class);
+});
+
 it('C13 updates expiry and fields only while the form fingerprint still matches; identity never changes', function (): void {
     $read = $this->grants->find($this->a);
     Carbon::setTestNow('2026-10-06T12:00:05Z');

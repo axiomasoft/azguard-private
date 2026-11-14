@@ -1,13 +1,13 @@
 services:
   # Test databases only: durability is deliberately disabled; tmpfs data is lost on restart.
   postgres:
-    image: postgres:16-alpine@sha256:721873c34ceb9f8d8fc265984940dc982404c105f19ad51be9fdc5970a6080ea
+    image: postgres:18.7-alpine@sha256:75dcac3dfb1cd01ca3536910bbc84128759362f8b118bf8c55b38a94f68f3b73
     command: [postgres, -c, fsync=off, -c, synchronous_commit=off, -c, full_page_writes=off]
     restart: unless-stopped
     ports:
       - "127.0.0.1:${PGSQL_PORT:-5432}:5432"
     tmpfs:
-      - /var/lib/postgresql/data:size=2g
+      - /var/lib/postgresql:size=2g
     volumes:
       - ./docker/initdb/postgres.sh:/docker-entrypoint-initdb.d/10-worker-databases.sh:ro
     environment:
@@ -22,8 +22,9 @@ services:
       retries: 10
 
   mysql:
-    image: mysql:8@sha256:a0225d1ea6631c8bc2385dc4c2faba17bbf1834ecf369e1659a9a382bd8d5dd7
-    command: [--disable-log-bin, --innodb-flush-log-at-trx-commit=0, --innodb-doublewrite=OFF, --innodb-flush-method=O_DIRECT_NO_FSYNC]
+    image: mysql:9.7.4@sha256:df90258da46f6e7ff8574ff84f17618aba0765cac749928299c69fd4e7cb8ad8
+    # The bootstrap client and the temporary server must use the same Unix socket.
+    command: [--socket=/var/run/mysqld/mysqld.sock, --disable-log-bin, --innodb-flush-log-at-trx-commit=0, --innodb-doublewrite=OFF, --innodb-flush-method=O_DIRECT_NO_FSYNC]
     restart: unless-stopped
     ports:
       - "127.0.0.1:${MYSQL_PORT:-3306}:3306"
@@ -80,7 +81,7 @@ services:
 
   authority-primary:
     profiles: [authority-replica]
-    image: postgres:16-alpine@sha256:721873c34ceb9f8d8fc265984940dc982404c105f19ad51be9fdc5970a6080ea
+    image: postgres:18.7-alpine@sha256:75dcac3dfb1cd01ca3536910bbc84128759362f8b118bf8c55b38a94f68f3b73
     ports:
       - "127.0.0.1:${AUTHORITY_PRIMARY_PORT:-25433}:5432"
     environment:
@@ -89,7 +90,7 @@ services:
       POSTGRES_PASSWORD: authority_test
     command: [postgres, -c, wal_level=replica, -c, max_wal_senders=4, -c, wal_keep_size=128MB]
     volumes:
-      - authority_primary_test:/var/lib/postgresql/data
+      - authority_primary_test:/var/lib/postgresql
       - ./tests/Engines/Support/replica-primary.sh:/docker-entrypoint-initdb.d/replication.sh:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -h 127.0.0.1 -U authority_test -d azguard_authority_test"]
@@ -99,18 +100,18 @@ services:
 
   authority-replica:
     profiles: [authority-replica]
-    image: postgres:16-alpine@sha256:721873c34ceb9f8d8fc265984940dc982404c105f19ad51be9fdc5970a6080ea
+    image: postgres:18.7-alpine@sha256:75dcac3dfb1cd01ca3536910bbc84128759362f8b118bf8c55b38a94f68f3b73
     depends_on:
       authority-primary:
         condition: service_healthy
     ports:
       - "127.0.0.1:${AUTHORITY_REPLICA_PORT:-25434}:5432"
     environment:
-      PGDATA: /var/lib/postgresql/data
+      PGDATA: /var/lib/postgresql/18/docker
       PGPASSWORD: authority_test
     entrypoint: [sh, /replica-standby.sh]
     volumes:
-      - authority_replica_test:/var/lib/postgresql/data
+      - authority_replica_test:/var/lib/postgresql
       - ./tests/Engines/Support/replica-standby.sh:/replica-standby.sh:ro
     healthcheck:
       test: ["CMD-SHELL", "psql -U authority_test -d azguard_authority_test -tAc 'select pg_is_in_recovery()' | grep -qx t"]

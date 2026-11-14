@@ -283,6 +283,19 @@ it('honors resolved middleware exclusions for attributes on older routers', func
     $this->get('/excluded-check/1', ['X-Tenant' => '1'])->assertOk();
 })->with([CheckPermissionMiddleware::class.':clients.update,client', 'excluded-client-check']);
 
+it('reads current route middleware and exclusions after an earlier inspection', function (): void {
+    $checks = new RouteChecks;
+    $route = new OlderRouterRoute(['GET'], '/mutable', ['uses' => ClientController::class.'@update', 'controller' => ClientController::class.'@update']);
+    expect($checks->panelOf($route))->toBeNull()->and($checks->missing($route))->toContain(UPDATE_CHECK);
+
+    $route->middleware(['azguard.panel:crm', UPDATE_CHECK]);
+    $route->computedMiddleware = null;
+    expect($checks->panelOf($route))->toBe('crm')->and($checks->missing($route))->not->toContain(UPDATE_CHECK);
+
+    $route->withoutMiddleware('azguard.panel:crm');
+    expect($checks->panelOf($route))->toBeNull();
+});
+
 it('does not duplicate an attribute check already registered by its resolved middleware class or group', function (bool $group): void {
     HttpWorld::panel();
     Route::middlewareGroup('client-update-check', [UPDATE_CHECK]);

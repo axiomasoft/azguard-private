@@ -87,6 +87,17 @@ it('has no context outside the pipeline and cancels with a reason', function ():
         ->and(fn () => $change->cancel('nope'))->toThrow(ChangeCancelledException::class, 'nope');
 });
 
+it('distinguishes numeric-looking actor and subject identities byte for byte', function (string $one, string $other): void {
+    $make = static fn (string $subject, string $actor): Change => Change::grant('crm', unitScope(), SubjectRef::of('crm.user', $subject),
+        RoleKey::of('crm', 'seller'), 'manual', ActorRef::of('crm.user', $actor));
+    $original = $make($one, $one);
+
+    expect($original->sameIdentity($make($one, $one)))->toBeTrue()
+        ->and($original->sameIdentity($make($other, $one)))->toBeFalse()
+        ->and($original->sameIdentity($make($one, $other)))->toBeFalse()
+        ->and(ActorRef::of('crm.user', $one)->equals(ActorRef::of('crm.user', $other)))->toBeFalse();
+})->with([['007', '7'], ['10', '1e1'], ['1e2', '100']]);
+
 it('rejects a change shape that cannot name one stored grant', function (Closure $make, string $exception): void {
     expect($make)->toThrow($exception);
 })->with([
