@@ -64,7 +64,7 @@ AzGuard::withinScope($red, fn () => $user->hasPermission(PostPermission::View));
 - **Morph alias.** The scope model needs a morph alias, such as `team`. `AzGuard::withinScope()` needs a
   current or default panel.
 - **Scope membership.** With `inherit`, a role granted tenant-wide applies in every team.
-  `azguard:doctor` warns about this (`scopes.membership`) until you add `->requireMembership(TeamMembership::class)`,
+  `azguard:doctor` warns about this (check `scopes.membership`, finding `membership.configured`) until you add `->requireMembership(TeamMembership::class)`,
   which implements `AssignmentScopeMembership`. It also requires the subject to be a member of the scope: a
   restriction `membership` of every decision inside it, and a condition of every grant in it.
 - **Custom scope types.** For a scope that is not a plain model, or that needs filters and labels, extend

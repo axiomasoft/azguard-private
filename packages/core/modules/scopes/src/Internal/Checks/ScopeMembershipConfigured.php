@@ -47,7 +47,7 @@ final readonly class ScopeMembershipConfigured implements DoctorCheck
         $membership = ScopeConfiguration::membership($panel);
 
         if (is_string($membership) && ! $container->bound($membership) && (! class_exists($membership) || ! (new ReflectionClass($membership))->isInstantiable())) {
-            $findings[] = DoctorFinding::error('membership.configured', 'Panel '.$panel->id().' requires a assignment scope membership, but '.$membership
+            $findings[] = DoctorFinding::error('membership.configured', 'Panel '.$panel->id().' requires an assignment scope membership, but '.$membership
                 .' has no container binding and cannot be created.', $scope, ['membership' => $membership]);
         }
 
