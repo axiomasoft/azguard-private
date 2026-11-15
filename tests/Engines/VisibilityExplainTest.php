@@ -51,7 +51,7 @@ afterEach(function (): void {
     Relation::morphMap([], false);
 });
 
-it('P14 verifies 100 seeded CRM scalar list count snapshots on the actual engine', function (): void {
+it('verifies 100 seeded CRM scalar list count snapshots on the actual engine', function (): void {
     for ($seed = 1; $seed <= 100; $seed++) {
         World::clear();
         $state = $seed;
@@ -78,7 +78,7 @@ it('P14 verifies 100 seeded CRM scalar list count snapshots on the actual engine
     }
 })->group('engines', 'visibility-engines');
 
-it('V33 R58 explains real authority and resource SQL on 100000 clients using physical composite indexes', function (): void {
+it('explains real authority and resource SQL on 100000 clients using physical composite indexes', function (): void {
     $ids = BatchCrmWorld::scale(100000, 100);
     Schema::table('clients', fn (Blueprint $table) => $table->index(['organization_id', 'project_id'], 'crm_clients_tenant_project'));
     $storage = World::storage();

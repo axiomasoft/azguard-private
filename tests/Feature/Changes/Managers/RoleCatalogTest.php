@@ -26,7 +26,7 @@ afterEach(function (): void {
     Carbon::setTestNow();
 });
 
-it('V71 lists the code roles of the panel read-only, the same values the schema shows', function (): void {
+it('lists the code roles of the panel read-only, the same values the schema shows', function (): void {
     $catalog = M::managers($this->panel)->roles();
     $keys = array_map(fn (RoleSchema $role): string => $role->key->key(), $catalog->all());
 
@@ -37,7 +37,7 @@ it('V71 lists the code roles of the panel read-only, the same values the schema 
         ->and(M::managers($this->panel, 2)->roles()->all())->toEqual($catalog->all());
 });
 
-it('V71 finds a role by key, panel:key or registered class, never by a former key or another panel', function (): void {
+it('finds a role by key, panel:key or registered class, never by a former key or another panel', function (): void {
     $catalog = M::managers($this->panel)->roles();
 
     expect($catalog->find('auditor')?->class)->toBe(AuditorRole::class)
@@ -51,7 +51,7 @@ it('V71 finds a role by key, panel:key or registered class, never by a former ke
         ->and($catalog->find('ghost'))->toBeNull();
 });
 
-it('V71 R25 has no way to create, change or delete a role definition', function (): void {
+it('has no way to create, change or delete a role definition', function (): void {
     $methods = fn (string $class): array => array_values(array_diff(array_map(fn (ReflectionMethod $method): string => $method->getName(),
         (new ReflectionClass($class))->getMethods(ReflectionMethod::IS_PUBLIC)), ['__construct']));
 
@@ -64,7 +64,7 @@ it('V71 R25 has no way to create, change or delete a role definition', function 
         })(M::managers($this->panel)->roles()->all()[0]))->toThrow(Error::class);
 });
 
-it('V71 binds the grant fingerprint to the code build and to the stored row', function (): void {
+it('binds the grant fingerprint to the code build and to the stored row', function (): void {
     $id = W::grant($this->panel, 'auditor', 2, null)->record?->id ?? '';
     $first = M::managers($this->panel)->grants()->find($id)?->fingerprint;
 

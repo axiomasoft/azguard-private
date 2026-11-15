@@ -46,7 +46,7 @@ function managersAnnaSeller(GrantManager $grants): GrantRecord
         ?? throw new RuntimeException('Anna has no seller grant on P1.');
 }
 
-it('R15 validates edited grant fields again and decides with the new values', function (): void {
+it('validates edited grant fields again and decides with the new values', function (): void {
     $panel = W::panel();
     $grants = PanelManagers::for($panel, W::tenant())->grants();
     $seller = managersAnnaSeller($grants);
@@ -69,7 +69,7 @@ it('R15 validates edited grant fields again and decides with the new values', fu
         ->and(M::row($seller->id))->toBe($row);
 });
 
-it('R25 offers no definition mutation: a raw request for a role or a filter changes nothing, a valid assignment passes', function (): void {
+it('offers no definition mutation: a raw request for a role or a filter changes nothing, a valid assignment passes', function (): void {
     $panel = W::panel();
     $managers = PanelManagers::for($panel, W::tenant());
     $grants = $managers->grants();
@@ -85,7 +85,7 @@ it('R25 offers no definition mutation: a raw request for a role or a filter chan
         ->and($grants->update($seller->id, new GrantDetails(null, ['region' => 'R1']), $seller->fingerprint)->applied())->toBeTrue();
 });
 
-it('R37 R28 keeps the editor of tenant A out of tenant B: ids, forms and cursors of B are refused', function (): void {
+it('keeps the editor of tenant A out of tenant B: ids, forms and cursors of B are refused', function (): void {
     $panel = W::panel();
     $a = PanelManagers::for($panel, W::tenant())->grants();
     $b = PanelManagers::for($panel, W::tenant(2))->grants();
@@ -106,7 +106,7 @@ it('R37 R28 keeps the editor of tenant A out of tenant B: ids, forms and cursors
         ->each->toBe('crm.organization:1');
 });
 
-it('R42 revokes one manual grant while the relation membership and the external origin keep allowing', function (): void {
+it('revokes one manual grant while the relation membership and the external origin keep allowing', function (): void {
     Project::query()->findOrFail(1)->members()->attach(1, ['role' => 'seller']);
     $panel = W::panel(sources: [World::database(), RelationSource::make(ProjectScope::make(), 'members', 'pivot.role')]);
     $imported = W::grant($panel, 'seller', 1, 1, origin: 'import')->record?->id ?? '';
@@ -131,7 +131,7 @@ it('R42 revokes one manual grant while the relation membership and the external 
     World::assertDecision(managersDecide($panel), false, DecisionReason::NotGranted);
 });
 
-it('R65 lists enum permissions without a stored copy and creates a Grants-only action only after the opt-in', function (): void {
+it('lists enum permissions without a stored copy and creates a Grants-only action only after the opt-in', function (): void {
     $plain = PanelManagers::for(W::panel(), W::tenant())->permissions();
     $listed = array_combine(array_map(fn (PermissionSchema $permission): string => $permission->key->local(), $plain->all()), $plain->all());
 
@@ -150,7 +150,7 @@ it('R65 lists enum permissions without a stored copy and creates a Grants-only a
         ->and(W::actionNames())->toBe(['crm.organization:1|campaigns.launch']);
 });
 
-it('R66 R29 keeps a renamed role without authority until the explicit migration and cleans removed roles and modes', function (): void {
+it('keeps a renamed role without authority until the explicit migration and cleans removed roles and modes', function (): void {
     $panel = W::panel();
     $former = M::stored('role', 'inspector', 2);
     $removed = M::stored('role', 'ghost', 2);

@@ -57,7 +57,7 @@ function gapVerdicts(array $results): array
     return $verdicts;
 }
 
-it('I1 an unrelated grant changes no decision on scalar, batch or SQL', function (): void {
+it('an unrelated grant changes no decision on scalar, batch or SQL', function (): void {
     foreach (GAP_SEEDS as $seed) {
         ParityWorld::write($seed);
         ParityWorld::compile($seed, false);
@@ -90,7 +90,7 @@ it('I1 an unrelated grant changes no decision on scalar, batch or SQL', function
     }
 });
 
-it('I6 the pages of a visibility query are the unpaged set without repeats', function (): void {
+it('the pages of a visibility query are the unpaged set without repeats', function (): void {
     $checked = 0;
 
     foreach (GAP_SEEDS as $seed) {

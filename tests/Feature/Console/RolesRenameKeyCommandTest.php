@@ -32,7 +32,7 @@ function renameKeyDecision(): DecisionReason
     return CrmWorld::decide(app(PanelRegistry::class)->get('crm'), 6, user: 2)->reason;
 }
 
-it('V10 R66 keeps a former key without authority, shows the plan on a dry run and moves it with rename-key', function (): void {
+it('keeps a former key without authority, shows the plan on a dry run and moves it with rename-key', function (): void {
     W::panel();
     M::stored('role', 'inspector', 2);
     $collision = M::stored('role', 'inspector', 1, until: '2027-06-01 00:00:00');

@@ -34,7 +34,7 @@ it('grants and revokes a direct permission or pattern as the system actor', func
     'pattern' => ['clients.*', 'clients.*'],
 ]);
 
-it('R63 refuses an exact PolicyOnly grant through the CLI without a write or a version', function (): void {
+it('refuses an exact PolicyOnly grant through the CLI without a write or a version', function (): void {
     $version = W::version();
 
     expect(Artisan::call('azguard:permissions:grant', ['subject' => 'crm.user:3', 'permission' => 'clients.view_own_profile', '--panel' => 'crm',
@@ -44,7 +44,7 @@ it('R63 refuses an exact PolicyOnly grant through the CLI without a write or a v
         ->and(W::version())->toBe($version);
 });
 
-it('V64 refuses a permission of another panel than --panel', function (): void {
+it('refuses a permission of another panel than --panel', function (): void {
     expect(Artisan::call('azguard:permissions:grant', ['subject' => 'crm.user:3', 'permission' => 'backoffice:clients.view', '--panel' => 'crm',
         '--tenant' => 'crm.organization:1']))->toBe(2)
         ->and(W::rows('permission'))->toBe([]);

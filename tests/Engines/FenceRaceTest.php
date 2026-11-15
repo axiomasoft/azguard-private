@@ -19,7 +19,7 @@ afterEach(fn () => CacheEngineWorld::clean());
 
 // audits/2026-10-09-consistency-design.md, step 2: one snapshot per source read, no retry, a decision reflects the
 // state at read time. Another process commits at the barrier and acknowledges before the reader goes on.
-it('V99 reads one snapshot across a process barrier and never retries', function (string $edge, bool $continuous, bool $granted): void {
+it('reads one snapshot across a process barrier and never retries', function (string $edge, bool $continuous, bool $granted): void {
     $worker = new AuthorityProcess;
 
     try {
@@ -54,7 +54,7 @@ it('V99 reads one snapshot across a process barrier and never retries', function
 })->with(['before the snapshot' => ['panel_state', false, false], 'between grants' => ['permission_grants', false, true],
     'after the last read' => ['role_grants', false, true], 'every read changes' => ['role_grants', true, true]])->group('engines');
 
-it('V99 fails closed when another process deletes the catalogue between the catalog and assignment snapshots', function (): void {
+it('fails closed when another process deletes the catalogue between the catalog and assignment snapshots', function (): void {
     DatabaseWorld::define();
     DatabaseWorld::insert('permission', [DatabaseWorld::row('permission', overrides: ['permission' => 'reports.export', 'origin' => 'dynamic'])]);
     $worker = new AuthorityProcess;

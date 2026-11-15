@@ -58,7 +58,7 @@ afterEach(function (): void {
     Carbon::setTestNow();
 });
 
-it('V113 R29 lists removed roles, scopes and PolicyOnly exact permissions as orphaned and gives them no authority', function (): void {
+it('lists removed roles, scopes and PolicyOnly exact permissions as orphaned and gives them no authority', function (): void {
     $orphaned = orphanIds($this->grants, GrantFilter::ORPHANED);
     $active = orphanIds($this->grants, GrantFilter::ACTIVE);
 
@@ -74,7 +74,7 @@ it('V113 R29 lists removed roles, scopes and PolicyOnly exact permissions as orp
     CrmWorld::assertDecision(CrmWorld::decide($this->panel, 6, ClientPermission::ViewOwnProfile, user: 2), true, DecisionReason::Policy);
 });
 
-it('V113 R29 revokes orphaned grants by their stored scope without live eligibility', function (): void {
+it('revokes orphaned grants by their stored scope without live eligibility', function (): void {
     $seen = [];
     $panel = W::panel([function (Change $change, Closure $next) use (&$seen): ChangeResult {
         $seen[] = [$change->type, $change->context()->phase->value, $change->context()->role];
@@ -93,7 +93,7 @@ it('V113 R29 revokes orphaned grants by their stored scope without live eligibil
         ->and(orphanIds($this->grants, GrantFilter::ACTIVE))->toContain(...array_values($this->known));
 });
 
-it('V91 shares one code catalog between tenants A and B while their grants and cleanups stay apart', function (): void {
+it('shares one code catalog between tenants A and B while their grants and cleanups stay apart', function (): void {
     $ghostB = M::stored('role', 'ghost', 1, tenant: 2);
     $a = M::managers($this->panel);
     $b = M::managers($this->panel, 2);

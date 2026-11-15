@@ -52,7 +52,7 @@ it('offers only the managed panels that keep dynamic permissions', function (): 
         ->and(permissionRows($component))->toHaveKey('entry.enter');
 });
 
-it('V61 shows a permission of an enum read-only and a policy-only permission as a badge of the policy', function (): void {
+it('shows a permission of an enum read-only and a policy-only permission as a badge of the policy', function (): void {
     EditorWorld::editor(EDITS);
 
     $component = Livewire::test(ListPermissions::class)
@@ -69,7 +69,7 @@ it('V61 shows a permission of an enum read-only and a policy-only permission as 
         ->and(permissionRows($component)['entry.enter'])->toMatchArray(['authority' => 'grants', 'dynamic' => false, 'domain' => 'entry']);
 });
 
-it('V76 creates a dynamic permission, which is granted and decided, and deleting it takes its grants', function (): void {
+it('creates a dynamic permission, which is granted and decided, and deleting it takes its grants', function (): void {
     EditorWorld::editor(EDITS);
     $receiver = User::query()->findOrFail(2);
 
@@ -96,7 +96,7 @@ it('V76 creates a dynamic permission, which is granted and decided, and deleting
         ->and(fn () => AzGuard::panel('seller')->for($receiver)->hasPermission('reports.export'))->toThrow(UnknownPermissionException::class);
 });
 
-it('V76 renames and regroups a dynamic permission without touching its name', function (): void {
+it('renames and regroups a dynamic permission without touching its name', function (): void {
     EditorWorld::editor(EDITS);
     AzGuard::panel('seller')->permissions()->create('reports.export', 'Export reports');
 

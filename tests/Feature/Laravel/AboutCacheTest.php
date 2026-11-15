@@ -19,7 +19,7 @@ afterEach(function (): void {
     CrmWorld::resetRuntime();
 });
 
-it('V84 reports the catalog cache state the doctor warns about: missing, current, stale', function (): void {
+it('reports the catalog cache state the doctor warns about: missing, current, stale', function (): void {
     $path = sys_get_temp_dir().'/azguard-about-'.bin2hex(random_bytes(4)).'.php';
     config(['azguard.catalog.cache_path' => $path, 'azguard.catalog.build_id' => 'release-42']);
     app()->forgetInstance(AzGuardConfig::class);

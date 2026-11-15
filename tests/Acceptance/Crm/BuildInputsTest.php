@@ -23,7 +23,7 @@ use AzGuard\Tests\Fixtures\Crm\UnattributedClientPolicy;
 use AzGuard\Tests\Fixtures\Panels\PanelWorld;
 use Illuminate\Database\Eloquent\Builder;
 
-it('R45 R46 local typed plugin inputs are independent in CRM and backoffice', function (): void {
+it('local typed plugin inputs are independent in CRM and backoffice', function (): void {
     World::$scopes = false;
     World::assign('analyst', 1, 2, panel: 'backoffice');
     $crm = World::compile(fn (PanelBuilder $p) => $p->plugins([CrmAccessPlugin::make(city: 1)]),
@@ -35,7 +35,7 @@ it('R45 R46 local typed plugin inputs are independent in CRM and backoffice', fu
     World::assertDecision(World::decide($backoffice), false, DecisionReason::AssignmentScopeIneligible);
 });
 
-it('R48 local duplicate plugin is rejected and a worker rebuild decides the same on every new registry', function (): void {
+it('local duplicate plugin is rejected and a worker rebuild decides the same on every new registry', function (): void {
     World::$scopes = false;
     expect(fn () => World::compile(fn (PanelBuilder $p) => $p->plugins([CrmAccessPlugin::make(1), CrmAccessPlugin::make(1)])))
         ->toThrow(PluginConflictException::class);
@@ -45,7 +45,7 @@ it('R48 local duplicate plugin is rejected and a worker rebuild decides the same
     }
 });
 
-it('R57 local filter build fingerprint changes while equal configuration remains deterministic', function (): void {
+it('local filter build fingerprint changes while equal configuration remains deterministic', function (): void {
     World::$scopes = false;
     $build = function (int $city): string {
         World::compile(fn (PanelBuilder $p) => $p->plugins([CrmAccessPlugin::make($city)]), backoffice: fn (PanelBuilder $p) => $p->plugins([CrmAccessPlugin::make(2)]));
@@ -55,7 +55,7 @@ it('R57 local filter build fingerprint changes while equal configuration remains
     expect($build(1))->toBe($build(1))->not->toBe($build(2));
 });
 
-it('R57 build rejects a captured live host model instead of retaining request inputs', function (): void {
+it('build rejects a captured live host model instead of retaining request inputs', function (): void {
     $project = Project::query()->findOrFail(1);
     $definition = ProjectScope::make()->filter(static function (Builder $query) use ($project): void {
         $query->whereKey($project->getKey());
@@ -65,14 +65,14 @@ it('R57 build rejects a captured live host model instead of retaining request in
     World::assertDecision(World::decide(World::compile()), true, DecisionReason::Granted);
 });
 
-it('R67 typed filter class removal and incorrect factory inputs are actionable failures', function (): void {
+it('typed filter class removal and incorrect factory inputs are actionable failures', function (): void {
     expect(fn () => ProjectScope::make()->filter('AzGuard\\Tests\\Fixtures\\Crm\\RemovedFilter'))->toThrow(DefinitionException::class)
         ->and(fn () => CrmAccessPlugin::make(city: 'Kazan'))->toThrow(TypeError::class)
         ->and(fn () => CrmAccessPlugin::make(unknown: 1))->toThrow(Error::class);
     World::assertDecision(World::decide(World::compile()), true, DecisionReason::Granted);
 });
 
-it('R67 removed declared policy or Decides attribute is a compile error instead of optional pass', function (string $policy): void {
+it('removed declared policy or Decides attribute is a compile error instead of optional pass', function (string $policy): void {
     expect(fn () => PanelWorld::compile([PublicPanel::class => fn (PanelBuilder $p) => $p->for(User::class)
         ->permissions([Action::class])->policies([PolicyBinding::for(Action::ViewOwnProfile, $policy)])]))
         ->toThrow(DefinitionException::class);

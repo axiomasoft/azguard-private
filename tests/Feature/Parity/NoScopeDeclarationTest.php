@@ -39,7 +39,7 @@ function i7Allowlist(): array
     return array_column($entries, null, 'case');
 }
 
-it('I7 holds over the seeded dataset or fails exactly as allowlisted', function (string $case): void {
+it('holds over the seeded dataset or fails exactly as allowlisted', function (string $case): void {
     [$holds, $observed] = NoScopeWorld::cases()[$case]();
     $listed = i7Allowlist()[$case] ?? null;
 
@@ -51,7 +51,7 @@ it('I7 holds over the seeded dataset or fails exactly as allowlisted', function 
     }
 })->with(array_keys(NoScopeWorld::cases()));
 
-it('I7 allowlists only known cases, each owned by P2', function (): void {
+it('allowlists only known cases, each owned by P2', function (): void {
     $entries = i7Allowlist();
 
     expect(array_diff(array_keys($entries), array_keys(NoScopeWorld::cases())))->toBe([]);

@@ -22,7 +22,7 @@ use Illuminate\Support\Facades\Schema;
 
 uses()->group('properties');
 
-it('P16 successful no-op retry and rollback mutations publish only the committed root across 200 seeds', function (): void {
+it('successful no-op retry and rollback mutations publish only the committed root across 200 seeds', function (): void {
     app(StorageSchema::class)->create('default');
     [$engine, $panel] = CacheWorld::database(DatabaseSource::make());
     $storage = DatabaseWorld::storage();
@@ -81,7 +81,7 @@ it('P16 successful no-op retry and rollback mutations publish only the committed
     expect($outcomes)->toBe(['commit' => 50, 'noop' => 50, 'retry' => 50, 'rollback' => 50]);
 });
 
-it('P16b participant rows become durable exactly with the committed root of a write operation across 100 seeds', function (): void {
+it('participant rows become durable exactly with the committed root of a write operation across 100 seeds', function (): void {
     // The CRM stand brings its own users table instead of the one of this directory.
     Schema::dropIfExists('users');
     CrmWorld::seed();

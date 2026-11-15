@@ -175,7 +175,7 @@ it('boots, checks and grants a core-only panel', function (): void {
         ->and($behavior['resolved'])->toBeGreaterThan(10);
 });
 
-it('I13: the services resolved and the queries run for a core-only panel belong to core', function (): void {
+it('the services resolved and the queries run for a core-only panel belong to core', function (): void {
     $found = inactiveCostKeys(coreOnlyRun()['costs']);
     $listed = inactiveCostKeys(inactiveCostAllowlist('module-service', 'module-query'));
 
@@ -199,7 +199,7 @@ it('counts a query to a module table, a module service resolved in the window an
         ->and($held)->toContain(['cost' => 'module-service', 'subject' => ScopeEligibility::class]);
 });
 
-it('I13: the doctor of a core-only database needs no module table', function (): void {
+it('the doctor of a core-only database needs no module table', function (): void {
     coreOnlyPanel();
     $storage = CrmWorld::storage();
 
@@ -225,7 +225,7 @@ it('I13: the doctor of a core-only database needs no module table', function ():
         ->and($exit === 0 || $costs !== [])->toBeTrue('the doctor fails for a reason other than a module table');
 });
 
-it('I13: no DevTools command is registered when the application does not run in the console', function (): void {
+it('no DevTools command is registered when the application does not run in the console', function (): void {
     $inConsole = devToolsCommands(array_map(static fn ($command) => $command, app(ConsoleKernel::class)->all()));
     $_SERVER['APP_RUNNING_IN_CONSOLE'] = 'false';
     // `Artisan::starting()` callbacks are static: those of the console application above would load into this one too.
@@ -250,7 +250,7 @@ it('keeps the inactive-cost allowlist empty once Audit owns its table (P3.5)', f
     expect(inactiveCostAllowlist())->toBe([]);
 });
 
-it('I13: with the module roots installed and their providers registered, a core-only panel still costs nothing', function (): void {
+it('with the module roots installed and their providers registered, a core-only panel still costs nothing', function (): void {
     // Control: the modules are really there — their types autoload and the providers of Audit and DevTools are registered.
     $present = [
         class_exists(AuditPlugin::class), class_exists(ScopesPlugin::class),

@@ -36,7 +36,7 @@ function tenantOf(int $id): Organization
     return Organization::query()->findOrFail($id);
 }
 
-it('V12 decides through the wrapper as the engine for every user, client and tenant', function (int $user, int $client, int $tenant): void {
+it('decides through the wrapper as the engine for every user, client and tenant', function (int $user, int $client, int $tenant): void {
     $access = User::query()->findOrFail($user)->guard('crm')->inTenant(tenantOf($tenant));
 
     foreach ([ClientPermission::View, ClientPermission::Update] as $permission) {
@@ -55,7 +55,7 @@ it('V12 decides through the wrapper as the engine for every user, client and ten
     }
 });
 
-it('V13 refuses an explicit context in a panel without contexts', function (): void {
+it('refuses an explicit context in a panel without contexts', function (): void {
     ChangeWorld::panel(configure: static fn (PanelBuilder $panel) => $panel->assignmentScopes(new AssignmentScopeDeclaration(AssignmentScopeMode::None, [])));
     $access = User::query()->findOrFail(1)->guard('crm')->inTenant(tenantOf(1));
 
@@ -64,7 +64,7 @@ it('V13 refuses an explicit context in a panel without contexts', function (): v
         ->and($access->hasPermission(ClientPermission::ViewAny, on: AssignmentScopeRef::of('crm.project', 1)))->toBeFalse();
 });
 
-it('V14 keeps the previous scope when a call fails inside withinScope', function (): void {
+it('keeps the previous scope when a call fails inside withinScope', function (): void {
     $access = User::query()->findOrFail(1)->guard('crm');
     $panel = $access->panel();
     $outer = CrmWorld::scope(1);
@@ -85,7 +85,7 @@ it('V14 keeps the previous scope when a call fails inside withinScope', function
     expect($current->get($panel))->toBeNull();
 });
 
-it('V16 requires tenant membership: Anna in A and B, outsider nowhere even with a stored grant', function (): void {
+it('requires tenant membership: Anna in A and B, outsider nowhere even with a stored grant', function (): void {
     CrmWorld::assign('seller', 4, 1);
     $outsider = User::query()->findOrFail(4)->guard('crm')->inTenant(tenantOf(1));
     $anna = User::query()->findOrFail(1)->guard('crm');
@@ -95,7 +95,7 @@ it('V16 requires tenant membership: Anna in A and B, outsider nowhere even with 
         ->and($anna->inTenant(tenantOf(2))->hasPermission(ClientPermission::View, on: Client::query()->findOrFail(5)))->toBeTrue();
 });
 
-it('V86 keeps panel, tenant and context apart for one user with different roles', function (): void {
+it('keeps panel, tenant and context apart for one user with different roles', function (): void {
     $anna = User::query()->findOrFail(1);
     $a = $anna->guard('crm')->inTenant(tenantOf(1));
     $b = $anna->guard('crm')->inTenant(tenantOf(2));
@@ -108,7 +108,7 @@ it('V86 keeps panel, tenant and context apart for one user with different roles'
         ->and(fn () => $a->hasRole('crm:seller', guard: 'backoffice'))->toThrow(ConflictingPanelException::class);
 });
 
-it('V88 denies without a tenant or with a foreign owner, even a super admin', function (): void {
+it('denies without a tenant or with a foreign owner, even a super admin', function (): void {
     $daria = User::query()->findOrFail(3)->guard('crm');
     $p1 = AssignmentScopeRef::of('crm.project', 1);
 

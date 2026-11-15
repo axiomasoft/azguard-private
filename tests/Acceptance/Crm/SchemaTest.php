@@ -28,7 +28,7 @@ function crmPanelSchema(Panel $panel, int $tenant = 1): PanelSchema
     return (new SchemaBuilder(app(PanelRegistry::class), app()))->for($panel, TenantRef::of('crm.organization', $tenant));
 }
 
-it('R49 matches the stored JSON snapshot of the CRM panel schema, in a deterministic order', function (): void {
+it('matches the stored JSON snapshot of the CRM panel schema, in a deterministic order', function (): void {
     $path = dirname(__DIR__, 2).'/Fixtures/Schema/crm-panel-schema.json';
     $json = SchemaAssertions::json(crmPanelSchema(World::compile()));
 
@@ -42,7 +42,7 @@ it('R49 matches the stored JSON snapshot of the CRM panel schema, in a determini
         ->and(SchemaAssertions::nonScalars(json_decode($json, true, flags: JSON_THROW_ON_ERROR)))->toBe([]);
 });
 
-it('R49 keeps the typed secret of a plugin, live models and the container out of the schema', function (): void {
+it('keeps the typed secret of a plugin, live models and the container out of the schema', function (): void {
     $schema = crmPanelSchema(World::compile(static fn (PanelBuilder $panel) => $panel->plugins([SecretFieldPlugin::make(SecretFieldPlugin::SECRET)])));
     $json = SchemaAssertions::json($schema);
 
@@ -51,7 +51,7 @@ it('R49 keeps the typed secret of a plugin, live models and the container out of
         ->not->toContain(SecretFieldPlugin::SECRET)->not->toContain('Анна')->not->toContain('Казань')->not->toContain('Illuminate\\Foundation');
 });
 
-it('R24 shows a context binding with several typed filters as class metadata, in declaration order', function (): void {
+it('shows a context binding with several typed filters as class metadata, in declaration order', function (): void {
     $schema = crmPanelSchema(World::compile(static fn (PanelBuilder $panel) => $panel->roles([RegionalSellerRole::class])));
     $role = current(array_filter($schema->roles(), static fn (RoleSchema $role): bool => $role->key->key() === 'regional-seller'));
 
@@ -66,7 +66,7 @@ it('R24 shows a context binding with several typed filters as class metadata, in
         ->and(SchemaAssertions::json($schema))->not->toContain('"R1"');
 });
 
-it('R38 gives the editor badge data that the writer enforces: PolicyOnly and code-only roles are not assignable', function (): void {
+it('gives the editor badge data that the writer enforces: PolicyOnly and code-only roles are not assignable', function (): void {
     $panel = W::panel();
     $schema = crmPanelSchema($panel);
     $notGrantable = array_values(array_filter($schema->permissions(), static fn (PermissionSchema $permission): bool => ! $permission->grantable()));

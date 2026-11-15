@@ -30,7 +30,7 @@ use Illuminate\Support\Facades\Auth;
 
 beforeEach(fn () => ChangeWorld::panel(configure: static fn (PanelBuilder $panel) => $panel->for([World::class, CrmCustomGuardUser::class], guard: 'web')));
 
-it('R03 selects the crm panel without switching Auth, and keeps native mass assignment for arrays', function (): void {
+it('selects the crm panel without switching Auth, and keeps native mass assignment for arrays', function (): void {
     $anna = World::query()->findOrFail(1);
     $session = new GenericUser(['id' => 1]);
     Auth::guard('web')->setUser($session);
@@ -54,7 +54,7 @@ it('R03 selects the crm panel without switching Auth, and keeps native mass assi
         ->and(Auth::guard('web')->user())->toBe($session);
 });
 
-it('R03 keeps the own guard() of a consumer model and reaches the panel through azguard()', function (): void {
+it('keeps the own guard() of a consumer model and reaches the panel through azguard()', function (): void {
     $consumer = CrmCustomGuardUser::query()->findOrFail(1);
 
     expect($consumer->guard(['secret']))->toBe($consumer)
@@ -64,7 +64,7 @@ it('R03 keeps the own guard() of a consumer model and reaches the panel through 
         ->and($consumer->guardCalls)->toBe([['secret']]);
 });
 
-it('R04 keeps independent wrappers of one user instance through nested calls and exceptions', function (): void {
+it('keeps independent wrappers of one user instance through nested calls and exceptions', function (): void {
     $anna = World::query()->findOrFail(1);
     $crm = $anna->guard('crm');
     $a = $crm->inTenant(Organization::query()->findOrFail(1));
@@ -90,7 +90,7 @@ it('R04 keeps independent wrappers of one user instance through nested calls and
         ->and($anna->guard('crm'))->not->toBe($crm);
 });
 
-it('R05 refuses a full name of backoffice inside the explicitly selected crm and a shared enum without a panel', function (): void {
+it('refuses a full name of backoffice inside the explicitly selected crm and a shared enum without a panel', function (): void {
     $anna = World::query()->findOrFail(1);
     $c1 = Client::query()->findOrFail(1);
     $a = $anna->guard('crm')->inTenant(Organization::query()->findOrFail(1));
@@ -109,7 +109,7 @@ it('R05 refuses a full name of backoffice inside the explicitly selected crm and
         ->and($anna->hasPermission('clients.view', on: $c1))->toBeFalse();
 });
 
-it('R05 keeps an enum with guard unchanged when the crm prefix is its id, custom or off', function (string|false|null $prefix): void {
+it('keeps an enum with guard unchanged when the crm prefix is its id, custom or off', function (string|false|null $prefix): void {
     ChangeWorld::panel(configure: static function (PanelBuilder $panel) use ($prefix): void {
         if ($prefix !== null) {
             $panel->resourcePrefix($prefix);
@@ -132,7 +132,7 @@ it('R05 keeps an enum with guard unchanged when the crm prefix is its id, custom
         ->and($a->hasAllPermissions($names, on: $c1))->toBeTrue();
 })->with(['id' => [null], 'custom' => ['sales'], 'off' => [false]]);
 
-it('R03 reaches the crm panel through the facade without switching Auth, the model or the panel of the request', function (): void {
+it('reaches the crm panel through the facade without switching Auth, the model or the panel of the request', function (): void {
     $anna = World::query()->findOrFail(1);
     $session = new GenericUser(['id' => 1]);
     Auth::guard('web')->setUser($session);
@@ -151,7 +151,7 @@ it('R03 reaches the crm panel through the facade without switching Auth, the mod
         ->and(app(CurrentPanel::class)->get())->toBe($hint);
 });
 
-it('R04 keeps independent panel accesses of A and B through nested scopes and exceptions of the facade', function (): void {
+it('keeps independent panel accesses of A and B through nested scopes and exceptions of the facade', function (): void {
     $anna = World::query()->findOrFail(1);
     $crm = AzGuard::panel('crm');
     $a = $crm->inTenant(Organization::query()->findOrFail(1));
@@ -178,7 +178,7 @@ it('R04 keeps independent panel accesses of A and B through nested scopes and ex
         ->and(AzGuard::panel('crm'))->not->toBe($crm);
 });
 
-it('R05 refuses a full name of backoffice inside the selected crm panel access and a shared enum without a panel in the facade', function (): void {
+it('refuses a full name of backoffice inside the selected crm panel access and a shared enum without a panel in the facade', function (): void {
     $anna = World::query()->findOrFail(1);
     $c1 = Client::query()->findOrFail(1);
     $a = AzGuard::panel('crm')->inTenant(Organization::query()->findOrFail(1))->for($anna);

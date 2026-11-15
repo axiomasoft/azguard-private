@@ -58,7 +58,7 @@ beforeEach(function (): void {
     app()->bind(Authenticatable::class, User::class);
 });
 
-it('V96 deletes in bulk only the selected records the user may delete, and says that one was refused', function (): void {
+it('deletes in bulk only the selected records the user may delete, and says that one was refused', function (): void {
     GateWorld::serve(GateWorld::grant(['orders.view_any', 'orders.view', 'orders.delete_any', 'orders.delete']));
 
     Livewire::test(ListOrders::class)
@@ -69,7 +69,7 @@ it('V96 deletes in bulk only the selected records the user may delete, and says 
     expect(Order::query()->pluck('id')->sort()->values()->all())->toBe([2, 3, 4]);
 });
 
-it('V96 refuses the bulk delete without the permission for any record', function (): void {
+it('refuses the bulk delete without the permission for any record', function (): void {
     GateWorld::serve(GateWorld::grant(['orders.view_any', 'orders.view', 'orders.delete']));
 
     Livewire::test(ListOrders::class)
@@ -79,7 +79,7 @@ it('V96 refuses the bulk delete without the permission for any record', function
     expect(Order::query()->count())->toBe(4);
 });
 
-it('V96 attaches only a record the user may view, to an owner the user may update', function (): void {
+it('attaches only a record the user may view, to an owner the user may update', function (): void {
     GateWorld::serve(GateWorld::grant(['orders.update', 'products.view_any', 'products.view']));
     $order = Order::query()->findOrFail(1);
     $order->products()->detach(2);
@@ -134,7 +134,7 @@ it('offers every record to attach when the panel does not enforce: the limit abo
     expect($order->products()->pluck('products.id')->sort()->values()->all())->toBe([1, 2]);
 });
 
-it('V96 finds no hidden record in global search', function (): void {
+it('finds no hidden record in global search', function (): void {
     GateWorld::serve(GateWorld::grant(['orders.view_any', 'orders.view']));
 
     expect(OrderResource::canGloballySearch())->toBeTrue()
@@ -142,7 +142,7 @@ it('V96 finds no hidden record in global search', function (): void {
         ->and(OrderResource::getGlobalSearchResults('L-4'))->toHaveCount(1);
 });
 
-it('V96 starts an export with the job that checks its rows again, carrying the view permission', function (): void {
+it('starts an export with the job that checks its rows again, carrying the view permission', function (): void {
     Bus::fake();
     ExportAction::configureUsing(static fn (ExportAction $action) => $action->formats([ExportFormat::Csv]));
     GateWorld::serve(GateWorld::grant(['orders.view_any', 'orders.view']));
@@ -161,7 +161,7 @@ it('V96 starts an export with the job that checks its rows again, carrying the v
         ->toBe(AuthorizedExportCsv::class);
 });
 
-it('V96 refuses an export whose job would not check its rows', function (): void {
+it('refuses an export whose job would not check its rows', function (): void {
     Bus::fake();
     ExportAction::configureUsing(static fn (ExportAction $action) => $action->formats([ExportFormat::Csv]));
     ExportAction::configureUsing(static fn (ExportAction $action) => $action->job(UncheckedPrepareCsvExport::class));
@@ -172,7 +172,7 @@ it('V96 refuses an export whose job would not check its rows', function (): void
     Bus::assertNothingBatched();
 });
 
-it('V96 writes only the rows that are still visible when the export job runs', function (): void {
+it('writes only the rows that are still visible when the export job runs', function (): void {
     Storage::fake('local');
     $member = GateWorld::grant(['orders.view_any', 'orders.view']);
     $export = exportOf($member);
@@ -192,7 +192,7 @@ it('V96 writes only the rows that are still visible when the export job runs', f
     expect($run($job()))->toBe('');
 });
 
-it('V96 writes no row without the guard panel of the export or with another one', function (): void {
+it('writes no row without the guard panel of the export or with another one', function (): void {
     Storage::fake('local');
     $export = exportOf(GateWorld::grant(['orders.view_any', 'orders.view']));
     $job = new AuthorizedExportCsv($export, EloquentSerializeFacade::serialize(Order::query()), [1, 2], 1, ['number' => 'Number'],

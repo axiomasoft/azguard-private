@@ -55,7 +55,7 @@ beforeEach(function (): void {
     });
 });
 
-it('R39 answers one action alike through azguard.can, Laravel can and the facade', function (): void {
+it('answers one action alike through azguard.can, Laravel can and the facade', function (): void {
     HttpWorld::panel();
 
     foreach ([1 => [1 => 200, 2 => 403], 2 => [1 => 403, 3 => 200]] as $user => $clients) {
@@ -70,7 +70,7 @@ it('R39 answers one action alike through azguard.can, Laravel can and the facade
     expect(Gate::has('crm:clients.update'))->toBeFalse();
 });
 
-it('R39 refuses entry without a role even with a direct grant or a policy allow', function (): void {
+it('refuses entry without a role even with a direct grant or a policy allow', function (): void {
     HttpWorld::panel(static fn (PanelBuilder $panel) => $panel->entry(EntryPermission::Enter));
     HttpWorld::member(4);
     World::assign('clients.view', 4, 1, kind: 'permission');
@@ -80,7 +80,7 @@ it('R39 refuses entry without a role even with a direct grant or a policy allow'
     expect(AzGuard::check(User::query()->findOrFail(4), 'crm:clients.view', Client::query()->findOrFail(1)))->toBeTrue();
 });
 
-it('R39 lets a caller of P1 into organization A only, with every action still decided in its project', function (): void {
+it('lets a caller of P1 into organization A only, with every action still decided in its project', function (): void {
     HttpWorld::panel();
     HttpWorld::member(4);
     HttpWorld::member(4, 2);
@@ -94,7 +94,7 @@ it('R39 lets a caller of P1 into organization A only, with every action still de
     $this->get('/clients/6/update', ['X-Tenant' => '1'])->assertForbidden();
 });
 
-it('R39 refuses an expired role, a role in an inactive project and a role of another organization', function (): void {
+it('refuses an expired role, a role in an inactive project and a role of another organization', function (): void {
     HttpWorld::panel();
     HttpWorld::member(4);
     HttpWorld::actingAs(4);
@@ -110,7 +110,7 @@ it('R39 refuses an expired role, a role in an inactive project and a role of ano
     $this->get('/crm', ['X-Tenant' => '1'])->assertForbidden();
 });
 
-it('R39 decides the entry permission AND and lets its veto stop the tenant admin', function (): void {
+it('decides the entry permission AND and lets its veto stop the tenant admin', function (): void {
     HttpWorld::panel(static fn (PanelBuilder $panel) => $panel->entry(ClientPermission::ViewAny)->before(static fn (AccessRequest $request, EvaluationContext $context): BeforeResult => BeforeResult::Deny));
     HttpWorld::actingAs(3);
     $this->get('/crm', ['X-Tenant' => '1', 'X-Project' => '1'])->assertForbidden();
@@ -120,7 +120,7 @@ it('R39 decides the entry permission AND and lets its veto stop the tenant admin
     $this->get('/crm', ['X-Tenant' => '1', 'X-Project' => '1'])->assertOk();
 });
 
-it('R54 serves requests of A and B from one application without carrying the user, panel, scope or memo over', function (): void {
+it('serves requests of A and B from one application without carrying the user, panel, scope or memo over', function (): void {
     HttpWorld::panel();
     $octane = static function (): void {
         // What an Octane worker does between requests: scoped services and resolved guards are dropped.
@@ -148,7 +148,7 @@ it('R54 serves requests of A and B from one application without carrying the use
         ->and(app(CurrentContext::class)->get(app(PanelRegistry::class)->get('crm')))->toBeNull();
 });
 
-it('R63 refuses a grant of the PolicyOnly action over HTTP without a write, and a wildcard never authorizes it', function (): void {
+it('refuses a grant of the PolicyOnly action over HTTP without a write, and a wildcard never authorizes it', function (): void {
     HttpWorld::panel();
     HttpWorld::actingAs(1);
     $before = [W::rows('role'), W::rows('permission'), W::version()];

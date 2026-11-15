@@ -41,7 +41,7 @@ function returnsEveryCrmIdWithinTheBudget(int $clients, int $scopes): void
     }
 }
 
-it('V45 returns all 1000 CRM ids and honest totals with SQL bounded by 10 scopes and two roles', fn () => returnsEveryCrmIdWithinTheBudget(1000, 10));
+it('returns all 1000 CRM ids and honest totals with SQL bounded by 10 scopes and two roles', fn () => returnsEveryCrmIdWithinTheBudget(1000, 10));
 
-it('R58 returns all 10000 CRM ids and honest totals with SQL bounded by 100 scopes and two roles', fn () => returnsEveryCrmIdWithinTheBudget(10000, 100))
+it('returns all 10000 CRM ids and honest totals with SQL bounded by 100 scopes and two roles', fn () => returnsEveryCrmIdWithinTheBudget(10000, 100))
     ->group('extended', 'stand');

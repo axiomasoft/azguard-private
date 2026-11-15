@@ -42,7 +42,7 @@ beforeEach(function (): void {
     GateWorld::seed();
 });
 
-it('V25 opens a page with its permission and refuses a member without it', function (): void {
+it('opens a page with its permission and refuses a member without it', function (): void {
     $this->actingAs(User::query()->findOrFail(1));
     $this->get('/admin/reports')->assertForbidden();
 
@@ -82,7 +82,7 @@ it('leaves the boot of an excluded page to Filament', function (): void {
     expect(BootingReportsPage::$booted)->toBeGreaterThan(0);
 });
 
-it('V25 refuses a user model that is no AzGuardSubject, also when the guard panel admits its row', function (): void {
+it('refuses a user model that is no AzGuardSubject, also when the guard panel admits its row', function (): void {
     GateWorld::grant(['pages.reports']);
     $this->actingAs(Visitor::query()->findOrFail(1));
 

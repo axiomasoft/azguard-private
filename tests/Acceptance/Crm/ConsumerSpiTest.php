@@ -32,7 +32,7 @@ use AzGuard\Tests\Fixtures\Crm\PublicPanel;
 use AzGuard\Tests\Fixtures\Crm\RenamedClientPolicy;
 use AzGuard\Tests\Fixtures\Panels\PanelWorld;
 
-it('R50 local public definition filter and directory use structural queries before eligibility', function (): void {
+it('local public definition filter and directory use structural queries before eligibility', function (): void {
     $definition = ProjectScope::make()->filter(new ActiveProjects)->directory(ProjectDirectory::class);
     expect($definition)->toBeInstanceOf(AssignmentScopeDefinition::class)
         ->and(new ActiveProjects)->toBeInstanceOf(AssignmentScopeFilter::class)
@@ -52,7 +52,7 @@ it('R50 local public definition filter and directory use structural queries befo
     World::assertDecision(World::decide($panel, 4), false, DecisionReason::AssignmentScopeIneligible);
 });
 
-it('R67 renamed Decides method still supplies local public consumer policy authority', function (): void {
+it('renamed Decides method still supplies local public consumer policy authority', function (): void {
     [,, $registry] = PanelWorld::compile([PublicPanel::class => fn (PanelBuilder $p) => $p->for(User::class)
         ->permissions([Action::class])->policies([PolicyBinding::for(Action::ViewOwnProfile, RenamedClientPolicy::class)])
         ->tenants(TenantPolicy::required(Organization::class)->requireMembership(new OrganizationMembership))

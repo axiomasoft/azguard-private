@@ -39,7 +39,7 @@ function schemaRole(): RoleSchema
         false, [PermissionPattern::of('crm', 'clients.view'), PermissionPattern::of('crm', 'clients.*')]);
 }
 
-it('V72 describes a field with scalars and class names only, whatever rule objects it carries', function (): void {
+it('describes a field with scalars and class names only, whatever rule objects it carries', function (): void {
     $secret = 'token-123';
     $field = Field::string('reason')->label('Причина')->required()->multiple()->inMeta()
         ->rules(['max:200', 5, Rule::in(['a', 'b']), Rule::enum(Weekday::class), static fn (): bool => $secret !== '', new stdClass])
@@ -56,7 +56,7 @@ it('V72 describes a field with scalars and class names only, whatever rule objec
         ->and(json_encode($schema))->not->toContain($secret);
 });
 
-it('V72 lists enum options and the exists rule of a model field; an unmarked field comes from the panel', function (): void {
+it('lists enum options and the exists rule of a model field; an unmarked field comes from the panel', function (): void {
     $enum = FieldSchema::of(Field::enum('day', Weekday::class));
     $model = FieldSchema::of(Field::model('department_id', Department::class)->required());
 
@@ -67,7 +67,7 @@ it('V72 lists enum options and the exists rule of a model field; an unmarked fie
         ->and($model->rules)->toBe(['required', 'exists:'.Department::class.',id']);
 });
 
-it('V72 keeps a code role read-only and exports its bindings without filter objects', function (): void {
+it('keeps a code role read-only and exports its bindings without filter objects', function (): void {
     $role = schemaRole();
 
     expect($role->editable)->toBeFalse()
@@ -81,14 +81,14 @@ it('V72 keeps a code role read-only and exports its bindings without filter obje
         ->and((new ReflectionProperty(RoleSchema::class, 'editable'))->isReadOnly())->toBeTrue();
 });
 
-it('V72 marks a policy-only permission as not grantable', function (): void {
+it('marks a policy-only permission as not grantable', function (): void {
     expect(schemaPermission('clients.view', 'Клиенты')->grantable())->toBeTrue()
         ->and(schemaPermission('clients.own', null, PermissionAuthority::Policy)->toArray())->toMatchArray([
             'authority' => 'policy', 'grantable' => false, 'sources' => [], 'context_types' => [],
         ]);
 });
 
-it('V72 groups permissions by resource group and exports the whole panel as scalars', function (): void {
+it('groups permissions by resource group and exports the whole panel as scalars', function (): void {
     $field = FieldSchema::of(Field::string('note'));
     $schema = new PanelSchema('crm', 'CRM', true, TenantRef::of('crm.organization', 1), new WriterSchema('default', true, false),
         [schemaPermission('clients.view', 'Клиенты'), schemaPermission('audit.read', null), schemaPermission('clients.update', 'Клиенты')],

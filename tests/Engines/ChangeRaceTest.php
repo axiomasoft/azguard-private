@@ -97,7 +97,7 @@ function changeRacePair(Processes $processes, array $first, array $second): arra
     }
 }
 
-it('V101 serializes grant ∥ grant of one identity: one Applied, one Unchanged, one bump', function (): void {
+it('serializes grant ∥ grant of one identity: one Applied, one Unchanged, one bump', function (): void {
     $version = W::version();
     [$first, $second] = changeRacePair($this->processes,
         ['op' => 'grant', 'role' => 'analyst', 'user' => 2, 'project' => 1],
@@ -110,7 +110,7 @@ it('V101 serializes grant ∥ grant of one identity: one Applied, one Unchanged,
         ->and(array_count_values(W::keys())['crm.organization:1|analyst|2|crm.project:1|manual'])->toBe(1);
 })->group('engines');
 
-it('P3.6 grant ∥ revoke of one identity ends in one serial order', function (bool $revokeFirst): void {
+it('grant ∥ revoke of one identity ends in one serial order', function (bool $revokeFirst): void {
     $record = W::grant(W::panel(), 'analyst', 2, 1)->record;
     $version = W::version();
     $revoke = ['op' => 'revoke-ids', 'ids' => [$record->id]];
@@ -127,7 +127,7 @@ it('P3.6 grant ∥ revoke of one identity ends in one serial order', function (b
         ->and(W::version())->toBe($version + ($revokeFirst ? 2 : 1));
 })->with(['revoke first' => [true], 'grant first' => [false]])->group('engines');
 
-it('V101 C13 lets one update ∥ update with the same fingerprint win and refuses the stale form', function (): void {
+it('lets one update ∥ update with the same fingerprint win and refuses the stale form', function (): void {
     // The fingerprint covers the build: read the form on the build shape the workers compile (one closure pipe).
     $record = W::grant(W::panel([static fn (Change $c, Closure $next): ChangeResult => $next($c)]), 'analyst', 2, 1)->record;
     [$first, $second] = changeRacePair($this->processes,
@@ -140,7 +140,7 @@ it('V101 C13 lets one update ∥ update with the same fingerprint win and refuse
         ->toBe(['region' => 'R1']);
 })->group('engines');
 
-it('V101 C12 orders revokeIds ∥ update of one id by the panel lock', function (bool $revokeFirst): void {
+it('orders revokeIds ∥ update of one id by the panel lock', function (bool $revokeFirst): void {
     $record = W::grant(W::panel(), 'analyst', 2, 1)->record;
     $revoke = ['op' => 'revoke-ids', 'ids' => [$record->id]];
     $update = ['op' => 'update', 'id' => $record->id, 'fields' => ['region' => 'R1']];
@@ -151,7 +151,7 @@ it('V101 C12 orders revokeIds ∥ update of one id by the panel lock', function 
         ->and(W::keys())->not->toContain('crm.organization:1|analyst|2|crm.project:1|manual');
 })->with(['revoke first' => [true], 'update first' => [false]])->group('engines');
 
-it('V101 C8 keeps tenant B out of a concurrent sync of tenant A', function (): void {
+it('keeps tenant B out of a concurrent sync of tenant A', function (): void {
     $version = W::version();
     [$sync, $grant] = changeRacePair($this->processes,
         ['op' => 'sync', 'user' => 1, 'roles' => [], 'project' => 1, 'tenant' => 1],
@@ -163,7 +163,7 @@ it('V101 C8 keeps tenant B out of a concurrent sync of tenant A', function (): v
         ->and(W::keys())->toContain('crm.organization:2|analyst|1|crm.project:4|manual', 'crm.organization:2|seller|1|crm.project:4|manual');
 })->group('engines');
 
-it('V101 retries the root after a real deadlock with fresh pipes and writes once', function (): void {
+it('retries the root after a real deadlock with fresh pipes and writes once', function (): void {
     HostFencePipe::install('unused');
     $connection = CrmWorld::storage()->connection();
     $connection->getSchemaBuilder()->create('crm_weight', fn (Blueprint $table) => $table->string('value'));
@@ -197,7 +197,7 @@ it('V101 retries the root after a real deadlock with fresh pipes and writes once
     }
 })->group('engines');
 
-it('V101 rolls back a change nested in a host transaction on the engine', function (): void {
+it('rolls back a change nested in a host transaction on the engine', function (): void {
     $connection = CrmWorld::storage()->connection();
     $version = W::version();
     $connection->beginTransaction();
@@ -209,7 +209,7 @@ it('V101 rolls back a change nested in a host transaction on the engine', functi
         ->and(W::keys())->not->toContain('crm.organization:1|analyst|2|crm.project:1|manual');
 })->group('engines');
 
-it('R29 refuses a change prepared on the old build after a coordinated deployment and accepts the current build', function (): void {
+it('refuses a change prepared on the old build after a coordinated deployment and accepts the current build', function (): void {
     $fingerprint = changeRaceFenceFingerprint();
     HostFencePipe::install($fingerprint);
     $prepared = changeRaceBarrier('prepared');
@@ -238,7 +238,7 @@ it('R29 refuses a change prepared on the old build after a coordinated deploymen
     }
 })->group('engines');
 
-it('R29 makes a deployment wait for an in-flight fenced change, which commits on its build first', function (): void {
+it('makes a deployment wait for an in-flight fenced change, which commits on its build first', function (): void {
     $fingerprint = changeRaceFenceFingerprint();
     HostFencePipe::install($fingerprint);
     $ready = changeRaceBarrier('ready');
@@ -261,7 +261,7 @@ it('R29 makes a deployment wait for an in-flight fenced change, which commits on
     }
 })->group('engines');
 
-it('R29 refuses a change when the host owner revision moved after preparation', function (): void {
+it('refuses a change when the host owner revision moved after preparation', function (): void {
     HostFencePipe::install(changeRaceFenceFingerprint());
     $prepared = changeRaceBarrier('prepared');
     $start = changeRaceBarrier('start');

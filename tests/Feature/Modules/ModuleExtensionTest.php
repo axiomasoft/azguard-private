@@ -19,7 +19,7 @@ beforeEach(function (): void {
     AdminPanel::describe(static fn (PanelBuilder $panel): PanelBuilder => $panel);
 });
 
-it('V55: puts each module permission and role on the configured panel under the names the modules chose', function (): void {
+it('puts each module permission and role on the configured panel under the names the modules chose', function (): void {
     $this->bootPanels(
         ['providers' => [AdminPanel::class]],
         [BlogServiceProvider::class, ShopServiceProvider::class],
@@ -35,7 +35,7 @@ it('V55: puts each module permission and role on the configured panel under the 
         ->and(app(PanelRegistry::class)->get('admin')->pluginIds())->toBe(['blog/access', 'shop/access']);
 });
 
-it('V55: rejects two modules that declare one permission name and names both plugins', function (): void {
+it('rejects two modules that declare one permission name and names both plugins', function (): void {
     $boot = fn () => $this->bootPanels(
         ['providers' => [AdminPanel::class]],
         [BlogServiceProvider::class, ShopServiceProvider::class],
@@ -53,7 +53,7 @@ it('V55: rejects two modules that declare one permission name and names both plu
     }
 });
 
-it('V55: reports an unknown panel from the module configuration when the panels are compiled', function (): void {
+it('reports an unknown panel from the module configuration when the panels are compiled', function (): void {
     $boot = fn () => $this->bootPanels(
         ['providers' => [AdminPanel::class]],
         [BlogServiceProvider::class],

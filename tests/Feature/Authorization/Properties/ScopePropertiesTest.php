@@ -20,7 +20,7 @@ use Illuminate\Support\Carbon;
 
 uses()->group('properties');
 
-it('P4 without a scope declaration keeps the wide table and ignores a context it was never given', function (): void {
+it('without a scope declaration keeps the wide table and ignores a context it was never given', function (): void {
     // The no-declaration row of the P4 oracle, run in core: the algebra needs no module to answer it.
     foreach (ScenarioGenerator::scenarios() as $seed => $s) {
         Carbon::setTestNow($s->now);
@@ -33,7 +33,7 @@ it('P4 without a scope declaration keeps the wide table and ignores a context it
     }
 });
 
-it('P6 typed subjects tenants and contexts with overlapping ids remain distinct in decisions', function (): void {
+it('typed subjects tenants and contexts with overlapping ids remain distinct in decisions', function (): void {
     foreach (ScenarioGenerator::scenarios() as $seed => $s) {
         Carbon::setTestNow($s->now);
         $grant = $s->grant($s->scope(true), source: 'identity-'.$seed);
@@ -62,7 +62,7 @@ it('P6 typed subjects tenants and contexts with overlapping ids remain distinct 
     }
 });
 
-it('P13 foreign tenant roles and global ordinary grants never authorize a selected tenant', function (): void {
+it('foreign tenant roles and global ordinary grants never authorize a selected tenant', function (): void {
     foreach (ScenarioGenerator::scenarios() as $seed => $s) {
         Carbon::setTestNow($s->now);
         foreach (['inherit', 'isolated', 'required', 'none'] as $mode) {

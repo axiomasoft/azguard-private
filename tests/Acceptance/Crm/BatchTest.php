@@ -24,7 +24,7 @@ use AzGuard\Tests\Fixtures\Crm\Models\Project;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 
-it('R68 preserves mixed policy DB and relation order state identities and one captured now', function (): void {
+it('preserves mixed policy DB and relation order state identities and one captured now', function (): void {
     Project::query()->findOrFail(1)->members()->attach(1, ['role' => 'seller']);
     World::assign('seller', 1, 1, panel: 'backoffice');
     $times = [];
@@ -62,7 +62,7 @@ it('R68 preserves mixed policy DB and relation order state identities and one ca
         ->and($states[$backDb])->toBeInstanceOf(StateToken::class);
 });
 
-it('R68 keeps policy requests independent when a neighbouring Grants connection fails', function (): void {
+it('keeps policy requests independent when a neighbouring Grants connection fails', function (): void {
     config(['database.connections.batch_broken' => ['driver' => 'sqlite', 'database' => ':memory:']]);
     $reads = 0;
     DB::connection('batch_broken')->beforeExecuting(function () use (&$reads): void {

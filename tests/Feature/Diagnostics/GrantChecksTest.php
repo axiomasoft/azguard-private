@@ -36,7 +36,7 @@ it('passes the stored grants of the CRM stand, which the current code still give
         ->and(DoctorWorld::only($findings, 'grants.dead'))->toBe([]);
 });
 
-it('V11 a grant of a role the PHP catalog no longer has neither throws nor grants and doctor shows it as a warning', function (): void {
+it('a grant of a role the PHP catalog no longer has neither throws nor grants and doctor shows it as a warning', function (): void {
     $panel = CrmWorld::compile();
     CrmWorld::clear();
     CrmWorld::assign('retired', 1, 1);

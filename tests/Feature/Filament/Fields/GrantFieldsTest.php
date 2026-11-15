@@ -82,7 +82,7 @@ function storageVersion(string $panel): int
     return app(StorageRegistry::class)->get('default')->state($panel)?->version ?? 0;
 }
 
-it('V62 shows the field of the grant model and the field of the AzGuard plugin, and the fields of the panel chosen', function (): void {
+it('shows the field of the grant model and the field of the AzGuard plugin, and the fields of the panel chosen', function (): void {
     $this->bootFilament();
     seedFields();
     GrantWorld::editor();
@@ -106,7 +106,7 @@ it('V62 shows the field of the grant model and the field of the AzGuard plugin, 
     expect(array_keys(grantFields($component)))->toBe(['reason']);
 });
 
-it('V62 sends the values of the fields to the writer and stores them with the grant', function (): void {
+it('sends the values of the fields to the writer and stores them with the grant', function (): void {
     $this->bootFilament();
     seedFields();
     GrantWorld::editor();
@@ -124,7 +124,7 @@ it('V62 sends the values of the fields to the writer and stores them with the gr
     expect($record?->fields)->toMatchArray(['department_id' => 2, 'reason' => 'audit']);
 });
 
-it('V62 refuses a forged field in the payload as an error of the form and writes no grant and no version', function (): void {
+it('refuses a forged field in the payload as an error of the form and writes no grant and no version', function (): void {
     $this->bootFilament();
     seedFields();
     GrantWorld::editor();
@@ -143,7 +143,7 @@ it('V62 refuses a forged field in the payload as an error of the form and writes
         ->and(storageVersion('default'))->toBe($version);
 });
 
-it('V62 leaves the rules of a field to the writer, which refuses a value that breaks them', function (): void {
+it('leaves the rules of a field to the writer, which refuses a value that breaks them', function (): void {
     $this->bootFilament();
     seedFields();
     GrantWorld::editor();
@@ -188,7 +188,7 @@ it('edits the fields of a row and refuses a forged field of the edit form', func
     expect(AzGuard::panel('admin')->grants()->find($id)?->fields)->toMatchArray(['department_id' => 1, 'reason' => 'renewal']);
 });
 
-it('V96 clears the fields when the tenant or the panel of the form changes', function (): void {
+it('clears the fields when the tenant or the panel of the form changes', function (): void {
     $this->bootFilament();
     seedFields();
     GrantWorld::editor();

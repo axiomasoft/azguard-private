@@ -50,7 +50,7 @@ it('opens the catalogue only with azguard-roles.view_any in the guard panel', fu
     $this->get('/admin/azguard-roles')->assertOk()->assertSee('member');
 });
 
-it('V61 lists the code roles of the chosen managed panel with how each one is given', function (): void {
+it('lists the code roles of the chosen managed panel with how each one is given', function (): void {
     EditorWorld::editor(['azguard-roles.view_any', 'azguard-roles.view']);
 
     $list = Livewire::test(ListRoles::class)->assertSee('member');
@@ -68,7 +68,7 @@ it('V61 lists the code roles of the chosen managed panel with how each one is gi
         ->and($seller)->toMatchArray(['key' => 'member', 'grantable' => false, 'automatic' => true]);
 });
 
-it('V61 shows a role read-only with the authority of each of its permissions and no checkbox', function (): void {
+it('shows a role read-only with the authority of each of its permissions and no checkbox', function (): void {
     EditorWorld::editor(['azguard-roles.view_any', 'azguard-roles.view']);
 
     Livewire::test(ViewRole::class, ['panel' => 'admin', 'role' => 'member'])
@@ -81,7 +81,7 @@ it('V61 shows a role read-only with the authority of each of its permissions and
         ->assertDontSeeHtml('type="checkbox"');
 });
 
-it('V61 refuses the page of a role without azguard-roles.view, and an unknown role', function (): void {
+it('refuses the page of a role without azguard-roles.view, and an unknown role', function (): void {
     EditorWorld::editor(['azguard-roles.view_any']);
 
     Livewire::test(ViewRole::class, ['panel' => 'admin', 'role' => 'member'])->assertForbidden();
@@ -90,7 +90,7 @@ it('V61 refuses the page of a role without azguard-roles.view, and an unknown ro
     Livewire::test(ViewRole::class, ['panel' => 'admin', 'role' => 'nobody'])->assertNotFound();
 });
 
-it('V61 checks the view permission again when the open page is refreshed', function (): void {
+it('checks the view permission again when the open page is refreshed', function (): void {
     EditorWorld::editor(['azguard-roles.view_any', 'azguard-roles.view']);
     $page = Livewire::test(ViewRole::class, ['panel' => 'admin', 'role' => 'member'])->assertSuccessful();
 
@@ -99,7 +99,7 @@ it('V61 checks the view permission again when the open page is refreshed', funct
     Livewire::test(ViewRole::class, ['panel' => 'admin', 'role' => 'member'])->assertForbidden();
 });
 
-it('V23 finds no way to change a role: no page, action, property or method writes, and nothing is stored', function (string $field): void {
+it('finds no way to change a role: no page, action, property or method writes, and nothing is stored', function (string $field): void {
     EditorWorld::editor(['azguard-roles.view_any', 'azguard-roles.view']);
     $state = AzGuard::panel('admin')->state();
     $rows = DB::table('azg_role_grants')->count() + DB::table('azg_permission_grants')->count();
@@ -117,7 +117,7 @@ it('V23 finds no way to change a role: no page, action, property or method write
         ->and(RoleResource::hasPage('edit'))->toBeFalse();
 })->with(['class_name', 'definition', 'permissions', 'superAdmin']);
 
-it('V23 offers no action in the catalogue table', function (): void {
+it('offers no action in the catalogue table', function (): void {
     EditorWorld::editor(['azguard-roles.view_any', 'azguard-roles.view']);
 
     $table = Livewire::test(ListRoles::class)->instance()->getTable();

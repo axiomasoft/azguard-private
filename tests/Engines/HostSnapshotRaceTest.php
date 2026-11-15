@@ -13,7 +13,7 @@ use AzGuard\Tests\Fixtures\Sources\Database\DatabaseWorld;
 beforeEach(fn () => CacheEngineWorld::seed());
 afterEach(fn () => CacheEngineWorld::clean());
 
-it('V99 rejects a real old repeatable-read host snapshot after independent revoke', function (): void {
+it('rejects a real old repeatable-read host snapshot after independent revoke', function (): void {
     $worker = new AuthorityProcess;
     $storage = DatabaseWorld::storage();
     $connection = $storage->connection();
@@ -44,7 +44,7 @@ it('V99 rejects a real old repeatable-read host snapshot after independent revok
     expect($engine->decide($panel, DatabaseWorld::request())->reason)->toBe(DecisionReason::NotGranted);
 })->group('engines');
 
-it('V99 lock-first joint protocol commits protected host work while independent revoke waits at panel lock', function (): void {
+it('lock-first joint protocol commits protected host work while independent revoke waits at panel lock', function (): void {
     $worker = new AuthorityProcess;
     [$engine, $panel] = CacheWorld::database(DatabaseSource::make());
     $storage = DatabaseWorld::storage();

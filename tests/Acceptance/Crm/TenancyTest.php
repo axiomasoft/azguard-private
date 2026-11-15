@@ -10,7 +10,7 @@ use AzGuard\Tests\Fixtures\Crm\Models\Client;
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\DB;
 
-it('R01 reads literal clients in the selected tenant through actual DB assignments', function (): void {
+it('reads literal clients in the selected tenant through actual DB assignments', function (): void {
     $panel = World::compile();
     foreach ([[1, 1], [2, 1], [3, 1], [5, 2]] as [$client, $tenant]) {
         World::assertDecision(World::decide($panel, $client, tenant: $tenant), true, DecisionReason::Granted);
@@ -28,7 +28,7 @@ it('R01 reads literal clients in the selected tenant through actual DB assignmen
     }
 });
 
-it('R02 keeps CRM assignments separate from a positive backoffice assignment', function (): void {
+it('keeps CRM assignments separate from a positive backoffice assignment', function (): void {
     World::compile();
     $panel = app(PanelRegistry::class)->get('backoffice');
     World::assertDecision(World::decide($panel), false, DecisionReason::NotGranted);
@@ -36,7 +36,7 @@ it('R02 keeps CRM assignments separate from a positive backoffice assignment', f
     World::assertDecision(World::decide($panel), true, DecisionReason::Granted);
 });
 
-it('R06 enforces membership unknown tenants and resource ownership even for policy and admin', function (string $case, string $authority): void {
+it('enforces membership unknown tenants and resource ownership even for policy and admin', function (string $case, string $authority): void {
     $panel = World::compile();
     $user = $authority === 'admin' ? 3 : 1;
     $action = $authority === 'policy' ? Action::ViewOwnProfile : Action::View;
@@ -62,7 +62,7 @@ it('R06 enforces membership unknown tenants and resource ownership even for poli
     World::assertDecision(World::decide($panel, $client, $action, $user, $tenant), false, $reason);
 })->with(['outsider', 'removed', 'unknown', 'forged'])->with(['policy', 'admin']);
 
-it('R06 rejects an owner forged to the selected tenant while the project belongs to B', function (): void {
+it('rejects an owner forged to the selected tenant while the project belongs to B', function (): void {
     $panel = World::compile();
     $client = Client::query()->findOrFail(5);
     World::assertDecision(World::decide($panel, $client, tenant: 2), true, DecisionReason::Granted);
@@ -70,7 +70,7 @@ it('R06 rejects an owner forged to the selected tenant while the project belongs
     World::assertDecision(World::decide($panel, $client), false, DecisionReason::AssignmentScopeMismatch);
 });
 
-it('R07 host composite FK rejects a cross tenant client without changing the original row', function (): void {
+it('host composite FK rejects a cross tenant client without changing the original row', function (): void {
     expect(fn () => Client::query()->whereKey(1)->update(['project_id' => 4]))
         ->toThrow(QueryException::class);
     expect(Client::query()->findOrFail(1)->getAttribute('project_id'))->toBe(1);

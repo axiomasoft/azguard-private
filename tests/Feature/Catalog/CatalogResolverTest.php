@@ -30,7 +30,7 @@ afterEach(function (): void {
     @rmdir(dirname(self::$catalogCachePath));
 });
 
-it('R2: resolves a catalog enum from a custom source', function (): void {
+it('resolves a catalog enum from a custom source', function (): void {
     [$resolver, , $registry] = PanelWorld::compile([
         AdminPanel::class => fn (PanelBuilder $p) => $p->permissions([new StaticSource('app', [
             new PermissionDefinition('clients.update', PermissionAuthority::Grants, case: ClientPermission::Update),

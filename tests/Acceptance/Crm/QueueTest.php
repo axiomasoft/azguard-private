@@ -50,7 +50,7 @@ function work(): void
     expect(Artisan::call('queue:work', ['connection' => 'database', '--stop-when-empty' => true, '--tries' => 1, '--sleep' => 0, '--memory' => 4096]))->toBe(0);
 }
 
-it('R53 authorizes an export job as the subject it carries when it runs, not as the user logged in then', function (): void {
+it('authorizes an export job as the subject it carries when it runs, not as the user logged in then', function (): void {
     HttpWorld::actingAs(1);
     $this->get('/clients/1/export', ['X-Tenant' => '1'])->assertOk();
     expect(DB::table('jobs')->count())->toBe(1);
@@ -75,7 +75,7 @@ it('R53 authorizes an export job as the subject it carries when it runs, not as 
         ->and(ExportClientsJob::$runs[0]['allowed'])->toBeFalse();
 });
 
-it('R53 forbids an export queued before the right was taken away', function (): void {
+it('forbids an export queued before the right was taken away', function (): void {
     HttpWorld::actingAs(1);
     $this->get('/clients/1/export', ['X-Tenant' => '1'])->assertOk();
     HttpWorld::expire(1);
@@ -88,7 +88,7 @@ it('R53 forbids an export queued before the right was taken away', function (): 
         ->and(ExportClientsJob::$runs[0]['allowed'])->toBeFalse();
 });
 
-it('R54 keeps the panel, the scope and the authorizer of one job away from the next job of the worker', function (): void {
+it('keeps the panel, the scope and the authorizer of one job away from the next job of the worker', function (): void {
     HttpWorld::actingAs(1);
     $this->get('/clients/1/export', ['X-Tenant' => '1'])->assertOk();
     ExportClientsJob::dispatch(user: 1, client: 1, tenant: 1);

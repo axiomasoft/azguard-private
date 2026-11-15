@@ -27,7 +27,7 @@ use Illuminate\Support\Carbon;
 
 uses()->group('properties');
 
-it('P1 adding unconditional authority never reduces an unchanged decision including admin exemptions', function (): void {
+it('adding unconditional authority never reduces an unchanged decision including admin exemptions', function (): void {
     foreach (ScenarioGenerator::scenarios() as $seed => $s) {
         Carbon::setTestNow($s->now);
         $admin = $s->flag();
@@ -43,7 +43,7 @@ it('P1 adding unconditional authority never reduces an unchanged decision includ
     }
 });
 
-it('P3 isolates panels and rejects a foreign RoleKey before local role lookup', function (): void {
+it('isolates panels and rejects a foreign RoleKey before local role lookup', function (): void {
     foreach (ScenarioGenerator::scenarios() as $seed => $s) {
         Carbon::setTestNow($s->now);
         $other = $s->panel === 'alpha' ? 'beta' : 'alpha';
@@ -63,7 +63,7 @@ it('P3 isolates panels and rejects a foreign RoleKey before local role lookup', 
     }
 });
 
-it('P5 identical inputs state now and source responses produce the same decision', function (): void {
+it('identical inputs state now and source responses produce the same decision', function (): void {
     foreach (ScenarioGenerator::scenarios() as $seed => $s) {
         Carbon::setTestNow($s->now);
         $offset = ($seed % 3) - 1;
@@ -77,7 +77,7 @@ it('P5 identical inputs state now and source responses produce the same decision
     }
 });
 
-it('P7 expiry at now denies direct and role contributions including repeated reads', function (): void {
+it('expiry at now denies direct and role contributions including repeated reads', function (): void {
     foreach (ScenarioGenerator::scenarios() as $seed => $s) {
         $role = $s->flag();
         $expires = $s->expiry($seed % 7);
@@ -94,7 +94,7 @@ it('P7 expiry at now denies direct and role contributions including repeated rea
     }
 });
 
-it('P8 errors at every evaluated step fail closed despite valid direct and admin authority', function (): void {
+it('errors at every evaluated step fail closed despite valid direct and admin authority', function (): void {
     foreach (ScenarioGenerator::scenarios() as $seed => $s) {
         Carbon::setTestNow($s->now);
         // Exercise all five error boundaries for every generated scenario, with passing controls.
@@ -158,7 +158,7 @@ it('P8 errors at every evaluated step fail closed despite valid direct and admin
     }
 });
 
-it('P10 moving raw grants and roles between sources preserves qualification', function (): void {
+it('moving raw grants and roles between sources preserves qualification', function (): void {
     foreach (ScenarioGenerator::scenarios() as $seed => $s) {
         Carbon::setTestNow($s->now);
         $fields = ['weekdays' => [$s->flag() ? (int) $s->now->format('N') : 0]];
@@ -181,7 +181,7 @@ it('P10 moving raw grants and roles between sources preserves qualification', fu
     }
 });
 
-it('P11 presentation prefixes do not change enum or full name decisions', function (): void {
+it('presentation prefixes do not change enum or full name decisions', function (): void {
     foreach (ScenarioGenerator::scenarios() as $seed => $s) {
         Carbon::setTestNow($s->now);
         $allowed = $s->flag();
@@ -203,7 +203,7 @@ it('P11 presentation prefixes do not change enum or full name decisions', functi
     }
 });
 
-it('P12 all source permutations preserve denial errors and admin exemption', function (): void {
+it('all source permutations preserve denial errors and admin exemption', function (): void {
     foreach (ScenarioGenerator::scenarios() as $seed => $s) {
         Carbon::setTestNow($s->now);
         $error = $s->flag();
@@ -230,7 +230,7 @@ it('P12 all source permutations preserve denial errors and admin exemption', fun
     }
 });
 
-it('P15 two partial grants cannot combine their condition fields into a witness', function (): void {
+it('two partial grants cannot combine their condition fields into a witness', function (): void {
     foreach (ScenarioGenerator::scenarios() as $seed => $s) {
         Carbon::setTestNow($s->now);
         $day = (int) $s->now->format('N');

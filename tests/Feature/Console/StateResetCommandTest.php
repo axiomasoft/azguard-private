@@ -39,7 +39,7 @@ function stateResetDecision(): DecisionReason
     return CrmWorld::decide(app(PanelRegistry::class)->get('crm'))->reason;
 }
 
-it('V100 R57 starts a new incarnation and version so a decision cached before a manual change does not survive', function (): void {
+it('starts a new incarnation and version so a decision cached before a manual change does not survive', function (): void {
     W::panel(configure: static fn (PanelBuilder $panel) => $panel->cache(store: 'array', ttl: 3600)->plugins([AuditPlugin::make()]));
     $before = CrmWorld::storage()->state('crm');
 

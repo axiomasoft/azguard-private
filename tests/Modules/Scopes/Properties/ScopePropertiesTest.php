@@ -18,7 +18,7 @@ use Illuminate\Support\Carbon;
 
 uses()->group('properties');
 
-it('P2 allows only after tenant resource membership mandatory restrictions and token caps pass', function (): void {
+it('allows only after tenant resource membership mandatory restrictions and token caps pass', function (): void {
     foreach (ScenarioGenerator::scenarios() as $seed => $s) {
         Carbon::setTestNow($s->now);
         $admin = $s->flag();
@@ -46,7 +46,7 @@ it('P2 allows only after tenant resource membership mandatory restrictions and t
     }
 });
 
-it('P4 implements the scope table and isolated C does not depend on C2 grants', function (): void {
+it('implements the scope table and isolated C does not depend on C2 grants', function (): void {
     // This truth table is the normative oracle, independent of ScopeEligibility/compiler.
     $cells = [
         'inherit' => [true, true, true],

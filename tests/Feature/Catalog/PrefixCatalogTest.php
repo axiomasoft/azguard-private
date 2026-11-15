@@ -13,7 +13,7 @@ use AzGuard\Tests\Fixtures\Plugins\ProbePlugin;
 use AzGuard\Tests\Fixtures\Sources\StaticSource;
 use Illuminate\Support\Facades\DB;
 
-it('V81: rejects a panel prefix that is the first segment of a permission name of another panel', function (): void {
+it('rejects a panel prefix that is the first segment of a permission name of another panel', function (): void {
     expect(fn () => PanelWorld::compile([
         AdminPanel::class => static fn (PanelBuilder $panel): PanelBuilder => $panel->permissions([StaticSource::names('app', 'orders.view')]),
         CabinetPanel::class => static fn (PanelBuilder $panel): PanelBuilder => $panel->resourcePrefix('orders'),
@@ -23,7 +23,7 @@ it('V81: rejects a panel prefix that is the first segment of a permission name o
     );
 });
 
-it('V81: rejects a prefix that a name contributed by a plugin starts with, on the same panel too', function (): void {
+it('rejects a prefix that a name contributed by a plugin starts with, on the same panel too', function (): void {
     $plugin = ProbePlugin::make('acme/blog', register: static fn (PanelBuilder $panel): PanelBuilder => $panel->permissions([
         StaticSource::names('blog', 'blog.posts.edit'),
     ]));
@@ -33,7 +33,7 @@ it('V81: rejects a prefix that a name contributed by a plugin starts with, on th
     ]))->toThrow(PrefixConflictException::class, 'prefix "blog" of panel "admin" is the first segment of the permission "blog.posts.edit"');
 });
 
-it('V81: accepts names whose first segment is no prefix', function (): void {
+it('accepts names whose first segment is no prefix', function (): void {
     $registry = PanelWorld::compile([
         AdminPanel::class => static fn (PanelBuilder $panel): PanelBuilder => $panel->permissions([StaticSource::names('app', 'orders.view')]),
         CabinetPanel::class => static fn (PanelBuilder $panel): PanelBuilder => $panel->resourcePrefix(false)->permissions([StaticSource::names('app', 'orders.view')]),

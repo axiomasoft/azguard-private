@@ -32,7 +32,7 @@ function crmProjects(Panel $panel, int $user, string $role, int $tenant = 1, int
     );
 }
 
-it('R36 autocomplete offers the contexts of the target seller and analyst, not of the acting admin', function (): void {
+it('autocomplete offers the contexts of the target seller and analyst, not of the acting admin', function (): void {
     $panel = World::compile();
 
     // Анна (город 1) и Борис (город 2); actor — Дарья (город 1, tenant-admin) и Борис для обратного контроля.
@@ -45,7 +45,7 @@ it('R36 autocomplete offers the contexts of the target seller and analyst, not o
         ->and(crmProjects($panel, user: 1, role: SellerRole::class, tenant: 2))->toBe(['4']);
 });
 
-it('R36 applies LIMIT after eligibility', function (): void {
+it('applies LIMIT after eligibility', function (): void {
     $panel = World::compile();
 
     // Project 1 is the first by key but is another city for Борис; project 3 is inactive for everyone.
@@ -54,7 +54,7 @@ it('R36 applies LIMIT after eligibility', function (): void {
         ->and(crmProjects($panel, user: 1, role: AnalystRole::class, limit: 3))->toBe(['1', '2', '5']);
 });
 
-it('R36 does not offer a context to a target of another tenant by widening to the admin tenant', function (): void {
+it('does not offer a context to a target of another tenant by widening to the admin tenant', function (): void {
     $panel = World::compile();
 
     // Организация 2 выбрана: Анна видит только P4; проекты организации 1 не попадают в чужой tenant.
@@ -62,7 +62,7 @@ it('R36 does not offer a context to a target of another tenant by widening to th
         ->and(crmProjects($panel, user: 2, role: SellerRole::class, tenant: 2))->toBe([]);
 });
 
-it('V114 gives the filters the target, the role, the proposed fields and the actor before the limit', function (): void {
+it('gives the filters the target, the role, the proposed fields and the actor before the limit', function (): void {
     $panel = World::compile();
 
     crmProjects($panel, user: 2, role: SellerRole::class, actor: 3);
@@ -86,7 +86,7 @@ it('V114 gives the filters the target, the role, the proposed fields and the act
     expect(SellerProjects::$observed[0]->proposed)->toBe(['until' => null, 'fields' => ['region' => 'R1']]);
 });
 
-it('V114 Inspection describes an inactive context that Assignment never offers', function (): void {
+it('Inspection describes an inactive context that Assignment never offers', function (): void {
     $panel = World::compile();
     $directory = DirectoryResolver::for($panel, app())->scopes('crm.project');
     $assignment = Lookups::make($panel, target: 1, role: SellerRole::class);
@@ -99,7 +99,7 @@ it('V114 Inspection describes an inactive context that Assignment never offers',
         ->and($directory->describe(AssignmentScopeRef::of('crm.project', 4), $assignment))->toBeNull();
 });
 
-it('R50 an external consumer directory declared in code replaces the default through the public SPI', function (): void {
+it('an external consumer directory declared in code replaces the default through the public SPI', function (): void {
     World::$projectScope = ProjectScope::make()->filter(new ActiveProjects)->directory(ProjectDirectory::class);
     $panel = World::compile();
     $resolver = DirectoryResolver::for($panel, app());
@@ -111,7 +111,7 @@ it('R50 an external consumer directory declared in code replaces the default thr
         ->and($panel->scopeDefinition('crm.project')?->settings()->directory)->toBe(ProjectDirectory::class);
 });
 
-it('R50 without a configured directory the default is the query directory of ScopesPlugin; a type without one has none', function (): void {
+it('without a configured directory the default is the query directory of ScopesPlugin; a type without one has none', function (): void {
     $panel = World::compile();
     $lookup = Lookups::make($panel, tenant: 1, target: null, phase: AssignmentScopePhase::Inspection);
     $none = DirectoryResolver::for($panel, app())->scopes('unknown.type');
@@ -122,7 +122,7 @@ it('R50 without a configured directory the default is the query directory of Sco
         ->and($none->describe(AssignmentScopeRef::of('unknown.type', 1), $lookup))->toBeNull();
 });
 
-it('R50 a filter written against the structural query does not change which tenant is offered', function (): void {
+it('a filter written against the structural query does not change which tenant is offered', function (): void {
     World::$projectScope = ProjectScope::make()->filter(new ActiveProjects)->filter(
         fn (Builder $query) => $query->where('region', 'R1')->orWhere('organization_id', 2),
     );
