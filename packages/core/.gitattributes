@@ -1,3 +1,15 @@
 # Composer dist of the split package: ship runtime files only.
 /api-manifest.json export-ignore
 /.gitattributes    export-ignore
+# AI agent and tool state never ships.
+/.claude export-ignore
+/.cursor export-ignore
+/.codex export-ignore
+/.agents export-ignore
+/.grok export-ignore
+/.swissknife* export-ignore
+/.skm* export-ignore
+/.mcp.json* export-ignore
+/CLAUDE.md export-ignore
+/AGENTS.md export-ignore
+*.last export-ignore
