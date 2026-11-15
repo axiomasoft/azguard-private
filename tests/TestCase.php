@@ -110,7 +110,7 @@ class TestCase extends Orchestra
         $connection = $this->databaseConnectionConfig();
 
         if ($connection['driver'] !== 'sqlite' && ! str_ends_with((string) $connection['database'], '_test')) {
-            throw new RuntimeException('Тестовая БД должна оканчиваться на _test; проверьте PGSQL_DATABASE/MYSQL_DATABASE.');
+            throw new RuntimeException('The test database name must end with _test; check PGSQL_DATABASE/MYSQL_DATABASE.');
         }
         $app['config']->set('database.connections.testbench', $connection);
         $app['config']->set('database.connections.secondary', $connection);

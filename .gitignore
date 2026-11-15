@@ -11,24 +11,24 @@ vendor/
 .pestphp-laravel-unit-test-result-cache
 packages/*/composer.lock
 
-# Инструменты качества
+# Quality tools
 __pycache__/
 *.pyc
 .rector_cache/
 build/
 pint.json.bak
 
-# VitePress (документация)
+# VitePress (documentation)
 node_modules/
 docs/.vitepress/dist/
 docs/.vitepress/cache/
 
-# Тесты и логи
+# Tests and logs
 storage/*.log
 .env
 tests/temp/
 
-# AI / dev tooling — приватная инфраструктура разработки, НЕ в публичный репозиторий
+# Personal AI and editor tooling: never part of the repository
 .claude/
 .agents/
 .serena/
