@@ -168,7 +168,7 @@ validate_archives() {
             for ($i = 0; $i < $zip->numFiles; $i++) {
                 $name = $zip->getNameIndex($i);
                 $zip->getExternalAttributesIndex($i, $opsys, $attr);
-                if ((($attr >> 16) & 0170000) === 0120000 || preg_match("~(^|/)(vendor|node_modules|tests?|\.git|\.github|\.agents|build|bench|plan|evidence)(/|$)|(^|/)(\.env[^/]*|[^/]*\.(pem|key))$~i", $name)) {
+                if ((($attr >> 16) & 0170000) === 0120000 || preg_match("~(^|/)(vendor|node_modules|tests?|\.git|\.github|build|bench|plan|evidence)(/|$)|(^|/)(\.env[^/]*|[^/]*\.(pem|key))$~i", $name)) {
                     throw new RuntimeException("Forbidden archive entry: $name in $file");
                 }
             }

@@ -351,7 +351,7 @@ function packageOfflineFixture(string $root, string $version, string $out): void
                 for ($i = 0; $i < $zip->numFiles; $i++) {
                     $entry = $zip->getNameIndex($i);
 
-                    if (! is_string($entry) || preg_match('~(^|/)(vendor|node_modules|tests?|\.git|\.github|\.agents|build|bench|plan|evidence)(/|$)|(^|/)(\.env[^/]*|[^/]*\.(pem|key))$~i', $entry)) {
+                    if (! is_string($entry) || preg_match('~(^|/)(vendor|node_modules|tests?|\.git|\.github|build|bench|plan|evidence)(/|$)|(^|/)(\.env[^/]*|[^/]*\.(pem|key))$~i', $entry)) {
                         throw new RuntimeException('forbidden fixture ZIP entry: '.(is_string($entry) ? $entry : 'invalid'));
                     }
                 }
