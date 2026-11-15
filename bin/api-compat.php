@@ -3,14 +3,13 @@
 declare(strict_types=1);
 
 /*
- * Compatibility comparison of the supported surface with a baseline (I18, D26).
+ * Compatibility comparison of the supported surface with a baseline.
  *
  *   php bin/api-compat.php [--against=<ref>|auto] [--json]
  *
  * The artifacts are listed in the root `compatibility.json`: the attribute manifests (`kind: api`) and the format
- * fixtures (`kind: format`). `auto` takes the newest ancestor stable tag in the declared major, else its pinned
- * major_candidate. The previous candidate and the generated migration inventory preserve the major transition.
- * Without a declared major, historical specs retain the v1+ tag/candidate policy. Baseline files are read with
+ * fixtures (`kind: format`). `auto` takes the newest ancestor stable tag (in the declared major, when one is set), else
+ * the pinned `candidate` commit. Baseline files are read with
  * `git show` and parsed as JSON only: no baseline code is loaded or executed. `composer api:check` runs first, since a
  * stale manifest would hide a break.
  *
@@ -97,7 +96,7 @@ function compatBaseline(string $root, string $against, array $spec): array
             preg_split('/\R/', trim($own), -1, PREG_SPLIT_NO_EMPTY) ?: [],
             $major,
         );
-        $against = $tag ?? ($major === null ? ($spec['candidate'] ?? null) : ($spec['major_candidate'] ?? null));
+        $against = $tag ?? ($spec['candidate'] ?? null);
 
         if (! is_string($against) || $against === '') {
             throw new CompatError('no compatibility baseline: no eligible stable tag or candidate for the supported major');
@@ -129,48 +128,6 @@ function compatArtifactsAt(string $root, string $ref, array $spec): array
     $list = compatArtifactList($stored === null ? $spec : json_decode($stored, true), $ref.':compatibility.json');
 
     return compatCollect($list, static fn (string $path): ?string => compatGit($root, ['show', $ref.':'.$path]), $stored !== null, $ref);
-}
-
-/** The immutable old-candidate to initial-major inventory, independent of later same-major changes.
- *
- * @param  array<string, mixed>  $spec
- * @return array<string, mixed>
- */
-function compatMigrationInventory(string $root, array $spec): array
-{
-    if (! is_int($spec['major'] ?? null) || $spec['major'] < 1) {
-        throw new CompatError('major migration inventory requires a positive integer major');
-    }
-
-    foreach (['candidate', 'major_candidate'] as $key) {
-        if (! is_string($spec[$key] ?? null) || preg_match('/^[0-9a-f]{40}$/', $spec[$key]) !== 1) {
-            throw new CompatError("compatibility.json: {$key} must be an immutable commit SHA");
-        }
-    }
-
-    if ($spec['candidate'] === $spec['major_candidate'] || ! is_string($spec['rationale'] ?? null) || trim($spec['rationale']) === '') {
-        throw new CompatError('major transition needs distinct candidates and an explicit rationale');
-    }
-
-    if (compatGit($root, ['merge-base', '--is-ancestor', $spec['candidate'], $spec['major_candidate']]) === null) {
-        throw new CompatError('previous candidate must be an ancestor of the major candidate');
-    }
-
-    return ['schema' => 'urn:azguard:major-migration:1', 'major' => $spec['major'],
-        'baseline' => $spec['candidate'], 'target' => $spec['major_candidate'], 'rationale' => $spec['rationale'],
-        ...compatCompare(compatArtifactsAt($root, $spec['candidate'], $spec), compatArtifactsAt($root, $spec['major_candidate'], $spec))];
-}
-
-/** @param array<string, mixed> $spec */
-function compatInventoryPath(string $root, array $spec): string
-{
-    $path = $spec['migration_inventory'] ?? null;
-
-    if (! is_string($path) || preg_match('#^docs/reference/[a-z0-9-]+\.json$#', $path) !== 1) {
-        throw new CompatError('compatibility.json: migration_inventory must name a docs/reference JSON artifact');
-    }
-
-    return $root.'/'.$path;
 }
 
 function compatEncode(mixed $data): string
@@ -1084,17 +1041,14 @@ function compatMain(string $root, array $argv): int
 {
     $against = 'auto';
     $json = false;
-    $writeInventory = false;
 
     foreach (array_slice($argv, 1) as $argument) {
-        if ($argument === '--write-migration-inventory') {
-            $writeInventory = true;
-        } elseif ($argument === '--json') {
+        if ($argument === '--json') {
             $json = true;
         } elseif (str_starts_with($argument, '--against=') && strlen($argument) > 10) {
             $against = substr($argument, 10);
         } else {
-            fwrite(STDERR, "usage: php bin/api-compat.php [--against=<ref>|auto] [--json] [--write-migration-inventory]\n");
+            fwrite(STDERR, "usage: php bin/api-compat.php [--against=<ref>|auto] [--json]\n");
 
             return 2;
         }
@@ -1106,26 +1060,6 @@ function compatMain(string $root, array $argv): int
         $list = compatArtifactList($spec, 'compatibility.json');
         /** @var array<string, mixed> $spec */
         $baseline = compatBaseline($root, $against, $spec);
-
-        if (isset($spec['major']) && ($against === 'auto' || $writeInventory)) {
-            $path = compatInventoryPath($root, $spec);
-            $inventory = compatEncode(compatMigrationInventory($root, $spec));
-
-            if ($writeInventory) {
-                if (file_put_contents($path, $inventory) === false) {
-                    throw new CompatError('cannot write migration inventory');
-                }
-                fwrite(STDOUT, 'updated '.$spec['migration_inventory']."\n");
-
-                return 0;
-            }
-
-            if (! is_file($path) || file_get_contents($path) !== $inventory) {
-                throw new CompatError('major migration inventory missing or stale; run php bin/api-compat.php --write-migration-inventory');
-            }
-        } elseif ($writeInventory) {
-            throw new CompatError('writing a migration inventory requires an explicit major policy');
-        }
 
         // A baseline before compatibility.json existed is read with the current artifact list; an artifact missing there
         // did not exist at the baseline.

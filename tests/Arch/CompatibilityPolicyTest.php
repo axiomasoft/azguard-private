@@ -7,7 +7,7 @@ require_once dirname(__DIR__, 2).'/bin/api-compat.php';
 /** @return array{root: string, git: Closure, old: string, candidate: string, spec: array<string, mixed>} */
 function compatPolicyFixture(): array
 {
-    $root = sys_get_temp_dir().'/azguard-major-policy-'.bin2hex(random_bytes(6));
+    $root = sys_get_temp_dir().'/azguard-compat-policy-'.bin2hex(random_bytes(6));
     mkdir($root);
     mkdir($root.'/docs/reference', 0777, true);
     $git = static function (string ...$arguments) use ($root): string {
@@ -32,11 +32,8 @@ function compatPolicyFixture(): array
     file_put_contents($root.'/format.json', compatEncode(['value' => 'two']));
     $git('commit', '-qam', 'initial v2 contract');
     $candidate = $git('rev-parse', 'HEAD');
-    $spec += ['major' => 2, 'candidate' => $old, 'major_candidate' => $candidate,
-        'rationale' => 'Preserve the v1-to-v2 value change; reject future v2 changes.',
-        'migration_inventory' => 'docs/reference/compatibility-2.json'];
+    $spec += ['major' => 2, 'candidate' => $candidate];
     file_put_contents($root.'/compatibility.json', compatEncode($spec));
-    file_put_contents($root.'/'.$spec['migration_inventory'], compatEncode(compatMigrationInventory($root, $spec)));
     $git('add', '.');
     $git('commit', '-qm', 'v2 policy');
 
@@ -77,13 +74,8 @@ it('uses only stable tags in the declared major', function (): void {
     expect(compatPolicyExit($this->policy))->toBe(0);
 });
 
-it('keeps old breaks visible for explicit cross-major comparisons', function (): void {
-    $inventory = compatMigrationInventory($this->policy['root'], $this->policy['spec']);
-    expect($inventory['baseline'])->toBe($this->policy['old'])
-        ->and($inventory['breaks'])->toHaveCount(1)
-        ->and($inventory['breaks'][0]['baseline'])->toBe('old')
-        ->and($inventory['breaks'][0]['current'])->toBe('two')
-        ->and(compatPolicyExit($this->policy, ['--against='.$this->policy['old']]))->toBe(1);
+it('reports breaks against an explicit older baseline', function (): void {
+    expect(compatPolicyExit($this->policy, ['--against='.$this->policy['old']]))->toBe(1);
 });
 
 it('does not compare the first v2 tag with itself and blocks subsequent v2 breaks', function (): void {
@@ -97,16 +89,6 @@ it('does not compare the first v2 tag with itself and blocks subsequent v2 break
         ->and(compatPolicyExit($this->policy))->toBe(1);
 });
 
-it('rejects missing or tampered migration inventory', function (): void {
-    $path = $this->policy['root'].'/'.$this->policy['spec']['migration_inventory'];
-    file_put_contents($path, compatEncode(['breaks' => []]));
-    expect(compatPolicyExit($this->policy))->toBe(2);
-    unlink($path);
-    expect(compatPolicyExit($this->policy))->toBe(2)
-        ->and(compatPolicyExit($this->policy, ['--write-migration-inventory']))->toBe(0)
-        ->and(compatPolicyExit($this->policy))->toBe(0);
-});
-
 it('rejects a same-major break before the first stable v2 tag', function (): void {
     file_put_contents($this->policy['root'].'/format.json', compatEncode(['value' => 'broken']));
     expect(compatPolicyExit($this->policy))->toBe(1);
@@ -117,20 +99,9 @@ it('rejects a missing current artifact instead of silently omitting it', functio
     expect(compatPolicyExit($this->policy))->toBe(2);
 });
 
-it('requires an explicit rationale and immutable distinct transition refs', function (): void {
-    ['root' => $root, 'spec' => $spec] = $this->policy;
-    $spec['rationale'] = '';
-    expect(fn (): array => compatMigrationInventory($root, $spec))->toThrow(CompatError::class, 'explicit rationale');
-    $spec['rationale'] = 'Intentional major transition';
-    $spec['major_candidate'] = $spec['candidate'];
-    expect(fn (): array => compatMigrationInventory($root, $spec))->toThrow(CompatError::class, 'distinct candidates');
-    $spec['major_candidate'] = 'HEAD';
-    expect(fn (): array => compatMigrationInventory($root, $spec))->toThrow(CompatError::class, 'immutable commit SHA');
-});
-
 it('fails closed without a candidate in the declared major', function (): void {
     ['root' => $root, 'spec' => $spec] = $this->policy;
-    unset($spec['major_candidate']);
+    unset($spec['candidate']);
     expect(fn (): array => compatBaseline($root, 'auto', $spec))->toThrow(CompatError::class, 'no eligible stable tag');
     $spec['major'] = '2';
     expect(fn (): array => compatBaseline($root, 'auto', $spec))->toThrow(CompatError::class, 'positive integer');
@@ -138,24 +109,16 @@ it('fails closed without a candidate in the declared major', function (): void {
     expect(fn (): array => compatBaseline($root, 'auto', $spec))->toThrow(CompatError::class, 'positive integer');
 });
 
-it('preserves the repository transition inventory exactly as generated from both pinned commits', function (): void {
-    $root = dirname(__DIR__, 2);
-    $spec = json_decode((string) file_get_contents($root.'/compatibility.json'), true, flags: JSON_THROW_ON_ERROR);
-    $inventory = compatMigrationInventory($root, $spec);
-    expect($inventory['breaks'])->not->toBeEmpty()
-        ->and(file_get_contents(compatInventoryPath($root, $spec)))->toBe(compatEncode($inventory));
-});
-
 it('rejects HEAD and nonancestor fallback candidates', function (): void {
     ['root' => $root, 'git' => $git, 'spec' => $spec] = $this->policy;
-    $spec['major_candidate'] = $git('rev-parse', 'HEAD');
+    $spec['candidate'] = $git('rev-parse', 'HEAD');
     expect(fn (): array => compatBaseline($root, 'auto', $spec))->toThrow(CompatError::class, 'never HEAD itself');
     $git('checkout', '-qb', 'side');
     file_put_contents($root.'/side', 'side');
     $git('add', 'side');
     $git('commit', '-qm', 'side');
     $side = $git('rev-parse', 'HEAD');
-    $git('checkout', '-q', '--detach', $spec['major_candidate']);
-    $spec['major_candidate'] = $side;
+    $git('checkout', '-q', '--detach', $spec['candidate']);
+    $spec['candidate'] = $side;
     expect(fn (): array => compatBaseline($root, 'auto', $spec))->toThrow(CompatError::class, 'ancestor before HEAD');
 });
