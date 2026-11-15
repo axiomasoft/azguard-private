@@ -50,6 +50,16 @@ AGENTS.md
 .cursor/
 .swissknife/
 .swissknife.json
+.swissknife*.json
+.skm*/
+.gemini/
+.windsurf/
+.aider*
+.continue/
+.mcp.json.*
+CLAUDE.local.md
+GEMINI.md
+*.last
 # Local planning, agent receipts and run logs are development infrastructure.
 /Analysis/
 /plans/
@@ -58,4 +68,3 @@ AGENTS.md
 /bench/.runs/
 # Pinned security tools (bin/security-tools.sh)
 var/tools/
-.mcp.json.example

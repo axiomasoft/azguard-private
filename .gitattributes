@@ -33,4 +33,11 @@
 /.claude            export-ignore
 /.serena            export-ignore
 /.swissknifeman     export-ignore
+/.swissknife*       export-ignore
+/.skm*              export-ignore
+/.cursor            export-ignore
+/.codex             export-ignore
+/.agents            export-ignore
+/.grok              export-ignore
+*.last              export-ignore
 /ideas              export-ignore
