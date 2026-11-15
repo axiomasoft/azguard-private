@@ -115,7 +115,7 @@
         "test:parallel": "The SQLite lane on 4 ParaTest workers.",
         "test:changed": "Only the zones a change touches and the zones that use them (tests/zones.json); --quick, --db, --base=<ref>, --dry-run.",
         "test:db": "The database lane on one server: composer test:db -- <pgsql|mysql|mariadb> [--parallel[=N]] [--full] [--engines] [--zone=<zone>].",
-        "test:extended": "The scale (R58) tests of group extended: nightly CI and before a release."
+        "test:extended": "The scale tests of group extended: nightly CI and before a release."
     },
     "extra": {
         "pest": {

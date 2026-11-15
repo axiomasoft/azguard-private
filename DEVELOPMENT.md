@@ -1,11 +1,9 @@
 # AzGuard — Development
 
-## State of 2.0
+## Layout
 
-This monorepo develops AzGuard 2.0, with `2.0.0-rc.1` planned before `2.0.0`.
-The historical 1.0 changelog does not establish whether that version was published
-or consumed; treat it as potentially consumed. See [RELEASING.md](RELEASING.md#versioning)
-for the publication evidence and qualification required before choosing a release SHA.
+This monorepo develops AzGuard 2.0, with `2.0.0-rc.1` planned before `2.0.0`. Nothing is published yet; see
+[RELEASING.md](RELEASING.md#versioning) for the qualification required before choosing a release SHA.
 
 | Path | What it is |
 |---|---|
@@ -111,7 +109,7 @@ upgrading the report format.
 | `composer test:parallel` | Pest / ParaTest | The SQLite lane on 4 workers, random order intact |
 | `composer test:changed` | Pest | Only the zones a change touches and the zones that use them, see [tests/README.md](tests/README.md) |
 | `composer test:db -- <driver>` | Pest / ParaTest | The database lane on `pgsql`, `mysql` or `mariadb` (`--parallel[=N]`, `--full`, `--engines`, `--zone=`) |
-| `composer test:extended` | Pest | The scale tests (R58) that nightly CI and a release run |
+| `composer test:extended` | Pest | The scale tests that nightly CI and a release run |
 | `composer test:types` | Pest | Type-coverage gate (min 98%) |
 | `composer analyse` | PHPStan / Larastan | Static analysis (level 9, no baseline) |
 | `composer lint` / `lint:check` | Pint | Fix / check code style |
@@ -142,6 +140,14 @@ lane; [tests/README.md](tests/README.md) has the zone map and the lane rules.
 excluding them does not qualify those backends. To exercise the
 package against real database engines (Postgres 18, MySQL 9.7, and the optional local MariaDB 10.11) and Redis, bring
 up the local stand:
+
+The repository's `docker-compose.yml` runs PostgreSQL 18, MySQL 9.7 and MariaDB 10.11 as disposable
+test databases on tmpfs, with a 2 GiB limit each. Crash durability is deliberately disabled;
+data disappears when a database container stops. Test schemas are still dropped and migrated
+before each test. Redis and the real PostgreSQL replica profile retain persistent volumes.
+
+The CI database matrix starts only its selected engine through the same Compose file, with the
+same tmpfs and durability flags. It caches Composer downloads and still installs dependencies on every job.
 
 ```bash
 cp .env.example .env   # adjust credentials if needed
@@ -213,22 +219,6 @@ one database, replication) never run in parallel: `composer test:db -- <driver> 
 
 The database lane runs parity seeds 1 and 2 (`PARITY_SEEDS`); `--full` runs all eight, as nightly CI does. The
 guarded ledger of unsupported cases is compared only by a run with every seed, which the SQLite lane is.
-
-### Infrastructure measurement (2026-10-12)
-
-Point runs on the stand (PostgreSQL 16), before and after; the full-suite numbers are from the earlier junit
-reports (`var/perf/pgsql-seq.xml`: 5011 tests, 1938 s sequential) and are not re-measured.
-
-| What | Before | After |
-|---|---:|---:|
-| `DirectWritesTest` on PostgreSQL | 590 tests, 290 s | 199 tests, 8.6 s |
-| `DirectWritesTest` on SQLite | 590 tests, 28 s | 199 tests, ≈4 s |
-| `Scale*Test` on SQLite, without R58 | — | 2 tests, 8 s |
-| Parity on PostgreSQL, seeds 1 and 2 | seeds 1-8, ≈78 s | 40 s |
-| `test:changed` on the `bench` zone | all 5083 tests | 164 tests, 64 s |
-
-The 590 → 199 tests are the same method × kind × environment cases: the refusal before SQL is a matrix without a
-schema, and one test runs every method and kind in `local`, `testing` and `production` against real rows.
 
 With Redis up (`make up`), run the qualification bundle:
 
