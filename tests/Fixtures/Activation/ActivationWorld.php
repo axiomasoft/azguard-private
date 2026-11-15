@@ -41,7 +41,7 @@ use ReflectionProperty;
 
 /**
  * Two panels, `alpha` and `beta`, over one storage and the CRM stand's data: the test says which plugins each carries, so a
- * module is active on one panel and absent from the other (PLAN1 P3.12, the activation matrix of p3-execution#activation).
+ * module is active on one panel and absent from the other (the activation matrix).
  */
 final class ActivationWorld
 {
@@ -115,7 +115,7 @@ final class ActivationWorld
 
     /**
      * Runs the work and reports what an inactive module would cost during it: the module-owned services the container
-     * resolved or already held, and the module tables a query touched (the same measure as the I13 harness).
+     * resolved or already held, and the module tables a query touched (the same measure as the inactive-cost harness).
      *
      * @return list<string> "module-service <class>" / "module-query <table>", sorted
      */

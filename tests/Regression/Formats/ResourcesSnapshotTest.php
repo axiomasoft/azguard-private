@@ -24,7 +24,7 @@ use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\ServiceProvider;
 
 /*
- * I17, blocking now: the resource identities of knowledge/identities#resources as the code has them. Rows the
+ * The resource identities (tables, columns, publish tags, migration basenames) as the code has them. Rows the
  * transition adds are listed as absent, so the phase that adds them changes this fixture deliberately.
  */
 
@@ -125,7 +125,7 @@ describe('the reserved azguard/* plugin prefix', function (): void {
     beforeEach(fn () => CrmWorld::seed());
     afterEach(fn () => CrmWorld::resetRuntime());
 
-    it('is enforced since P2.4: a host plugin cannot take an azguard/ id', function (): void {
+    it('is enforced: a host plugin cannot take an azguard/ id', function (): void {
         $plugin = new class implements Plugin
         {
             public function id(): string

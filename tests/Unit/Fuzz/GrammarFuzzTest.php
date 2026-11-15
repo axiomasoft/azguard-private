@@ -14,7 +14,7 @@ use AzGuard\Kernel\Identity\RoleKey;
 use AzGuard\Tests\Fixtures\Fuzz\FuzzInput;
 
 /*
- * Fuzz of the permission grammar and the identity codecs (knowledge/qualification#fuzz): seeded, deterministic, the
+ * Fuzz of the permission grammar and the identity codecs: seeded, deterministic, the
  * seed and the escaped input in every failure. Blockers: an uncaught non-domain exception, a PHP warning, an input over
  * the time budget, a predicate that disagrees with its assertion, a parse that does not round-trip.
  */

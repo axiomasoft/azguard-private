@@ -7,7 +7,7 @@ use Symfony\Component\Yaml\Yaml;
 require_once __DIR__.'/WorkflowHardening.php';
 
 /*
- * Workflow hardening gate (knowledge/supply-chain#gate): every `.github/workflows/*.yml` passes rules W1-W10, and each
+ * Workflow hardening gate: every `.github/workflows/*.yml` passes every hardening rule, and each
  * fixture under tests/Arch/Fixtures/Workflows/ breaks exactly the rule it is named after, so a gate that stops
  * detecting a rule fails here.
  */

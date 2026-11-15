@@ -32,7 +32,7 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Artisan;
 
 /**
- * The I7 world: the `Dataset` written through the public API with the scope declaration of panel `crm`, its CRM host
+ * The no-scope world: the `Dataset` written through the public API with the scope declaration of panel `crm`, its CRM host
  * rows, and panel `crm` rebuilt with an explicit `AssignmentScopeMode::None` declaration (`NoScopeCrmPanelProvider`);
  * panel `ops` as seeded.
  *
@@ -72,7 +72,7 @@ final class NoScopeWorld
     }
 
     /**
-     * Each I7 case: whether it holds and what the code does. The expectation is fixed by I7; a control case proves the
+     * Each no-scope case: whether it holds and what the code does. The expectation is fixed by the rule; a control case proves the
      * panel still decides and writes at all.
      *
      * @return array<string, Closure(): array{bool, string}>

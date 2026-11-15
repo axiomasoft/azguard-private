@@ -24,7 +24,7 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 
 /*
- * I9: the scope directory of a panel offers only what the final write accepts for the target (the I9 findings F1 and F2
+ * The scope directory of a panel offers only what the final write accepts for the target (two former parity findings
  * are the named cases), and it checks the target once per lookup, not once per option.
  */
 

@@ -7,11 +7,10 @@ use AzGuard\Tests\Arch\Ownership;
 use AzGuard\Tests\Arch\SourceScan;
 
 /*
- * I2 and I3 (PLAN1 P1.4) block since P3.12: any violation fails, and tests/Arch/Allowlists/i2.json and i3.json stay empty.
- * (The helper that compares a scan with an allowlist is still tested below: it is the shape a later invariant may report in.)
+ * Core names no module, and no module names another module or Filament: any violation fails.
  *
  * The owner of a file is the owner of the oracle row whose `current_path` (`target_path` once moved) is that file; a
- * reference resolves to a row by FQCN. Oracle: tests/Arch/Fixtures/target-map.json (D14), pinned by target-map.sha256.
+ * reference resolves to a row by FQCN. Oracle: tests/Arch/Fixtures/target-map.json, pinned by target-map.sha256.
  */
 
 /** @param list<array<string, mixed>> $rows */
@@ -69,12 +68,12 @@ it('has an owner for every production file and no row for a file that is nowhere
     $gone = [];
 
     foreach ($ownership->rows() as $row) {
-        // A `new` row names a file that does not exist yet; a `retire` row names one that P2 has deleted (D16).
+        // A `new` row names a file that does not exist yet; a `retire` row names one that P2 has deleted.
         if (in_array($row['action'] ?? null, ['new', 'retire'], true)) {
             continue;
         }
         $moved = isset($row['target_path']) && is_file($root.explode(' + ', $row['target_path'])[0]);
-        // D17: a type P2 renames to a module FQCN lives where the core PSR-4 root puts that FQCN until P3 moves it.
+        // A type renamed to a module FQCN lives where the core PSR-4 root puts that FQCN until its file moves.
         $target = explode(' + ', (string) ($row['target'] ?? ''))[0];
         $interim = str_starts_with($target, 'AzGuard\\')
             && is_file($root.'packages/core/src/'.str_replace('\\', '/', substr($target, strlen('AzGuard\\'))).'.php');
@@ -277,8 +276,8 @@ it('owns a split part without a row of its own by the root of its target path, s
     expect(Ownership::of($rows)->fileOwner('packages/core/modules/scopes/src/Internal/ScopeConfiguration.php'))->toBe('scopes')
         ->and(Ownership::of($rows)->referenceOwner('import', 'AzGuard\Scopes\Internal\ScopeConfiguration'))->toBe('scopes')
         ->and(array_map(static fn (array $v): string => implode(' ', [$v['invariant'], $v['file'], $v['kind'], $v['reference']]), $violations))->toBe([
-            'I2 packages/core/src/Panels/Internal/CanonicalMetadata.php import AzGuard\Scopes\Internal\ScopeConfiguration',
-            'I3 packages/core/modules/scopes/src/Internal/ScopeConfiguration.php import AzGuard\Audit\AuditPlugin',
+            'core-module packages/core/src/Panels/Internal/CanonicalMetadata.php import AzGuard\Scopes\Internal\ScopeConfiguration',
+            'module-isolation packages/core/modules/scopes/src/Internal/ScopeConfiguration.php import AzGuard\Audit\AuditPlugin',
         ]);
 });
 
@@ -287,7 +286,7 @@ it('leaves no production file to a split or retired owner', function (): void {
     $root = dirname(__DIR__, 2).'/';
     $ownerless = array_values(array_filter(SourceScan::files(), static fn (string $file): bool => in_array($ownership->fileOwner(str_replace($root, '', $file)), BoundaryScan::OWNERLESS, true)));
 
-    expect($ownerless)->toBe([], 'a production file owned by split or retired escapes I2, I3 and I4');
+    expect($ownerless)->toBe([], 'a production file owned by split or retired escapes the boundary and surface scans');
 });
 
 it('a core file may not name a module by import, class name, constant, class-string, string, plugin id or table', function (): void {
@@ -319,11 +318,11 @@ it('a core file may not name a module by import, class name, constant, class-str
     ], $rows);
 
     expect(array_map(static fn (array $v): string => implode(' ', [$v['invariant'], $v['file'], $v['kind'], $v['reference'], $v['owner_phase']]), $violations))->toBe([
-        'I2 packages/core/src/Panels/Panel.php class-string AzGuard\Audit\AuditPlugin P3',
-        'I2 packages/core/src/Panels/Panel.php fqcn-string AzGuard\DevTools\Make P3',
-        'I2 packages/core/src/Panels/Panel.php import AzGuard\Scopes\ScopesPlugin P3',
-        'I2 packages/core/src/Panels/Panel.php table audit_log P3',
-        'I2 packages/core/src/Panels/Panel.php plugin-id azguard/audit P3',
+        'core-module packages/core/src/Panels/Panel.php class-string AzGuard\Audit\AuditPlugin P3',
+        'core-module packages/core/src/Panels/Panel.php fqcn-string AzGuard\DevTools\Make P3',
+        'core-module packages/core/src/Panels/Panel.php import AzGuard\Scopes\ScopesPlugin P3',
+        'core-module packages/core/src/Panels/Panel.php table audit_log P3',
+        'core-module packages/core/src/Panels/Panel.php plugin-id azguard/audit P3',
     ]);
 });
 
@@ -350,11 +349,11 @@ it('a module names no other module and no Filament code, and Filament names no m
     ], $rows);
 
     expect(array_map(static fn (array $v): string => implode(' ', [$v['invariant'], $v['file'], $v['kind'], $v['reference']]), $violations))->toBe([
-        'I3 packages/core/modules/scopes/src/ScopesPlugin.php import AzGuard\Audit\AuditPlugin',
-        'I3 packages/core/modules/scopes/src/ScopesPlugin.php import AzGuard\Filament\Page',
-        'I3 packages/core/modules/scopes/src/ScopesPlugin.php import Filament\Tables\Table',
-        'I3 packages/core/modules/scopes/src/ScopesPlugin.php plugin-id azguard/audit',
-        'I3 packages/filament/src/Page.php import AzGuard\Audit\AuditPlugin',
+        'module-isolation packages/core/modules/scopes/src/ScopesPlugin.php import AzGuard\Audit\AuditPlugin',
+        'module-isolation packages/core/modules/scopes/src/ScopesPlugin.php import AzGuard\Filament\Page',
+        'module-isolation packages/core/modules/scopes/src/ScopesPlugin.php import Filament\Tables\Table',
+        'module-isolation packages/core/modules/scopes/src/ScopesPlugin.php plugin-id azguard/audit',
+        'module-isolation packages/filament/src/Page.php import AzGuard\Audit\AuditPlugin',
     ]);
 });
 
@@ -390,7 +389,7 @@ it('resolves a moved file and a renamed type through the target path and the tar
         ->and($ownership->referenceOwner('import', 'AzGuard\Scopes\Internal\Other'))->toBeNull();
 });
 
-it('resolves a file at an interim path by the FQCN it declares (D17), and nothing for an unknown FQCN', function (): void {
+it('resolves a file at an interim path by the FQCN it declares, and nothing for an unknown FQCN', function (): void {
     $root = sys_get_temp_dir().'/azguard-interim-'.bin2hex(random_bytes(4));
     $files = [
         'packages/core/src/Scopes/Internal/ScopeEvaluator.php' => "<?php\nnamespace AzGuard\\Scopes\\Internal;\n\n/** a doc */\nfinal class ScopeEvaluator {}\n",
@@ -421,36 +420,21 @@ it('resolves a file at an interim path by the FQCN it declares (D17), and nothin
     }
 });
 
-it('keeps the I2 and I3 allowlists empty once core names no module (P3.7)', function (): void {
-    expect(BoundaryScan::allowlist('i2'))->toBe([])
-        ->and(BoundaryScan::allowlist('i3'))->toBe([]);
-});
-
-it('I2 (blocking): core references no module', function (): void {
+it('lets core reference no module', function (): void {
     $found = array_values(array_filter(
         BoundaryScan::violations(Ownership::fromOracle(), SourceScan::files()),
-        static fn (array $violation): bool => $violation['invariant'] === 'I2',
+        static fn (array $violation): bool => $violation['invariant'] === 'core-module',
     ));
 
-    expect($found)->toBe([], 'I2 blocks: remove the reference; there is no allowlist')
-        ->and(BoundaryScan::allowlist('i2'))->toBe([]);
+    expect($found)->toBe([], 'core names a module: remove the reference; there is no allowlist');
 });
 
-it('I3 (blocking): modules, Filament and each other stay isolated', function (): void {
+it('keeps modules isolated from each other and from Filament', function (): void {
     $found = array_values(array_filter(
         BoundaryScan::violations(Ownership::fromOracle(), SourceScan::files()),
-        static fn (array $violation): bool => $violation['invariant'] === 'I3',
+        static fn (array $violation): bool => $violation['invariant'] === 'module-isolation',
     ));
 
-    expect($found)->toBe([], 'I3 blocks: remove the reference; there is no allowlist')
-        ->and(BoundaryScan::allowlist('i3'))->toBe([]);
+    expect($found)->toBe([], 'a module names another module or Filament: remove the reference; there is no allowlist');
 });
 
-it('reports a new and a stale violation against an allowlist', function (): void {
-    $listed = ['file' => 'a.php', 'reference' => 'X', 'kind' => 'import', 'invariant' => 'I2', 'owner_phase' => 'P3'];
-    $fresh = ['file' => 'b.php', 'reference' => 'Y', 'kind' => 'import', 'invariant' => 'I2', 'owner_phase' => 'P3'];
-
-    expect(BoundaryScan::compare([$listed], [$listed]))->toBe(['new' => [], 'stale' => []])
-        ->and(BoundaryScan::compare([$listed, $fresh], [$listed]))->toBe(['new' => ['I2 | b.php | Y | import | P3'], 'stale' => []])
-        ->and(BoundaryScan::compare([$listed], [$listed, $fresh]))->toBe(['new' => [], 'stale' => ['I2 | b.php | Y | import | P3']]);
-});

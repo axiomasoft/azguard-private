@@ -16,7 +16,7 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Route;
 
 /*
- * V103 (request part): one application serves request after request, as an Octane worker does. The panel of a request
+ * One application serves request after request, as an Octane worker does. The panel of a request
  * and the scopes chosen inside it never reach the next request, also when the controller throws or entry is denied.
  */
 

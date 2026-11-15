@@ -51,7 +51,7 @@ const AZGUARD_DATABASE_ACCESS = [
 const AZGUARD_KERNEL_FORBIDDEN = ['Illuminate', 'Carbon', 'Laravel', 'AzGuard\Filament', 'AzGuard\Tenancy', 'AzGuard\Context', ...AZGUARD_OUTER_ZONES];
 
 /*
- * The publication markers (D9): every zone, the kernel included, names them to publish its supported types. They are
+ * The publication markers: every zone, the kernel included, names them to publish its supported types. They are
  * leaves that depend on nothing but PHP, so naming them adds no dependency on zone code.
  */
 const AZGUARD_PUBLICATION_MARKERS = ['AzGuard\Attributes\Api', 'AzGuard\Attributes\Spi', 'AzGuard\Attributes\SpiKind'];
@@ -97,7 +97,7 @@ it('keeps the kernel free of framework helper calls', function (): void {
 });
 
 /*
- * I1 (blocking now): the kernel names no framework, zone or module code. Pest arch sees imports and class names of the
+ * The kernel names no framework, zone or module code. Pest arch sees imports and class names of the
  * autoloaded namespaces only; this scan also reads grouped imports, `::class` constants, `class-string<…>` types and
  * qualified class-name strings, and covers the module roots (`packages/core/modules/<module>/src`) by their namespaces.
  */
@@ -421,7 +421,7 @@ arch('code roles do not use storage, changes or authorization')
     ->expect('AzGuard\Roles')
     ->not->toUse(['AzGuard\Storage', 'AzGuard\Changes', 'AzGuard\Authorization']);
 
-// The Audit module owns its journal table (schema, migrations, retention: D19) on the connection of the storage.
+// The Audit module owns its journal table (schema, migrations, retention) on the connection of the storage.
 arch('only storage, the database source and the Audit module touch the database layer')
     ->expect(AZGUARD_DATABASE_ACCESS)
     ->toOnlyBeUsedIn(['AzGuard\Storage', 'AzGuard\Sources\Database', 'AzGuard\Audit'])

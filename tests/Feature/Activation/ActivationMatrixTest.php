@@ -32,7 +32,7 @@ use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Schema;
 
 /*
- * The activation matrix (PLAN1 P3.12, p3-execution#activation): two panels over one storage, a module active on one and
+ * The activation matrix: two panels over one storage, a module active on one and
  * absent from the other. Every row has a negative control that runs the same measure with the module where it must not be
  * and shows the assertion would fail, so a row cannot pass by measuring nothing.
  */

@@ -31,7 +31,7 @@ use RuntimeException;
 use Symfony\Component\Uid\Ulid;
 
 /**
- * The deterministic dataset of the I7 parity world (`NoScopeWorld`), written through the public API: panel `crm`
+ * The deterministic dataset of the no-scope parity world (`NoScopeWorld`), written through the public API: panel `crm`
  * (tenants, project scopes, Audit plugin) and panel `ops` (no tenants, no Audit plugin) share one storage.
  *
  * Determinism: the clock is fixed (`CLOCK`, then `PRUNE_CLOCK` for the expiry prune) and every ULID the code generates

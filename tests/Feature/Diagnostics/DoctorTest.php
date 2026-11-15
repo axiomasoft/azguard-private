@@ -191,19 +191,19 @@ it('selects panels, storages and the panels or storages related to them', functi
 
 it('never prints passwords, DSNs or source secrets in findings, details or JSON', function (): void {
     config([
-        'database.connections.secondary.password' => 'V104-Db-Password',
-        'database.connections.secondary.url' => 'pgsql://azguard:V104-Url-Pass@db.example:5432/app',
+        'database.connections.secondary.password' => 'Leak-Db-Password',
+        'database.connections.secondary.url' => 'pgsql://azguard:Leak-Url-Pass@db.example:5432/app',
         'database.connections.unreachable' => ['driver' => 'pgsql', 'host' => '127.0.0.1', 'port' => 1, 'database' => 'azguard_test',
-            'username' => 'azguard', 'password' => 'V104-Remote-Pass', 'connect_timeout' => 1],
+            'username' => 'azguard', 'password' => 'Leak-Remote-Pass', 'connect_timeout' => 1],
         'azguard.storages' => ['default' => [], 'remote' => ['connection' => 'unreachable']],
-        'azguard.sources.ldap' => ['host' => 'ldap.example', 'password' => 'V104-Ldap-Secret', 'token' => 'V104-Ldap-Token'],
+        'azguard.sources.ldap' => ['host' => 'ldap.example', 'password' => 'Leak-Ldap-Secret', 'token' => 'Leak-Ldap-Token'],
     ]);
     app()->forgetInstance(AzGuardConfig::class);
     app()->forgetInstance(StorageRegistry::class);
     DoctorWorld::migrate();
     doctorPanel(static fn (PanelBuilder $panel) => $panel->doctorChecks([new ProbeCheck('probe.leaky', static fn (): array => [
-        DoctorFinding::warning('probe.leaky', 'Bound to ldap with V104-Ldap-Secret via pgsql://azguard:V104-Url-Pass@db.example:5432/app and V104-Db-Password',
-            details: ['password' => 'V104-Db-Password', 'dsn' => 'pgsql://x', 'note' => 'token V104-Ldap-Token', 'hosts' => ['V104-Remote-Pass', 'ok']]),
+        DoctorFinding::warning('probe.leaky', 'Bound to ldap with Leak-Ldap-Secret via pgsql://azguard:Leak-Url-Pass@db.example:5432/app and Leak-Db-Password',
+            details: ['password' => 'Leak-Db-Password', 'dsn' => 'pgsql://x', 'note' => 'token Leak-Ldap-Token', 'hosts' => ['Leak-Remote-Pass', 'ok']]),
     ])]));
 
     $findings = DoctorWorld::run();
@@ -211,7 +211,7 @@ it('never prints passwords, DSNs or source secrets in findings, details or JSON'
     $output = Artisan::output().json_encode(array_map(static fn (DoctorFinding $finding): array => $finding->toArray(), $findings), JSON_THROW_ON_ERROR);
     $leaky = DoctorWorld::only($findings, 'probe.leaky')[0];
 
-    foreach (['V104-Db-Password', 'V104-Url-Pass', 'V104-Remote-Pass', 'V104-Ldap-Secret', 'V104-Ldap-Token'] as $secret) {
+    foreach (['Leak-Db-Password', 'Leak-Url-Pass', 'Leak-Remote-Pass', 'Leak-Ldap-Secret', 'Leak-Ldap-Token'] as $secret) {
         expect($output)->not->toContain($secret);
     }
     expect($leaky->message)->toContain(DoctorFinding::REDACTED)

@@ -5,7 +5,7 @@ declare(strict_types=1);
 require_once dirname(__DIR__, 2).'/bin/api-compat.php';
 
 /*
- * A published migration never changes (knowledge/qualification#upgrade): every migration file of the compatibility
+ * A published migration never changes: every migration file of the compatibility
  * baseline (the newest stable tag merged into HEAD, else the `candidate` of compatibility.json) exists at the same path
  * with the same bytes. A new migration file is allowed; a changed or removed one is a break, since an installed storage
  * has already run it.

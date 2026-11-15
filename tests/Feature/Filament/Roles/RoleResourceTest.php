@@ -20,7 +20,7 @@ use Livewire\Features\SupportLockedProperties\CannotUpdateLockedPropertyExceptio
 use Livewire\Livewire;
 
 /*
- * V61, V23, R38 UI, R25 UI: the role catalogue shows the code roles of a managed panel and changes nothing; a payload
+ * The role catalogue shows the code roles of a managed panel and changes nothing; a payload
  * that names a class, a definition or permissions of a role finds nothing to write.
  */
 

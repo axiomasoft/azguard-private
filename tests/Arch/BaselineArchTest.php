@@ -36,7 +36,7 @@ it('keeps package sources free of debug calls', function (): void {
 });
 
 /*
- * I1 baseline over every production root, the module roots (`packages/core/modules/<module>/src`) included: Pest arch
+ * The zone baseline over every production root, the module roots (`packages/core/modules/<module>/src`) included: Pest arch
  * reads only the namespaces composer autoloads, a module root is autoloaded from P3.
  */
 it('finds a production file without strict types, in any root', function (): void {

@@ -7,7 +7,7 @@ use AzGuard\Laravel\Http\DecisionFailedException;
 use AzGuard\Tests\Fixtures\Formats\FormatSnapshot;
 
 /*
- * I17, blocking now: every exception class of the package, its parent and its machine code.
+ * Every exception class of the package, its parent and its machine code.
  * Applications catch these classes and match these codes; a change is deliberate and updates the fixture.
  */
 

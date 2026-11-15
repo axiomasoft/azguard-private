@@ -27,7 +27,7 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Route;
 
 /*
- * V73: entering a panel over HTTP takes an accepted subject that is a member of the tenant and holds a qualifying role
+ * Entering a panel over HTTP takes an accepted subject that is a member of the tenant and holds a qualifying role
  * of the panel there; direct grants and policy allows never admit. An optional entry permission is decided AND.
  */
 

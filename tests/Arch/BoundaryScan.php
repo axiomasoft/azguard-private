@@ -7,7 +7,7 @@ namespace AzGuard\Tests\Arch;
 use RuntimeException;
 
 /**
- * The boundary scans I2 and I3 and the report-mode comparison against an allowlist.
+ * The boundary scans: core names no module; modules name neither each other nor Filament.
  *
  * Report mode: the current violations must equal the allowlist exactly. A violation that is not listed is new and
  * fails now; a listed one that no longer occurs is stale and fails too, so the lists only shrink. The scans become
@@ -62,39 +62,10 @@ final class BoundaryScan
         $modules = Ownership::MODULES;
 
         return match (true) {
-            $owner === 'core' && in_array($referenced, $modules, true) => 'I2',
-            in_array($owner, $modules, true) && (in_array($referenced, $modules, true) || $referenced === 'filament') => 'I3',
-            $owner === 'filament' && in_array($referenced, $modules, true) => 'I3',
+            $owner === 'core' && in_array($referenced, $modules, true) => 'core-module',
+            in_array($owner, $modules, true) && (in_array($referenced, $modules, true) || $referenced === 'filament') => 'module-isolation',
+            $owner === 'filament' && in_array($referenced, $modules, true) => 'module-isolation',
             default => null,
         };
-    }
-
-    /**
-     * @param  list<array<string, mixed>>  $found
-     * @param  list<array<string, mixed>>  $allowed
-     * @return array{new: list<string>, stale: list<string>} the entries that differ, one line each
-     */
-    public static function compare(array $found, array $allowed): array
-    {
-        $keys = static fn (array $entries): array => array_values(array_unique(array_map(
-            static fn (array $entry): string => implode(' | ', [$entry['invariant'], $entry['file'], $entry['reference'], $entry['kind'], $entry['owner_phase'] ?? '—']),
-            $entries,
-        )));
-        [$foundKeys, $allowedKeys] = [$keys($found), $keys($allowed)];
-
-        return ['new' => array_values(array_diff($foundKeys, $allowedKeys)), 'stale' => array_values(array_diff($allowedKeys, $foundKeys))];
-    }
-
-    /** @return list<array<string, mixed>> */
-    public static function allowlist(string $name): array
-    {
-        $file = __DIR__.'/Allowlists/'.$name.'.json';
-        $entries = json_decode((string) file_get_contents($file), true, flags: JSON_THROW_ON_ERROR);
-
-        if (! is_array($entries) || ! array_is_list($entries)) {
-            throw new RuntimeException('An allowlist is a list of entries: '.$file);
-        }
-
-        return $entries;
     }
 }

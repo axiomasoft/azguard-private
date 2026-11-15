@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 /*
- * Disclosure policy gate (knowledge/security-gates#disclosure): the policy names the right private channel, the
+ * Disclosure policy gate: the policy names the right private channel, the
  * repository identities in public text are the three AzGuard repositories, current links use the right owner, and the
  * best-effort response targets are present. No HTTP request: dated live verification is separate evidence.
  */

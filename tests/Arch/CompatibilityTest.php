@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 /*
- * I18 (D26): the compatibility comparison rejects every intentional break and accepts the allowed additions.
+ * The compatibility comparison rejects every intentional break and accepts the allowed additions.
  *
  * The current manifests and fixtures are the baseline; each case applies one in-memory mutation to a copy and runs the
  * comparison of bin/api-compat.php (required without running its CLI). A break case asserts its exact rule ids, so it
@@ -13,7 +13,7 @@ declare(strict_types=1);
 
 require_once dirname(__DIR__, 2).'/bin/api-compat.php';
 
-/** Every rule id of knowledge/p4-execution#compatibility: each has a break case below. */
+/** Every rule id api-compat reports: each has a break case below. */
 const COMPAT_RULE_IDS = [
     'artifact.removed',
     'type.removed', 'type.publication_changed', 'type.shape_changed',

@@ -7,7 +7,7 @@ require_once dirname(__DIR__, 2).'/bin/composer-policy.php';
 require_once dirname(__DIR__, 2).'/bin/release-gate.php';
 
 /*
- * License and Composer policy gates (knowledge/security-gates#policies): the real tree passes, and each fixture breaks
+ * License and Composer policy gates: the real tree passes, and each fixture breaks
  * the rule it is named after, so a gate that stops detecting its rule fails here.
  */
 

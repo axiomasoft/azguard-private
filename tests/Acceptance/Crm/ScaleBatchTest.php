@@ -11,8 +11,9 @@ use Illuminate\Database\Events\QueryExecuted;
 use Illuminate\Support\Facades\DB;
 
 /*
- * The R58 size (10000 resources, 100 contexts) takes minutes on a server database and proves the same budgets as V45
- * at ten times the size: it runs in the `extended` group (`composer test:extended`, nightly CI), V45 on every run.
+ * The full size (10000 resources, 100 contexts) takes minutes on a server database and proves the same budgets as the
+ * 1000-resource test at ten times the size: it runs in the `extended` group (`composer test:extended`, nightly CI), the
+ * smaller one on every run.
  */
 function accountsEveryCrmResource(TestCase $test, int $resources, int $contexts): void
 {

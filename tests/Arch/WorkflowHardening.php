@@ -3,15 +3,15 @@
 declare(strict_types=1);
 
 /*
- * Workflow hardening gate, rules W1-W10 (knowledge/supply-chain#gate). A pure checker: it receives the file name, the raw
- * text and the parsed YAML of one workflow and returns one `<rule-id> <file>:<locator>` string per violation. W1 reads the
- * raw text (a version comment is not in the parsed YAML), W9 reads both.
+ * Workflow hardening gate. A pure checker: it receives the file name, the raw
+ * text and the parsed YAML of one workflow and returns one `<rule-id> <file>:<locator>` string per violation. The pin rule reads the
+ * raw text (a version comment is not in the parsed YAML); the `run:` rules read both.
  */
 
-/** W2: the only step allowed to continue on error is an upload, not a check. Workflow => job => step names. */
+/** The only step allowed to continue on error is an upload, not a check. Workflow => job => step names. */
 const WORKFLOW_CONTINUE_ON_ERROR = ['tests.yml' => ['coverage' => ['Upload coverage to Codecov']]];
 
-/** W6: job-level write permissions, knowledge/supply-chain#permissions. Workflow => job => permission keys that may be `write`. */
+/** Job-level write permissions. Workflow => job => permission keys that may be `write`. */
 const WORKFLOW_WRITE_PERMISSIONS = [
     'release.yml' => ['release' => ['contents'], 'codeql' => ['security-events']],
     'docs-deploy.yml' => ['deploy' => ['pages', 'id-token']],
@@ -194,7 +194,7 @@ function zizmorAllowlistViolations(string $raw, DateTimeImmutable $today): array
     return $violations;
 }
 
-/** W3, W9 and W10 on one `run:` string. @return list<string> */
+/** The `run:` rules on one string. @return list<string> */
 function workflowRunViolations(string $run): array
 {
     $rules = [];
@@ -228,7 +228,7 @@ function workflowRunViolations(string $run): array
     return array_values(array_unique($rules));
 }
 
-/** W5: a missing value, or anything but `read`/`none`/`{}` per scope. */
+/** A missing value, or anything but `read`/`none`/`{}` per scope. */
 function workflowReadOnlyPermissions(mixed $permissions): bool
 {
     if ($permissions === 'read-all' || $permissions === []) {
@@ -248,7 +248,7 @@ function workflowReadOnlyPermissions(mixed $permissions): bool
     return true;
 }
 
-/** W6: the `write` scopes of a job-level permissions value that the allowlist does not cover. @return list<string> */
+/** The `write` scopes of a job-level permissions value that the allowlist does not cover. @return list<string> */
 function workflowWriteViolations(string $file, string $jobId, mixed $permissions): array
 {
     if ($permissions === 'write-all') {
@@ -283,7 +283,7 @@ function workflowTriggerNames(array $parsed): array
     return array_values(array_map('strval', array_is_list($on) ? $on : array_keys($on)));
 }
 
-/** W8: the locators of every `secrets: inherit` in the tree. @return list<string> */
+/** The locators of every `secrets: inherit` in the tree. @return list<string> */
 function workflowSecretsInherit(mixed $node, string $path): array
 {
     if (! is_array($node)) {
@@ -305,7 +305,7 @@ function workflowSecretsInherit(mixed $node, string $path): array
     return $found;
 }
 
-/** W2: `true`, the string `true` and any expression count; only `false` and an absent key do not. */
+/** `true`, the string `true` and any expression count; only `false` and an absent key do not. */
 function workflowTruthy(mixed $value): bool
 {
     return $value !== false && $value !== null && $value !== 'false';

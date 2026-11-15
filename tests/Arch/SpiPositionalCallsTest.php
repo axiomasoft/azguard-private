@@ -7,7 +7,7 @@ use AzGuard\Tests\Arch\Ownership;
 use AzGuard\Tests\Arch\SourceScan;
 
 /*
- * I20, blocking now: core calls the methods of `Spi(Implement)` types positionally, so an implementer may rename a
+ * Core calls the methods of `Spi(Implement)` types positionally, so an implementer may rename a
  * parameter (PHP binds a name to the runtime implementation). The rule resolves the called method name against the
  * methods the `Spi(Implement)` types of the manifests declare and reports every call with a named argument in a file
  * core owns, whatever the receiver. A reviewed false positive is fixed by calling positionally, never listed.
@@ -20,7 +20,7 @@ it('core calls Spi(Implement) methods positionally', function (): void {
     $methods = ApiUsage::implementMethods(ApiUsage::supported());
 
     expect($methods)->toContain('ismember', 'register', 'resolve')
-        ->and(ApiUsage::i20Violations($core, $methods))->toBe([], 'call these Spi(Implement) methods positionally');
+        ->and(ApiUsage::positionalCallViolations($core, $methods))->toBe([], 'call these Spi(Implement) methods positionally');
 });
 
 it('reports a named argument of an Spi(Implement) method call and nothing else', function (): void {
@@ -42,7 +42,7 @@ it('reports a named argument of an Spi(Implement) method call and nothing else',
         PHP);
 
     try {
-        $violations = ApiUsage::i20Violations([$file], ['ismember'], dirname($file));
+        $violations = ApiUsage::positionalCallViolations([$file], ['ismember'], dirname($file));
     } finally {
         unlink($file);
     }

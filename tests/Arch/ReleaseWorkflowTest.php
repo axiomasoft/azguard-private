@@ -6,7 +6,7 @@ use Symfony\Component\Process\Process;
 use Symfony\Component\Yaml\Yaml;
 
 /*
- * Release gating (conditions 9 and 10 of the 1.0 release gate, knowledge/p4-execution#release-workflow): a GitHub
+ * Release gating: a GitHub
  * release and the package split happen only for a tag whose commit passed, in the same run, every qualification
  * workflow and the compatibility comparison. The workflows are parsed and checked by one function; each negative case
  * removes or changes one key of the parsed arrays and expects that function to report it.

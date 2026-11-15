@@ -11,7 +11,7 @@ use AzGuard\Tests\Fixtures\Concerns\Roles\ManagerRole;
 use AzGuard\Tests\Fixtures\Concerns\SubjectWorld;
 
 /*
- * V70: the recipes of "coming from Spatie Permission" work on the model in the default panel and through guard().
+ * The recipes of "coming from Spatie Permission" work on the model in the default panel and through guard().
  * Panels: admin (default, prefix backoffice) and cabinet, both without tenants, each with its own DatabaseSource.
  */
 

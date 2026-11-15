@@ -11,7 +11,7 @@ use AzGuard\Tests\Fixtures\Panels\OrderPermission;
 use Illuminate\Support\Facades\Artisan;
 
 /*
- * V84: the freshness of the catalog cache that `php artisan about` reports is the answer the doctor gives for
+ * The freshness of the catalog cache that `php artisan about` reports is the answer the doctor gives for
  * `catalog.cached` in production.
  */
 

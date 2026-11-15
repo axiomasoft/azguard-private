@@ -12,7 +12,7 @@ use Livewire\Livewire;
 use Livewire\Mechanisms\HandleRequests\HandleRequests;
 
 /*
- * V24: two Filament panels with different guard panels do not influence each other; the plugin keeps its state in
+ * Two Filament panels with different guard panels do not influence each other; the plugin keeps its state in
  * its instance and enters the guard panel on every request to the Filament panel, also on a Livewire update.
  */
 

@@ -13,12 +13,11 @@ use AzGuard\Tests\Arch\Ownership;
 use AzGuard\Tests\Arch\SourceScan;
 
 /*
- * The supported surface (D9): publication is the #[Api]/#[Spi] attribute, the attributed types equal the markers of the
+ * The supported surface: publication is the #[Api]/#[Spi] attribute, the attributed types equal the markers of the
  * type map (tests/Arch/Fixtures/target-map.json), and the generated api-manifest.json files are current.
  *
- * I4 (blocking since P3.12): files the oracle gives to a module or to Filament, and the stubs of core, reference
- * only supported core types and the members their manifests list. Any violation fails; tests/Arch/Allowlists/i4.json
- * stays empty.
+ * Files the oracle gives to a module or to Filament, and the stubs of core, reference
+ * only supported core types and the members their manifests list. Any violation fails.
  */
 
 function apiManifestRoot(): string
@@ -111,7 +110,7 @@ function apiOracleDifference(Ownership $oracle, array $attributed, callable $exi
 }
 
 /**
- * The attributed enums whose `@closed`/`@open` tags are not exactly the one of the type-map enum column (D15).
+ * The attributed enums whose `@closed`/`@open` tags are not exactly the one of the type-map enum column.
  *
  * @param  array<string, list<string>>  $tags  the tags of each attributed enum, by FQCN
  * @return list<string>
@@ -255,18 +254,13 @@ it('reports a missing, a second and a wrong enum tag', function (): void {
     ]);
 });
 
-it('keeps the I4 allowlist empty once the modules and their stubs use the supported surface only (P3.7)', function (): void {
-    expect(BoundaryScan::allowlist('i4'))->toBe([]);
-});
-
-it('I4 (blocking): modules, Filament and stubs use only supported core types and members', function (): void {
+it('lets modules, Filament and stubs use only supported core types and members', function (): void {
     $ownership = Ownership::fromOracle();
-    $found = ApiUsage::i4Violations($ownership, ApiUsage::i4Files($ownership), ApiUsage::supported());
+    $found = ApiUsage::surfaceViolations($ownership, ApiUsage::surfaceFiles($ownership), ApiUsage::supported());
 
-    expect(ApiUsage::i4Files($ownership))->toContain(apiManifestRoot().'/packages/core/modules/devtools/stubs/policy.stub', apiManifestRoot().'/packages/core/modules/audit/stubs/audit-migration.stub',
+    expect(ApiUsage::surfaceFiles($ownership))->toContain(apiManifestRoot().'/packages/core/modules/devtools/stubs/policy.stub', apiManifestRoot().'/packages/core/modules/audit/stubs/audit-migration.stub',
         apiManifestRoot().'/packages/core/modules/scopes/src/Internal/ScopeConfiguration.php')
-        ->and($found)->toBe([], 'I4 blocks: use a supported type or member; there is no allowlist')
-        ->and(BoundaryScan::allowlist('i4'))->toBe([]);
+        ->and($found)->toBe([], 'use a supported type or member; there is no allowlist');
 });
 
 it('reports an unsupported core type and a member the manifest does not list, and nothing for a listed one', function (): void {
@@ -302,7 +296,7 @@ it('reports an unsupported core type and a member the manifest does not list, an
     ];
 
     try {
-        $violations = ApiUsage::i4Violations($oracle, [$file], $supported, $root);
+        $violations = ApiUsage::surfaceViolations($oracle, [$file], $supported, $root);
     } finally {
         unlink($file);
         rmdir(dirname($file));
@@ -313,9 +307,9 @@ it('reports an unsupported core type and a member the manifest does not list, an
     }
 
     expect(array_map(static fn (array $v): string => implode(' ', [$v['invariant'], $v['file'], $v['kind'], $v['reference'], $v['owner_phase']]), $violations))->toBe([
-        'I4 packages/core/src/Scopes/Probe.php type AzGuard\Changes\Internal\ChangePipeline P3',
-        'I4 packages/core/src/Scopes/Probe.php member AzGuard\Kernel\Identity\SubjectRef::key P3',
-        'I4 packages/core/src/Scopes/Probe.php member AzGuard\Kernel\Identity\TenantRef::of P3',
+        'supported-surface packages/core/src/Scopes/Probe.php type AzGuard\Changes\Internal\ChangePipeline P3',
+        'supported-surface packages/core/src/Scopes/Probe.php member AzGuard\Kernel\Identity\SubjectRef::key P3',
+        'supported-surface packages/core/src/Scopes/Probe.php member AzGuard\Kernel\Identity\TenantRef::of P3',
     ]);
 });
 

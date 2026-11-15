@@ -10,7 +10,7 @@ use RecursiveIteratorIterator;
 use RuntimeException;
 
 /**
- * I5: every production FQCN has exactly one autoload owner. The owners are the PSR-4 entries of `packages/<name>/composer.json`;
+ * Every production FQCN has exactly one autoload owner. The owners are the PSR-4 entries of `packages/<name>/composer.json`;
  * an entry owns a type when composer would load it from that file: the FQCN starts with the prefix and the rest of it,
  * as a path under the entry's directory, is the file. The types are read from the sources, so a file in the wrong
  * directory, a type no entry reaches and a type declared twice are all found, and so are the directories the transition
@@ -195,7 +195,7 @@ final class AutoloadOwnership
 
                 if ($inside !== []) {
                     $phase = Ownership::removingPhase(...array_map(static fn (string $file): ?array => $ownership->fileRow(str_replace($root.'/', '', $file)), $inside));
-                    $violations[] = ['file' => $path, 'reference' => $directory, 'kind' => 'directory', 'invariant' => 'I5', 'owner_phase' => $phase];
+                    $violations[] = ['file' => $path, 'reference' => $directory, 'kind' => 'directory', 'invariant' => 'autoload-owner', 'owner_phase' => $phase];
                 }
             }
         }
@@ -210,6 +210,6 @@ final class AutoloadOwnership
      */
     private static function violation(string $path, string $type, string $kind, ?array $row): array
     {
-        return ['file' => $path, 'reference' => $type, 'kind' => $kind, 'invariant' => 'I5', 'owner_phase' => Ownership::removingPhase($row)];
+        return ['file' => $path, 'reference' => $type, 'kind' => $kind, 'invariant' => 'autoload-owner', 'owner_phase' => Ownership::removingPhase($row)];
     }
 }

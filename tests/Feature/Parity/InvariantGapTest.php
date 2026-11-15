@@ -20,11 +20,10 @@ use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Support\Carbon;
 
 /*
- * Gap fill of the comparison x invariant matrix (artifacts/evidence/P3.4/gap-matrix.md): the cells the parity suite
- * did not cover, on the same seeded world of ParityWorld. A failure message names its seed.
- *   I1  an unrelated grant does not change any decision of scalar, batch or SQL;
- *   I6  the pages of a visibility query are exactly the unpaged set, without repeats;
- *   model subject = SubjectRef subject for the SQL visibility of a list.
+ * Gap fill of the parity suite: the invariants it did not cover, on the same seeded world of ParityWorld. A failure message names its seed.
+ *   - an unrelated grant does not change any decision of scalar, batch or SQL;
+ *   - the pages of a visibility query are exactly the unpaged set, without repeats;
+ *   - model subject = SubjectRef subject for the SQL visibility of a list.
  */
 
 beforeEach(fn () => CrmWorld::seed());
@@ -86,7 +85,7 @@ it('an unrelated grant changes no decision on scalar, batch or SQL', function ()
         });
         ParityWorld::compile($seed, false);
 
-        expect(gapVerdicts((new ParityRunner)->decisions($cases)))->toBe($before, "I1 seed=$seed");
+        expect(gapVerdicts((new ParityRunner)->decisions($cases)))->toBe($before, "unrelated grant seed=$seed");
     }
 });
 
@@ -115,7 +114,7 @@ it('the pages of a visibility query are the unpaged set without repeats', functi
                         for ($page = 1; $page <= count(ParityWorld::CLIENTS); $page++) {
                             $paged = [...$paged, ...array_map(intval(...), $list()->forPage($page, 2)->pluck('id')->all())];
                         }
-                        $label = "I6 seed=$seed panel=$panel subject=$subject permission=$permission tenant=$tenant";
+                        $label = "paging seed=$seed panel=$panel subject=$subject permission=$permission tenant=$tenant";
 
                         expect($paged)->toBe($all, $label)->and(array_unique($paged))->toBe($paged, $label);
                         $checked++;

@@ -18,7 +18,7 @@ use AzGuard\Schema\WriterSchema;
 use AzGuard\Sources\Database\DatabaseSource;
 use AzGuard\Tests\Arch\ApiUsage;
 
-it('keeps apply and transaction on the database source only: the writer is not an SPI (D10)', function (): void {
+it('keeps apply and transaction on the database source only: the writer is not an SPI', function (): void {
     $apply = new ReflectionMethod(DatabaseSource::class, 'apply');
 
     expect(interface_exists('AzGuard\\Contracts\\Sources\\StoresGrants'))->toBeFalse()

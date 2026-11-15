@@ -12,7 +12,7 @@ use AzGuard\Tests\Fixtures\Concerns\SubjectWorld;
 use Illuminate\Support\Facades\Auth;
 
 /*
- * V108: guard(array|string $guarded) keeps the Eloquent mass-assignment selector for arrays and selects a panel for
+ * Guard(array|string $guarded) keeps the Eloquent mass-assignment selector for arrays and selects a panel for
  * strings; neither changes Auth, the current panel or the model.
  */
 

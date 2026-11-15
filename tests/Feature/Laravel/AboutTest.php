@@ -11,7 +11,7 @@ use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Schema;
 
 /*
- * V84 (about part): `php artisan about` shows the AzGuard section.
+ * `php artisan about` shows the AzGuard section.
  */
 
 beforeEach(function (): void {

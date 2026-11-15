@@ -16,7 +16,7 @@ use AzGuard\Tests\Fixtures\Filament\Models\User;
 use Livewire\Livewire;
 
 /*
- * V63: the panels page lists a panel without a database source that no editor offers; the doctor page shows the findings
+ * The panels page lists a panel without a database source that no editor offers; the doctor page shows the findings
  * of `azguard:doctor` by severity without secrets and runs the doctor on opening and on request, not on a render.
  * Both pages open with their page permission only and show data that the snapshots in Fixtures/Filament/Snapshots hold
  * (set AZGUARD_UPDATE_SNAPSHOTS=1 to write them again).

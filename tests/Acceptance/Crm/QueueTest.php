@@ -12,7 +12,7 @@ use Illuminate\Support\Facades\Schema;
 
 /*
  * CRM over a real queue: the `database` connection and `queue:work`, one worker process serving several jobs.
- * R53: an export job carries references and is authorized again when it runs. R54 (queue part): jobs one after another
+ * An export job carries references and is authorized again when it runs. Jobs one after another
  * in one worker share no panel, scope or authorizer.
  */
 

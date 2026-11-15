@@ -5,7 +5,7 @@ declare(strict_types=1);
 use AzGuard\Tests\Arch\Ownership;
 use AzGuard\Tests\Arch\SourceScan;
 
-const AZGUARD_TASK_CODE = '/\bPLAN\d+\b|\bP\d+\.\d+\b|\b[CDNQRV]-?\d{2,3}\b|\bF\d{2}\b/';
+const AZGUARD_TASK_CODE = '/\bPLAN\d+\b|\bP\d+\.\d+\b|\b[CDNQRVW]-?\d{2,3}\b|\b[DIW]\d{1,2}\b|\bF\d{2}\b|\bknowledge\/[a-z]/';
 
 /**
  * @return list<string> task codes found in comments of the given PHP code; code and strings are not scanned
@@ -28,12 +28,12 @@ it('finds task codes only in comments', function (): void {
     $code = <<<'PHP'
         <?php
         // see P1.4 and PLAN2
-        /** Closes N13, C-11, V117 and F01. */
+        /** Closes N13, C-11, V117, F01, D9 and I17; see knowledge/architecture. */
         $ignored = 'P1.4 in a string';
         /* sha256, UTF-8, 0x21, ID64, P1 and 1.4 are not codes */
         PHP;
 
-    expect(taskCodesInComments($code))->toBe(['P1.4', 'PLAN2', 'N13', 'C-11', 'V117', 'F01']);
+    expect(taskCodesInComments($code))->toBe(['P1.4', 'PLAN2', 'N13', 'C-11', 'V117', 'F01', 'D9', 'I17', 'knowledge/a']);
 });
 
 it('keeps internal task codes out of source comments', function (): void {
@@ -42,6 +42,28 @@ it('keeps internal task codes out of source comments', function (): void {
     foreach (SourceScan::files() as $file) {
         foreach (taskCodesInComments((string) file_get_contents($file)) as $code) {
             $offenders[] = basename($file).': '.$code;
+        }
+    }
+
+    expect($offenders)->toBe([]);
+});
+
+it('keeps internal task codes out of test, bench and script comments', function (): void {
+    $root = dirname(__DIR__, 2);
+    $offenders = [];
+    $files = new RecursiveIteratorIterator(new RecursiveCallbackFilterIterator(
+        new RecursiveDirectoryIterator($root, FilesystemIterator::SKIP_DOTS),
+        static fn (SplFileInfo $file): bool => ! $file->isDir() || in_array(substr($file->getPathname(), strlen($root) + 1), ['tests', 'bench', 'bin', 'fixtures'], true)
+            || str_contains($file->getPathname(), '/tests/') || str_contains($file->getPathname(), '/bench/') || str_contains($file->getPathname(), '/fixtures/'),
+    ));
+
+    foreach ($files as $file) {
+        if ($file->getExtension() !== 'php' || $file->getPathname() === __FILE__) {
+            continue;
+        }
+
+        foreach (taskCodesInComments((string) file_get_contents($file->getPathname())) as $code) {
+            $offenders[] = substr($file->getPathname(), strlen($root) + 1).': '.$code;
         }
     }
 

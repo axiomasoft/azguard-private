@@ -12,11 +12,11 @@ use ReflectionProperty;
 use RuntimeException;
 
 /**
- * The supported surface read from the api manifests and the checks over it: I4 (modules, Filament and the generated
- * stubs use only attributed core types and their supported members) and I20 (core calls the methods of `Spi(Implement)`
- * types positionally).
+ * The supported surface read from the api manifests and the checks over it: modules, Filament and the generated
+ * stubs use only attributed core types and their supported members, and core calls the methods of `Spi(Implement)`
+ * types positionally.
  *
- * I4 is member-aware where the receiver is known from the code alone: `new X(…)`, `X::m()`, `X::NAME`, `X::$p`, and
+ * The surface check is member-aware where the receiver is known from the code alone: `new X(…)`, `X::m()`, `X::NAME`, `X::$p`, and
  * `$v->m()` / `$v->p` / `$this->p->m()` where `$v` or the property `p` is typed with one class (a parameter, a promoted
  * or declared property, `$v = new X`). A receiver the token pass cannot type reports nothing; a type reference is exact.
  */
@@ -63,14 +63,14 @@ final class ApiUsage
     }
 
     /**
-     * I4 violations of the given files: a reference to a core type that is not supported (`type`), or to a member of a
+     * Supported-surface violations of the given files: a reference to a core type that is not supported (`type`), or to a member of a
      * supported core type that the manifest of its declaring type does not list (`member`).
      *
      * @param  list<string>  $files  absolute paths
      * @param  array<string, array<string, mixed>>  $supported  supported types by lower-case FQCN, as {@see self::supported()}
      * @return list<array{file: string, reference: string, kind: string, invariant: string, owner_phase: string|null}>
      */
-    public static function i4Violations(Ownership $ownership, array $files, array $supported, ?string $root = null): array
+    public static function surfaceViolations(Ownership $ownership, array $files, array $supported, ?string $root = null): array
     {
         $root = rtrim($root ?? dirname(__DIR__, 2), '/').'/';
         $violations = [];
@@ -110,7 +110,7 @@ final class ApiUsage
 
             foreach ($found as $violation) {
                 $violations[] = [
-                    'file' => $path, 'reference' => $violation['reference'], 'kind' => $violation['kind'], 'invariant' => 'I4',
+                    'file' => $path, 'reference' => $violation['reference'], 'kind' => $violation['kind'], 'invariant' => 'supported-surface',
                     'owner_phase' => Ownership::removingPhase($row, $violation['row']),
                 ];
             }
@@ -121,11 +121,11 @@ final class ApiUsage
     }
 
     /**
-     * The production files I4 covers: those the oracle gives to a module or to Filament, and the stubs of core.
+     * The production files the supported-surface check covers: those the oracle gives to a module or to Filament, and the stubs of core.
      *
      * @return list<string> absolute paths
      */
-    public static function i4Files(Ownership $ownership): array
+    public static function surfaceFiles(Ownership $ownership): array
     {
         $root = dirname(__DIR__, 2).'/';
         $files = array_values(array_filter(
@@ -276,14 +276,14 @@ final class ApiUsage
     }
 
     /**
-     * I20 violations: calls in the given files of a method named like a method of an `Spi(Implement)` type, with a named
+     * Positional-call violations: calls in the given files of a method named like a method of an `Spi(Implement)` type, with a named
      * argument. The receiver is not resolved: the name alone decides, so a call is never excused by its variable.
      *
      * @param  list<string>  $files  absolute paths
      * @param  list<string>  $methods  lower-case method names of the `Spi(Implement)` types
      * @return list<string> `file:line method` per violation
      */
-    public static function i20Violations(array $files, array $methods, ?string $root = null): array
+    public static function positionalCallViolations(array $files, array $methods, ?string $root = null): array
     {
         $root = rtrim($root ?? dirname(__DIR__, 2), '/').'/';
         $methods = array_flip($methods);

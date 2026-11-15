@@ -12,7 +12,7 @@ use Closure;
 use Illuminate\Database\Schema\Blueprint;
 
 /**
- * A cooperating host fence (R29): under the panel lock that the mutation already holds, lock the host's active build
+ * A cooperating host fence: under the panel lock that the mutation already holds, lock the host's active build
  * marker and the referenced project row on the SAME connection, then compare them with what the form or job prepared.
  * Deployments and owner transfers take the same panel-state → host-row order. Retry-safe: it reads again every attempt.
  */

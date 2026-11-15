@@ -17,7 +17,7 @@ use AzGuard\Tests\Fixtures\Formats\FormatSnapshot;
 use AzGuard\Tests\Support\AuditTable;
 
 /*
- * I17, blocking now: the event types, the `AccessEvent::toArray()` envelope and data keys with the exact `state`
+ * The event types, the `AccessEvent::toArray()` envelope and data keys with the exact `state`
  * keys, and the journal row the Audit plugin writes for an event. Values of the payloads are pinned
  * by tests/Feature/Events/CatalogTest; this pins the keys per class and the journal row.
  */
