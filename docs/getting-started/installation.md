@@ -8,23 +8,7 @@ repository's `DEVELOPMENT.md`; the commands are the same after that.
 
 ```bash
 composer require axiomasoft/azguard
-php artisan azguard:install --migrate --panel=Admin
 ```
-
-`azguard:install` does the following:
-
-1. Publishes `config/azguard.php`.
-2. Asks for the database connection of the AzGuard tables and the key type of your models. Options:
-   - `--connection=` sets the connection;
-   - `--host-keys=string|bigint|uuid|ulid` sets the key type.
-
-   The default Laravel `users.id` is `bigint`.
-3. With `--panel=Admin`, creates the first panel at `app/Guards/Admin/AdminGuardPanelProvider.php` and registers
-   it in `azguard.panels.providers`.
-4. With `--migrate`, runs the migrations. The tables use the prefix `azg_`.
-5. Runs `azguard:doctor`.
-
-The command is idempotent. An existing config is kept unless you pass `--force`.
 
 ## 1. Register a morph alias for every subject model
 
@@ -42,7 +26,8 @@ public function boot(): void
 }
 ```
 
-Without the alias, Doctor's `morph.identity` check warns in production when a model uses its class name;
+A panel refuses a subject model without an alias, so `azguard:doctor` reports an error until the alias exists.
+Doctor's `morph.identity` check also warns in production when a model uses its class name;
 `azguard_doctor.strict_morph_identity=true` promotes this finding to an error. An enforced-map violation,
 invalid alias or collision is an error. Doctor does not enable global morph-map enforcement or migrate stored rows.
 An identity check rejects class names that do not satisfy the alias grammar. Every model you pass as a scope or
@@ -61,13 +46,45 @@ class User extends Authenticatable implements AzGuardSubject
 }
 ```
 
-## 3. Check the installation
+## 3. Run the installer
+
+```bash
+php artisan azguard:install --migrate --panel=Admin --host-keys=bigint
+```
+
+`azguard:install` does the following:
+
+1. Publishes `config/azguard.php`.
+2. Takes the database connection of the AzGuard tables and the key type of your models. Without the options it
+   asks; a non-interactive run keeps the default connection and the configured key type, `string`. Options:
+   - `--connection=` sets the connection;
+   - `--host-keys=string|bigint|uuid|ulid` sets the key type.
+
+   The default Laravel `users.id` is `bigint`.
+3. With `--panel=Admin`, creates the first panel at `app/Guards/Admin/AdminGuardPanelProvider.php` and registers
+   it in `azguard.panels.providers`.
+4. With `--migrate`, runs the migrations. The tables use the prefix `azg_`.
+5. Runs `azguard:doctor`. With `--migrate`, the exit code of the installer is the one of Doctor.
+
+The command is idempotent. An existing config is kept unless you pass `--force`.
+
+The package registers its migration, so any `php artisan migrate` creates the tables with the configured key type.
+Run the installer, or set `ids.host_keys`, before the first migrate. If the tables were already created with another
+key type, Doctor reports `storage.schema`. While they hold no grants, recreate them:
+
+```bash
+php artisan migrate:refresh --path=vendor/axiomasoft/azguard/database/migrations
+```
+
+## 4. Check the installation
 
 ```bash
 php artisan azguard:doctor
 ```
 
-The command exits with code 1 when it finds errors, so it can run in CI and deployment scripts.
+The command exits with code 1 when it finds errors, so it can run in CI and deployment scripts. A local SQLite file
+without WAL gets a `storage.sqlite` warning; see [Operations → SQLite](../advanced/operations.md#sqlite) before you use it
+concurrently.
 
 ## Optional: a dedicated database connection
 
