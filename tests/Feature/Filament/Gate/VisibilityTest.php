@@ -34,7 +34,7 @@ beforeEach(function (): void {
     GateWorld::seed();
 });
 
-it('V95 lists and counts only the visible records', function (): void {
+it('lists and counts only the visible records', function (): void {
     GateWorld::serve(GateWorld::grant(['orders.view_any', 'orders.view']));
 
     Livewire::test(ListOrders::class)
@@ -43,7 +43,7 @@ it('V95 lists and counts only the visible records', function (): void {
         ->assertCountTableRecords(3);
 });
 
-it('V95 filters before LIMIT, OFFSET and COUNT', function (): void {
+it('filters before LIMIT, OFFSET and COUNT', function (): void {
     GateWorld::serve(GateWorld::grant(['orders.view_any', 'orders.view']));
 
     expect(OrderResource::getEloquentQuery()->orderBy('id')->limit(2)->pluck('id')->all())->toBe([1, 2])
@@ -51,7 +51,7 @@ it('V95 filters before LIMIT, OFFSET and COUNT', function (): void {
         ->and(OrderResource::getEloquentQuery()->count())->toBe(3);
 });
 
-it('V95 shows nothing without the view permission, and the list stays closed without view_any', function (): void {
+it('shows nothing without the view permission, and the list stays closed without view_any', function (): void {
     GateWorld::serve(GateWorld::grant(['orders.view_any']));
 
     expect(OrderResource::getEloquentQuery()->count())->toBe(0);
@@ -62,20 +62,20 @@ it('V95 shows nothing without the view permission, and the list stays closed wit
     $this->actingAs(User::query()->findOrFail(1))->get('/admin/orders')->assertForbidden();
 });
 
-it('V95 finds in global search only the visible records', function (): void {
+it('finds in global search only the visible records', function (): void {
     GateWorld::serve(GateWorld::grant(['orders.view_any', 'orders.view']));
 
     expect(OrderResource::getGlobalSearchResults('S-3')->count())->toBe(0)
         ->and(OrderResource::getGlobalSearchResults('A-')->count())->toBe(2);
 });
 
-it('V95 counts in a widget only the visible records', function (): void {
+it('counts in a widget only the visible records', function (): void {
     GateWorld::serve(GateWorld::grant(['orders.view', 'widgets.order-count']));
 
     Livewire::test(OrderCountWidget::class)->assertSee('Count: 3');
 });
 
-it('V95 shows in a relation manager only the related records the user may view', function (): void {
+it('shows in a relation manager only the related records the user may view', function (): void {
     GateWorld::serve(GateWorld::grant(['products.view_any', 'products.view']));
 
     Livewire::test(ProductsRelationManager::class, ['ownerRecord' => Order::query()->findOrFail(1), 'pageClass' => ListOrders::class])
@@ -83,7 +83,7 @@ it('V95 shows in a relation manager only the related records the user may view',
         ->assertCanNotSeeTableRecords(Order::query()->findOrFail(1)->products()->whereKey(2)->get());
 });
 
-it('V95 decides a policy-only resource by its policy without reading a grant', function (): void {
+it('decides a policy-only resource by its policy without reading a grant', function (): void {
     FilamentFixture::$guardPermissions = [OrderPermission::class, PolicyArchivedOrderPermission::class];
     FilamentFixture::$guardPolicies = [OrderRulesPolicy::class, ArchivedOrderPolicy::class];
     $this->bootFilament();

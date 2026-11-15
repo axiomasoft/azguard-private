@@ -14,7 +14,7 @@ use AzGuard\Tests\Fixtures\Sources\Relation\RelationWorld;
 beforeEach(fn () => RelationWorld::seed());
 afterEach(fn () => RelationWorld::reset());
 
-it('V72 describes a panel without a writer as read-only, and a role source only for what its roles cover', function (): void {
+it('describes a panel without a writer as read-only, and a role source only for what its roles cover', function (): void {
     [$panel] = RelationWorld::compile([new LdapSource(['bind_password' => 'ldap-secret-31'])]);
     $schema = (new SchemaBuilder(app(PanelRegistry::class), app()))->for($panel, TenantRef::global());
     $sources = [];

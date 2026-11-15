@@ -189,7 +189,7 @@ it('selects panels, storages and the panels or storages related to them', functi
         ->and(fn () => $doctor->context(storages: ['ghost']))->toThrow(InvalidConfigurationException::class);
 });
 
-it('V104 never prints passwords, DSNs or source secrets in findings, details or JSON', function (): void {
+it('never prints passwords, DSNs or source secrets in findings, details or JSON', function (): void {
     config([
         'database.connections.secondary.password' => 'V104-Db-Password',
         'database.connections.secondary.url' => 'pgsql://azguard:V104-Url-Pass@db.example:5432/app',
@@ -221,7 +221,7 @@ it('V104 never prints passwords, DSNs or source secrets in findings, details or 
         ->and(DoctorWorld::only($findings, 'storage.migrated')[0]->message)->toContain('cannot be reached ('.QueryException::class.')');
 });
 
-it('V104 removes a short password where it stands as a value of its own, not inside other words', function (): void {
+it('removes a short password where it stands as a value of its own, not inside other words', function (): void {
     config(['database.connections.secondary.password' => 'pw', 'azguard.sources.ldap' => ['password' => 'pw']]);
     app()->forgetInstance(AzGuardConfig::class);
     DoctorWorld::migrate();

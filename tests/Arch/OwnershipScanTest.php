@@ -290,7 +290,7 @@ it('leaves no production file to a split or retired owner', function (): void {
     expect($ownerless)->toBe([], 'a production file owned by split or retired escapes I2, I3 and I4');
 });
 
-it('I2: a core file may not name a module by import, class name, constant, class-string, string, plugin id or table', function (): void {
+it('a core file may not name a module by import, class name, constant, class-string, string, plugin id or table', function (): void {
     $rows = [
         ownershipRow('core', 'AzGuard\Panels\Panel', 'packages/core/src/Panels/Panel.php'),
         ownershipRow('scopes', 'AzGuard\Scopes\ScopesPlugin', 'packages/core/src/Scopes/ScopesPlugin.php', 'P2'),
@@ -327,7 +327,7 @@ it('I2: a core file may not name a module by import, class name, constant, class
     ]);
 });
 
-it('I3: a module names no other module and no Filament code, and Filament names no module', function (): void {
+it('a module names no other module and no Filament code, and Filament names no module', function (): void {
     $rows = [
         ownershipRow('scopes', 'AzGuard\Scopes\ScopesPlugin', 'packages/core/modules/scopes/src/ScopesPlugin.php'),
         ownershipRow('audit', 'AzGuard\Audit\AuditPlugin', 'packages/core/modules/audit/src/AuditPlugin.php'),

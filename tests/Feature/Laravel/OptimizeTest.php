@@ -44,7 +44,7 @@ afterEach(function (): void {
     @rmdir(dirname(self::$catalogCachePath));
 });
 
-it('V84 builds the catalog cache with optimize and removes it with optimize:clear', function (): void {
+it('builds the catalog cache with optimize and removes it with optimize:clear', function (): void {
     $this->bootCatalogPanels([AdminPanel::class]);
 
     expect(ServiceProvider::$optimizeCommands['azguard'])->toBe('azguard:catalog:cache')

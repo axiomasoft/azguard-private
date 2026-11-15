@@ -34,7 +34,7 @@ beforeEach(function (): void {
     GateWorld::seed();
 });
 
-it('V102 opens the resource whose permission is granted and keeps the other resource of the model closed', function (): void {
+it('opens the resource whose permission is granted and keeps the other resource of the model closed', function (): void {
     $member = GateWorld::grant(['orders.view_any']);
     $this->actingAs($member);
 
@@ -45,7 +45,7 @@ it('V102 opens the resource whose permission is granted and keeps the other reso
     $this->get('/admin/archived-orders')->assertOk();
 });
 
-it('V102 decides every ability of a resource by its own key, with the record as the resource of the decision', function (): void {
+it('decides every ability of a resource by its own key, with the record as the resource of the decision', function (): void {
     GateWorld::serve(GateWorld::grant(['orders.view_any', 'orders.view', 'orders.delete']));
 
     expect(OrderResource::canViewAny())->toBeTrue()
@@ -58,7 +58,7 @@ it('V102 decides every ability of a resource by its own key, with the record as 
         ->and(ArchivedOrderResource::canView(Order::query()->findOrFail(1)))->toBeFalse();
 });
 
-it('V102 refuses the model check of Filament in the guarded panel: the resource is never guessed from the model', function (): void {
+it('refuses the model check of Filament in the guarded panel: the resource is never guessed from the model', function (): void {
     $member = GateWorld::grant(['orders.view_any', 'archived-orders.view_any']);
     GateWorld::serve($member);
 
@@ -66,7 +66,7 @@ it('V102 refuses the model check of Filament in the guarded panel: the resource 
         ->and(Gate::forUser($member)->check('viewAny', Order::query()->findOrFail(1)))->toBeFalse();
 });
 
-it('V102 refuses the ambiguous model ability through the Gate adapter when FilamentSource binds both resources to the model', function (): void {
+it('refuses the ambiguous model ability through the Gate adapter when FilamentSource binds both resources to the model', function (): void {
     FilamentFixture::$definitions = FilamentDefinitions::Resources;
     FilamentFixture::$abilities = ['view_any', 'view'];
     FilamentFixture::$guardPermissions = [FilamentSource::make('admin')];

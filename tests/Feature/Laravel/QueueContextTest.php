@@ -62,7 +62,7 @@ afterEach(function (): void {
     Relation::morphMap([], false);
 });
 
-it('V84 resolves the short names of a job against the panel of the request that dispatched it', function (): void {
+it('resolves the short names of a job against the panel of the request that dispatched it', function (): void {
     $this->getJson('/dispatch', ['X-Tenant' => '1'])->assertOk()->assertExactJson(['after' => 'crm', 'hint' => 'crm']);
 
     expect(PanelProbeJob::$runs)->toBe([
@@ -70,7 +70,7 @@ it('V84 resolves the short names of a job against the panel of the request that 
     ]);
 });
 
-it('V103 sends a job from the console to the default rule, which names no panel for a shared model', function (): void {
+it('sends a job from the console to the default rule, which names no panel for a shared model', function (): void {
     PanelProbeJob::dispatch();
 
     expect(PanelProbeJob::$runs)->toHaveCount(1)
@@ -81,7 +81,7 @@ it('V103 sends a job from the console to the default rule, which names no panel 
         ->and(Context::hasHidden('azguard.panel'))->toBeFalse();
 });
 
-it('V103 runs a sync job in the panel it carries and leaves the panel of the request unchanged', function (): void {
+it('runs a sync job in the panel it carries and leaves the panel of the request unchanged', function (): void {
     $this->getJson('/dispatch-as/backoffice', ['X-Tenant' => '1'])->assertOk()->assertExactJson(['after' => 'crm']);
 
     expect(PanelProbeJob::$runs)->toHaveCount(1)
@@ -92,7 +92,7 @@ it('V103 runs a sync job in the panel it carries and leaves the panel of the req
         ->and(app(CurrentPanel::class)->get())->toBeNull();
 });
 
-it('V103 leaves no panel behind a job that throws, and no hint behind the request', function (): void {
+it('leaves no panel behind a job that throws, and no hint behind the request', function (): void {
     $this->getJson('/dispatch-failing', ['X-Tenant' => '1'])->assertOk()->assertExactJson(['after' => 'crm', 'hint' => 'crm']);
 
     expect(PanelProbeJob::$runs)->toHaveCount(1)
@@ -102,7 +102,7 @@ it('V103 leaves no panel behind a job that throws, and no hint behind the reques
         ->and(Context::hasHidden('azguard.panel'))->toBeFalse();
 });
 
-it('V103 refuses the short names of a job whose panel no longer exists and keeps explicit names working', function (): void {
+it('refuses the short names of a job whose panel no longer exists and keeps explicit names working', function (): void {
     $this->getJson('/dispatch-as/removed', ['X-Tenant' => '1'])->assertOk()->assertExactJson(['after' => 'crm']);
 
     expect(PanelProbeJob::$runs)->toHaveCount(1)

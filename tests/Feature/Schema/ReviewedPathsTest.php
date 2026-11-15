@@ -23,7 +23,7 @@ use Illuminate\Validation\Rule;
 
 afterEach(fn () => Relation::morphMap([], false));
 
-it('V72 describes a role binding of a scope that is not configurable, with the type as its label', function (): void {
+it('describes a role binding of a scope that is not configurable, with the type as its label', function (): void {
     [, $panel] = ScopeWorld::compile(new GeneratedSource);
     $schema = (new SchemaBuilder(app(PanelRegistry::class), app()))->for($panel, TenantRef::of('org', 'A'));
     $bindings = array_merge(...array_map(static fn ($role): array => $role->toArray()['context_bindings'], $schema->roles()));
@@ -33,7 +33,7 @@ it('V72 describes a role binding of a scope that is not configurable, with the t
         ->and(SchemaAssertions::nonScalars($schema->toArray()))->toBe([]);
 });
 
-it('V72 reports no exact support for an adapter-backed scope without a model', function (): void {
+it('reports no exact support for an adapter-backed scope without a model', function (): void {
     [, $panel] = ScopeWorld::compile(new GeneratedSource, configure: static fn (PanelBuilder $panel) => $panel->plugins([
         ScopesPlugin::inherit(new StoreScope)->accessAdapter('store', new EligibilityExternalAdapter),
     ]));
@@ -43,7 +43,7 @@ it('V72 reports no exact support for an adapter-backed scope without a model', f
     expect(array_column($bindings, 'exact_support'))->toBe([false]);
 });
 
-it('V72 gives a model field the rules that accept and refuse exactly what the grant writer does', function (mixed $value, bool $multiple): void {
+it('gives a model field the rules that accept and refuse exactly what the grant writer does', function (mixed $value, bool $multiple): void {
     $model = new Department;
     Schema::connection($model->getConnectionName())->create($model->getTable(), static fn (Blueprint $table) => $table->id());
     $model->newQuery()->insert([['id' => 1], ['id' => 2]]);

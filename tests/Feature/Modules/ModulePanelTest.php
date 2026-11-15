@@ -34,14 +34,14 @@ it('shows a panel the module registered through the facade', function (): void {
         ->and(app(PanelRegistry::class)->forEnum(BlogPermission::class))->toHaveCount(2);
 });
 
-it('V07: rejects a module enum attached to no panel when it is resolved', function (): void {
+it('rejects a module enum attached to no panel when it is resolved', function (): void {
     $this->bootPanels(['providers' => [AdminPanel::class]], [BlogModuleProvider::class]);
 
     expect(fn () => app(PanelResolver::class)->resolve(permission: DetachedPermission::Publish))
         ->toThrow(UnknownPermissionException::class, 'is not attached to any panel');
 });
 
-it('V07: requires an explicit panel for a module enum attached to the admin panel and the module panel', function (): void {
+it('requires an explicit panel for a module enum attached to the admin panel and the module panel', function (): void {
     $this->bootPanels(['providers' => [AdminPanel::class]], [BlogModuleProvider::class]);
 
     $resolver = app(PanelResolver::class);

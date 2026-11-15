@@ -27,7 +27,7 @@ function dynamicDecision(Panel $panel, string $name, int $user, int $tenant, ?in
     return app(Authorizer::class)->decide($panel, $request);
 }
 
-it('R23 keeps an opt-in dynamic action and its direct grant inside tenant A and creates no role', function (): void {
+it('keeps an opt-in dynamic action and its direct grant inside tenant A and creates no role', function (): void {
     $panel = W::dynamicPanel();
     $roles = app(PanelRegistry::class)->catalog('crm')->roles();
     $roleRows = W::rows('role');
@@ -54,7 +54,7 @@ it('R23 keeps an opt-in dynamic action and its direct grant inside tenant A and 
         ->and(fn () => dynamicDecision($panel, 'campaigns.view', 1, 2, 4))->toThrow(UnknownPermissionException::class);
 });
 
-it('R23 refuses to create a dynamic action when the panel did not opt in', function (): void {
+it('refuses to create a dynamic action when the panel did not opt in', function (): void {
     $panel = W::panel();
     $rows = [W::actions(), W::version()];
 
@@ -62,7 +62,7 @@ it('R23 refuses to create a dynamic action when the panel did not opt in', funct
         ->and([W::actions(), W::version()])->toBe($rows);
 });
 
-it('R23 writes with a roles-only writer that keeps the action definition but never a direct grant', function (): void {
+it('writes with a roles-only writer that keeps the action definition but never a direct grant', function (): void {
     $panel = W::dynamicPanel(rolesOnly: true);
 
     expect(W::createAction($panel, 'campaigns.view')->applied())->toBeTrue()
@@ -71,7 +71,7 @@ it('R23 writes with a roles-only writer that keeps the action definition but nev
         ->and(W::keys('permission'))->toBe([]);
 });
 
-it('R59 removes the exact grants of a deleted action in the tenant and keeps the independent grants and the other tenant', function (): void {
+it('removes the exact grants of a deleted action in the tenant and keeps the independent grants and the other tenant', function (): void {
     $panel = W::dynamicPanel();
     W::createAction($panel, 'campaigns.view');
     W::createAction($panel, 'campaigns.view', tenant: 2);
@@ -93,7 +93,7 @@ it('R59 removes the exact grants of a deleted action in the tenant and keeps the
     World::assertDecision(dynamicDecision($panel, 'campaigns.view', 1, 2, 4), true, DecisionReason::Granted);
 });
 
-it('R59 never resurrects a deleted grant: a grant after the delete is refused and a recreated action starts empty', function (): void {
+it('never resurrects a deleted grant: a grant after the delete is refused and a recreated action starts empty', function (): void {
     $panel = W::dynamicPanel();
     W::createAction($panel, 'campaigns.view');
     W::pipeline()->grant($panel, W::tenant(), W::user(2), W::permission('campaigns.view'), W::project(2));
@@ -108,7 +108,7 @@ it('R59 never resurrects a deleted grant: a grant after the delete is refused an
     World::assertDecision(dynamicDecision($panel, 'campaigns.view', 2, 1, 2), false, DecisionReason::NotGranted);
 });
 
-it('R65 grants an enum permission without any copy in permissions, refuses a runtime action before the opt-in and keeps Grants mode', function (): void {
+it('grants an enum permission without any copy in permissions, refuses a runtime action before the opt-in and keeps Grants mode', function (): void {
     $plain = W::panel();
     W::pipeline()->grant($plain, W::tenant(), W::user(2), W::permission('clients.update'), W::project(2));
 

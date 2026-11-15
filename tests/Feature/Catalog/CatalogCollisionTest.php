@@ -40,28 +40,28 @@ function collisionPanel(array $sources, array $pluginSources = []): PanelRegistr
     ])[2];
 }
 
-it('V08: keeps one permission when two sources define it equally, owned by the first one', function (): void {
+it('keeps one permission when two sources define it equally, owned by the first one', function (): void {
     $catalog = collisionPanel([StaticSource::names('a', 'orders.view'), StaticSource::names('b', 'orders.view')])->catalog('admin');
 
     expect($catalog->all())->toHaveCount(1)
         ->and($catalog->snapshot()['permissions'][0]['source'])->toBe('a');
 });
 
-it('V08: rejects two sources that define one name differently and names both', function (): void {
+it('rejects two sources that define one name differently and names both', function (): void {
     expect(fn () => collisionPanel([
         new StaticSource('a', [StaticSource::grants('orders.view', 'View orders')]),
         new StaticSource('b', [StaticSource::grants('orders.view', 'Show orders')]),
     ]))->toThrow(DuplicatePermissionException::class, '"orders.view" of panel "admin" is defined differently by source "a" and source "b"');
 });
 
-it('V08: names the plugin when a plugin source repeats a name of the provider', function (): void {
+it('names the plugin when a plugin source repeats a name of the provider', function (): void {
     expect(fn () => collisionPanel(
         [new StaticSource('app', [StaticSource::grants('posts.edit', 'Edit')])],
         ['acme/blog' => [new StaticSource('blog', [StaticSource::grants('posts.edit', 'Edit posts')])]],
     ))->toThrow(DuplicatePermissionException::class, 'source "app" and source "blog" (plugin:acme/blog)');
 });
 
-it('V08: keeps the names of a plugin as declared, next to the names of the provider', function (): void {
+it('keeps the names of a plugin as declared, next to the names of the provider', function (): void {
     $catalog = collisionPanel(
         [StaticSource::names('app', 'posts.edit')],
         ['acme/blog' => [StaticSource::names('blog', 'blog.posts.edit')]],
@@ -78,14 +78,14 @@ it('rejects one enum case that names two permissions', function (): void {
     ])]))->toThrow(DuplicatePermissionException::class, ClientPermission::class.'::View of panel "admin" names "clients.view"');
 });
 
-it('V119: one name has one authority mode across sources', function (): void {
+it('one name has one authority mode across sources', function (): void {
     expect(fn () => collisionPanel([
         new StaticSource('a', [new PermissionDefinition('clients.own', PermissionAuthority::Policy)], policies: [PolicyBinding::for('clients.own', AttributedClientPolicy::class)]),
         new StaticSource('b', [new PermissionDefinition('clients.own', PermissionAuthority::Grants)]),
     ]))->toThrow(DuplicatePermissionException::class, '"clients.own"');
 });
 
-it('V119: a policy-only permission needs a binding and is never listed by a role', function (): void {
+it('a policy-only permission needs a binding and is never listed by a role', function (): void {
     expect(fn () => collisionPanel([new StaticSource('crm', ClientPermission::definitions())]))
         ->toThrow(InvalidPolicyStructureException::class, 'clients.view_own_profile')
         ->and(fn () => collisionPanel([new StaticSource('crm', ClientPermission::definitions(), [new ProfileViewerRole], [
@@ -93,7 +93,7 @@ it('V119: a policy-only permission needs a binding and is never listed by a role
         ])]))->toThrow(DefinitionException::class, 'never assigned');
 });
 
-it('V119: a dynamic permission is always decided by grants', function (): void {
+it('a dynamic permission is always decided by grants', function (): void {
     $catalog = collisionPanel([StaticSource::names('a', 'orders.view')])->catalog('admin');
 
     expect(fn () => $catalog->withDynamic([new PermissionDefinition('reports.own', PermissionAuthority::Policy)]))
@@ -104,7 +104,7 @@ it('rejects a source named by a name no factory registers', function (): void {
     expect(fn () => collisionPanel(['ldap']))->toThrow(UnknownSourceException::class, 'names the source "ldap", which is not registered');
 });
 
-it('R3: rejects equal names contributed by two plugins with both plugin and source ids', function (): void {
+it('rejects equal names contributed by two plugins with both plugin and source ids', function (): void {
     expect(fn () => collisionPanel([], [
         'one/access' => [StaticSource::names('one-access', 'orders.view')],
         'two/access' => [StaticSource::names('two-access', 'orders.view')],

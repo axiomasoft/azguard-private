@@ -74,7 +74,7 @@ function stateResetRaceDecision(): DecisionReason
     return CrmWorld::decide(app(PanelRegistry::class)->get('crm'))->reason;
 }
 
-it('I6 serializes reset ∥ grant by the panel_state lock in both orders', function (bool $resetFirst): void {
+it('serializes reset ∥ grant by the panel_state lock in both orders', function (bool $resetFirst): void {
     $before = CrmWorld::storage()->state('crm');
     $reset = ['op' => 'reset'];
     $grant = ['op' => 'grant', 'role' => 'analyst', 'user' => 2, 'project' => 1];
@@ -93,7 +93,7 @@ it('I6 serializes reset ∥ grant by the panel_state lock in both orders', funct
         ->and(W::keys())->toContain('crm.organization:1|analyst|2|crm.project:1|manual');
 })->with(['reset first' => [true], 'grant first' => [false]])->group('engines');
 
-it('I6 V100 lets reset ∥ cached read keep the old answer only until the reset commits', function (): void {
+it('lets reset ∥ cached read keep the old answer only until the reset commits', function (): void {
     W::panel(configure: static fn (PanelBuilder $panel) => $panel->cache(store: 'array', ttl: 3600));
     $before = CrmWorld::storage()->state('crm');
     expect(stateResetRaceDecision())->toBe(DecisionReason::Granted);

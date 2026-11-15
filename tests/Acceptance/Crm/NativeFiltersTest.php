@@ -15,7 +15,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Query\Builder as Query;
 use Illuminate\Support\Facades\DB;
 
-it('R18 V110 scalar supports native local scope whereHas nested OR and whereExists', function (): void {
+it('scalar supports native local scope whereHas nested OR and whereExists', function (): void {
     Project::query()->findOrFail(1)->members()->attach(1, ['role' => 'seller']);
     World::$projectScope = ProjectScope::make()->filter(new ActiveProjects)->filter(
         function (Builder $query): void {
@@ -30,7 +30,7 @@ it('R18 V110 scalar supports native local scope whereHas nested OR and whereExis
     World::assertDecision(World::decide($panel, 4), false, DecisionReason::AssignmentScopeIneligible);
 });
 
-it('R18 root OR remains grouped under common active and immutable owner predicates', function (): void {
+it('root OR remains grouped under common active and immutable owner predicates', function (): void {
     World::assign('analyst', 1, 3);
     World::$projectScope = ProjectScope::make()->filter(new ActiveProjects)->filter(
         fn (Builder $query) => $query->orWhere('id', 3)->orWhere('id', 1),
@@ -41,7 +41,7 @@ it('R18 root OR remains grouped under common active and immutable owner predicat
     World::assertDecision(World::decide($panel, 5), false, DecisionReason::TenantMismatch);
 });
 
-it('R18 unsafe builder changes fail closed instead of widening the scalar check', function (Closure $filter): void {
+it('unsafe builder changes fail closed instead of widening the scalar check', function (Closure $filter): void {
     World::$projectScope = ProjectScope::make()->filter(new ActiveProjects)->filter($filter);
     $panel = World::compile();
     World::assertDecision(World::decide($panel), false, DecisionReason::AssignmentScopeFilterError);
@@ -57,7 +57,7 @@ it('R18 unsafe builder changes fail closed instead of widening the scalar check'
     'write' => [fn (Builder $q) => $q->delete()],
 ]);
 
-it('R20 resolver query and owner exceptions refuse without a global fallback', function (string $stage): void {
+it('resolver query and owner exceptions refuse without a global fallback', function (string $stage): void {
     $panel = World::compile();
     World::assertDecision(World::decide($panel), true, DecisionReason::Granted);
 
@@ -69,7 +69,7 @@ it('R20 resolver query and owner exceptions refuse without a global fallback', f
     World::assertDecision(World::decide($panel), false, DecisionReason::AssignmentScopeFilterError);
 })->with(['resource', 'resolve', 'query', 'owner']);
 
-it('R18 R50 exact native whereHas local scope and grouped OR preserve scalar list and count', function (string $shape): void {
+it('exact native whereHas local scope and grouped OR preserve scalar list and count', function (string $shape): void {
     DB::table('project_members')->insert(['project_id' => 1, 'user_id' => 1, 'role' => 'seller']);
     World::$projectScope = ProjectScope::make()->filter(new ActiveProjects)->filter(match ($shape) {
         'whereHas' => fn (Builder $q) => $q->whereHas('members', fn (Builder $users) => $users->whereKey(1)),
@@ -84,7 +84,7 @@ it('R18 R50 exact native whereHas local scope and grouped OR preserve scalar lis
     expect($scalar)->toBe($expected);
 })->with(['whereHas', 'local', 'OR']);
 
-it('R18 unsafe native exact mutations throw before pagination and preserve caller SQL', function (Closure $filter): void {
+it('unsafe native exact mutations throw before pagination and preserve caller SQL', function (Closure $filter): void {
     World::$projectScope = ProjectScope::make()->filter(new ActiveProjects)->filter($filter);
     $panel = ClientVisibility::panel();
     $host = Client::query()->where('id', '>', 0);

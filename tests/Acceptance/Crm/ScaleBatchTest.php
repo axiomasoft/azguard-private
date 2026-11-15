@@ -68,7 +68,7 @@ function accountsEveryCrmResource(TestCase $test, int $resources, int $contexts)
     expect($scalarIds)->toBe($expectedIds)->toBe($batchIds);
 }
 
-it('V45 accounts every CRM resource of 1000 with scalar parity and bounds structural SQL by scopes', fn () => accountsEveryCrmResource($this, 1000, 10));
+it('accounts every CRM resource of 1000 with scalar parity and bounds structural SQL by scopes', fn () => accountsEveryCrmResource($this, 1000, 10));
 
-it('R58 accounts every CRM resource of 10000 in 100 contexts multirole with scalar parity and bounded SQL', fn () => accountsEveryCrmResource($this, 10000, 100))
+it('accounts every CRM resource of 10000 in 100 contexts multirole with scalar parity and bounded SQL', fn () => accountsEveryCrmResource($this, 10000, 100))
     ->group('extended', 'stand');

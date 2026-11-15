@@ -5,7 +5,7 @@ declare(strict_types=1);
 use AzGuard\Kernel\Decision\DecisionReason;
 use AzGuard\Tests\Fixtures\Crm\CrmWorld as World;
 
-it('R49 local declared grant fields expose no undeclared assignment secret in a traced decision', function (): void {
+it('local declared grant fields expose no undeclared assignment secret in a traced decision', function (): void {
     World::clear();
     World::assign('clients.view', 1, 1, kind: 'permission', fields: ['region' => 'R1', 'eligible' => true, 'secret' => 'PRIVATE_CRM_TOKEN']);
     $panel = World::compile();

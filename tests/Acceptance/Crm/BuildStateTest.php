@@ -8,7 +8,7 @@ use AzGuard\Panels\PanelBuilder;
 use AzGuard\Storage\Schema\StorageSchema;
 use AzGuard\Tests\Fixtures\Crm\CrmWorld as World;
 
-it('R57 joint root sees host membership changes and rollback preserves committed authority', function (bool $rollback): void {
+it('joint root sees host membership changes and rollback preserves committed authority', function (bool $rollback): void {
     $panel = World::compile();
     $engine = app(Authorizer::class);
     $storage = World::storage();
@@ -33,7 +33,7 @@ it('R57 joint root sees host membership changes and rollback preserves committed
         ->and($storage->authorityTransaction())->toBeNull();
 })->with([false, true]);
 
-it('R57 restore and generation changes cannot revive an older warm CRM authority', function (): void {
+it('restore and generation changes cannot revive an older warm CRM authority', function (): void {
     $panel = World::compile(fn (PanelBuilder $p) => $p->cache('array', generation: 1));
     $before = World::decide($panel);
     expect($before->allowed())->toBeTrue();

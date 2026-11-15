@@ -57,7 +57,7 @@ it('creates a dynamic permission with its description in one mutation', function
         ->and(permissionsByKey($panel)['campaigns.launch']->description)->toBe('Запуск кампании');
 });
 
-it('V82 creates a dynamic permission, grants it, decides it and deletes it with its grants in one mutation', function (): void {
+it('creates a dynamic permission, grants it, decides it and deletes it with its grants in one mutation', function (): void {
     $panel = W::dynamicPanel();
     $permissions = M::managers($panel)->permissions();
     $created = $permissions->create('campaigns.launch', 'Запуск', 'Кампании');
@@ -85,7 +85,7 @@ it('V82 creates a dynamic permission, grants it, decides it and deletes it with 
         ->and(fn () => permissionDecision($panel, 'campaigns.launch'))->toThrow(UnknownPermissionException::class);
 });
 
-it('V82 R65 refuses a dynamic name that is a permission of an enum, a panel without the opt-in, and permission grants of a roles-only writer', function (): void {
+it('refuses a dynamic name that is a permission of an enum, a panel without the opt-in, and permission grants of a roles-only writer', function (): void {
     $dynamic = M::managers(W::dynamicPanel())->permissions();
 
     expect(fn () => $dynamic->create('clients.view'))->toThrow(DuplicatePermissionException::class)
@@ -102,7 +102,7 @@ it('V82 R65 refuses a dynamic name that is a permission of an enum, a panel with
         ->and(W::rows('permission'))->toBe([]);
 });
 
-it('R65 lists enum permissions with their immutable mode and no stored copy without the opt-in', function (): void {
+it('lists enum permissions with their immutable mode and no stored copy without the opt-in', function (): void {
     $panel = W::panel();
     $listed = permissionsByKey($panel);
 
@@ -112,7 +112,7 @@ it('R65 lists enum permissions with their immutable mode and no stored copy with
         ->and(W::actions())->toBe([]);
 });
 
-it('V92 keeps a pattern grant when the dynamic permission goes and lists it as orphaned once it covers nothing', function (): void {
+it('keeps a pattern grant when the dynamic permission goes and lists it as orphaned once it covers nothing', function (): void {
     $panel = W::dynamicPanel();
     $managers = M::managers($panel);
     $managers->permissions()->create('campaigns.launch');

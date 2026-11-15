@@ -70,7 +70,7 @@ it('revokes every context of one tenant and origin with AnyAssignmentScope, neve
         ->and(W::keys())->toContain('crm.organization:1|auditor|1|global|manual');
 });
 
-it('R28 revokes orphan, expired and inactive grants by their stored scope without live eligibility', function (): void {
+it('revokes orphan, expired and inactive grants by their stored scope without live eligibility', function (): void {
     Project::query()->whereKey(5)->update(['is_active' => false]);
     CrmWorld::assign('ghost', 1, 1);
     CrmWorld::assign('seller', 1, 99);

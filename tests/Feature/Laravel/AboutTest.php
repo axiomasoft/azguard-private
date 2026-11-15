@@ -33,7 +33,7 @@ function aboutSection(): array
     return $about['az_guard'];
 }
 
-it('V84 shows the version, the panels with their storage and state version, the host keys and the cache state', function (): void {
+it('shows the version, the panels with their storage and state version, the host keys and the cache state', function (): void {
     $section = aboutSection();
 
     expect($section)->toHaveKeys(['version', 'catalog_cache', 'host_keys', 'named_sources', 'panel_crm', 'panel_backoffice'])
@@ -44,13 +44,13 @@ it('V84 shows the version, the panels with their storage and state version, the 
         ->and($section['panel_backoffice'])->toContain('state version: none');
 });
 
-it('V84 lists the named sources registered with the factory', function (): void {
+it('lists the named sources registered with the factory', function (): void {
     app(SourceManager::class)->extend('ldap', static fn (): never => throw new LogicException('not built'));
 
     expect(aboutSection()['named_sources'])->toBe('ldap');
 });
 
-it('V84 reports an unreachable storage as unavailable, without an error and without a secret', function (): void {
+it('reports an unreachable storage as unavailable, without an error and without a secret', function (): void {
     Schema::drop('azg_panel_state');
 
     $section = aboutSection();

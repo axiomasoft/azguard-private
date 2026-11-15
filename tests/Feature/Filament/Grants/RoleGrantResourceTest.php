@@ -77,7 +77,7 @@ function teamGrants(): array
     return [GrantWorld::memberGrant(2, 'teams', 7), GrantWorld::memberGrant(2, 'teams', 8)];
 }
 
-it('V63 hides a panel without a database source from the grant editors, also when the plugin manages every panel', function (): void {
+it('hides a panel without a database source from the grant editors, also when the plugin manages every panel', function (): void {
     GrantWorld::prepare(manages: null);
     $this->bootFilament();
     GrantWorld::seed();
@@ -119,7 +119,7 @@ it('refuses the editor to a user without its permissions and hides what the user
     Livewire::test(ListRoleGrants::class)->assertForbidden();
 });
 
-it('V26 searches a subject among 10 000 users with one query of at most 50 rows and labels it through the morph map', function (): void {
+it('searches a subject among 10 000 users with one query of at most 50 rows and labels it through the morph map', function (): void {
     GrantWorld::editor();
     foreach (array_chunk(range(3, 10002), 500) as $ids) {
         User::query()->insert(array_map(fn (int $id): array => ['id' => $id, 'name' => 'User '.$id], $ids));
@@ -167,7 +167,7 @@ it('grants a role through the form as the user who edits, with the expiry, in th
         ->and(DB::table('azg_role_grants')->where('panel', '!=', 'admin')->count())->toBe(0);
 });
 
-it('R25 grants only the role of the form: keys of a role definition in the payload change no role, no catalog and no permission', function (): void {
+it('grants only the role of the form: keys of a role definition in the payload change no role, no catalog and no permission', function (): void {
     GrantWorld::editor();
     $roles = static fn (): array => array_map(static fn ($role): string => $role->key->key().':'.$role->class, AzGuard::panel('admin')->roles()->all());
     $before = $roles();
@@ -186,7 +186,7 @@ it('R25 grants only the role of the form: keys of a role definition in the paylo
         ->and(DB::table('azg_permission_grants')->count())->toBe($permissionGrants);
 });
 
-it('V96 clears the subject, the role, the context and the fields when the panel or the tenant of the form changes', function (): void {
+it('clears the subject, the role, the context and the fields when the panel or the tenant of the form changes', function (): void {
     GrantWorld::editor();
 
     $component = Livewire::test(ListRoleGrants::class)
@@ -201,7 +201,7 @@ it('V96 clears the subject, the role, the context and the fields when the panel 
     expect(grantFormState($component))->toMatchArray(['panel' => 'admin', 'tenant' => null, 'subject' => null, 'key' => null, 'context_type' => null]);
 });
 
-it('V96 grants in the tenant chosen in the form, which the directory of the panel checks', function (): void {
+it('grants in the tenant chosen in the form, which the directory of the panel checks', function (): void {
     GrantWorld::editor();
 
     Livewire::test(ListRoleGrants::class)
@@ -219,7 +219,7 @@ it('V96 grants in the tenant chosen in the form, which the directory of the pane
     expect(DB::table('azg_role_grants')->count())->toBe($before);
 });
 
-it('V96 refuses a forged subject, role or context type in the payload of the form and writes nothing', function (): void {
+it('refuses a forged subject, role or context type in the payload of the form and writes nothing', function (): void {
     GrantWorld::editor();
     $rows = DB::table('azg_role_grants')->count();
 
@@ -237,7 +237,7 @@ it('V96 refuses a forged subject, role or context type in the payload of the for
     expect(DB::table('azg_role_grants')->count())->toBe($rows);
 });
 
-it('V96 checks every value again on the server even when the form is skipped', function (): void {
+it('checks every value again on the server even when the form is skipped', function (): void {
     $user = GrantWorld::editor();
     $editor = GrantEditor::of(TargetSelector::current()->access('admin'), 'role');
     $rows = DB::table('azg_role_grants')->count();
@@ -250,7 +250,7 @@ it('V96 checks every value again on the server even when the form is skipped', f
         ->and(DB::table('azg_role_grants')->count())->toBe($rows);
 });
 
-it('V96 R37 refuses the edit and the revocation of a grant of another tenant and a bulk with one such id revokes nothing', function (): void {
+it('refuses the edit and the revocation of a grant of another tenant and a bulk with one such id revokes nothing', function (): void {
     GrantWorld::editor();
     [$seven, $eight] = teamGrants();
     $component = Livewire::test(ListRoleGrants::class)->filterTable('grants', ['panel' => 'teams', 'tenant' => '7']);
@@ -295,7 +295,7 @@ it('revokes the selected grants of the page in one change', function (): void {
         ->and(DB::table('azg_panel_state')->where('panel', 'admin')->value('version'))->toBe($version + 1);
 });
 
-it('R24 refuses the edit of a row that changed after its form was filled and saves a fresh one', function (): void {
+it('refuses the edit of a row that changed after its form was filled and saves a fresh one', function (): void {
     GrantWorld::editor();
     $id = GrantWorld::memberGrant(1);
     $component = Livewire::test(ListRoleGrants::class)
@@ -317,7 +317,7 @@ it('R24 refuses the edit of a row that changed after its form was filled and sav
     expect(AzGuard::panel('admin')->grants()->find($id)?->until?->format('Y'))->toBe('2031');
 });
 
-it('R24 keeps the fingerprint of the open form on the server, out of reach of the payload', function (): void {
+it('keeps the fingerprint of the open form on the server, out of reach of the payload', function (): void {
     GrantWorld::editor();
     $id = GrantWorld::memberGrant(1);
     $component = Livewire::test(ListRoleGrants::class)->mountAction(TestAction::make('edit')->table($id));
@@ -327,7 +327,7 @@ it('R24 keeps the fingerprint of the open form on the server, out of reach of th
         ->and(fn () => $component->set('grantCursors', [2 => 'forged']))->toThrow(CannotUpdateLockedPropertyException::class);
 });
 
-it('R28 lists expired and orphaned grants for revocation and revokes them', function (): void {
+it('lists expired and orphaned grants for revocation and revokes them', function (): void {
     GrantWorld::editor();
     Carbon::setTestNow('2026-10-01T10:00:00Z');
     $receiver = User::query()->findOrFail(2);

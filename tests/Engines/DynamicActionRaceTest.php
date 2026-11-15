@@ -80,7 +80,7 @@ afterEach(function (): void {
     Relation::morphMap([], false);
 });
 
-it('P3.6 role grant ∥ permission grant on one panel: both apply, in either order, two bumps', function (bool $roleFirst): void {
+it('role grant ∥ permission grant on one panel: both apply, in either order, two bumps', function (bool $roleFirst): void {
     $version = W::version();
     $role = ['op' => 'grant', 'role' => 'analyst', 'user' => 2, 'project' => 2];
     $permission = ['op' => 'grant-permission', 'name' => 'campaigns.view', 'user' => 2, 'project' => 2];
@@ -94,7 +94,7 @@ it('P3.6 role grant ∥ permission grant on one panel: both apply, in either ord
         ->and(array_count_values(W::keys())['crm.organization:1|analyst|2|crm.project:2|manual'] ?? 0)->toBe(1);
 })->with(['role first' => [true], 'permission first' => [false]])->group('engines');
 
-it('C9 leaves no grant of the deleted name when a grant that passed its check commits before the delete', function (): void {
+it('leaves no grant of the deleted name when a grant that passed its check commits before the delete', function (): void {
     $version = W::version();
     [$grant, $delete] = dynamicRacePair($this->processes,
         ['op' => 'grant-permission', 'name' => 'campaigns.view', 'user' => 2, 'project' => 2],
@@ -108,7 +108,7 @@ it('C9 leaves no grant of the deleted name when a grant that passed its check co
         ->and(W::version())->toBe($version + 2);
 })->group('engines');
 
-it('C9 refuses a grant of a name that a concurrent delete removed first and writes no orphan', function (): void {
+it('refuses a grant of a name that a concurrent delete removed first and writes no orphan', function (): void {
     $version = W::version();
     [$delete, $grant] = dynamicRacePair($this->processes,
         ['op' => 'delete-permission', 'name' => 'campaigns.view'],

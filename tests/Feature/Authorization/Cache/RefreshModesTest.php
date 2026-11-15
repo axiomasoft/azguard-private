@@ -53,7 +53,7 @@ it('refreshes a warm revision once per request or once per check', function (Sta
     expect($budget['state'])->toBe($reads)->and($budget['grants'])->toBe(0);
 })->with([[StateRefresh::Request, 1], [StateRefresh::Check, 10]]);
 
-it('V18 observes a committed revoke in a new Primary request or the next Primary check', function (StateRefresh $refresh): void {
+it('observes a committed revoke in a new Primary request or the next Primary check', function (StateRefresh $refresh): void {
     [$engine, $panel] = CacheWorld::database(DatabaseSource::make(), $refresh);
     $request = DatabaseWorld::request();
     $before = $engine->decide($panel, $request);

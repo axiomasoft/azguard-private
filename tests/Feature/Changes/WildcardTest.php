@@ -13,7 +13,7 @@ use AzGuard\Tests\Fixtures\Crm\CrmWorld;
 beforeEach(fn () => CrmWorld::seed());
 afterEach(fn () => CrmWorld::resetRuntime());
 
-it('V22 rejects a bare wildcard as a direct permission grant at the write boundary', function (string $wildcard): void {
+it('rejects a bare wildcard as a direct permission grant at the write boundary', function (string $wildcard): void {
     $panel = W::panel();
     $before = W::rows('permission');
 
@@ -21,7 +21,7 @@ it('V22 rejects a bare wildcard as a direct permission grant at the write bounda
         ->and(W::rows('permission'))->toBe($before);
 })->with(['*', '**', 'crm:*', 'crm:**']);
 
-it('V22 makes a super admin only through a role with the super admin flag', function (): void {
+it('makes a super admin only through a role with the super admin flag', function (): void {
     $panel = W::panel();
     $authorizer = app(Authorizer::class);
     $scope = AccessScope::in(W::tenant(), W::project(1));

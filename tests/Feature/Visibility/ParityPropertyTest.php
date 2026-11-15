@@ -51,7 +51,7 @@ class ParityResourceRestriction extends VisibilityRestriction
 beforeEach(fn () => W::seed());
 afterEach(fn () => W::reset());
 
-it('P14 matches every scalar allow id and count on 100 reproducible seeds under one snapshot and decision clock', function (): void {
+it('matches every scalar allow id and count on 100 reproducible seeds under one snapshot and decision clock', function (): void {
     $projects = VisibilityProject::query()->orderBy('id')->get();
     for ($seed = 1; $seed <= ScenarioGenerator::parityCount(100); $seed++) {
         $next = $seed;
@@ -146,7 +146,7 @@ it('P14 matches every scalar allow id and count on 100 reproducible seeds under 
     }
 });
 
-it('P14 gives each denial layer a positive control and an independent literal denial', function (string $layer): void {
+it('gives each denial layer a positive control and an independent literal denial', function (string $layer): void {
     $source = new VisibilitySource(direct: [W::grant(1), W::grant(2)], roles: [W::role(1)]);
     [$visibility, $panel] = W::compile($source);
     expect($visibility->visibleTo($panel, VisibilityProject::query(), W::subject(), 'orders.view')->orderBy('id')->pluck('id')->all())->toBe([1, 2]);
@@ -171,7 +171,7 @@ it('P14 gives each denial layer a positive control and an independent literal de
     expect($visibility->visibleTo($panel, VisibilityProject::query(), W::subject(), 'orders.view')->orderBy('id')->pluck('id')->all())->toBe($expected);
 })->with(['before', 'common', 'role', 'condition', 'restriction', 'veto']);
 
-it('P14 keeps list equal to scalar for a restriction whose appliesTo depends on the resource', function (): void {
+it('keeps list equal to scalar for a restriction whose appliesTo depends on the resource', function (): void {
     $projects = VisibilityProject::query()->orderBy('id')->get();
     for ($seed = 1; $seed <= 30; $seed++) {
         $next = $seed;

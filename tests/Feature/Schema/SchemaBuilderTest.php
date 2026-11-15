@@ -93,7 +93,7 @@ function extendedCrm(): Panel
     }, [World::database(), new HrRoleSource(HrRoleSource::PASSWORD)]);
 }
 
-it('V72 tells for every permission who decides it, which sources give it and in which context types', function (): void {
+it('tells for every permission who decides it, which sources give it and in which context types', function (): void {
     $schema = crmSchema(extendedCrm());
 
     expect(array_map(static fn (PermissionSchema $permission): string => $permission->key->full(), $schema->permissions()))->toBe([
@@ -121,7 +121,7 @@ it('V72 tells for every permission who decides it, which sources give it and in 
         ->and($policyOnly->decidedBy)->toBe('policy:'.ClientPolicy::class.'@own');
 });
 
-it('V72 shows PHP roles read-only with their class, grant modes and context bindings', function (): void {
+it('shows PHP roles read-only with their class, grant modes and context bindings', function (): void {
     $schema = crmSchema(extendedCrm());
     $seller = schemaRoleOf($schema, 'seller');
     $viewer = schemaRoleOf($schema, 'viewer');
@@ -141,7 +141,7 @@ it('V72 shows PHP roles read-only with their class, grant modes and context bind
         ->and(schemaRoleOf($schema, 'tenant-admin')->superAdmin)->toBeTrue();
 });
 
-it('V72 gives the grant fields of the writer models and of a plugin with their origin, sorted by name', function (): void {
+it('gives the grant fields of the writer models and of a plugin with their origin, sorted by name', function (): void {
     $panel = World::compile(static fn (PanelBuilder $panel) => $panel->plugins([SecretFieldPlugin::make(SecretFieldPlugin::SECRET)]));
     $schema = crmSchema($panel);
     $fields = $schema->toArray()['fields'];
@@ -160,7 +160,7 @@ it('V72 gives the grant fields of the writer models and of a plugin with their o
         ->and($schema->fields(FieldTarget::PermissionGrant)[0]->contributedBy)->toBe('model:AzGuard\Tests\Fixtures\Crm\CrmPermissionGrant');
 });
 
-it('V104 R49 never serializes a secret parameter of a plugin or of a source', function (): void {
+it('never serializes a secret parameter of a plugin or of a source', function (): void {
     $panel = World::compile(
         static fn (PanelBuilder $panel) => $panel->plugins([SecretFieldPlugin::make(SecretFieldPlugin::SECRET)]),
         [World::database(), new HrRoleSource(HrRoleSource::PASSWORD)],
@@ -174,7 +174,7 @@ it('V104 R49 never serializes a secret parameter of a plugin or of a source', fu
         ->not->toContain(HrRoleSource::PASSWORD);
 });
 
-it('V104 overlays the dynamic permissions of the selected tenant only', function (): void {
+it('overlays the dynamic permissions of the selected tenant only', function (): void {
     $panel = W::dynamicPanel();
     W::createAction($panel, 'campaigns.view', tenant: 1, label: 'Просмотр кампаний', group: 'Кампании');
     W::createAction($panel, 'calls.make', tenant: 2, label: 'Звонки');
@@ -239,7 +239,7 @@ it('takes the auth guard and the directory of subjects from the compiled descrip
         ->and($default->writable)->toBeTrue()->and($default->label)->toBe('crm')->and($default->panel)->toBe('crm');
 });
 
-it('R49 builds the same metadata twice for the same build', function (): void {
+it('builds the same metadata twice for the same build', function (): void {
     $panel = extendedCrm();
 
     expect(SchemaAssertions::json(crmSchema($panel)))->toBe(SchemaAssertions::json(crmSchema(World::compile(static function (PanelBuilder $panel): void {

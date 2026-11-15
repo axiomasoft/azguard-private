@@ -72,7 +72,7 @@ it('refuses a policy-only permission in a forged payload: the form does not offe
         ->and([DB::table('azg_permission_grants')->count(), DB::table('azg_panel_state')->where('panel', 'seller')->value('version')])->toBe($rows);
 });
 
-it('V63 answers «Why?» with what explain() of the target panel says', function (): void {
+it('answers «Why?» with what explain() of the target panel says', function (): void {
     GrantWorld::editor();
     $receiver = User::query()->findOrFail(2);
     AzGuard::panel('seller')->for($receiver)->grantPermission('entry.enter');
@@ -107,7 +107,7 @@ it('V63 answers «Why?» with what explain() of the target panel says', function
         ->and($denied['effect'])->not->toBe('allow');
 });
 
-it('V63 asks «Why?» from a row with its subject, and shows a role given by no stored grant only there', function (): void {
+it('asks «Why?» from a row with its subject, and shows a role given by no stored grant only there', function (): void {
     GrantWorld::editor();
     $id = GrantWorld::memberGrant(1);
 

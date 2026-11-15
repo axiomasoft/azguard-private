@@ -105,7 +105,7 @@ function bootGenerated(object $test, GeneratedApp $generated): array
     ];
 }
 
-it('V78 finds the enum, the policy and the role of a generated panel by the folders, with #[Decides] on every method', function (): void {
+it('finds the enum, the policy and the role of a generated panel by the folders, with #[Decides] on every method', function (): void {
     generateOrdersApp($this->generated);
     $booted = bootGenerated($this, $this->generated);
     $snapshot = $booted['snapshot'];
@@ -126,7 +126,7 @@ it('V78 finds the enum, the policy and the role of a generated panel by the fold
         ->and($snapshot['permissions'][0]['source'])->toBe('folder');
 });
 
-it('V78 finds the permission of a generated enum for the Gate ability viewAny of its #[Resource(model)]', function (): void {
+it('finds the permission of a generated enum for the Gate ability viewAny of its #[Resource(model)]', function (): void {
     generateOrdersApp($this->generated);
     bootGenerated($this, $this->generated);
     $user = User::query()->findOrFail(1);
@@ -140,7 +140,7 @@ it('V78 finds the permission of a generated enum for the Gate ability viewAny of
     expect(Gate::forUser($user)->allows('viewAny', User::class))->toBeTrue();
 });
 
-it('V78 derives no binding from a method name when the attribute is gone', function (): void {
+it('derives no binding from a method name when the attribute is gone', function (): void {
     generateOrdersApp($this->generated);
     $policy = 'app/Guards/Orders/Policies/Sales/Orders/OrderPolicy.php';
     file_put_contents($this->generated->path($policy), str_replace("    #[Decides(OrderPermission::Create)]\n", '', $this->generated->read($policy)));
@@ -153,7 +153,7 @@ it('V78 derives no binding from a method name when the attribute is gone', funct
         ->and($this->generated->read($policy))->toContain('public function create(');
 });
 
-it('V78 does not take Shared for a panel and registers the names of the sources it finds', function (): void {
+it('does not take Shared for a panel and registers the names of the sources it finds', function (): void {
     generateOrdersApp($this->generated);
     $booted = bootGenerated($this, $this->generated);
 
@@ -165,7 +165,7 @@ it('V78 does not take Shared for a panel and registers the names of the sources 
         ->and(array_column($booted['snapshot']['sources'], 'id'))->toBe(['folder', 'database']);
 });
 
-it('V106 keeps the groups Orders of Sales and of Support apart and does not read the root Sources as a group', function (): void {
+it('keeps the groups Orders of Sales and of Support apart and does not read the root Sources as a group', function (): void {
     generateOrdersApp($this->generated);
     $snapshot = bootGenerated($this, $this->generated)['snapshot'];
     $enumOf = static fn (string $local): string => $snapshot['permissions'][array_search($local, array_column($snapshot['permissions'], 'local'), true)]['case']['enum'];
@@ -177,7 +177,7 @@ it('V106 keeps the groups Orders of Sales and of Support apart and does not read
         ->and(array_search('sources.trap', array_column($snapshot['permissions'], 'local'), true))->toBeFalse();
 });
 
-it('V106 refuses a group with two policies that nothing tells apart, as the generator does', function (): void {
+it('refuses a group with two policies that nothing tells apart, as the generator does', function (): void {
     generateOrdersApp($this->generated);
     $folder = 'app/Guards/Orders/Policies/Sales/Orders/';
     file_put_contents($this->generated->path($folder.'ExtraPolicy.php'), str_replace('OrderPolicy', 'ExtraPolicy', $this->generated->read($folder.'OrderPolicy.php')));
@@ -185,7 +185,7 @@ it('V106 refuses a group with two policies that nothing tells apart, as the gene
     expect(fn () => bootGenerated($this, $this->generated))->toThrow(InvalidPolicyStructureException::class, 'Name the enum on the policy');
 });
 
-it('V105 R56 decides the same live and after azguard:catalog:cache', function (bool $vetoUpdate): void {
+it('decides the same live and after azguard:catalog:cache', function (bool $vetoUpdate): void {
     generateOrdersApp($this->generated, $vetoUpdate);
     $live = bootGenerated($this, $this->generated);
 
@@ -205,7 +205,7 @@ it('V105 R56 decides the same live and after azguard:catalog:cache', function (b
         ->and($cached['decisions'])->toBe($live['decisions']);
 })->with(['the policy allows' => false, 'the policy vetoes' => true]);
 
-it('V105 the folder discovery and the cache give the catalog of the generated panel with an equal fingerprint', function (): void {
+it('the folder discovery and the cache give the catalog of the generated panel with an equal fingerprint', function (): void {
     generateOrdersApp($this->generated);
     $live = bootGenerated($this, $this->generated);
     $this->artisan('azguard:catalog:cache')->assertSuccessful();
@@ -218,7 +218,7 @@ it('V105 the folder discovery and the cache give the catalog of the generated pa
         ->and($cached['snapshot'])->toBe($live['snapshot']);
 });
 
-it('V78 adds the folder of a module generated beside the panel with discover(), keeping its groups apart', function (): void {
+it('adds the folder of a module generated beside the panel with discover(), keeping its groups apart', function (): void {
     foreach ([
         ['azguard:make:panel', ['panel' => 'Shop', '--model' => User::class]],
         ['azguard:make:permission', ['panel' => 'Shop', 'group' => 'Orders', '--policy' => true]],

@@ -84,7 +84,7 @@ afterEach(function (): void {
     Relation::morphMap([], false);
 });
 
-it('C13 lets one manager update ∥ update with the same form fingerprint win and refuses the stale form', function (): void {
+it('lets one manager update ∥ update with the same form fingerprint win and refuses the stale form', function (): void {
     // The fingerprint covers the build: read the form on the build shape the workers compile (one closure pipe).
     $panel = W::panel([static fn (Change $c, Closure $next): ChangeResult => $next($c)]);
     $id = W::grant($panel, 'auditor', 2, null)->record?->id ?? '';
@@ -98,7 +98,7 @@ it('C13 lets one manager update ∥ update with the same form fingerprint win an
         ->and(json_decode((string) M::row($id)['meta'], true))->toBe(['eligible' => true]);
 })->group('engines');
 
-it('R66 serializes migration ∥ grant(former key): the grant is refused in both orders and no former key row is left', function (bool $migrationFirst): void {
+it('serializes migration ∥ grant(former key): the grant is refused in both orders and no former key row is left', function (bool $migrationFirst): void {
     $valid = M::stored('role', 'inspector', 2);
     $expired = M::stored('role', 'inspector', 3, origin: 'import', until: '2026-01-01 00:00:00');
     $orphan = M::stored('role', 'inspector', 2, 'crm.project:3');

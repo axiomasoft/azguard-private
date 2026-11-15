@@ -7,7 +7,7 @@ use AzGuard\Tests\Fixtures\Crm\CrmWorld as World;
 use AzGuard\Tests\Fixtures\Crm\Models\Project;
 use AzGuard\Tests\Fixtures\Crm\Models\User;
 
-it('R15 V112 host city and active fields refresh under the identical grant state token', function (): void {
+it('host city and active fields refresh under the identical grant state token', function (): void {
     $panel = World::compile();
     $before = World::decide($panel);
     World::assertDecision($before, true, DecisionReason::Granted);

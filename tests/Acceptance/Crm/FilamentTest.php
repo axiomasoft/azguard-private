@@ -103,7 +103,7 @@ function backofficeGrants(): array
     return DB::table('azg_role_grants')->where('panel', 'backoffice')->orderBy('id')->get()->map(static fn (object $row): array => (array) $row)->all();
 }
 
-it('R39 refuses the Filament panel without a role even with a direct grant and a policy allow of the entry', function (): void {
+it('refuses the Filament panel without a role even with a direct grant and a policy allow of the entry', function (): void {
     self::crmFilament(static fn (PanelBuilder $panel) => $panel->entry(EntryPermission::Enter));
     self::member(4);
     World::assign('clients.view', 4, 1, kind: 'permission');
@@ -114,7 +114,7 @@ it('R39 refuses the Filament panel without a role even with a direct grant and a
     expect(AzGuard::check(User::query()->findOrFail(4), 'crm:clients.view', Client::query()->findOrFail(1)))->toBeTrue();
 });
 
-it('R39 lets a caller of P1 into organization A only, and opens there only the clients of its project', function (): void {
+it('lets a caller of P1 into organization A only, and opens there only the clients of its project', function (): void {
     filamentCaller();
     $this->actingAs(CrmFilamentUser::query()->findOrFail(4));
 
@@ -126,7 +126,7 @@ it('R39 lets a caller of P1 into organization A only, and opens there only the c
     $this->get('/crm/1/clients/5')->assertNotFound();
 });
 
-it('R34 shows in the list, its count, the widget and global search only the clients of the own project and tenant', function (): void {
+it('shows in the list, its count, the widget and global search only the clients of the own project and tenant', function (): void {
     filamentCaller();
     World::assign('widgets.client-count', 4, 1, kind: 'permission', scope: World::scope(1));
     $this->serveCrm(4);
@@ -142,7 +142,7 @@ it('R34 shows in the list, its count, the widget and global search only the clie
         ->and(ClientResource::getEloquentQuery()->pluck('id')->sort()->values()->all())->toBe([1, 2]);
 });
 
-it('R34 deletes in bulk only own clients: a foreign id in the selection is not even found', function (): void {
+it('deletes in bulk only own clients: a foreign id in the selection is not even found', function (): void {
     filamentCaller();
     World::assign('clients.delete_any', 4, 1, kind: 'permission', scope: World::scope(1));
     World::assign('clients.delete', 4, 1, kind: 'permission');
@@ -156,7 +156,7 @@ it('R34 deletes in bulk only own clients: a foreign id in the selection is not e
     expect(Client::query()->pluck('id')->sort()->values()->all())->toBe([1, 2, 3, 4, 5, 6]);
 });
 
-it('R34 exports only the clients the caller may still view, in its organization', function (): void {
+it('exports only the clients the caller may still view, in its organization', function (): void {
     filamentCaller();
     $dispatcher = Bus::getFacadeRoot();
     Bus::fake();
@@ -188,7 +188,7 @@ it('R34 exports only the clients the caller may still view, in its organization'
     expect(Storage::disk('local')->get('filament_exports/'.$export->getKey().'/0000000000000001.csv'))->toBe("1\n2\n");
 });
 
-it('R40 lets a caller open the list and the card and record a call to an own client, and refuses the call where the client must not be called', function (): void {
+it('lets a caller open the list and the card and record a call to an own client, and refuses the call where the client must not be called', function (): void {
     filamentCaller();
     Event::fake([ClientCalled::class]);
     $this->serveCrm(4);
@@ -206,7 +206,7 @@ it('R40 lets a caller open the list and the card and record a call to an own cli
     Event::assertDispatchedTimes(ClientCalled::class, 1);
 });
 
-it('R40 does not open the card of a client of another project, so no call is recorded for it', function (): void {
+it('does not open the card of a client of another project, so no call is recorded for it', function (): void {
     filamentCaller();
     Event::fake([ClientCalled::class]);
     $this->serveCrm(4);
@@ -218,7 +218,7 @@ it('R40 does not open the card of a client of another project, so no call is rec
     Event::assertNotDispatched(ClientCalled::class);
 });
 
-it('R36 offers in the grant form the contexts of the target seller or analyst, not of the editor, with the limit after eligibility', function (): void {
+it('offers in the grant form the contexts of the target seller or analyst, not of the editor, with the limit after eligibility', function (): void {
     filamentGrantEditor();
     $this->serveCrm(4);
 
@@ -231,7 +231,7 @@ it('R36 offers in the grant form the contexts of the target seller or analyst, n
         ->and(crmOfferedContexts(2, 2, 'seller'))->toBe([]);
 });
 
-it('R36 offers no context before the target subject is chosen', function (): void {
+it('offers no context before the target subject is chosen', function (): void {
     filamentGrantEditor();
     $this->serveCrm(4);
     $component = Livewire::test(ListRoleGrants::class)
@@ -241,7 +241,7 @@ it('R36 offers no context before the target subject is chosen', function (): voi
     expect(crmFormSearch($component, 'context'))->toBe([]);
 });
 
-it('R36 grants a role in a context offered for the target, with the fields of the schema', function (): void {
+it('grants a role in a context offered for the target, with the fields of the schema', function (): void {
     filamentGrantEditor();
     $this->serveCrm(4);
 
@@ -260,7 +260,7 @@ it('R36 grants a role in a context offered for the target, with the fields of th
         ->and(json_decode((string) $grants[0]['meta'], true))->toMatchArray(['region' => 'R1', 'eligible' => true]);
 });
 
-it('R37 refuses a project, a subject or a grant of organization B in the editor of organization A and writes nothing', function (): void {
+it('refuses a project, a subject or a grant of organization B in the editor of organization A and writes nothing', function (): void {
     filamentGrantEditor();
     World::assign('analyst', 1, 4, 2, panel: 'backoffice');
     $foreign = 'role:'.DB::table('azg_role_grants')->where('panel', 'backoffice')->where('tenant_key', 'crm.organization:2')->value('id');
@@ -295,7 +295,7 @@ it('R37 refuses a project, a subject or a grant of organization B in the editor 
     expect(backofficeGrants())->toBe($before);
 });
 
-it('R37 clears the subject, the role, the context and the fields when the organization of the form changes', function (): void {
+it('clears the subject, the role, the context and the fields when the organization of the form changes', function (): void {
     filamentGrantEditor();
     $this->serveCrm(4);
 
@@ -310,7 +310,7 @@ it('R37 clears the subject, the role, the context and the fields when the organi
     ]);
 });
 
-it('R28 lists a grant in an inactive project and an expired one and revokes them without runtime eligibility', function (): void {
+it('lists a grant in an inactive project and an expired one and revokes them without runtime eligibility', function (): void {
     filamentGrantEditor();
     World::assign('seller', 1, 3, panel: 'backoffice');
     $inactive = 'role:'.DB::table('azg_role_grants')->where('panel', 'backoffice')->where('context_key', 'crm.project:3')->value('id');
@@ -330,7 +330,7 @@ it('R28 lists a grant in an inactive project and an expired one and revokes them
     expect(backofficeGrants())->toBe([]);
 });
 
-it('R36 gives a custom directory the selected subject and role when describing and saving a grant context', function (): void {
+it('gives a custom directory the selected subject and role when describing and saving a grant context', function (): void {
     World::$backofficeProjectScope = ProjectScope::make()->filter(new ActiveProjects)->directory(ContextAwareProjectDirectory::class);
     World::compile(configure: World::$configure, exact: true);
     Facade::clearResolvedInstances();

@@ -57,20 +57,20 @@ function installedHostKeys(GeneratedApp $generated): string
     return (require $generated->path('config/azguard.php'))['ids']['host_keys'];
 }
 
-it('V37 does not run the migrations without --migrate and prints the checks', function (): void {
+it('does not run the migrations without --migrate and prints the checks', function (): void {
     expect(Artisan::call('azguard:install', ['--no-interaction' => true]))->toBe(0)
         ->and($this->ran)->toBe(['azguard:doctor'])
         ->and(Artisan::output())->toContain('create_azguard_storage', 'The migrations were not run');
 });
 
-it('V37 runs the migrations with --migrate, then the checks, and exits with the code of the checks', function (): void {
+it('runs the migrations with --migrate, then the checks, and exits with the code of the checks', function (): void {
     $this->answers['azguard:doctor'] = 1;
 
     expect(Artisan::call('azguard:install', ['--migrate' => true, '--no-interaction' => true]))->toBe(1)
         ->and($this->ran)->toBe(['migrate', 'azguard:doctor']);
 });
 
-it('V37 returns the failing code of migrate as it is and skips the checks', function (int $code): void {
+it('returns the failing code of migrate as it is and skips the checks', function (int $code): void {
     $this->answers['migrate'] = $code;
 
     expect(Artisan::call('azguard:install', ['--migrate' => true, '--no-interaction' => true]))->toBe($code)

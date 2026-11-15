@@ -56,7 +56,7 @@ function pageSnapshot(string $name, array $data): void
     expect($json)->toBe((string) file_get_contents($path));
 }
 
-it('V63 lists a panel without a database source that the editors do not offer', function (): void {
+it('lists a panel without a database source that the editors do not offer', function (): void {
     EditorWorld::editor(['pages.azguard-panels']);
 
     $component = Livewire::test(PanelsPage::class);

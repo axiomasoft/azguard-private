@@ -12,7 +12,7 @@ use AzGuard\Kernel\Identity\TenantRef;
 use Random\Engine\Mt19937;
 use Random\Randomizer;
 
-it('V04 preserves 100000 seeded distinct framed cache tuple digests', function (): void {
+it('preserves 100000 seeded distinct framed cache tuple digests', function (): void {
     $random = new Randomizer(new Mt19937(480004));
     $seen = [];
     for ($index = 0; $index < 100000; $index++) {

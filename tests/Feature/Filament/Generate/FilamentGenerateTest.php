@@ -124,7 +124,7 @@ beforeEach(function (): void {
 });
 afterEach(fn () => $this->generated->release());
 
-it('V75 writes an enum for each resource, one for the pages and one for the widgets, as the snapshot shows', function (): void {
+it('writes an enum for each resource, one for the pages and one for the widgets, as the snapshot shows', function (): void {
     expect(runGenerate())->toBe(0);
     $files = generatedFiles($this->generated);
     $directory = __DIR__.'/../../../Fixtures/Filament/Snapshots/generate';
@@ -146,7 +146,7 @@ it('V75 writes an enum for each resource, one for the pages and one for the widg
     expect($files)->toBe($expected);
 });
 
-it('V75 gives the enums the keys that the Filament panel checks, and the catalog of the guard panel compiles them', function (): void {
+it('gives the enums the keys that the Filament panel checks, and the catalog of the guard panel compiles them', function (): void {
     expect(runGenerate(['--only' => ['resources', 'widgets']]))->toBe(0);
     $keys = generatedKeys($this->generated);
 
@@ -162,7 +162,7 @@ it('V75 gives the enums the keys that the Filament panel checks, and the catalog
     }
 });
 
-it('V75 marks each enum with the class it defines and keeps the authority at grants by default', function (): void {
+it('marks each enum with the class it defines and keeps the authority at grants by default', function (): void {
     runGenerate();
     $orders = $this->generated->read('app/Guards/Admin/Permissions/Sales/Orders/OrderPermission.php');
     $pages = $this->generated->read('app/Guards/Admin/Permissions/Pages/PagePermission.php');
@@ -173,7 +173,7 @@ it('V75 marks each enum with the class it defines and keeps the authority at gra
         ->and(array_filter(generatedPaths($this->generated), static fn (string $path): bool => str_contains($path, '/Policies/')))->toBe([]);
 });
 
-it('V75 declares the permissions policy-only with --authority=policy and writes policies that deny', function (): void {
+it('declares the permissions policy-only with --authority=policy and writes policies that deny', function (): void {
     expect(runGenerate(['--authority' => 'policy']))->toBe(0);
     $files = generatedFiles($this->generated);
     $policies = array_filter($files, static fn (string $path): bool => str_contains($path, '/Policies/'), ARRAY_FILTER_USE_KEY);
@@ -190,7 +190,7 @@ it('V75 declares the permissions policy-only with --authority=policy and writes 
     }
 });
 
-it('V75 binds a policy that only passes to the enum with --with-policy and keeps the authority at grants', function (): void {
+it('binds a policy that only passes to the enum with --with-policy and keeps the authority at grants', function (): void {
     expect(runGenerate(['--with-policy' => true, '--only' => ['OrderResource']]))->toBe(0);
     $enum = $this->generated->read('app/Guards/Admin/Permissions/Sales/Orders/OrderPermission.php');
     $policy = $this->generated->read('app/Guards/Admin/Policies/Sales/Orders/OrderPolicy.php');
@@ -202,7 +202,7 @@ it('V75 binds a policy that only passes to the enum with --with-policy and keeps
         ->and($policy)->not->toContain('return false;');
 });
 
-it('V75 does not overwrite a second run without --force, and does with it', function (): void {
+it('does not overwrite a second run without --force, and does with it', function (): void {
     runGenerate(['--only' => ['OrderResource']]);
     $path = 'app/Guards/Admin/Permissions/Sales/Orders/OrderPermission.php';
     file_put_contents($this->generated->path($path), $this->generated->read($path).'// owner edit'."\n");
@@ -279,7 +279,7 @@ it('refuses an authority that is neither grants nor policy, and a Filament panel
         ->and(Artisan::output())->toContain('FilamentSource');
 });
 
-it('V75 reports a class that has no definition as an error and a definition whose class is gone as a warning', function (): void {
+it('reports a class that has no definition as an error and a definition whose class is gone as a warning', function (): void {
     $this->generated->release();
     FilamentFixture::$doctorChecks = [FilamentDefinitionsCheck::class];
     $this->bootFilament();
@@ -311,7 +311,7 @@ it('reports nothing when every class has its definition and every definition its
     expect(doctorDefinitionFindings())->toBe([]);
 });
 
-it('V75 writes valid PHP for two widgets of one basename, importing the second under another name', function (): void {
+it('writes valid PHP for two widgets of one basename, importing the second under another name', function (): void {
     FilamentFixture::$widgets = [StatsSalesWidget::class, KeyedSalesWidget::class];
     $this->bootFilament();
     $this->generated = generatedApp();

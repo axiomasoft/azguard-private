@@ -269,7 +269,7 @@ it('I4 (blocking): modules, Filament and stubs use only supported core types and
         ->and(BoundaryScan::allowlist('i4'))->toBe([]);
 });
 
-it('I4: reports an unsupported core type and a member the manifest does not list, and nothing for a listed one', function (): void {
+it('reports an unsupported core type and a member the manifest does not list, and nothing for a listed one', function (): void {
     $root = sys_get_temp_dir().'/azguard-i4-'.bin2hex(random_bytes(4));
     $file = $root.'/packages/core/src/Scopes/Probe.php';
     mkdir(dirname($file), 0777, true);
@@ -319,7 +319,7 @@ it('I4: reports an unsupported core type and a member the manifest does not list
     ]);
 });
 
-it('I4: types nullable unions, closures, arrow functions and $this, and leaves expressions untyped', function (): void {
+it('types nullable unions, closures, arrow functions and $this, and leaves expressions untyped', function (): void {
     $code = <<<'PHP'
         <?php
         namespace AzGuard\Scopes;

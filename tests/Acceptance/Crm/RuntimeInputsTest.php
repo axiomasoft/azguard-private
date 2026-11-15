@@ -14,7 +14,7 @@ use AzGuard\Tests\Fixtures\Crm\Guards\Crm\Scopes\ProjectScope;
 use AzGuard\Tests\Fixtures\Crm\InjectedSellerFilter;
 use AzGuard\Tests\Fixtures\Crm\Models\User;
 
-it('R47 R67 V109 V111 V113 DI receives live Access target and actor without global model bindings', function (): void {
+it('DI receives live Access target and actor without global model bindings', function (): void {
     InjectedSellerFilter::$constructed = 0;
     InjectedSellerFilter::$observed = [];
     World::$projectScope = ProjectScope::make()->filter(new ActiveProjects)->filter(InjectedSellerFilter::class);
@@ -33,7 +33,7 @@ it('R47 R67 V109 V111 V113 DI receives live Access target and actor without glob
     }
 });
 
-it('R47 direct and PolicyOnly callbacks carry explicit null role and grant', function (): void {
+it('direct and PolicyOnly callbacks carry explicit null role and grant', function (): void {
     World::clear();
     World::assign('clients.view', 1, 1, kind: 'permission');
     $panel = World::compile();

@@ -25,7 +25,7 @@ use AzGuard\Tests\Fixtures\Crm\Models\User;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\DB;
 
-it('R31 R32 returns independent literal CRM ids and complete scalar parity for every action and tenant', function (Action $action, int $tenant, array $ids): void {
+it('returns independent literal CRM ids and complete scalar parity for every action and tenant', function (Action $action, int $tenant, array $ids): void {
     $panel = Lists::panel();
     $scalarIds = Client::query()->orderBy('id')->get()->filter(fn (Client $client) => World::decide($panel, $client, $action, tenant: $tenant)->allowed())->values()->modelKeys();
     expect($scalarIds)->toBe($ids)->and(Lists::query($panel, $action, tenant: $tenant)->orderBy('id')->pluck('id')->all())->toBe($ids)
@@ -39,7 +39,7 @@ it('R31 R32 returns independent literal CRM ids and complete scalar parity for e
     'B policy only' => [Action::ViewOwnProfile, 2, [5]],
 ]);
 
-it('R33 constrains order search pages and totals before pagination even when forbidden rows come first', function (): void {
+it('constrains order search pages and totals before pagination even when forbidden rows come first', function (): void {
     $panel = Lists::panel();
     $host = Client::query()->where(fn (Builder $q) => $q->where('owner_user_id', 1)->orWhere('id', 6))->orderByDesc('id');
     $query = Lists::query($panel, host: $host);
@@ -53,7 +53,7 @@ it('R33 constrains order search pages and totals before pagination even when for
     expect(Lists::query($panel)->count())->toBe(0);
 });
 
-it('R15 R50 R57 recomputes live city common eligibility and deployment filters without changing the authority token', function (): void {
+it('recomputes live city common eligibility and deployment filters without changing the authority token', function (): void {
     $panel = Lists::panel();
     $token = World::storage()->state('crm');
     expect(Lists::query($panel)->orderBy('id')->pluck('id')->all())->toBe([1, 2, 3]);
@@ -86,7 +86,7 @@ it('keeps region conditions on their own complete witness and policy vetoes outs
     expect(Lists::query($panel)->count())->toBe(0);
 });
 
-it('R35 throws before querying resources for scalar-only components and bounds the full policy universe outside grants', function (string $component): void {
+it('throws before querying resources for scalar-only components and bounds the full policy universe outside grants', function (string $component): void {
     $panel = Lists::panel(function (PanelBuilder $p) use ($component): void {
         match ($component) {
             'policy' => ClientPolicy::$unsupported = true,
@@ -112,7 +112,7 @@ it('R35 throws before querying resources for scalar-only components and bounds t
     DB::disableQueryLog();
 })->with(['policy', 'before', 'condition', 'resolver']);
 
-it('R35 R64 evaluates every bounded policy-only row while assignment storage is unavailable', function (): void {
+it('evaluates every bounded policy-only row while assignment storage is unavailable', function (): void {
     World::clear();
     $panel = Lists::panel();
     $storage = World::storage();
@@ -125,7 +125,7 @@ it('R35 R64 evaluates every bounded policy-only row while assignment storage is 
     expect(fn () => app(Visibility::class)->bounded($panel, Client::query(), SubjectRef::of('crm.user', 1), Action::ViewOwnProfile, World::scope(), limit: 4))->toThrow(VisibilityNotSupportedException::class, 'bounded_universe_limit');
 });
 
-it('R35 bounded fallback checks all policy rows even when the policy exact adapter is unsupported', function (): void {
+it('bounded fallback checks all policy rows even when the policy exact adapter is unsupported', function (): void {
     World::clear();
     ClientPolicy::$unsupported = true;
     $panel = Lists::panel();

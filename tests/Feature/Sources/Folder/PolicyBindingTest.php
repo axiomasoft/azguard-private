@@ -92,7 +92,7 @@ afterEach(function (): void {
     }
 });
 
-it('R1: keeps the attributed method', function (): void {
+it('keeps the attributed method', function (): void {
     [, , $registry] = PanelWorld::compile([
         AdminPanel::class => fn (PanelBuilder $p) => $p
             ->permissions([StaticSource::names('app', 'orders.view')])
@@ -101,7 +101,7 @@ it('R1: keeps the attributed method', function (): void {
     expect($registry->catalog('admin')->bindingMethod('orders.view'))->toBe('arbitraryName');
 });
 
-it('R1: rejects an unrelated method', function (): void {
+it('rejects an unrelated method', function (): void {
     expect(fn () => PanelWorld::compile([
         AdminPanel::class => fn (PanelBuilder $p) => $p
             ->permissions([StaticSource::names('app', 'orders.view')])
@@ -109,7 +109,7 @@ it('R1: rejects an unrelated method', function (): void {
     ]))->toThrow(DefinitionException::class);
 });
 
-it('R1: rejects a custom source binding without Decides', function (): void {
+it('rejects a custom source binding without Decides', function (): void {
     expect(fn () => PanelWorld::compile([
         AdminPanel::class => fn (PanelBuilder $p) => $p->permissions([
             new StaticSource('app', [new PermissionDefinition('orders.view', PermissionAuthority::Policy)], [], [

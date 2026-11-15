@@ -28,7 +28,7 @@ it('takes a bare subject id when the panels have one subject model', function ()
         ->and(json_decode(Artisan::output(), true, flags: JSON_THROW_ON_ERROR)['subject'])->toBe('crm.user:2');
 });
 
-it('V64 never picks a panel itself: without --panel the resolver must decide or the command fails', function (): void {
+it('never picks a panel itself: without --panel the resolver must decide or the command fails', function (): void {
     // crm and backoffice both accept crm.user and neither is the default panel of the model.
     expect(Artisan::call('azguard:grants:list', ['subject' => 'crm.user:1', '--tenant' => 'crm.organization:1']))->toBe(2)
         ->and(Artisan::output())->toContain('crm', 'backoffice')

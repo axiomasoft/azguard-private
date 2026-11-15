@@ -51,7 +51,7 @@ function crmWrites(): array
     return [W::rows('role'), W::rows('permission'), W::version()];
 }
 
-it('R07 refuses a project or a client field of tenant B in tenant A without a partial write', function (): void {
+it('refuses a project or a client field of tenant B in tenant A without a partial write', function (): void {
     $panel = W::panel(configure: fn (PanelBuilder $p) => $p->fields(FieldTarget::RoleGrant, [Field::model('client', Client::class)->inMeta()]));
     $before = crmWrites();
 
@@ -63,7 +63,7 @@ it('R07 refuses a project or a client field of tenant B in tenant A without a pa
         ->and(W::grant($panel, 'seller', 1, 5, fields: ['client' => 6])->record?->fields['client'])->toBe(6);
 });
 
-it('R09 refuses an Assignment into the inactive project P3 whatever existing contributions say', function (): void {
+it('refuses an Assignment into the inactive project P3 whatever existing contributions say', function (): void {
     $panel = W::panel();
     World::assign('tenant-admin', 2, 3);
     $before = crmWrites();
@@ -75,7 +75,7 @@ it('R09 refuses an Assignment into the inactive project P3 whatever existing con
         ->and(W::grant($panel, 'analyst', 2, 1)->applied())->toBeTrue();
 });
 
-it('R26 filters the target Anna by her city while delegation sees the admin actor', function (): void {
+it('filters the target Anna by her city while delegation sees the admin actor', function (): void {
     DelegationPipe::$delegations = ['crm.user:2' => ['roles' => ['seller'], 'contexts' => ['crm.project:1', 'crm.project:2', 'crm.project:5']]];
     $panel = W::panel([DelegationPipe::class]);
     $boris = ActorRef::of('crm.user', 2);
@@ -88,7 +88,7 @@ it('R26 filters the target Anna by her city while delegation sees the admin acto
         ->and(end(SellerProjects::$observed)->user?->getKey())->toBe(1);
 });
 
-it('R27 refuses escalation by a manager with limited delegation and lets the delegated grant pass', function (string $attempt, Closure $grant): void {
+it('refuses escalation by a manager with limited delegation and lets the delegated grant pass', function (string $attempt, Closure $grant): void {
     DelegationPipe::$delegations = ['crm.user:2' => ['roles' => ['seller'], 'contexts' => ['crm.project:1', 'crm.project:5']]];
     $panel = W::panel([DelegationPipe::class]);
     $manager = ActorRef::of('crm.user', 2, 'ticket CRM-27');
@@ -113,7 +113,7 @@ it('R27 refuses escalation by a manager with limited delegation and lets the del
     'allowed' => ['allowed', fn ($panel, $actor) => W::grant($panel, 'seller', 1, 5, actor: $actor)],
 ]);
 
-it('R28 lets an admin revoke grants of a deactivated, expired or deleted context', function (): void {
+it('lets an admin revoke grants of a deactivated, expired or deleted context', function (): void {
     $panel = W::panel();
     W::grant($panel, 'analyst', 2, 5, until: new DateTimeImmutable('2026-10-06T12:10:00Z'));
     W::grant($panel, 'seller', 1, 5);
@@ -131,7 +131,7 @@ it('R28 lets an admin revoke grants of a deactivated, expired or deleted context
             'crm.organization:1|tenant-admin|3|crm.project:1|manual']);
 });
 
-it('R30 repeats final validation after a changing pipe, rolls back nested work and keeps a no-op silent', function (): void {
+it('repeats final validation after a changing pipe, rolls back nested work and keeps a no-op silent', function (): void {
     $touched = 0;
     Event::listen(StorageTouched::class, function () use (&$touched): void {
         $touched++;
@@ -157,7 +157,7 @@ it('R30 repeats final validation after a changing pipe, rolls back nested work a
         ->and($touched)->toBe(0);
 });
 
-it('R47 gives Assignment capabilities the target user, BaseRole, validated proposal, actor, scope and phase through DI', function (): void {
+it('gives Assignment capabilities the target user, BaseRole, validated proposal, actor, scope and phase through DI', function (): void {
     InjectedSellerFilter::$observed = [];
     World::$projectScope = ProjectScope::make()->filter(new ActiveProjects)->filter(InjectedSellerFilter::class);
     $panel = W::panel();
@@ -175,7 +175,7 @@ it('R47 gives Assignment capabilities the target user, BaseRole, validated propo
         ->and(app()->bound(User::class))->toBeFalse();
 });
 
-it('R63 rejects an exact grant of the PolicyOnly action and keeps wildcards from authorizing it', function (): void {
+it('rejects an exact grant of the PolicyOnly action and keeps wildcards from authorizing it', function (): void {
     $panel = W::panel();
     $before = crmWrites();
 
@@ -188,7 +188,7 @@ it('R63 rejects an exact grant of the PolicyOnly action and keeps wildcards from
     World::assertDecision(World::decide($panel, 6, Action::View, 1), true, DecisionReason::Granted);
 });
 
-it('R29 refuses a change prepared against an old build or owner revision through the cooperating host fence', function (): void {
+it('refuses a change prepared against an old build or owner revision through the cooperating host fence', function (): void {
     $panel = W::panel([HostFencePipe::class]);
     $fingerprint = app(PanelRegistry::class)->fingerprint('crm');
 
@@ -213,7 +213,7 @@ it('R29 refuses a change prepared against an old build or owner revision through
     }
 });
 
-it('R27 keeps the actor identity and reason in the journal and the event of a delegated grant, and writes nothing for a refused escalation', function (): void {
+it('keeps the actor identity and reason in the journal and the event of a delegated grant, and writes nothing for a refused escalation', function (): void {
     DelegationPipe::$delegations = ['crm.user:2' => ['roles' => ['seller'], 'contexts' => ['crm.project:5']]];
     AuditTable::create();
     $panel = W::panel([DelegationPipe::class], static fn (PanelBuilder $builder): PanelBuilder => $builder->plugins([AuditPlugin::make()]));
@@ -232,7 +232,7 @@ it('R27 keeps the actor identity and reason in the journal and the event of a de
         ->and(EventWorld::events()[0]->actor?->reason)->toBe('ticket CRM-27')->and(EventWorld::events()[0]->eventId)->toBe($rows[0]['event_id']);
 });
 
-it('R30 publishes no event and writes no journal row for rolled back nested work or a silent repeat, and one for the real change', function (): void {
+it('publishes no event and writes no journal row for rolled back nested work or a silent repeat, and one for the real change', function (): void {
     AuditTable::create();
     $panel = W::panel(configure: static fn (PanelBuilder $builder): PanelBuilder => $builder->plugins([AuditPlugin::make()]));
     $record = W::grant($panel, 'seller', 1, 5)->record;
@@ -252,7 +252,7 @@ it('R30 publishes no event and writes no journal row for rolled back nested work
         ->and(array_column(EventWorld::auditRows(), 'type'))->toBe(['role.granted', 'role.grant_updated']);
 });
 
-it('R42 publishes the revocation of one origin only: the grant of another origin stays and stays silent', function (): void {
+it('publishes the revocation of one origin only: the grant of another origin stays and stays silent', function (): void {
     $panel = W::panel();
     W::grant($panel, 'seller', 1, 5);
     W::grant($panel, 'seller', 1, 5, origin: 'import');

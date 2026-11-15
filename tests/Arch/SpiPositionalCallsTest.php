@@ -13,7 +13,7 @@ use AzGuard\Tests\Arch\SourceScan;
  * core owns, whatever the receiver. A reviewed false positive is fixed by calling positionally, never listed.
  */
 
-it('I20: core calls Spi(Implement) methods positionally', function (): void {
+it('core calls Spi(Implement) methods positionally', function (): void {
     $root = dirname(__DIR__, 2).'/';
     $ownership = Ownership::fromOracle();
     $core = array_values(array_filter(SourceScan::files(), static fn (string $file): bool => $ownership->fileOwner(str_replace($root, '', $file)) === 'core'));
@@ -23,7 +23,7 @@ it('I20: core calls Spi(Implement) methods positionally', function (): void {
         ->and(ApiUsage::i20Violations($core, $methods))->toBe([], 'call these Spi(Implement) methods positionally');
 });
 
-it('I20: reports a named argument of an Spi(Implement) method call and nothing else', function (): void {
+it('reports a named argument of an Spi(Implement) method call and nothing else', function (): void {
     $file = sys_get_temp_dir().'/azguard-i20-'.bin2hex(random_bytes(4)).'.php';
     file_put_contents($file, <<<'PHP'
         <?php

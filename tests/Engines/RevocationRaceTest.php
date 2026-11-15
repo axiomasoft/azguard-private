@@ -13,7 +13,7 @@ use AzGuard\Tests\Fixtures\Sources\Database\DatabaseWorld;
 beforeEach(fn () => CacheEngineWorld::seed());
 afterEach(fn () => CacheEngineWorld::clean());
 
-it('V18 R52 observes independent root commit with Primary check and new request; records request window', function (StateRefresh $refresh): void {
+it('observes independent root commit with Primary check and new request; records request window', function (StateRefresh $refresh): void {
     $worker = new AuthorityProcess;
 
     try {

@@ -57,7 +57,7 @@ afterEach(function (): void {
     Carbon::setTestNow();
 });
 
-it('V10 gives a grant of a former key no authority and refuses an ordinary grant of it until the explicit migration', function (): void {
+it('gives a grant of a former key no authority and refuses an ordinary grant of it until the explicit migration', function (): void {
     CrmWorld::assertDecision(CrmWorld::decide($this->panel, 6, user: 2), false, DecisionReason::NotGranted);
 
     expect(fn () => W::grant($this->panel, 'inspector', 2, null))->toThrow(UnknownRoleException::class, 'migrate it explicitly')
@@ -66,7 +66,7 @@ it('V10 gives a grant of a former key no authority and refuses an ordinary grant
         ->toContain($this->rows['valid'], $this->rows['unbound scope'], $this->rows['missing subject'], $this->rows['collision']);
 });
 
-it('V10 plans the migration under the lock without a write, a version, a pipe, a journal row or an event', function (): void {
+it('plans the migration under the lock without a write, a version, a pipe, a journal row or an event', function (): void {
     $calls = 0;
     $panel = W::panel([function (Change $change, Closure $next) use (&$calls): ChangeResult {
         $calls++;
@@ -91,7 +91,7 @@ it('V10 plans the migration under the lock without a write, a version, a pipe, a
         ->and(EventWorld::auditRows())->toBe([]);
 });
 
-it('V10 R66 moves every grant of the former key with its id, scope, origin, expiry and fields; collisions keep the current grant', function (): void {
+it('moves every grant of the former key with its id, scope, origin, expiry and fields; collisions keep the current grant', function (): void {
     $before = array_map(fn (string $id): ?array => M::row($id), $this->rows);
     $version = W::version();
     Carbon::setTestNow('2026-10-06T12:30:00Z');
@@ -136,7 +136,7 @@ it('V10 R66 moves every grant of the former key with its id, scope, origin, expi
         ->and($events[0]->actor?->reason)->toBe('roles:rename-key');
 });
 
-it('R66 restores the authority of the current role but keeps the refusal of expired, unbound and missing grants', function (): void {
+it('restores the authority of the current role but keeps the refusal of expired, unbound and missing grants', function (): void {
     CrmWorld::assertDecision(CrmWorld::decide($this->panel, 6, user: 3), false, DecisionReason::NotGranted);
     migration()->run($this->panel, 'inspector', 'auditor');
     app()->forgetInstance(Authorizer::class);

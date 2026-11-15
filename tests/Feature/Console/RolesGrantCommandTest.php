@@ -38,7 +38,7 @@ it('grants a role through the pipeline as the system actor named after the comma
     Event::assertDispatched(RoleGranted::class, static fn (RoleGranted $event): bool => $event->actor?->reason === 'azguard:roles:grant');
 });
 
-it('V64 takes the panel from a full role name or a role class and refuses a conflict', function (): void {
+it('takes the panel from a full role name or a role class and refuses a conflict', function (): void {
     expect(Artisan::call('azguard:roles:grant', ['subject' => 'crm.user:2', 'role' => 'crm:auditor', '--tenant' => 'crm.organization:1']))->toBe(0)
         ->and(Artisan::call('azguard:roles:grant', ['subject' => 'crm.user:3', 'role' => AuditorRole::class, '--panel' => 'crm', '--tenant' => 'crm.organization:1']))->toBe(0)
         ->and(W::keys())->toContain('crm.organization:1|auditor|2|global|manual', 'crm.organization:1|auditor|3|global|manual')
@@ -82,7 +82,7 @@ it('reports a refused change with exit code 1 and writes nothing', function (): 
         ->and(W::version())->toBe($version);
 });
 
-it('V113 cleans up a grant of a removed role through the CLI', function (): void {
+it('cleans up a grant of a removed role through the CLI', function (): void {
     CrmWorld::assign('ghost', 2, 2);
 
     expect(Artisan::call('azguard:roles:revoke', ['subject' => 'crm.user:2', 'role' => 'ghost', '--panel' => 'crm', '--tenant' => 'crm.organization:1', '--on' => 'crm.project:2']))->toBe(0)

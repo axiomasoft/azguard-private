@@ -29,7 +29,7 @@ beforeEach(function (): void {
     RegistersSources::reset();
 });
 
-it('V77: builds ldap from the attribute with the source configuration, separately for each panel', function (): void {
+it('builds ldap from the attribute with the source configuration, separately for each panel', function (): void {
     RegistersSources::$classes = [LdapSource::class];
     AdminPanel::describe(static fn (PanelBuilder $panel): PanelBuilder => $panel->permissions(['ldap']));
     CabinetPanel::describe(static fn (PanelBuilder $panel): PanelBuilder => $panel->permissions(['ldap']));
@@ -48,7 +48,7 @@ it('V77: builds ldap from the attribute with the source configuration, separatel
         ->and(app(PanelRegistry::class)->get('admin')->writer())->toBeNull();
 });
 
-it('V77: builds ldap from extend() and passes the same configuration', function (): void {
+it('builds ldap from extend() and passes the same configuration', function (): void {
     RegistersSources::$extensions = [
         'ldap' => static fn (Application $app, array $config): LdapSource => new LdapSource($config),
     ];
@@ -65,7 +65,7 @@ it('V77: builds ldap from extend() and passes the same configuration', function 
         ->and(AzGuard::sources())->toBe(app(SourceManager::class));
 });
 
-it('V77: reports an unknown source name, two writers and a repeated id', function (): void {
+it('reports an unknown source name, two writers and a repeated id', function (): void {
     app(SourceManager::class)->register(LdapSource::class);
 
     expect(fn () => PanelWorld::compile([
@@ -83,7 +83,7 @@ it('V77: reports an unknown source name, two writers and a repeated id', functio
         ]))->toThrow(DefinitionException::class, 'id "ldap"');
 });
 
-it('V102: builds a named writer again for each panel and after the scope is forgotten', function (): void {
+it('builds a named writer again for each panel and after the scope is forgotten', function (): void {
     RegistersSources::$extensions = ['database' => static fn () => DatabaseSource::make()];
     AdminPanel::describe(static fn (PanelBuilder $panel): PanelBuilder => $panel->permissions(['database']));
     CabinetPanel::describe(static fn (PanelBuilder $panel): PanelBuilder => $panel->permissions(['database']));
@@ -124,7 +124,7 @@ it('reuses an object writer across scopes', function (): void {
     expect(app(PanelRegistry::class)->get('admin')->writerSource())->toBe($writer);
 });
 
-it('V107: keeps enums out of the source list and preserves the order of the rest', function (): void {
+it('keeps enums out of the source list and preserves the order of the rest', function (): void {
     app(SourceManager::class)->register(LdapSource::class);
     $static = StaticSource::names('app', 'posts.view');
 
@@ -142,7 +142,7 @@ it('V107: keeps enums out of the source list and preserves the order of the rest
         ->and($registry->forEnum(OrderPermission::class))->toHaveCount(1);
 });
 
-it('P12: a different source order keeps the catalog and the ids and changes the fingerprint', function (): void {
+it('a different source order keeps the catalog and the ids and changes the fingerprint', function (): void {
     app(SourceManager::class)->register(LdapSource::class);
     $compile = static fn (array $sources): array => PanelWorld::compile([
         AdminPanel::class => static fn (PanelBuilder $panel): PanelBuilder => $panel->permissions($sources),

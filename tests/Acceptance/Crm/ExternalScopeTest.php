@@ -21,7 +21,7 @@ use AzGuard\Tests\Fixtures\Crm\Guards\Crm\Queries\Clients\ClientVisibility;
 use AzGuard\Tests\Fixtures\Crm\Models\Client;
 use Illuminate\Support\Facades\DB;
 
-it('R19 R50 scalar external definition resolves model null without a project query and denies timeout', function (): void {
+it('scalar external definition resolves model null without a project query and denies timeout', function (): void {
     ExternalProjectScope::$timeout = false;
     ExternalProjectScope::$resolutions = 0;
     $scope = AccessScope::in(TenantRef::of('crm.organization', 1), AssignmentScopeRef::of('external.project', 1));
@@ -46,7 +46,7 @@ it('R19 R50 scalar external definition resolves model null without a project que
     }
 });
 
-it('R19 R50 refuses the external model null exact list before count or pagination after a scalar positive control', function (): void {
+it('refuses the external model null exact list before count or pagination after a scalar positive control', function (): void {
     $scope = AccessScope::in(TenantRef::of('crm.organization', 1), AssignmentScopeRef::of('external.project', 1));
     World::assign('clients.view_any', 1, 1, kind: 'permission', scope: $scope);
     $panel = ClientVisibility::panel(fn (PanelBuilder $p) => $p->assignmentScopes(new AssignmentScopeDeclaration(AssignmentScopeMode::Inherit, [new ExternalProjectScope], evaluator: ScopeEvaluator::class)));

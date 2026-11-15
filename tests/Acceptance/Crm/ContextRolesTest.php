@@ -25,7 +25,7 @@ use AzGuard\Tests\Fixtures\Crm\Models\Project;
 use AzGuard\Tests\Fixtures\Crm\Models\User;
 use Illuminate\Database\Eloquent\Builder;
 
-it('R09 common active filter vetoes direct role policy before Continue and scoped admin', function (string $authority): void {
+it('common active filter vetoes direct role policy before Continue and scoped admin', function (string $authority): void {
     World::assign(match ($authority) {
         'direct' => 'clients.view', 'admin' => 'tenant-admin', default => 'analyst',
     }, 1, 3, kind: $authority === 'direct' ? 'permission' : 'role');
@@ -38,7 +38,7 @@ it('R09 common active filter vetoes direct role policy before Continue and scope
     });
 })->with(['direct', 'role', 'policy', 'admin']);
 
-it('R10 seller city binding qualifies both view and update instead of granting foreign city', function (): void {
+it('seller city binding qualifies both view and update instead of granting foreign city', function (): void {
     World::clear();
     World::assign('seller', 1, 2);
     $panel = World::compile();
@@ -51,7 +51,7 @@ it('R10 seller city binding qualifies both view and update instead of granting f
     }
 });
 
-it('R11 seller city never vetoes an independent analyst contribution', function (): void {
+it('seller city never vetoes an independent analyst contribution', function (): void {
     World::assign('seller', 1, 2);
     $panel = World::compile();
     World::assertDecision(World::decide($panel, 1), true, DecisionReason::Granted);
@@ -60,7 +60,7 @@ it('R11 seller city never vetoes an independent analyst contribution', function 
     World::assertDecision(World::decide($panel, 1, Action::Update), true, DecisionReason::Granted);
 });
 
-it('R12 independent witnesses survive DB relation source and assignment order permutations', function (bool $reverseSources, bool $reverseGrants): void {
+it('independent witnesses survive DB relation source and assignment order permutations', function (bool $reverseSources, bool $reverseGrants): void {
     World::clear();
     $roles = $reverseGrants ? ['analyst', 'seller'] : ['seller', 'analyst'];
     foreach ($roles as $role) {
@@ -74,7 +74,7 @@ it('R12 independent witnesses survive DB relation source and assignment order pe
     World::assertDecision(World::decide($panel, 6), false, DecisionReason::NotGranted);
 })->with([false, true])->with([false, true]);
 
-it('R13 each contribution must satisfy city region and all its own fields as one witness', function (): void {
+it('each contribution must satisfy city region and all its own fields as one witness', function (): void {
     World::clear();
     World::assign('seller', 1, 2, fields: ['region' => 'R1', 'eligible' => true]);
     World::assign('analyst', 1, 2, fields: ['region' => 'R2', 'eligible' => true]);
@@ -86,7 +86,7 @@ it('R13 each contribution must satisfy city region and all its own fields as one
     World::assertDecision(World::decide($panel, 3, Action::Update), false, DecisionReason::NotGranted);
 });
 
-it('R14 two PHP roles use the actual target actor and branch via real DB and Project members', function (string $source): void {
+it('two PHP roles use the actual target actor and branch via real DB and Project members', function (string $source): void {
     World::clear();
 
     if ($source === 'database') {
@@ -115,7 +115,7 @@ it('R14 two PHP roles use the actual target actor and branch via real DB and Pro
     }
 })->with(['database', 'relation']);
 
-it('R16 direct grants expose role null and cannot manufacture a required PHP role', function (): void {
+it('direct grants expose role null and cannot manufacture a required PHP role', function (): void {
     World::clear();
     World::assign('clients.view', 1, 2, kind: 'permission');
     $panel = World::compile();
@@ -134,7 +134,7 @@ it('R16 direct grants expose role null and cannot manufacture a required PHP rol
     World::assertDecision(World::decide($panel, 3), false, DecisionReason::AssignmentScopeFilterError);
 });
 
-it('R17 empty permission admin still obeys city inactive tenant scope and restriction boundaries', function (): void {
+it('empty permission admin still obeys city inactive tenant scope and restriction boundaries', function (): void {
     World::assign('tenant-admin', 3, 2);
     World::assign('tenant-admin', 3, 3);
     World::assign('tenant-admin', 3, 4, 2);

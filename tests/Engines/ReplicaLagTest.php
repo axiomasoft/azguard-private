@@ -13,7 +13,7 @@ use AzGuard\Tests\Fixtures\Authorization\Cache\CacheWorld;
 use AzGuard\Tests\Fixtures\Sources\Database\DatabaseWorld;
 use Illuminate\Database\Events\QueryExecuted;
 
-it('V46 R52 proves real paused-replay Default window and fresh Primary deny until catch-up LSN', function (StateRefresh $refresh): void {
+it('proves real paused-replay Default window and fresh Primary deny until catch-up LSN', function (StateRefresh $refresh): void {
     if (! getenv('AUTHORITY_REPLICA_TEST')) {
         $this->markTestSkipped('Run bash tests/Engines/Support/replica-fixture.sh against the authority-replica profile.');
     }

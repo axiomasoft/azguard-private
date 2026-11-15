@@ -29,7 +29,7 @@ afterEach(function (): void {
     Relation::morphMap([], false);
 });
 
-it('R66 prunes expired grants of every tenant with GrantExpired as the system actor and keeps live ones', function (): void {
+it('prunes expired grants of every tenant with GrantExpired as the system actor and keeps live ones', function (): void {
     Event::fake([GrantExpired::class, RoleRevoked::class]);
 
     expect(Artisan::call('azguard:grants:prune'))->toBe(0)

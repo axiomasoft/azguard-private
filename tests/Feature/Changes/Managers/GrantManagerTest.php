@@ -64,7 +64,7 @@ afterEach(function (): void {
     Carbon::setTestNow();
 });
 
-it('R37 finds only grants of its own panel, tenant and origin', function (): void {
+it('finds only grants of its own panel, tenant and origin', function (): void {
     expect($this->grants->find($this->a)?->role?->key())->toBe('auditor')
         ->and($this->grants->find($this->permission)?->permission?->local())->toBe('clients.*')
         ->and($this->grants->find($this->b))->toBeNull()
@@ -77,7 +77,7 @@ it('R37 finds only grants of its own panel, tenant and origin', function (): voi
         ->and($this->grants->find("role:1' or 1=1"))->toBeNull();
 });
 
-it('R37 refuses an update of a foreign id as a stale selection and writes nothing', function (): void {
+it('refuses an update of a foreign id as a stale selection and writes nothing', function (): void {
     $rows = [W::rows(), W::version()];
 
     expect(fn () => $this->grants->update($this->b, new GrantDetails(null, ['region' => 'R1'])))->toThrow(StaleSelectionException::class)
@@ -107,7 +107,7 @@ it('refuses overflowing grant ids and cursors without changing the last signed i
         ->and(fn () => $this->grants->page(new GrantFilter(limit: 1, cursor: $cursor($overflow))))->toThrow(InvalidArgumentException::class);
 });
 
-it('C13 updates expiry and fields only while the form fingerprint still matches; identity never changes', function (): void {
+it('updates expiry and fields only while the form fingerprint still matches; identity never changes', function (): void {
     $read = $this->grants->find($this->a);
     Carbon::setTestNow('2026-10-06T12:00:05Z');
     $until = new DateTimeImmutable('2027-03-01T10:00:00Z');
@@ -123,7 +123,7 @@ it('C13 updates expiry and fields only while the form fingerprint still matches;
         ->and($this->grants->update($this->a, new GrantDetails($until, ['eligible' => true]), $after?->fingerprint)->status)->toBe(ChangeStatus::Unchanged);
 });
 
-it('R15 validates an update again as an assignment: an inactive project refuses it', function (): void {
+it('validates an update again as an assignment: an inactive project refuses it', function (): void {
     $id = W::grant($this->panel, 'seller', 1, 5)->record?->id ?? '';
     Project::query()->whereKey(5)->update(['is_active' => false]);
     $rows = W::rows();
@@ -132,7 +132,7 @@ it('R15 validates an update again as an assignment: an inactive project refuses 
         ->and(W::rows())->toBe($rows);
 });
 
-it('R37 revokes many ids in one mutation and refuses the whole operation for one foreign id', function (): void {
+it('revokes many ids in one mutation and refuses the whole operation for one foreign id', function (): void {
     $version = W::version();
     $rows = W::rows();
 

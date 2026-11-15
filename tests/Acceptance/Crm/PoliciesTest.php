@@ -8,7 +8,7 @@ use AzGuard\Tests\Fixtures\Crm\Guards\Crm\Permissions\Clients\ClientPermission a
 use AzGuard\Tests\Fixtures\Crm\Guards\Crm\Policies\Clients\ClientPolicy;
 use Illuminate\Auth\Access\Response;
 
-it('R21 caller can update normal C1 while policy vetoes do not call C2', function (): void {
+it('caller can update normal C1 while policy vetoes do not call C2', function (): void {
     World::clear();
     World::assign('caller', 1, 1);
     $panel = World::compile();
@@ -20,7 +20,7 @@ it('R21 caller can update normal C1 while policy vetoes do not call C2', functio
     World::assertDecision(World::decide($panel, 3), false, DecisionReason::NotGranted);
 });
 
-it('R22 policy modes distinguish null true false and Response with and without grants', function (string $kind): void {
+it('policy modes distinguish null true false and Response with and without grants', function (string $kind): void {
     World::clear();
     ClientPolicy::$override = true;
     ClientPolicy::$result = match ($kind) {
