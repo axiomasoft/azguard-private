@@ -1,6 +1,6 @@
 name: Compatibility
 
-# The supported surface against its baseline (I18, D26): the attribute manifests and the format fixtures listed in
+# The supported surface against its baseline: the attribute manifests and the format fixtures listed in
 # compatibility.json are compared with the newest stable tag merged into HEAD (major >= 1), before the first one with
 # the candidate pointer. `composer api:check` runs first: a stale manifest would hide a break. A pull request that
 # changes the pointer needs the label `compat-baseline`, the explicit release decision. release.yml calls this workflow

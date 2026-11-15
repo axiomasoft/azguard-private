@@ -5,7 +5,7 @@ declare(strict_types=1);
 use Symfony\Component\Yaml\Yaml;
 
 /*
- * Release evidence validator (knowledge/release-integrity#evidence): one file `release-evidence/v<version>.yml` binds a
+ * Release evidence validator: one file `release-evidence/v<version>.yml` binds a
  * release commit to the workflow runs, local runs and artifacts that qualified it. The validator only reads.
  *
  *   php bin/release-evidence.php <file> [--live] [--fixture-runs=<dir>] [--require-approval] [--repo=axiomasoft/azguard-private]

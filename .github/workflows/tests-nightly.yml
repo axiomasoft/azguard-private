@@ -1,6 +1,6 @@
 name: Tests (nightly)
 
-# The depth that a pull request leaves out: the scale tests (group `extended`, R58) and the whole parity range (seeds
+# The depth that a pull request leaves out: the scale tests (group `extended`) and the whole parity range (seeds
 # 1-8) on every server. A pull request already runs the same mechanisms at a smaller size, so a failure here points at
 # size or at a seed, not at a mechanism that was never checked. A release waits for a green run of this workflow.
 

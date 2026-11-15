@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 /*
- * Composer plugin and script policy (knowledge/security-gates#policies).
+ * Composer plugin and script policy: which Composer plugins and scripts a package may declare.
  *
  *   php bin/composer-policy.php [--composer=<file>...] [--policy=<file>]
  *

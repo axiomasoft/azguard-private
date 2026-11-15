@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Pull-request guard of the compatibility baseline pointer (I18, D26).
+# Pull-request guard of the compatibility baseline pointer.
 #
 #   bash bin/compat-baseline-guard.sh <base-ref> <head-ref> <labels-json>
 #

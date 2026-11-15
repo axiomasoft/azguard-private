@@ -44,7 +44,7 @@ A pull request that changes `compatibility.json` fails the `compat-baseline` gua
 (`bin/compat-baseline-guard.sh`, fixtures in `bin/test-compat-baseline-guard.sh`) unless it carries the label
 **`compat-baseline`**: replacing the baseline is an explicit release decision, never a side effect. Run
 `composer api:compat` locally before tagging; `bash bin/compat-drill.sh` proves on real patches in a throwaway clone
-that the comparison rejects the intentional breaks (D1–D5) and accepts the control (D6).
+that the comparison rejects five intentional breaks and accepts a compatible control change.
 
 ## Repository settings
 

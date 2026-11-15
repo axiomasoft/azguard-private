@@ -108,13 +108,13 @@ not supported public SPI.
 - **Enforcement:** `packages/core/src/Authorization/Visibility.php` (`build`, `predicate`) and
   `packages/core/src/Authorization/Internal/Query/PredicateCompiler.php::constrain()` materialize scopes
   on a clone, retain the resulting predicates and reject unsupported SQL. Removing deferred scope metadata
-  after `applyScopes()` does not itself remove materialized SQL predicates (D2).
+  after `applyScopes()` does not itself remove materialized SQL predicates.
 - **Bypass and interference:** ungrouped OR, UNION, custom Builder/scope behavior or treating an unsupported
   source/condition as allow. A later query execution can race a revoke; a Builder holds captured authority,
   not a lock. Never replace unsupported SQL with filtering a paginated result.
 - **Verification check:** `tests/Feature/Visibility/PredicateCompilerTest.php` and
   `tests/Feature/Visibility/UnsupportedTest.php` verify rejection without query weakening, covering OR and
-  counting-scope cases as well as `SoftDeletes` and tenant global-scope preservation under D2.
+  counting-scope cases as well as `SoftDeletes` and tenant global-scope preservation.
 
 ### SEC-03 — Cached grants never freeze host authorization
 
@@ -169,7 +169,7 @@ not supported public SPI.
 
 - **Enforcement:** `StorageReadSession` selects the configured read handle;
   `ReadAttempt::keyAt()` includes read mode and authority identity. `visibleTo()` does not enforce future
-  host writes. The host must reload the concrete record and check it against primary authority (D10).
+  host writes. Before a write, the host must reload the concrete record and check it against primary authority.
 - **Bypass and interference:** a captured Builder or model, replica lag, request state memoization, or a
   revoke between `authorize()` and the host write/export. Primary plus `StateRefresh::Check` covers a
   revoke committed before the check, not one that commits after it. Strict atomicity needs a host protocol
@@ -186,7 +186,7 @@ not supported public SPI.
   `packages/core/src/Changes/Internal/ChangeValidator.php::finalize()` protect mutation structure and target
   validity. `packages/core/src/Changes/Internal/ActingActor.php::resolve()` supplies attribution. Neither
   constitutes a universal actor authorization gate. The executable host service `tests/Fixtures/Changes/AuthorizedRoleAssignments.php`
-  illustrates the D8 boundary; low-level APIs remain trusted backend primitives. See the
+  shows where the host authorizes the actor; low-level APIs remain trusted backend primitives. See the
   [assignment authorization guide](../guides/managing-grants.md) for its policy and integration duties.
 - **Bypass and interference:** exposing `grantRole()` or managers directly, trusting an HTTP actor field,
   confusing actor with target, or treating an old UI selection as permission. Re-resolve actor server-side
@@ -203,7 +203,7 @@ not supported public SPI.
 
 - **Enforcement:** source failures in `ReadAttempt` fail the operation; unsupported visibility throws.
   The host renderer controls public disclosure. `DecisionResponder` is an existing opt-in adapter for
-  403/503/500; ordinary authorization retains its generic 403 behavior (D9).
+  403/503/500; ordinary authorization keeps Laravel's generic 403 behavior.
 - **Bypass and interference:** swallowing a source exception as an empty contribution list, accepting a
   partial allow/super-admin result, or exposing internal reason/component/identity in a response or metric.
   A concurrent outage does not justify bypassing authorization; no lock restores source availability.

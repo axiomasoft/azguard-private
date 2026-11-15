@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 /*
- * License policy of the production dependencies (knowledge/security-gates#policies).
+ * License policy of the production dependencies.
  *
  *   php bin/license-policy.php [--input=<licenses.json>] [--policy=<file>] [--today=<YYYY-MM-DD>]
  *
