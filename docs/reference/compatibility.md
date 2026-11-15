@@ -83,9 +83,8 @@ For an extension author this means:
 
 - depend only on types marked `#[Api]` or `#[Spi]`; a type in an `Internal` namespace or marked `@internal` can change in
   any release;
-- a published migration is never edited; a schema change is a new migration. Published-baseline upgrades require
-  artifact-specific qualification with `bin/upgrade-fixture.sh`; the [2.0 guide](../guides/upgrading-2.md) records
-  the currently unavailable baseline and historical-schema limitations;
+- a published migration is never edited; a schema change is a new migration, and `bin/upgrade-fixture.sh` proves that
+  decisions survive the upgrade from an older release;
 - an event payload gains keys in a minor version and never loses or retypes one, so read keys by name and ignore the
   ones you do not know;
 - a closed enum never gains a case, so `match` over it stays exhaustive; an open enum may, so keep a default arm.
@@ -113,18 +112,11 @@ A reader of these formats must ignore keys it does not know.
 - `composer api:check` regenerates the manifests and fails when they are stale.
 - `composer api:compat` compares the manifests and the format fixtures with the baseline and fails on every break listed
   above. It is a blocking job of the continuous integration and of the release workflow, so a tag cannot skip it.
-- `compatibility.json` declares supported `major: 2`. Auto comparison selects the newest stable `v2.Y.Z` ancestor,
-  excluding tags on HEAD. Before an eligible stable tag exists, it uses the immutable `major_candidate` SHA.
-  The fallback must also precede HEAD: the first 2.0 tag is never compared with itself. Tags of other majors and
-  prereleases cannot become an automatic baseline. A same-major break still exits 1.
-- The former `candidate` SHA is retained unchanged. The committed [2.0 migration inventory](./compatibility-2.json)
-  records every break and addition between that candidate and `major_candidate`, with the exact rationale for
-  starting the 2.0 line. This inventory is generated with `php bin/api-compat.php --write-migration-inventory`;
-  auto comparison verifies it against both pinned committed trees and rejects a missing or stale inventory.
-  Later 2.x changes are compared normally and cannot be hidden in that historical inventory.
-- `php bin/api-compat.php --against=<ref> --json` still compares across majors on request and reports all breaks
-  with exit 1; the major policy does not suppress explicit migration diagnostics. Historical specs without `major`
-  retain the original newest-stable-v1+ / `candidate` behavior.
+- `compatibility.json` declares the supported `major: 2`. Auto comparison selects the newest stable `v2.Y.Z` ancestor,
+  excluding tags on HEAD. Before an eligible stable tag exists, it uses the immutable `candidate` SHA. The fallback
+  must also precede HEAD: the first 2.0 tag is never compared with itself. Tags of other majors and prereleases
+  cannot become an automatic baseline. A same-major break exits 1.
+- `php bin/api-compat.php --against=<ref> --json` compares with any other ref on request and reports every break.
 - The pointer in `compatibility.json` can change in a pull request only with the `compat-baseline` label, which is
   the explicit release decision.
 

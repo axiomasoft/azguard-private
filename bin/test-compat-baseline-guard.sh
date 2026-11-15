@@ -38,8 +38,8 @@ echo '{"schema": "urn:azguard:compatibility:1", "candidate": "000000000000000000
 git -C "$fixture" commit --quiet -am 'fixture: new pointer'
 
 git -C "$fixture" checkout --quiet -b major-policy main
-echo '{"schema": "urn:azguard:compatibility:1", "candidate": null, "major": 2, "major_candidate": "2222222222222222222222222222222222222222", "migration_inventory": "docs/reference/compatibility-2.json", "artifacts": []}' > "$fixture/compatibility.json"
-git -C "$fixture" commit --quiet -am 'fixture: new major policy, unchanged old pointer'
+echo '{"schema": "urn:azguard:compatibility:1", "candidate": null, "major": 2, "artifacts": []}' > "$fixture/compatibility.json"
+git -C "$fixture" commit --quiet -am 'fixture: new major policy, unchanged pointer'
 
 # A pointer change merged into main after the branch point is not the pull request's change (three-dot diff).
 git -C "$fixture" checkout --quiet main
@@ -51,7 +51,7 @@ expect 0 other '["size/XS"]' 'no pointer change, other labels'
 expect 0 pointer '["size/S", "compat-baseline"]' 'pointer change with the label'
 expect 1 pointer '[]' 'pointer change without labels'
 expect 1 pointer '["compat-baseline-later", "Compat-Baseline"]' 'pointer change with similar labels only'
-expect 1 major-policy '[]' 'major policy change with unchanged old candidate needs the label'
+expect 1 major-policy '[]' 'major policy change with an unchanged candidate needs the label'
 expect 0 major-policy '["compat-baseline"]' 'major policy change with the label'
 expect 2 pointer 'not json' 'malformed labels'
 expect 2 pointer '{"name": "compat-baseline"}' 'labels not a list'
