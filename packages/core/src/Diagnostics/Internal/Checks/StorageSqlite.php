@@ -53,7 +53,7 @@ final readonly class StorageSqlite implements DoctorCheck
             }
 
             if ($problems !== []) {
-                yield DoctorFinding::warning($this->key(), 'Storage '.$storage->id().' uses SQLite with '.implode('; ', $problems)
+                yield DoctorFinding::warning($this->key(), 'Storage '.$storage->id().' uses SQLite: '.implode('; ', $problems)
                     .'. Supported, but enable WAL (journal_mode=wal) and set busy_timeout for concurrent use.',
                     'storage:'.$storage->id(), ['journal_mode' => $mode, 'busy_timeout' => $timeout]);
             }
