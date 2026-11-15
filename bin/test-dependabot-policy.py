@@ -79,7 +79,7 @@ class DependabotPolicyTest(unittest.TestCase):
             with self.subTest(case=case):
                 self.assertFalse(eligible(**case))
         self.assertTrue(eligible(actor='human'))
-        # No update type, including a patch, can arm auto-merge under D21.
+        # No update type, including a patch, can arm auto-merge: Dependabot pull requests are merged by hand.
         self.assertNotIn('gh pr merge --auto ', MERGE['run'])
 
     def test_trusted_metadata_and_permissions(self):

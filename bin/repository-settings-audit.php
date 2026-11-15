@@ -5,7 +5,7 @@ declare(strict_types=1);
 use Symfony\Component\Yaml\Yaml;
 
 /*
- * Repository settings audit (knowledge/governance#audit-script): the expected settings are the ruleset bodies in
+ * Repository settings audit: the expected settings are the ruleset bodies in
  * `.github/rulesets/*.json` and the required contexts in `.github/rulesets/required-checks.json`; the actual settings come
  * from `gh api` (`--live`) or from recorded responses (`--fixture=<dir>`). The script only reads.
  *

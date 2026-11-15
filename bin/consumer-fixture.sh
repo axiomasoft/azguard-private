@@ -14,7 +14,7 @@
 # `core-only` builds the core archive WITHOUT its modules/ directory (providers and PSR-4 reduced to core), installs it
 # and proves that the application boots, migrates, passes the doctor, grants a role and answers a check with no module.
 #
-# `relocated-audit` rehearses a future extraction of the Audit module (I19): an application with an audited panel and
+# `relocated-audit` rehearses a future extraction of the Audit module into its own package: an application with an audited panel and
 # journal rows, installed from the full core archive, switches to a core archive without modules/audit plus a synthetic
 # `axiomasoft/azguard-audit` archive with the same PSR-4 prefix and provider, and keeps FQCNs, commands, publish tag,
 # migration basename, doctor result and journal rows with one autoload owner. `--report=FILE` writes the record.

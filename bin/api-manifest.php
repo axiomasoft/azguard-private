@@ -8,7 +8,7 @@ declare(strict_types=1);
  *   php bin/api-manifest.php --write   regenerate both manifests
  *   php bin/api-manifest.php --check   exit 1 with a short diff when a manifest is stale
  *
- * Publication is the attribute only (D9): a type with #[Api] or #[Spi] is supported, any other type is internal wherever
+ * Publication is the attribute only: a type with #[Api] or #[Spi] is supported, any other type is internal wherever
  * it lives, and a type under `\Internal\` with an attribute is an error. Per supported type the manifest records the
  * attribute kind and `since`, the public members and, for a class that is not final, the protected members (override
  * points) with full signatures and parameter names, constants with values, enum cases with the closed/open class, the

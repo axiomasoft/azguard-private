@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
-# Intentional-break drill of the compatibility comparison (I18, D26).
+# Intentional-break drill of the compatibility comparison.
 #
 #   bash bin/compat-drill.sh [--baseline=<ref>] [--report=<file>]
 #
 # Clones the repository into a throwaway directory, tags the baseline (default HEAD) in its supported major, and
 # for each case patches real source, regenerates the manifests or the format fixtures, commits and runs
-# `php bin/api-compat.php --against=auto`. D1-D5 must be rejected with their rule id (exit 1), the control D6 must stay
+# `php bin/api-compat.php --against=auto`. The five breaks must be rejected with their rule id (exit 1), the control must stay
 # compatible (exit 0). The main repository's tags are asserted unchanged at the end. Exit 0 only when every case
 # behaved as expected; 2 on usage or setup errors. `--report` writes the evidence table as Markdown. PHP is `$PHP`
 # (default `php`).
@@ -122,7 +122,7 @@ run_case() {
     git -C "$clone" clean -fdq
 }
 
-# D1: a method added to an spi-implement interface (and implemented by the package's own plugins so that they load).
+# Break 1: a method added to an spi-implement interface (and implemented by the package's own plugins so that they load).
 edit packages/core/src/Contracts/Plugins/Plugin.php '
     return preg_replace("/\n}\s*$/", "\n\n    public function boot(): void;\n}\n", $s, 1);'
 for implementer in $(cd "$clone" && grep -rlE '^final class \w+ implements Plugin$' packages/core/src packages/core/modules); do
@@ -130,40 +130,40 @@ for implementer in $(cd "$clone" && grep -rlE '^final class \w+ implements Plugi
         return preg_replace("/\n}\s*$/", "\n\n    public function boot(): void {}\n}\n", $s, 1);'
 done
 regenerate_manifests
-run_case D1 'method boot() added to the spi-implement interface AzGuard\Contracts\Plugins\Plugin' 1 implement.method_added packages/core/api-manifest.json
+run_case break-1 'method boot() added to the spi-implement interface AzGuard\Contracts\Plugins\Plugin' 1 implement.method_added packages/core/api-manifest.json
 
-# D2: a parameter of a public AzGuard\AzGuard method renamed.
+# Break 2: a parameter of a public AzGuard\AzGuard method renamed.
 edit packages/core/src/AzGuard.php '
     $start = strpos($s, "public function check(");
     $end = strpos($s, "\n    }\n", $start);
     $method = substr($s, $start, $end - $start);
     return substr($s, 0, $start).str_replace("\$subject", "\$who", $method).substr($s, $end);'
 regenerate_manifests
-run_case D2 'parameter $subject of AzGuard\AzGuard::check() renamed to $who' 1 parameter.renamed packages/core/api-manifest.json
+run_case break-2 'parameter $subject of AzGuard\AzGuard::check() renamed to $who' 1 parameter.renamed packages/core/api-manifest.json
 
-# D3: a case added to a closed enum.
+# Break 3: a case added to a closed enum.
 edit packages/core/src/Tenancy/TenantMode.php '
     return str_replace("    case Required = '"'"'required'"'"';\n", "    case Required = '"'"'required'"'"';\n    case Optional = '"'"'optional'"'"';\n", $s);'
 regenerate_manifests
-run_case D3 'case Optional added to the closed enum AzGuard\Tenancy\TenantMode' 1 enum.closed_case_added packages/core/api-manifest.json
+run_case break-3 'case Optional added to the closed enum AzGuard\Tenancy\TenantMode' 1 enum.closed_case_added packages/core/api-manifest.json
 
-# D4: an event payload key renamed in the event's toArray().
+# Break 4: an event payload key renamed in the event's toArray().
 edit packages/core/src/Events/RoleGranted.php '
     return str_replace("'"'"'role'"'"' => \$this->role->full(),", "'"'"'role_key'"'"' => \$this->role->full(),", $s);'
 regenerate_formats
-run_case D4 'payload key role of role.granted renamed to role_key' 1 format.removed tests/Fixtures/Formats/events.json
+run_case break-4 'payload key role of role.granted renamed to role_key' 1 format.removed tests/Fixtures/Formats/events.json
 
-# D5: the core migration renamed.
+# Break 5: the core migration renamed.
 git -C "$clone" mv packages/core/database/migrations/2026_10_01_000000_create_azguard_storage.php \
     packages/core/database/migrations/2026_10_01_000001_create_azguard_tables.php
 regenerate_formats
-run_case D5 'core migration 2026_10_01_000000_create_azguard_storage renamed' 1 format.removed tests/Fixtures/Formats/resources.json
+run_case break-5 'core migration 2026_10_01_000000_create_azguard_storage renamed' 1 format.removed tests/Fixtures/Formats/resources.json
 
-# D6 (control): a public method added to a final api class.
+# Control: a public method added to a final api class.
 edit packages/core/src/Changes/GrantFilter.php '
     return preg_replace("/\n}\s*$/", "\n\n    public function isUnbounded(): bool\n    {\n        return false;\n    }\n}\n", $s, 1);'
 regenerate_manifests
-run_case D6 'public method isUnbounded() added to the final api class AzGuard\Changes\GrantFilter' 0 - packages/core/api-manifest.json
+run_case control 'public method isUnbounded() added to the final api class AzGuard\Changes\GrantFilter' 0 - packages/core/api-manifest.json
 
 tags_after="$(git -C "$root" for-each-ref --format='%(refname) %(objectname)' refs/tags)"
 if [[ "$tags_before" != "$tags_after" ]]; then

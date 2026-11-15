@@ -21,7 +21,7 @@ bash bin/consumer-fixture.sh --laravel=13 --version=2.0.0-rc.1 --keep
 | `--with-filament` | Also install `axiomasoft/azguard-filament` |
 | `--keep` | Keep the temporary directory and print its path |
 | `core-only` | Build the core archive without `modules/` (module providers and PSR-4 roots removed), install it and run `fixtures/consumer/core-only`: migrate, `azguard:doctor`, one grant, one check, no module command registered. Does not combine with `--with-filament` |
-| `relocated-audit` | Module relocation rehearsal (I19), below. Does not combine with `--with-filament` |
+| `relocated-audit` | Module relocation rehearsal, below. Does not combine with `--with-filament` |
 | `--report=FILE` | With `relocated-audit`: write the before/after record (archives with sha256, facts, exit codes) as Markdown |
 
 What the script does:

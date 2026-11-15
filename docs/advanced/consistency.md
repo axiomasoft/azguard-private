@@ -4,7 +4,7 @@ This page lists what a decision guarantees about the authority it read, and what
 sources are in `audits/2026-10-09-consistency-design.md`.
 
 The [security and trust model](./security.md) names the trusted components, attacker capabilities and
-SEC-01–SEC-09 proof obligations for P2–P6. The guarantees here assume trusted source implementations and
+SEC-01–SEC-09 proof obligations. The guarantees here assume trusted source implementations and
 writers that preserve that contract; they do not authenticate an actor or authorize a caller of the change API.
 
 ## What a decision reflects
@@ -224,7 +224,7 @@ These APIs are trusted backend primitives, not a universal authorization gate fo
 HTTP/Livewire boundary, the host must authenticate the actor server-side and explicitly authorize actor,
 target, role, tenant and assignment scope before calling them. `actingAs()` and explicit actor arguments
 provide audit attribution, not proof of identity or permission to grant. Jobs and CLI need an explicit
-trusted host policy too; there is no universal HTTP user in those contexts (D8).
+trusted host policy too; there is no universal HTTP user in those contexts.
 
 ## Lock ordering
 
