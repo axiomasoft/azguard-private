@@ -19,9 +19,9 @@ Copy the example in `docs/reference/release-evidence.md` and replace every place
 ## Validate
 
 ```bash
-php bin/release-evidence.php release-evidence/v1.0.0-rc.1.yml                          # shape only
-php bin/release-evidence.php release-evidence/v1.0.0-rc.1.yml --live                   # also GitHub: runs, tag, attestations
-php bin/release-evidence.php release-evidence/v1.0.0-rc.1.yml --live --require-approval
+php bin/release-evidence.php release-evidence/v2.0.0-rc.1.yml                          # shape only
+php bin/release-evidence.php release-evidence/v2.0.0-rc.1.yml --live                   # also GitHub: runs, tag, attestations
+php bin/release-evidence.php release-evidence/v2.0.0-rc.1.yml --live --require-approval
 ```
 
 Output is one line per violation, `<rule-id> <field>: <reason>`; exit `0` clean, `1` violations, `2` usage or read error.

@@ -16,7 +16,7 @@ Every value below is a placeholder.
 
 ```yaml
 schema: urn:azguard:release-evidence:2
-version: 1.0.0-rc.1
+version: 2.0.0-rc.1
 commit: 0000000000000000000000000000000000000000        # the commit the tag points to
 candidate: 0000000000000000000000000000000000000000     # the qualified candidate
 created_at: 2026-01-01T00:00:00Z
