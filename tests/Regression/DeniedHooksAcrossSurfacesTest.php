@@ -21,7 +21,7 @@ use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Route;
 
-it('P03 honors denied hooks and sources across decide batch explain Gate inspect Blade azguard.can and CLI', function (bool $hook): void {
+it('honors denied hooks and sources across decide batch explain Gate inspect Blade azguard.can and CLI', function (bool $hook): void {
     GateWorld::seed();
     $source = new GeneratedSource(direct: [AuthorizationWorld::grant()]);
     $deny = false;

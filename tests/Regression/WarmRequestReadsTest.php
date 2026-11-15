@@ -7,7 +7,7 @@ use AzGuard\Storage\Schema\StorageSchema;
 use AzGuard\Tests\Fixtures\Authorization\Cache\CacheWorld;
 use AzGuard\Tests\Fixtures\Sources\Database\DatabaseWorld;
 
-it('P10: ten warm request checks read one state and no DB grants', function (): void {
+it('ten warm request checks read one state and no DB grants', function (): void {
     app(StorageSchema::class)->create('default');
     DatabaseWorld::seedSubject();
     DatabaseWorld::insert('permission', [DatabaseWorld::row('permission')]);

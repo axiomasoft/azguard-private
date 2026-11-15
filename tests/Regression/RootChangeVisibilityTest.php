@@ -8,7 +8,7 @@ use AzGuard\Storage\Schema\StorageSchema;
 use AzGuard\Tests\Fixtures\Authorization\Cache\CacheWorld;
 use AzGuard\Tests\Fixtures\Sources\Database\DatabaseWorld;
 
-it('P10b supported root sees its own changes and committed revoke survives a new request', function (): void {
+it('supported root sees its own changes and committed revoke survives a new request', function (): void {
     app(StorageSchema::class)->create('default');
     DatabaseWorld::seedSubject();
     [$engine, $panel] = CacheWorld::database(DatabaseSource::make());

@@ -12,7 +12,7 @@ use Illuminate\Support\Facades\Event;
 
 afterEach(fn () => CrmWorld::resetRuntime());
 
-it('P11 emits one event after the commit for a change and none for a repeat without a difference', function (): void {
+it('emits one event after the commit for a change and none for a repeat without a difference', function (): void {
     CrmWorld::seed();
     $panel = ChangeWorld::panel();
     $levels = [];
@@ -28,7 +28,7 @@ it('P11 emits one event after the commit for a change and none for a repeat with
         ->and($levels)->toBe([0]);
 });
 
-it('P11 emits one event after the commit through $user->guard(\'admin\') and none for the repeat', function (): void {
+it('emits one event after the commit through $user->guard(\'admin\') and none for the repeat', function (): void {
     SubjectWorld::seed();
     SubjectWorld::compile();
     $user = SubjectWorld::member();

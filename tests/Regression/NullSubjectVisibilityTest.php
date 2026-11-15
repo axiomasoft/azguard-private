@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\Auth;
 
 afterEach(fn () => W::reset());
 
-it('P04a returns no rows for an explicit null subject without reading Auth', function (): void {
+it('returns no rows for an explicit null subject without reading Auth', function (): void {
     W::seed();
     [$visibility, $panel] = W::compile();
     Auth::shouldReceive('user')->never();

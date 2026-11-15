@@ -18,7 +18,7 @@ use AzGuard\Tests\Fixtures\Authorization\GrantableRootRole;
 use AzGuard\Tests\Fixtures\Sources\Database\DatabaseWorld;
 use AzGuard\Tests\Modules\Scopes\Fixtures\ScopeWorld;
 
-it('P01b rejects bare wildcard contributions rather than manufacturing superadmin', function (string $wildcard): void {
+it('rejects bare wildcard contributions rather than manufacturing superadmin', function (string $wildcard): void {
     expect(fn () => PermissionPattern::of('admin', $wildcard))->toThrow(InvalidPermissionKeyException::class);
 
     // Simulate an untrusted source bypassing the validated value-object constructor.
@@ -34,7 +34,7 @@ it('P01b rejects bare wildcard contributions rather than manufacturing superadmi
         ->and($engine->isSuperAdmin($panel, $request->subject(), $scope))->toBeFalse();
 })->with(['*', '**']);
 
-it('P01b fails closed on a bare wildcard DB row written through mutate', function (string $wildcard): void {
+it('fails closed on a bare wildcard DB row written through mutate', function (string $wildcard): void {
     app(StorageSchema::class)->create('default');
     DatabaseWorld::insert('permission', [DatabaseWorld::row('permission', overrides: ['permission' => $wildcard])]);
     DatabaseWorld::insert('role', [DatabaseWorld::row('role', overrides: ['role' => 'root'])]);
@@ -45,7 +45,7 @@ it('P01b fails closed on a bare wildcard DB row written through mutate', functio
     app(StorageSchema::class)->drop('default');
 })->with(['*', '**']);
 
-it('P01b uses the same compiled superadmin flag for code and database contributions', function (bool $database): void {
+it('uses the same compiled superadmin flag for code and database contributions', function (bool $database): void {
     app(StorageSchema::class)->create('default');
     $scope = AccessScope::in(TenantRef::global());
 

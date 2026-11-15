@@ -17,7 +17,7 @@ it('rejects bare wildcards as a permission key and as a grant pattern', function
         ->and(fn () => PatternMatcher::covers($wildcard, 'orders.view'))->toThrow(InvalidPermissionKeyException::class);
 })->with(['*', '**']);
 
-it('P14 refuses a direct grant of a bare wildcard through $user->guard(\'admin\'); a super-admin role is the only way', function (): void {
+it('refuses a direct grant of a bare wildcard through $user->guard(\'admin\'); a super-admin role is the only way', function (): void {
     SubjectWorld::seed();
     SubjectWorld::compile();
     $user = SubjectWorld::member();

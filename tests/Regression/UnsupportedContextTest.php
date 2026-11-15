@@ -13,7 +13,7 @@ use Illuminate\Database\Eloquent\Relations\Relation;
 
 afterEach(fn () => Relation::morphMap([], false));
 
-it('P06b consistently rejects an unsupported explicit context instead of global allow', function (): void {
+it('consistently rejects an unsupported explicit context instead of global allow', function (): void {
     [$engine, $panel, $request] = ScopeWorld::compile(new GeneratedSource(direct: [AuthorizationWorld::grant()]), 'none', tenant: false);
     expect($engine->decide($panel, $request)->allowed())->toBeTrue();
     $context = AssignmentScopeRef::of('workspace', 42);

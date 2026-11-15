@@ -12,7 +12,7 @@ use AzGuard\Tests\Fixtures\Authorization\GeneratedSource;
 use AzGuard\Tests\Fixtures\Authorization\GrantableRootRole;
 use AzGuard\Tests\Modules\Scopes\Fixtures\ScopeWorld;
 
-it('P01a never promotes a role from another panel to superadmin authority', function (): void {
+it('never promotes a role from another panel to superadmin authority', function (): void {
     $scope = AccessScope::in(TenantRef::global());
     $source = new GeneratedSource(roles: [RoleContribution::of(RoleKey::of('admin', 'root'), $scope, 'generated')]);
     [$engine, $panel, $request] = ScopeWorld::compile($source, 'none', fn (PanelBuilder $panel) => $panel->roles([GrantableRootRole::class]), tenant: false);

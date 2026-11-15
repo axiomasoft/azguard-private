@@ -11,7 +11,7 @@ use AzGuard\Tests\Fixtures\Crm\CrmWorld;
 
 afterEach(fn () => CrmWorld::resetRuntime());
 
-it('P13 rejects an unknown role and a mistyped permission in the change pipeline and stores nothing', function (): void {
+it('rejects an unknown role and a mistyped permission in the change pipeline and stores nothing', function (): void {
     CrmWorld::seed();
     $panel = ChangeWorld::panel();
     $pipeline = app(ChangePipeline::class);
@@ -26,7 +26,7 @@ it('P13 rejects an unknown role and a mistyped permission in the change pipeline
         ->and($pipeline->grant($panel, ChangeWorld::tenant(), ChangeWorld::user(2), $pipeline->role($panel, 'analyst'), ChangeWorld::project(1))->applied())->toBeTrue();
 });
 
-it('P13 rejects the same typos through $user->guard(\'admin\') and stores nothing', function (): void {
+it('rejects the same typos through $user->guard(\'admin\') and stores nothing', function (): void {
     SubjectWorld::seed();
     SubjectWorld::compile();
     $user = SubjectWorld::member();

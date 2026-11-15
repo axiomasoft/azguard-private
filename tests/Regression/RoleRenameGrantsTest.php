@@ -16,7 +16,7 @@ use Illuminate\Database\Eloquent\Relations\Relation;
 
 afterEach(fn () => Relation::morphMap([], false));
 
-it('P02 preserves grants after a role class rename and denies removed keys without throwing', function (): void {
+it('preserves grants after a role class rename and denies removed keys without throwing', function (): void {
     ShopWorld::seed();
     $before = new #[Role('reader')] class extends BaseRole
     {
