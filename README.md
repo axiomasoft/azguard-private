@@ -42,10 +42,15 @@ AzGuard is not on Packagist yet. Until the first release, install it from a path
 
 ```bash
 composer require axiomasoft/azguard
-php artisan azguard:install --panel=Admin --migrate
 ```
 
-Add `HasAzGuard` and `AzGuardSubject` to your `User` model and register a morph alias. Then follow the
+Register a morph alias for `User` and add `HasAzGuard` and `AzGuardSubject` to it, then run the installer:
+
+```bash
+php artisan azguard:install --panel=Admin --migrate --host-keys=bigint
+```
+
+[Installation](docs/getting-started/installation.md) explains each step; then follow the
 **[quick start](docs/getting-started/quick-start.md)**.
 
 The Filament plugin `axiomasoft/azguard-filament` lives in this monorepo and is not published separately; see the
