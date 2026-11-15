@@ -156,7 +156,7 @@ it('storage.sqlite warns about an SQLite file outside WAL or without a busy time
 
         DB::connection('sqlfile')->statement('PRAGMA journal_mode = wal');
         DB::connection('sqlfile')->statement('PRAGMA busy_timeout = 0');
-        expect(storageFindings('storage.sqlite'))->toBe(['storage:file warning Storage file uses SQLite with busy_timeout is 0: a check that meets a write fails with SQLITE_BUSY at once. Supported, but enable WAL (journal_mode=wal) and set busy_timeout for concurrent use.']);
+        expect(storageFindings('storage.sqlite'))->toBe(['storage:file warning Storage file uses SQLite: busy_timeout is 0: a check that meets a write fails with SQLITE_BUSY at once. Supported, but enable WAL (journal_mode=wal) and set busy_timeout for concurrent use.']);
 
         DB::connection('sqlfile')->statement('PRAGMA busy_timeout = 5000');
         expect(storageFindings('storage.sqlite'))->toBe([]);
