@@ -9,8 +9,11 @@ PostgreSQL 18 and Redis 7. The optional Filament plugin requires Filament `^5.8.
 
 ```bash
 composer require axiomasoft/azguard
-php artisan azguard:install --panel=Admin --migrate
+php artisan azguard:install --panel=Admin --migrate --host-keys=bigint
 ```
+
+Register a morph alias for your subject model and add `HasAzGuard` to it before the installer runs Doctor; the
+installation guide in the documentation has the steps.
 
 Documentation: <https://github.com/axiomasoft/azguard-private/tree/main/docs>, including the
 [compatibility policy](https://github.com/axiomasoft/azguard-private/blob/main/docs/reference/compatibility.md).
