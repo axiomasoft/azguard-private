@@ -58,3 +58,4 @@ AGENTS.md
 /bench/.runs/
 # Pinned security tools (bin/security-tools.sh)
 var/tools/
+.mcp.json.example
