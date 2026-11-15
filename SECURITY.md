@@ -8,12 +8,9 @@ This is the maintainer contact also recorded in both packages' Composer author m
 If a mail link does not work, copy the address into your mail client. If there is no acknowledgement,
 retry the same address after 3 business days; do not include details in a public issue.
 
-As checked on 2026-11-03, the intended `axiomasoft/azguard` repository is private and its reporting URL
-returns HTTP 404 to an unauthenticated visitor. Private reporting enablement could not be verified.
-The intended future channel is `https://github.com/axiomasoft/azguard/security/advisories/new`;
-use email until that repository is public and private vulnerability reporting has been verified as enabled
-for outside researchers. An administrator's access alone does not verify a public reporting channel.
-No test vulnerability report was sent. See the dated read-only inventory in [RELEASING.md](RELEASING.md#security-channel-and-publication-inventory-2026-11-03).
+The intended future channel is `https://github.com/axiomasoft/azguard/security/advisories/new`, the package
+repository. Private reporting enablement could not be verified while that repository is private, so
+use email until that repository is public and private vulnerability reporting is verified for outside researchers.
 
 Include where possible:
 
@@ -34,16 +31,9 @@ This policy covers `axiomasoft/azguard` and `axiomasoft/azguard-filament` togeth
 | `2.x` (latest stable minor) | Supported once published; use the latest patch of that minor |
 | `main` | Best-effort development fixes; not a stable release |
 | `2.x` prereleases | Evaluation only; fixes may require the next prerelease |
-| `1.x` | Publication/support status unverified; no maintained line or LTS commitment is established |
-| `< 1.0` | Not supported |
+| `< 2.0` | Not supported: pre-release snapshots (`v0.3.0`, `v0.7.0`) |
 
-The planned line is `2.0.0-rc.1`, then `2.0.0`; a local Composer path version does not establish publication.
-The 2026-11-03 inventory found monorepo tags `v0.3.0` and `v0.7.0` and release `v0.3.0`, but did not establish
-a published 1.x or stable 2.x Composer artifact. Split/Packagist HTTP 404 responses do not prove absence or
-non-consumption. Report suspected issues in older installations too: the maintainer will triage their impact,
-but this is not a promise of a backport. Any newly verified published 1.x inventory requires an explicit support
-decision and policy update before announcing maintenance. See [release inventory](RELEASING.md#security-channel-and-publication-inventory-2026-11-03)
-and the [2.0 upgrade guide](docs/guides/upgrading-2.md) before migrating an existing installation.
+The first release line is `2.0.0-rc.1`, then `2.0.0`; nothing is published yet.
 
 There is no fixed LTS period, end-of-life date or contractual response/patch SLA. AzGuard has a single maintainer;
 availability and severity determine the work schedule. Support changes are announced in this policy and release notes.

@@ -12,11 +12,9 @@ composer require axiomasoft/azguard
 php artisan azguard:install --panel=Admin --migrate
 ```
 
-Documentation: <https://github.com/axiomasoft/azguard-private/tree/main/docs>. Filament 5 plugin:
-`axiomasoft/azguard-filament`, retained in the monorepo for development and outside the current publication scope.
-Before updating an existing installation, read the
-[2.0 upgrade guide](https://github.com/axiomasoft/azguard-private/blob/main/docs/guides/upgrading-2.md) and
+Documentation: <https://github.com/axiomasoft/azguard-private/tree/main/docs>, including the
 [compatibility policy](https://github.com/axiomasoft/azguard-private/blob/main/docs/reference/compatibility.md).
+The Filament 5 plugin `axiomasoft/azguard-filament` lives in the monorepo.
 
 This is a read-only split of the [monorepo](https://github.com/axiomasoft/azguard-private). Open issues
 and pull requests there. MIT license.

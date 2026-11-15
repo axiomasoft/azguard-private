@@ -1,9 +1,7 @@
 # Releasing AzGuard
 
-AzGuard is developed as a monorepo. **Current scope is local work only:** neither core nor Filament is being split,
-tagged or published. No split repository, remote setup or release is authorized by this document. Both packages remain
-in the monorepo for development. The release procedures below describe historical or deferred mechanisms, not an
-instruction to execute them; any future distribution design and external action require a separate owner decision.
+AzGuard is developed as a monorepo. Nothing is split, tagged or published yet; publishing is an owner decision, and
+this document describes the gates a release has to pass, not an instruction to run them.
 
 ## Release notes: the curated CHANGELOG
 
@@ -16,29 +14,18 @@ with a user-visible change edits `[Unreleased]`; the release moves it under the 
 
 ## Versioning
 
-The historical changelog calls 1.0.0 the first public release, but that statement alone does not establish publication
-or consumption. Treat 1.0 as potentially consumed. The read-only local publication inventory
-records observations and access failures separately; an inaccessible private API or a 404 does not prove absence.
-A previous release plan proposed **2.0.0-rc.1**, then **2.0.0**, because Unreleased contains breaking changes.
-No release SHA is selected or publication authorized. Existing tags must not be moved or rewritten.
-
-On 2026-10-30 the accessible origin advertised only `v0.3.0` and `v0.7.0`, and its GitHub releases API returned
-one release, `v0.3.0`. Both split tag queries required unavailable credentials; their release APIs returned 404.
-Packagist's stable and development metadata endpoints returned 404 for both package names, so no versions or
-source/dist references were returned. These observations do not prove that 1.0 was never published or consumed.
-The inventory is a timestamped, ignored local build artifact, not a repository link.
-Retain a copy with the release evidence supplied for approval; a fresh clone does not contain it.
+The first release line is **2.0.0-rc.1**, then **2.0.0**. The tags `v0.3.0` and `v0.7.0` are pre-release snapshots
+of the same code base; no 1.x was tagged. Existing tags are never moved or rewritten.
 
 The root `composer.lock` is the development and release lock: qualification jobs `composer install` from it,
 packages never ship it, and version-range jobs re-resolve with `composer update`.
 
-The local Filament integration retains its `self.version` constraint and development version identity. A package
-manifest intentionally has no `version` field. A later decision and qualification are required before distributing
-either package; the previous split-based release plan is not the current scope.
+The Filament package requires `self.version` of the core, so both always carry the same version. A package manifest
+intentionally has no `version` field.
 
 ## Compatibility baseline
 
-From 1.0 the supported surface is compared with a baseline on every push, pull request and release tag
+The supported surface is compared with a baseline on every push, pull request and release tag
 (`.github/workflows/compatibility.yml`): `composer api:check` first (the manifests are current), then
 `composer api:compat` (`php bin/api-compat.php --against=auto`). The comparison reads the artifacts listed in the root
 `compatibility.json` — the attribute manifests of both packages and the format fixtures (exceptions, events, journal
@@ -48,7 +35,7 @@ baseline commit with `git show` and never loads baseline code. A break exits 1 w
 
 The baseline is:
 
-- **before the first stable tag** — the `major_candidate` sha in `compatibility.json`. The release that freezes a candidate
+- **before the first stable tag** — the `candidate` sha in `compatibility.json`. The release that freezes a candidate
   sets it in a commit that changes only `compatibility.json` (a commit cannot name itself);
 - **afterwards** — the newest tag `vX.Y.Z` with X ≥ 1 and no pre-release suffix that is merged into the compared commit.
   The pointer is then no longer read, and a pull request cannot change a tag.
@@ -61,36 +48,7 @@ that the comparison rejects the intentional breaks (D1–D5) and accepts the con
 
 ## Repository settings
 
-### Security channel and publication inventory 2026-11-03
-
-Read-only verification found the following; retain the timestamped observations with release evidence:
-
-- The GitHub connector reports `axiomasoft/azguard` as private and the connected account as an administrator.
-  Anonymous requests to its intended `https://github.com/axiomasoft/azguard/security/advisories/new` and
-  private-reporting status API returned HTTP 404. The connector does not expose that setting; the local `gh`
-  client has no credentials (exit 4). Enablement/public reporter access is unverified. Do not infer it from admin access.
-- The public monorepo `axiomasoft/azguard-private` exposes `SECURITY.md` (HTTP 200), tags `v0.3.0` and `v0.7.0`,
-  and one non-draft/non-prerelease release, `v0.3.0`. Both split tag/release APIs and both packages' stable/dev
-  Packagist metadata returned HTTP 404; the connector could access the private core split but not the Filament split.
-  This does not establish published 1.x or stable 2.x artifacts and does not prove non-publication/non-consumption.
-- The canonical private contact is [dv.vostrikov@gmail.com](mailto:dv.vostrikov@gmail.com), matching both Composer
-  author records. Gmail MX resolution succeeded; no mailbox delivery or vulnerability submission was tested.
-  Both `support.security` fields link to the verified public monorepo policy, not an invisible advisory form.
-- The docs site `https://axiomasoft.github.io/azguard-private/` returned HTTP 200; project and origin-root
-  `security.txt` URLs returned HTTP 404. The project asset is prepared for a later authorized deployment, not a
-  verified live endpoint. The project repository cannot serve the origin root; see [hosting status](docs/security.md#security-contact-hosting-status).
-
-Before each release, refresh the actual publication inventory, verify the reporting channel from a researcher's
-access level without submitting a report, and check the hosted `security.txt` content and expiry. Keep email
-canonical unless the intended public repository's private reporting is confirmed enabled. Settings changes,
-deployment and publication require their own authorization; the commands below are not grants.
-
-The [Security Policy](SECURITY.md) supports the latest stable 2.x minor once published and `main` on a best-effort
-basis. No published 1.x inventory or LTS commitment is established; newly verified 1.x artifacts require an explicit
-support decision. An acknowledgement within 3 business days is a target, not an SLA. Apply its severity-based
-patch/prerelease and coordinated disclosure process, including the [key compromise response](docs/security.md#key-compromise-response).
-
-### Historical repository-settings procedure (not authorized)
+### Applying the settings
 
 The expected settings live in `.github/rulesets/` and `.github/CODEOWNERS`; `bin/repository-settings-audit.php` compares them
 with the live repository and only reads. Applying them is an owner act.
@@ -119,8 +77,8 @@ and verify the researcher-facing form. Until then use the email in `SECURITY.md`
 The `compat-baseline` label stays a triage-role decision (single maintainer).
 
 **Break-glass.** The owner temporarily sets `enforcement` to `disabled` on the `main` ruleset, performs the action,
-restores `active`, and records the date, the reason, the ruleset JSON before and after, and the commit in the plan's
-`artifacts/evidence/governance/break-glass.md`. `php bin/repository-settings-audit.php --live` must be green again before
+restores `active`, and records the date, the reason, the ruleset JSON before and after, and the commit with the release
+evidence. `php bin/repository-settings-audit.php --live` must be green again before
 any tag.
 
 ## Schema changes
@@ -140,11 +98,11 @@ for driver in sqlite pgsql mysql mariadb; do bash bin/upgrade-fixture.sh --from=
 `bin/upgrade-fixture.sh` installs the older archive in a clean Laravel application, seeds grants, captures the decisions
 (`azguard:explain --json`) and the doctor, swaps to the newer archive, runs `php artisan migrate`, and fails when a
 decision or the doctor changed. It also reports whether `migrate:rollback` succeeds on the new schema; a migration that
-cannot be rolled back is declared in `UPGRADING.md`.
+cannot be rolled back is called out in the CHANGELOG entry of its release.
 
-## Historical post-tag split and Packagist checks
+## Post-tag split and Packagist checks
 
-After an authorized publication, verify the core split tree and install the core package in clean applications:
+After a publication, verify the core split tree and install the core package in clean applications:
 
 ```bash
 bash bin/split-verify.sh v2.0.0-rc.1
@@ -193,7 +151,6 @@ that record's origin. `php bin/prepare-release-setup.php` creates `build/release
 read-only observations and the proposed settings and payload hashes. The proposal does not authorize remote changes.
 `php bin/verify-release-evidence.php --setup=build/release/setup-request.json --read-only --strict` uses live read-only APIs, a settings
 audit and cryptographically verified probes; it needs no candidate SHA and never dispatches workflows or writes remote.
-The legacy `--setup [REQUEST]` form remains supported; both forms are always strict and read-only.
 `--candidate-artifacts SHA TAG DIST CORE-SHA RUN-ID-ATTEMPT` checks the signed tag, complete artifact
 set, mapping, schemas and trusted attestations. It requires the configured tag key, fingerprint and a `gh` supporting
 attestation verification. A split tag is recorded as expected until its remote target is checked after publication.
@@ -240,7 +197,7 @@ The output directory must be empty and the pinned CycloneDX validator must alrea
 command compares two independent core ZIP builds from the copied worktree snapshot, records the explicit `.github`
 exclusion, validates source and synthetic fixture SBOMs and writes checksums. Its `evidence.json` is `nonrelease`, has
 no attestation or split mapping, and labels the dependency graph synthetic: no consumer resolution or audit ran.
-The core-only report uses `azguard.package-evidence.offline-fixture.v2`; v1 is retained as a historical format.
+The core-only report uses the `azguard.package-evidence.offline-fixture.v2` schema.
 
 ## Dependency updates
 
@@ -262,10 +219,10 @@ The core-only report uses `azguard.package-evidence.offline-fixture.v2`; v1 is r
   base branch, so do not assume its job provides that head check. Inspect the
   live required check names and their producing workflows; a successful auto-merge job is not evidence that tests passed.
   Missing, inactive, bypassable or incomplete rules block release until the owner resolves them. This read-only audit
-  is part of P8.1; do not change remote settings without owner authorization.
+  only reads; changing remote settings is an owner act.
 - An OSV ignore needs `ignoreUntil` and a reason in `.github/osv-scanner.toml`.
 
-## Historical release procedure (not authorized)
+## Release procedure
 
 ### Production operations acceptance
 
@@ -293,7 +250,7 @@ production Redis isolation, backup recoverability on a different engine or host 
 pending until the owners supply evidence. A failed reset, wrong configuration or failed smoke check keeps the host
 maintenance fence closed. This release checklist does not itself authorize a production restore or remote change.
 
-### Historical candidate qualification and publication
+### Candidate qualification and publication
 
 The release evidence collection, split-tree mapping and final provenance path require qualification in a real workflow
 run and independent review before publication. A successful local fixture or build is not release qualification.
@@ -313,7 +270,7 @@ run and independent review before publication. A successful local fixture or bui
    `php -d opcache.enable_cli=1 bench/bin/run.php --tier=mini --driver=<driver> --cache=<cache> --out=<baseline>`
    on the baseline and the same command with `--out=<candidate>` on the candidate, with nothing
    else running on the host. Compare with `php bench/bin/compare.php <baseline>.json <candidate>.json`.
-   The historical 1.0 results lack the metadata needed for this comparison. A failed correctness
+   A failed correctness
    check, engine error or stable matched regression blocks qualification; unstable results do not
    establish a latency verdict. If the host changed, record a new baseline first.
 2. Decide the SemVer version from the actual API/default/schema delta. Move the
@@ -335,8 +292,8 @@ run and independent review before publication. A successful local fixture or bui
    Run `bash bin/test-release-preflight.sh` for isolated matching, missing,
    malformed, prerelease, and working-tree-only fixtures.
    For the first stable release the qualified candidate C is not the commit that is tagged: a commit cannot name
-   itself, so the next commit C+1 sets `major_candidate` in `compatibility.json` to C and changes nothing else
-   (`git diff --name-only C C+1 -- . ':!plans'` prints only `compatibility.json`). Run `composer api:compat`,
+   itself, so the next commit C+1 sets `candidate` in `compatibility.json` to C and changes nothing else
+   (`git diff --name-only C C+1` prints only `compatibility.json`). Run `composer api:compat`,
    `bash bin/compat-drill.sh --baseline=C` and `bash bin/release-preflight.sh 2.0.0 HEAD` on C+1 and wait for its CI
    before tagging. The release run on the tag compares C+1 with C: a tag on the compared commit is never its own
    baseline.
@@ -377,12 +334,6 @@ the current release line when bumping (both aliases are `2.0.x-dev`). The local
 map's stable `2.0.0` identity exercises monorepo development resolution; it does
 not attest installation of `2.0.0-rc.1`. Release validation separately resolves
 the tag-stamped core archive, including prereleases. Filament archive tests are local integration evidence only.
-
-## Split and Packagist status — 2026-10-10
-
-The status recorded on 2026-10-10 concerned a deferred split and Packagist plan. It is historical: no core or
-Filament split, tag or publication is in the current scope. Do not enable `SPLIT_ENABLED`, provision split secrets,
-dispatch setup probes or change repository settings for the current work.
 
 ## Deferred setup reference
 
