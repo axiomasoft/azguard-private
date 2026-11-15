@@ -23,7 +23,7 @@ it('picks the panel of a full name without a current panel and throws for a loca
         ->and(fn () => $resolver->resolve($user, 'users.delete'))->toThrow(PanelNotResolvedException::class);
 });
 
-it('P09 Gate uses the explicit panel without a route hint and the local current panel when supplied', function (): void {
+it('Gate uses the explicit panel without a route hint and the local current panel when supplied', function (): void {
     GateWorld::seed();
     [, , , $current, $registry] = GateWorld::compile(new GeneratedSource(direct: [AuthorizationWorld::grant()]));
     $user = User::findOrFail(1);

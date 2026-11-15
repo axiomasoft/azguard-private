@@ -40,7 +40,7 @@ it('resolves a key of the admin panel to admin and never to the default panel', 
         ->and($resolver->resolve($user, 'users.delete')['panel']->id())->toBe('test');
 })->with(['admin:users.delete', 'admin.users.delete']);
 
-it('P01c answers a key of the backoffice panel from backoffice in the trait, the facade and the panel access', function (): void {
+it('answers a key of the backoffice panel from backoffice in the trait, the facade and the panel access', function (): void {
     CrmWorld::seed();
     ChangeWorld::panel();
 
@@ -76,7 +76,7 @@ it('P01c answers a key of the backoffice panel from backoffice in the trait, the
     }
 });
 
-it('P01c answers azguard.can for a key of the backoffice panel from backoffice inside the crm request panel', function (): void {
+it('answers azguard.can for a key of the backoffice panel from backoffice inside the crm request panel', function (): void {
     HttpWorld::seed();
 
     try {

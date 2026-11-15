@@ -28,7 +28,7 @@ use Illuminate\Database\Eloquent\Relations\Relation;
 
 afterEach(fn () => Relation::morphMap([], false));
 
-it('P06 keeps a none panel independent of another panels isolated ambient context', function (): void {
+it('keeps a none panel independent of another panels isolated ambient context', function (): void {
     ScopeWorld::compile(new GeneratedSource);
     $grant = Grant::of(PermissionPattern::of('admin', 'orders.view'), 'generated', AccessScope::in(TenantRef::global()));
     [, , $registry] = PanelWorld::compile([
