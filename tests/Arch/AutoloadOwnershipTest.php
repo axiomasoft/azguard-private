@@ -3,7 +3,6 @@
 declare(strict_types=1);
 
 use AzGuard\Tests\Arch\AutoloadOwnership;
-use AzGuard\Tests\Arch\BoundaryScan;
 use AzGuard\Tests\Arch\Ownership;
 use AzGuard\Tests\Arch\SourceScan;
 
