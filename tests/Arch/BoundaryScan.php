@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace AzGuard\Tests\Arch;
 
-use RuntimeException;
-
 /**
  * The boundary scans: core names no module; modules name neither each other nor Filament.
  *

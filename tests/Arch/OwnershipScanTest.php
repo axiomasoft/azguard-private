@@ -437,4 +437,3 @@ it('keeps modules isolated from each other and from Filament', function (): void
 
     expect($found)->toBe([], 'a module names another module or Filament: remove the reference; there is no allowlist');
 });
-

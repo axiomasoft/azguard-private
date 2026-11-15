@@ -8,7 +8,6 @@ use AzGuard\Diagnostics\DoctorContext;
 use AzGuard\Sources\Internal\EvaluatesAutomaticRoles;
 use AzGuard\Testing\AzGuardFake;
 use AzGuard\Tests\Arch\ApiUsage;
-use AzGuard\Tests\Arch\BoundaryScan;
 use AzGuard\Tests\Arch\Ownership;
 use AzGuard\Tests\Arch\SourceScan;
 
