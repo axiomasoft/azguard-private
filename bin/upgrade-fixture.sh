@@ -186,12 +186,12 @@ else
     log "decisions and the doctor are unchanged ($(grep -c '^== explain' "${work}/after.txt") requests)"
 fi
 
-# Rollback probe: recorded, never an error by itself. An irreversible step must be declared in UPGRADING.md.
+# Rollback probe: recorded, never an error by itself. An irreversible step must be called out in the CHANGELOG.
 if php artisan migrate:rollback --force --no-interaction >/dev/null 2>&1; then
     log "rollback of the newest migration batch: succeeded"
     php artisan migrate --force --no-interaction >/dev/null
 else
-    log "rollback of the newest migration batch: FAILED (declare the irreversible step in UPGRADING.md)"
+    log "rollback of the newest migration batch: FAILED (call out the irreversible step in the CHANGELOG)"
 fi
 
 exit "${status}"

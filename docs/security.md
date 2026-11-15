@@ -9,10 +9,8 @@ for support, response targets and coordinated disclosure. Both Composer packages
 ## Support and disclosure
 
 The latest stable minor of 2.x receives security fixes once published; `main` receives best-effort development fixes.
-The planned `2.0.0-rc.1` and `2.0.0` are not proof of publication. Prerelease users may need the next prerelease.
-The 2026-11-03 inventory did not establish a published 1.x or stable 2.x Composer artifact; 1.x maintenance is
-unverified, with no LTS promise. Versions below 1.0 are unsupported. Report an older installation's issue for triage,
-but do not assume a backport or a qualified upgrade. Read the [2.0 upgrade guide](./guides/upgrading-2.md).
+Prerelease users may need the next prerelease. There is no LTS promise, and versions below 2.0 (pre-release snapshots)
+are unsupported. See the [security support policy](https://github.com/axiomasoft/azguard-private/blob/main/SECURITY.md).
 
 The single maintainer aims to acknowledge within 3 business days; this is a target, not a contractual SLA.
 Critical/high severity and active exploitation take priority. Triage, progress updates and an embargo date are

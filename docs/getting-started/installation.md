@@ -2,10 +2,9 @@
 
 For 2.0, use PHP 8.3, 8.4 or 8.5 with Laravel 13. Other Laravel majors are unsupported.
 The [compatibility policy](../reference/compatibility.md#supported-platforms) records the three CI pairs and server lanes.
-For an existing installation, follow [upgrading to 2.0](../guides/upgrading-2.md) before running migrations.
 
-The current work is local to the monorepo; neither package is being split or published. The Composer command below
-applies only to a separately published core version, if available, and does not install the current checkout.
+AzGuard is not on Packagist yet. Until the first release, install it from a path or VCS repository as described in the
+repository's `DEVELOPMENT.md`; the commands are the same after that.
 
 ```bash
 composer require axiomasoft/azguard
@@ -48,7 +47,7 @@ Without the alias, Doctor's `morph.identity` check warns in production when a mo
 invalid alias or collision is an error. Doctor does not enable global morph-map enforcement or migrate stored rows.
 An identity check rejects class names that do not satisfy the alias grammar. Every model you pass as a scope or
 tenant needs an alias too, for example `Team` or `Organization`. Migrate existing stored identities before renaming
-an alias; see the [upgrade guide](../guides/upgrading-2.md#morph-identities).
+an alias; see the [morph identity runbook](../advanced/operations.md#morph-identity-and-alias-changes).
 
 ## 2. Make the model a subject
 

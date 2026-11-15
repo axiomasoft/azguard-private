@@ -36,7 +36,7 @@ that explains it. The deployment steps themselves are on [Operations](/advanced/
 - Write grants through AzGuard (the change pipeline, the commands, the grant manager), not with raw SQL. A write outside
   AzGuard does not raise the state version, so caches keep the old answer. `azguard:doctor` checks direct writes.
 - Back up the AzGuard tables with the rest of the database before an upgrade. Roll a schema change back from the backup
-  when `UPGRADING.md` lists the step as irreversible.
+  when the release notes list the step as irreversible.
 
 ## Observability
 

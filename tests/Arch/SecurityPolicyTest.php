@@ -46,8 +46,7 @@ it('states the private reporting channel, the supported versions and the respons
         ->not->toContain('https://github.com/axiomasoft/azguard-private/security/advisories/new')
         ->toContain('| `2.x` (latest stable minor) | Supported once published;')
         ->toContain('| `main` | Best-effort development fixes;')
-        ->toContain('| `1.x` | Publication/support status unverified;')
-        ->toContain('| `< 1.0` | Not supported |')
+        ->toContain('| `< 2.0` | Not supported')
         ->toContain('within 3 business days')
         ->toContain('These are targets, not guarantees')
         ->toContain('no fixed LTS period')
@@ -90,9 +89,7 @@ it('connects reporting docs to navigation, incident response and the upgrade and
         ->toContain('Do not copy or re-sign old entries or flush a shared Redis database')
         ->toContain('revoke/disable the compromised credential')
         ->and($incident)->toContain('../security.md')->not->toContain('within 2 business days')
-        ->and($release)->toContain('Security channel and publication inventory 2026-11-03')
-        ->not->toContain('triaged within 1 business day')
-        ->and((string) file_get_contents(securityRoot().'/docs/guides/upgrading-2.md'))->toContain('[security support policy](../security.md)')
+        ->and($release)->not->toContain('triaged within 1 business day')
         ->and((string) file_get_contents(securityRoot().'/docs/.vitepress/config.ts'))->toContain("link: '/security'");
 });
 

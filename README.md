@@ -37,9 +37,8 @@ $user->hasPermission(PostPermission::Update, $post);   // the grant, then PostPo
 
 ## Installation
 
-The current monorepo work is local only: neither package is being split or published. The command below describes
-installation from a separately published core version, if one is available; it does not install the current checkout
-or establish that a particular version has been published.
+AzGuard is not on Packagist yet. Until the first release, install it from a path or VCS repository
+([DEVELOPMENT.md](DEVELOPMENT.md#local-development)); the commands stay the same.
 
 ```bash
 composer require axiomasoft/azguard
@@ -49,8 +48,8 @@ php artisan azguard:install --panel=Admin --migrate
 Add `HasAzGuard` and `AzGuardSubject` to your `User` model and register a morph alias. Then follow the
 **[quick start](docs/getting-started/quick-start.md)**.
 
-The Filament integration remains in this monorepo and is not in the current publication scope. See the
-[Filament guide](docs/guides/filament.md) for its development usage.
+The Filament plugin `axiomasoft/azguard-filament` lives in this monorepo and is not published separately; see the
+[Filament guide](docs/guides/filament.md).
 
 ## Features
 
@@ -87,8 +86,7 @@ The Filament integration remains in this monorepo and is not in the current publ
 | [`axiomasoft/azguard`](packages/core) | The core: panels, sources, decisions, storage, Laravel integration, CLI, testing kit |
 | [`axiomasoft/azguard-filament`](packages/filament) | Filament 5 plugin: resource/page/widget authorization, list filtering, grant editors |
 
-This repository is the development monorepo. Neither core nor Filament is in the current publication scope;
-the Filament package is retained for development.
+This repository is the development monorepo of both packages.
 
 ## Requirements
 
@@ -97,7 +95,7 @@ The Filament plugin requires Filament `^5.8.4` and the exact same AzGuard core v
 CI resolves lowest and latest dependencies for PHP 8.3, 8.4 and 8.5 with Laravel 13 on SQLite. Server lanes use
 MySQL 9.7 and PostgreSQL 18, plus Redis 7. MariaDB stays available on the local Compose stand and is not a CI lane.
 These lanes do not represent every platform cross-product.
-See the [compatibility policy](docs/reference/compatibility.md) and [2.0 upgrade guide](docs/guides/upgrading-2.md).
+See the [compatibility policy](docs/reference/compatibility.md).
 
 ## Contributing and security
 
