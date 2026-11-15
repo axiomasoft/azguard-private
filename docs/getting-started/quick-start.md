@@ -31,6 +31,10 @@ protected $guarded = [];
 
 ```php
 // app/Http/Controllers/PostController.php: the actions the routes of step 6 name
+use App\Models\Post;
+use Illuminate\Http\Request;
+use Illuminate\Http\Response;
+
 public function index(): Response
 {
     return response('posts');
@@ -125,6 +129,8 @@ php artisan azguard:make:role Admin Editor
 
 ```php
 // app/Guards/Admin/Roles/EditorRole.php
+use App\Guards\Admin\Permissions\Posts\PostPermission;
+
 #[Role('editor', label: 'Editor')]
 final class EditorRole extends BaseRole
 {
@@ -140,8 +146,11 @@ The key `editor` is what the database stores. Keep it stable. The class name can
 ## 5. Grant and check
 
 ```php
+use App\Guards\Admin\Permissions\Posts\PostPermission;
+use App\Guards\Admin\Roles\EditorRole;
 use AzGuard\Facades\AzGuard;
 
+// $own = Post::create(['user_id' => $user->id]); $foreign = Post::create(['user_id' => 999]);
 AzGuard::actingAs('seeder', fn () => $user->grantRole(EditorRole::class));
 
 $user->hasRole('editor');                          // true
@@ -163,6 +172,8 @@ $user->permissionNames()->all();                   // ['admin.posts.update', 'ad
 
 ```php
 // routes/web.php
+use App\Http\Controllers\PostController;
+
 Route::middleware(['auth', 'azguard.panel:admin'])->group(function () {
     Route::get('/admin/posts', [PostController::class, 'index'])
         ->middleware('azguard.can:posts.view');
@@ -179,8 +190,15 @@ Route::middleware(['auth', 'azguard.panel:admin'])->group(function () {
 ## 7. Test it
 
 ```php
+// tests/Feature/PostAccessTest.php
+namespace Tests\Feature;
+
+use App\Guards\Admin\Roles\EditorRole;
+use App\Models\Post;
+use App\Models\User;
 use AzGuard\Testing\InteractsWithAzGuard;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\TestCase;
 
 final class PostAccessTest extends TestCase
 {
