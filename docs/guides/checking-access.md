@@ -10,7 +10,7 @@ $user->hasAnyPermission([PostPermission::Update, PostPermission::Delete], $post)
 $user->hasAllPermissions([PostPermission::View, PostPermission::Update]);
 
 $user->hasRole('editor');                              // a key, a role class, or an array (any of them)
-$user->hasAnyRole(['editor', 'author']);
+$user->hasAnyRole(['editor', 'author']);              // a key the panel does not define throws UnknownRoleException
 $user->hasAllRoles(['editor', 'author']);
 $user->isSuperAdmin();
 
@@ -212,6 +212,10 @@ to express **every** rule that decides the permission in SQL. Otherwise the call
 | Before hooks | An invokable class with `FiltersAccessQueries`; a closure cannot be compiled |
 | Custom sources | `FiltersQueries` on the source (`DatabaseSource` and `RelationSource` have it) |
 | `GrantedAutomatically` roles | Not supported in lists |
+
+`azguard:make:permission --policy` generates a method for every case, and a method that only returns `true` still
+decides its permission. Remove such methods, for example `view` and `viewAny`, before you filter lists by those
+permissions.
 
 Filament resources with `AuthorizesResource` use this query automatically.
 
