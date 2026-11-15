@@ -17,6 +17,7 @@ final class PostTest extends TestCase
     public function test_an_editor_updates_own_posts(): void
     {
         $user = User::factory()->create();
+        $ownPost = Post::create(['user_id' => $user->id]);
         $this->actingAsWithRoles($user, [EditorRole::class]);
 
         $this->put("/admin/posts/{$ownPost->id}")->assertOk();
