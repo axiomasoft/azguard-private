@@ -45,7 +45,6 @@ paths = [
     '''^tests/Fixtures/Schema/HrRoleSource\.php$''',
     '''^tests/Fixtures/Schema/SecretFieldPlugin\.php$''',
     '''^\.git/''',
-    '''^\.swissknifeman/''',
     '''^var/tools/''',
     '''^vendor/''',
     '''^node_modules/''',
