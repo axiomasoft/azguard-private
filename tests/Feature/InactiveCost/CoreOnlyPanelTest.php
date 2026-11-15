@@ -34,13 +34,13 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 /*
- * I13 harness (PLAN1 P1.4), blocking since P3.12: an inactive module costs nothing. A core-only panel (no Audit
+ * Inactive-cost harness: an inactive module costs nothing. A core-only panel (no Audit
  * plugin, scope mode `None`) boots, checks and grants; during that run the container may resolve no
  * service whose type the ownership oracle gives to scopes, audit or devtools (counted through the container
  * `resolving` callback), no query may touch a module table (counted through `DB::listen`), the doctor may not need a
  * module table, and DevTools commands are absent when the application does not run in the console.
  *
- * tests/Fixtures/InactiveCost/allowlist.json is empty since the Audit module owns its table (P3.5): the costs found
+ * tests/Fixtures/InactiveCost/allowlist.json is empty since the Audit module owns its table: the costs found
  * must equal the list exactly, so any inactive cost fails.
  */
 
@@ -246,7 +246,7 @@ it('no DevTools command is registered when the application does not run in the c
         ->and($outside)->toBe($listed);
 });
 
-it('keeps the inactive-cost allowlist empty once Audit owns its table (P3.5)', function (): void {
+it('keeps the inactive-cost allowlist empty', function (): void {
     expect(inactiveCostAllowlist())->toBe([]);
 });
 

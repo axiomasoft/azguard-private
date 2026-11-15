@@ -22,7 +22,7 @@ use Illuminate\Support\Facades\Event;
 use Livewire\Livewire;
 
 /*
- * V76, V61: the permission editor lists every permission of a managed panel with dynamic permissions; a permission of
+ * The permission editor lists every permission of a managed panel with dynamic permissions; a permission of
  * an enum is read-only, a policy-only one is a badge of its authority; a dynamic permission is created, renamed and
  * deleted with its grants, as the user who edits.
  */

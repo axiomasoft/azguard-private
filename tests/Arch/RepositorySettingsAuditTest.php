@@ -5,7 +5,7 @@ declare(strict_types=1);
 require_once dirname(__DIR__, 2).'/bin/repository-settings-audit.php';
 
 /*
- * Repository settings audit (knowledge/governance#audit-script): the clean fixture passes and each fixture breaks exactly
+ * Repository settings audit: the clean fixture passes and each fixture breaks exactly
  * the rule it is named after, so an audit that stops detecting a rule fails here. Fixtures mirror the GitHub REST shapes.
  */
 

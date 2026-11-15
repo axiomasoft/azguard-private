@@ -75,7 +75,7 @@ function concreteSourceChecks(array $files): array
     return $found;
 }
 
-it('keeps concrete-source branches out of the decision stages, query composition and Visibility (D5)', function (): void {
+it('keeps concrete-source branches out of the decision stages, query composition and Visibility', function (): void {
     $root = dirname(__DIR__, 2).'/packages/core/src/Authorization';
     $files = [
         ...SourceScan::files('packages/core/src/Authorization/Internal/Pipeline/Stages'),

@@ -10,7 +10,7 @@ use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Support\Carbon;
 
 /*
- * I7 harness (PLAN1 P1.3): without a scope declaration non-global requests are denied, scoped rows never apply to
+ * No-scope harness: without a scope declaration non-global requests are denied, scoped rows never apply to
  * global requests, non-global writes are rejected, and revocation and expiry still work without consulting scope
  * behavior — over the dataset of `NoScopeWorld`, written through the public API, on every driver.
  *
@@ -44,9 +44,9 @@ it('holds over the seeded dataset or fails exactly as allowlisted', function (st
     $listed = i7Allowlist()[$case] ?? null;
 
     if ($listed === null) {
-        expect($holds)->toBeTrue('I7 case "'.$case.'" fails: '.$observed);
+        expect($holds)->toBeTrue('no-scope case "'.$case.'" fails: '.$observed);
     } else {
-        expect($holds)->toBeFalse('I7 case "'.$case.'" now holds; delete its stale entry from i7-allowlist.json')
+        expect($holds)->toBeFalse('no-scope case "'.$case.'" now holds; delete its stale entry from i7-allowlist.json')
             ->and($observed)->toBe($listed['observed']);
     }
 })->with(array_keys(NoScopeWorld::cases()));
@@ -57,7 +57,7 @@ it('allowlists only known cases, each owned by P2', function (): void {
     expect(array_diff(array_keys($entries), array_keys(NoScopeWorld::cases())))->toBe([]);
 
     foreach ($entries as $case => $entry) {
-        expect($entry)->toHaveKeys(['case', 'observed', 'owner_phase'], 'I7 allowlist entry "'.$case.'" is incomplete')
+        expect($entry)->toHaveKeys(['case', 'observed', 'owner_phase'], 'no-scope allowlist entry "'.$case.'" is incomplete')
             ->and($entry['owner_phase'])->toBe('P2');
     }
 });

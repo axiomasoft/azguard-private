@@ -22,7 +22,7 @@ use Filament\Facades\Filament;
 use Illuminate\Support\Facades\DB;
 
 /*
- * V75, definitions part: where the permissions of a Filament panel are described is separate from who decides them.
+ * Where the permissions of a Filament panel are described is separate from who decides them.
  * Enums: the permission enums of the guard panel, FilamentSource is not needed. Resources: FilamentSource reads the
  * Filament classes, with an explicit authority; nothing is stored.
  */

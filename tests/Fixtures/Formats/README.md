@@ -1,6 +1,6 @@
 # Format fixtures
 
-Executable pins of the machine formats AzGuard publishes (I17): exceptions, events, journal rows, resources, configuration
+Executable pins of the machine formats AzGuard publishes: exceptions, events, journal rows, resources, configuration
 defaults, console commands, doctor output, explain output and the types a host may serialize. They are **regression
 guards of the current behavior**, not history: a change that alters a pinned format on purpose regenerates the fixture in
 writer mode in the same commit and names every changed fixture in its plan result. An unexplained fixture change is a
@@ -18,7 +18,7 @@ AZGUARD_FORMATS_WRITE=1 vendor/bin/pest tests/Regression/Formats tests/Feature/C
 A normal run is read-only and fails when a fixture is missing. The only placeholder is `<ulid>` for a generated
 ULID (`Formats\FormatSnapshot::normalised()`); timestamps come from the fixed test clock.
 
-## Contents (I17, blocking)
+## Contents
 
 | Fixture | Test | Pins |
 |:--|:--|:--|

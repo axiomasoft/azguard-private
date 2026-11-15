@@ -23,7 +23,7 @@ use Illuminate\Support\Facades\Gate;
 use function Filament\get_authorization_response;
 
 /*
- * V102: two resources of one model are decided by their own keys; nothing is guessed from the model. A Filament panel
+ * Two resources of one model are decided by their own keys; nothing is guessed from the model. A Filament panel
  * that enforces refuses a resource, page or widget that AzGuard does not decide. The Gate::before hook of the package
  * only refuses, and only inside such a panel.
  */

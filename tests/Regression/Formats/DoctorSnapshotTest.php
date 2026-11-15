@@ -17,7 +17,7 @@ use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Support\Facades\Artisan;
 
 /*
- * I17, blocking now: every doctor check class with its key and the finding ids it emits, and the document
+ * Every doctor check class with its key and the finding ids it emits, and the document
  * `azguard:doctor --json` prints (field names, severities, exit codes).
  */
 

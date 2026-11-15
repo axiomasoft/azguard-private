@@ -34,7 +34,7 @@ use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Route;
 
 /*
- * V83: `#[CheckPermission]` is controller middleware the router applies; `azguard.panel` adds only what the router did
+ * `#[CheckPermission]` is controller middleware the router applies; `azguard.panel` adds only what the router did
  * not apply, so a check never runs twice. Strict mode refuses an action without any check.
  */
 

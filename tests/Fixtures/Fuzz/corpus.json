@@ -1,5 +1,5 @@
 {
-  "_comment": "Fixed fuzz inputs: grammar edges, R03 table-name grammar, R06/R08 number shapes (1, 1.0, 0.0, -0.0, 007), token prefixes, hostile bytes. {LONG} expands to a 800-byte run. Escapes are PHP stripcslashes.",
+  "_comment": "Fixed fuzz inputs: grammar edges, table-name grammar, number shapes (1, 1.0, 0.0, -0.0, 007), token prefixes, hostile bytes. {LONG} expands to a 800-byte run. Escapes are PHP stripcslashes.",
   "inputs": [
     "",
     "a",

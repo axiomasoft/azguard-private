@@ -49,7 +49,7 @@ variant); the scope-mode tables are in `Modules/Scopes/Properties`.
 | `zone:<name>` | The tests of a zone. |
 | `database` | The directories whose result depends on the database engine, listed in `zones.json`: `Feature/Storage`, `Feature/Sources/Database`, `Feature/Changes`, `Feature/Visibility`, `Feature/Directories`, `Feature/Parity`, `Contracts`, `Modules/Scopes/Contracts`, `Modules/Audit/Contracts`, `Engines`. Only these run on PostgreSQL, MySQL and MariaDB. |
 | `database:<zone>` | The part of a zone that is also in `database`. |
-| `extended` | The scale tests (R58): minutes at 10000 resources, the same budgets run at 1000 on every run. Nightly CI and a release run them. |
+| `extended` | The scale tests: minutes at 10000 resources, the same budgets run at 1000 on every run. Nightly CI and a release run them. |
 | `engines`, `redis`, `replica` | Tests that need their own services (the engine suite, Redis, a streaming replica). |
 | `stand`, `server-skip` | Umbrella groups of what a parallel run leaves out (SQLite: `stand`; a server driver: `server-skip`). A ParaTest worker would otherwise keep only the first `--exclude-group`; `PreserveRepeatedGroups` joins every repeated group back before Pest flips argv. The SQLite lane still names `extended`, because two fuzz tests are `extended` without `stand`. |
 | `sqlite` | Checks that differ by driver and run on SQLite only. |

@@ -13,7 +13,7 @@ use AzGuard\Tests\Fixtures\Panels\FixturePanel;
 use AzGuard\Tests\Fixtures\Sources\BootsWithCatalogCache;
 
 /*
- * I17, blocking now: the inventories of the current formats — the types a host may serialize, the reserved grant-field
+ * The inventories of the current formats — the types a host may serialize, the reserved grant-field
  * names and what folder discovery collects from Scopes/.
  */
 

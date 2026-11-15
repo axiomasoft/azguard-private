@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace AzGuard\Tests\Fixtures\Formats;
 
 /**
- * The JSON fixtures of the machine formats (I17), regression guards of the current behavior (D16). A fixture is written
+ * The JSON fixtures of the machine formats, regression guards of the current behavior. A fixture is written
  * only in writer mode, `AZGUARD_FORMATS_WRITE=1`, on the current tree; a normal run compares the stored text exactly
  * and fails when the fixture is missing. A change that alters a pinned format regenerates the fixture in the same commit.
  */

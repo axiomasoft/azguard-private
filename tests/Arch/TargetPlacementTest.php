@@ -7,7 +7,7 @@ use AzGuard\Tests\Arch\SourceScan;
 
 /*
  * Phase exit of P3: the tree under each production root is the target tree of the ownership oracle
- * (tests/Arch/Fixtures/target-map.json, D14). Every scan resolves a type by its FQCN, so a row that stayed at its old
+ * (tests/Arch/Fixtures/target-map.json). Every scan resolves a type by its FQCN, so a row that stayed at its old
  * FQCN would pass them all; this test compares places instead of names:
  *
  *  - each row that is not retired is declared at its `target_path` with its target FQCN (each part of a split row);

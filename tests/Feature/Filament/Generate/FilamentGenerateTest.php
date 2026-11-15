@@ -25,7 +25,7 @@ use Illuminate\Contracts\Console\Kernel;
 use Illuminate\Support\Facades\Artisan;
 
 /*
- * V75: `azguard:filament:generate` writes the permission enums of the resources, pages and widgets of a Filament panel
+ * `azguard:filament:generate` writes the permission enums of the resources, pages and widgets of a Filament panel
  * with the generators of the core: the keys are the ones FilamentKeys gives, the authority is only `--authority`, a
  * policy never opens what it does not decide, and a second run does not overwrite. The doctor finds a definition whose
  * class is gone and a class without definition.

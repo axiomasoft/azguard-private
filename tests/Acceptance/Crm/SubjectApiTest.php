@@ -24,7 +24,7 @@ use Illuminate\Auth\GenericUser;
 use Illuminate\Support\Facades\Auth;
 
 /*
- * R03–R05 on the public subject API: `$user->guard('crm')`, `$user->azguard()->guard('crm')` and the trait.
+ * Panel selection on the public subject API: `$user->guard('crm')`, `$user->azguard()->guard('crm')` and the trait.
  * Panels crm and backoffice share the web auth guard and ClientPermission; A=1/B=2, P1–P5, C1–C6.
  */
 

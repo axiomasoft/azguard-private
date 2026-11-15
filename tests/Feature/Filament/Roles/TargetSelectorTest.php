@@ -14,7 +14,7 @@ use Livewire\Livewire;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 
 /*
- * V96, editor targets: a panel is offered when the plugin manages it and it stores grants; a panel or a tenant from the
+ * Editor targets: a panel is offered when the plugin manages it and it stores grants; a panel or a tenant from the
  * payload is checked again on every call, so another panel or tenant is refused, not read.
  */
 

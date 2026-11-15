@@ -21,7 +21,7 @@ use AzGuard\Tests\Support\AuditTable;
 use Illuminate\Database\QueryException;
 
 /*
- * I6 and I11 at the participant: the writer a participant receives appends only to its declared tables, with scalar
+ * Write isolation at the participant: the writer a participant receives appends only to its declared tables, with scalar
  * values, while record() runs; core calls participants once per operation with effects, in declaration order, inside
  * the transaction, and again on a retry.
  */

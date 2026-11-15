@@ -23,7 +23,7 @@ use Illuminate\Support\Facades\DB;
 use Livewire\Livewire;
 
 /*
- * V95, Filament part: the list, its count and pages, global search, the records of a relation manager and a counting
+ * The list, its count and pages, global search, the records of a relation manager and a counting
  * widget see only the records the user may view, filtered in the query before any LIMIT, OFFSET or COUNT. A policy-only
  * resource is filtered by its policy without reading a grant.
  */

@@ -10,7 +10,7 @@ use AzGuard\Tests\Fixtures\Sources\StaticSource;
 use Illuminate\Support\ServiceProvider;
 
 /*
- * V84 (optimize part): `optimize` builds the catalog cache and `optimize:clear` removes it, through `optimizes()` of
+ * `optimize` builds the catalog cache and `optimize:clear` removes it, through `optimizes()` of
  * the framework.
  */
 

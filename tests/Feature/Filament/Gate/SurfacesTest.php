@@ -47,7 +47,7 @@ use Illuminate\Support\Facades\Storage;
 use Livewire\Livewire;
 
 /*
- * V96, Filament surfaces: a bulk action decides every selected record, attaching takes only a record the user may view,
+ * Filament surfaces: a bulk action decides every selected record, attaching takes only a record the user may view,
  * global search finds no hidden record, and an export checks its rows again when its job runs.
  */
 

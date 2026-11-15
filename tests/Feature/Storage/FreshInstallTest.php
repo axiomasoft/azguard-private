@@ -22,7 +22,7 @@ use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\ServiceProvider;
 
 /*
- * I16 (D19, D20): fresh installs through the migrations an application runs. Core owns one migration with six tables;
+ * Fresh installs through the migrations an application runs. Core owns one migration with six tables;
  * the Audit journal has its own create-only migration, published under `azguard-audit-migrations` or generated per
  * named storage, and is never loaded by a provider. Runs on every driver (group `database`).
  */

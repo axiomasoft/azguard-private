@@ -40,7 +40,7 @@ final class FuzzInput
         return $set !== false && ctype_digit($set) && (int) $set > 0 ? (int) $set : $default;
     }
 
-    /** @return list<string> the fixed inputs: R03/R06/R08 shapes, grammar edges, hostile bytes */
+    /** @return list<string> the fixed inputs: panel, tenant and external-id shapes, grammar edges, hostile bytes */
     public static function corpus(): array
     {
         $file = json_decode((string) file_get_contents(__DIR__.'/corpus.json'), true, flags: JSON_THROW_ON_ERROR);

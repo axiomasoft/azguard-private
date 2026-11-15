@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 /*
- * Test ownership (PLAN1 P3.11, target-structure#tests): a module's tests travel with the module, so a file under
+ * Test ownership: a module's tests travel with the module, so a file under
  * tests/Modules/<module> references no other module — neither its namespace nor the test namespace of its fixtures.
  * A file outside tests/Modules references no module either, except the files of tests/Arch/Fixtures/module-consumers.json:
  * the core tests, fixtures and snapshots that exercise a module through an application as a consumer does. That list is

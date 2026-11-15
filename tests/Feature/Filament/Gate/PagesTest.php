@@ -31,7 +31,7 @@ final class BootingReportsPage extends Page
 }
 
 /*
- * V25: a page with AuthorizesPage in a Filament panel that enforces opens with its permission only; a user without the
+ * A page with AuthorizesPage in a Filament panel that enforces opens with its permission only; a user without the
  * permission and a user model that holds no roles get 403. A widget is shown by its permission in the same way.
  */
 

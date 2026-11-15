@@ -19,10 +19,10 @@ use AzGuard\Tests\Fixtures\Crm\Models\Organization;
 use AzGuard\Tests\Fixtures\Crm\Models\User;
 
 /*
- * The public wrapper over the scope rules of the engine: V12 (tenant, context and resource), V13 (an explicit
- * context in a panel without contexts), V14 (the previous scope survives an exception), V16 (tenant membership),
- * V86 (one user in A and B with different roles, conflicting panel hints) and V88 (missing tenant or resource scope,
- * owner mismatch, even for a super admin). The wrapper decides exactly as the engine does.
+ * The public wrapper over the scope rules of the engine: tenant, context and resource; an explicit
+ * context in a panel without contexts; the previous scope surviving an exception; tenant membership;
+ * one user in A and B with different roles and conflicting panel hints; and a missing tenant or resource scope
+ * (owner mismatch, even for a super admin). The wrapper decides exactly as the engine does.
  */
 
 beforeEach(function (): void {

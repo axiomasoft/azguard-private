@@ -12,7 +12,7 @@ use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Support\Carbon;
 
 /*
- * Journal retention without the authority lock (P3.6, knowledge/p3-execution#persistence) on PostgreSQL, MySQL and
+ * Journal retention without the authority lock on PostgreSQL, MySQL and
  * MariaDB with independent processes: pruning deletes only rows of its panel before the cut-off, never loses a row a
  * concurrent write journals, deletes each row once when two prunes race, and never waits for the panel lock.
  */

@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace AzGuard\Tests\Fixtures\Parity;
 
 /**
- * The reproducible draw of `ParityPropertyTest` (P14), extracted so the parity matrix generates its worlds the same
+ * The reproducible draw of `ParityPropertyTest`, extracted so the parity matrix generates its worlds the same
  * way: one linear congruential sequence per seed, so a seed printed by a failure reproduces the world exactly.
  */
 final class Draw

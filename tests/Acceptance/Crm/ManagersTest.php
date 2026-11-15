@@ -101,7 +101,7 @@ it('keeps the editor of tenant A out of tenant B: ids, forms and cursors of B ar
         ->and($cursorB)->toBeString()
         ->and(fn () => $a->page(new GrantFilter(limit: 1, cursor: $cursorB)))->toThrow(InvalidArgumentException::class)
         ->and([W::rows(), W::version()])->toBe($state)
-        // R28: the admin read API lists stored grants with their stored scope, including those the code no longer qualifies.
+        // The admin read API lists stored grants with their stored scope, including those the code no longer qualifies.
         ->and(array_map(fn (GrantRecord $record): string => $record->scope->tenant->key(), $a->page(new GrantFilter(limit: 500))->items))
         ->each->toBe('crm.organization:1');
 });

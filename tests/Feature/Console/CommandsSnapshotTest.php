@@ -23,7 +23,7 @@ use Symfony\Component\Process\Process;
  * The name, signature and exit codes of every `azguard:*` command are public surface: a renamed command, argument or
  * option, or a changed exit code shows up here first. Update the snapshot only together with the changelog.
  *
- * I17, blocking now: the exit codes of each path the scenarios below drive (0 success, 2 input,
+ * The exit codes of each path the scenarios below drive (0 success, 2 input,
  * panel, tenant or identity errors, 1 other failures).
  */
 

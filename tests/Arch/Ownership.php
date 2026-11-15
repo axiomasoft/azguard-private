@@ -8,7 +8,7 @@ use RuntimeException;
 
 /**
  * Ownership of every production file and type, read from the generated oracle `Fixtures/target-map.json` (a byte copy
- * of the plan artifact, D14). A file is owned by the row whose `current_path` or `target_path` is that file, a type by
+ * of the reviewed target map). A file is owned by the row whose `current_path` or `target_path` is that file, a type by
  * the row whose `current` or `target` name is that FQCN, so the answer is the same before and after a move.
  *
  * Owners: `core`, `scopes`, `audit`, `devtools`, `filament`; `split` (the parts of one type go to several owners) and
@@ -116,8 +116,8 @@ final class Ownership
     }
 
     /**
-     * The row of a file: by its path, or, for a file at an interim path the oracle does not list (D17: a type P2 gives
-     * its target FQCN before P3 moves the file), by the FQCN the file declares.
+     * The row of a file: by its path, or, for a file at an interim path the oracle does not list (a type that already has
+     * its target FQCN before its file moves), by the FQCN the file declares.
      *
      * @param  string  $path  path relative to the repository root
      * @param  string|null  $root  repository root the path is read from; this repository when null

@@ -20,7 +20,7 @@ use Illuminate\Support\Facades\Context;
 use Illuminate\Support\Facades\Route;
 
 /*
- * V84 (job part) and V103 (queue/sync): a job dispatched from a request in `azguard.panel:{id}` resolves its short
+ * A job dispatched from a request in `azguard.panel:{id}` resolves its short
  * names against that panel; a job from the console uses the default rule; the panel before a job comes back after it,
  * also when it fails; a hint that names no panel is refused, never replaced by the default panel.
  */

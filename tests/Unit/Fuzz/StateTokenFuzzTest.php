@@ -8,7 +8,7 @@ use AzGuard\Kernel\Decision\StateToken;
 use AzGuard\Tests\Fixtures\Fuzz\FuzzInput;
 
 /*
- * Fuzz of the state token readers (knowledge/qualification#fuzz): arbitrary text is a typed `InvalidIdentityException`,
+ * Fuzz of the state token readers: arbitrary text is a typed `InvalidIdentityException`,
  * never another exception, a warning or an accepted token that does not round-trip. Valid tokens are damaged by seeded
  * truncation, insertion, replacement, repetition and reversal.
  */

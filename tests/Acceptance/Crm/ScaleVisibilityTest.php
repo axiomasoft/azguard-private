@@ -8,7 +8,7 @@ use Illuminate\Database\Events\QueryExecuted;
 use Illuminate\Support\Facades\DB;
 
 /*
- * R58 is 10000 clients in 100 scopes: a minute on a server database, so it runs in the `extended` group
+ * The full size is 10000 clients in 100 scopes: a minute on a server database, so it runs in the `extended` group
  * (`composer test:extended`, nightly CI). The same budgets are asserted at 1000 clients in 10 scopes on every run.
  */
 function returnsEveryCrmIdWithinTheBudget(int $clients, int $scopes): void

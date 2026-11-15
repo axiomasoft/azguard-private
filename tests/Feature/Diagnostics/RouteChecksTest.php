@@ -20,7 +20,7 @@ use Illuminate\Routing\RouteCollection;
 use Illuminate\Support\Carbon;
 
 /*
- * V83 in doctor: `routes.checks` reads routes with the same collector as the middleware — strict panels, a
+ * In doctor, `routes.checks` reads routes with the same collector as the middleware — strict panels, a
  * #[CheckPermission] of another panel, and a #[CheckPermission] nothing applies.
  */
 

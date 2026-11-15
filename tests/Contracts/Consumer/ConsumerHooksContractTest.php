@@ -13,7 +13,7 @@ use Illuminate\Foundation\Testing\DatabaseMigrations;
 
 require_once dirname(__DIR__, 2).'/Fixtures/Modules/Consumer/autoload.php';
 
-/** I8: the before hook and the change pipe of a package outside `AzGuard\` pass the hook suite. */
+/** The before hook and the change pipe of a package outside `AzGuard\` pass the hook suite. */
 final class ConsumerHooksContractTest extends TestCase
 {
     use DatabaseMigrations;

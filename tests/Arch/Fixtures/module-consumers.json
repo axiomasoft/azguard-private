@@ -1,5 +1,5 @@
 {
-    "_comment": "Tests outside tests/Modules that reference a module namespace: core tests, fixtures and snapshots exercising a module as a consumer (PLAN1 P3.11). Exact and shrinking: tests/Arch/TestOwnershipTest.php fails on a new reference and on a stale entry.",
+    "_comment": "Tests outside tests/Modules that reference a module namespace: core tests, fixtures and snapshots exercising a module as a consumer. Exact and shrinking: tests/Arch/TestOwnershipTest.php fails on a new reference and on a stale entry.",
     "files": {
         "Acceptance/Crm/AssignmentsTest.php": ["Audit"],
         "Acceptance/Crm/BuildInputsTest.php": ["Scopes"],

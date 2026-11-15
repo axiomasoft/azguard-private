@@ -100,7 +100,7 @@ it('F4 rejects unknown, policy-only and uncovered permissions', function (string
     refusedWithoutWrites(fn () => W::pipeline()->grant($panel, W::tenant(), W::user(2), W::permission($permission), W::project()), $exception);
 })->with([
     'typo' => ['clients.veiw', UnknownPermissionException::class],
-    'policy only R63' => ['clients.view_own_profile', PermissionNotGrantableException::class],
+    'policy only' => ['clients.view_own_profile', PermissionNotGrantableException::class],
     'pattern covering nothing' => ['orders.*', UnknownPermissionException::class],
 ]);
 
@@ -141,7 +141,7 @@ it('F6 checks context type, role binding, structure, owner tenant and Assignment
     'role without the type' => ['auditor', 2, AssignmentScopeRef::of('crm.project', 1), AssignmentScopeNotAcceptedException::class],
     'missing project' => ['analyst', 2, AssignmentScopeRef::of('crm.project', 99), AssignmentScopeNotAcceptedException::class],
     'project of tenant B' => ['analyst', 1, AssignmentScopeRef::of('crm.project', 4), TenantMismatchException::class],
-    'inactive project R09' => ['analyst', 2, AssignmentScopeRef::of('crm.project', 3), AssignmentScopeNotAcceptedException::class],
+    'inactive project' => ['analyst', 2, AssignmentScopeRef::of('crm.project', 3), AssignmentScopeNotAcceptedException::class],
     'seller filter of the target city' => ['seller', 1, AssignmentScopeRef::of('crm.project', 2), AssignmentScopeNotAcceptedException::class],
 ]);
 

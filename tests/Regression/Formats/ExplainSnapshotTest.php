@@ -13,7 +13,7 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Artisan;
 
 /*
- * I17, blocking now: the document `azguard:explain --json` prints. The shape is pinned key by key
+ * The document `azguard:explain --json` prints. The shape is pinned key by key
  * with the type of every leaf; the decision object and the step sequence are pinned by value. Build ids and
  * fingerprints are hashes of the code and stay types only.
  */

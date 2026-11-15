@@ -5,7 +5,7 @@ declare(strict_types=1);
 use AzGuard\Tests\Arch\SourceScan;
 
 /*
- * I1: the Filament package writes only through the public API of the core (SubjectAccess, GrantManager, PermissionManager).
+ * The Filament package writes only through the public API of the core (SubjectAccess, GrantManager, PermissionManager).
  * It names no storage class and no database facade, so it has no way to create, save, update, delete, insert or upsert a
  * row of its own.
  */

@@ -14,7 +14,7 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Event;
 
 /*
- * Failure semantics of a change (docs/advanced/consistency.md § Failure semantics, knowledge/qualification#failures):
+ * Failure semantics of a change (docs/advanced/consistency.md § Failure semantics):
  * a participant that fails rolls the whole change back (no rows, no bump, no event, no journal row); a listener that
  * fails after the commit leaves the state committed and surfaces its exception.
  */

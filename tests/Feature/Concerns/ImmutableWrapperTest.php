@@ -20,7 +20,7 @@ use AzGuard\Tests\Fixtures\Crm\Models\Organization;
 use AzGuard\Tests\Fixtures\Crm\Models\User;
 
 /*
- * V87, V38, V39, V103: wrappers are immutable values. Selecting a tenant, an origin or a panel returns a new wrapper;
+ * Wrappers are immutable values. Selecting a tenant, an origin or a panel returns a new wrapper;
  * nothing is written into the model, the request panel or the current scope, so another tab, request, job or fiber
  * keeps its own answer. A wrapper without a tenant reads the current tenant of the moment it runs, never one it saw.
  */

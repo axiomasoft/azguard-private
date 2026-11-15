@@ -15,9 +15,9 @@ use RuntimeException;
  * The snapshot is the set itself, without loss: per reason and group (one list query or directory search), the
  * unsupported paths, the seeds and the members (clients, contexts). Seeds with the same paths and members share one
  * line. A new unsupported case fails, and a case that became supported fails until it is deleted from the snapshot.
- * It is rewritten only in writer mode, `AZGUARD_FORMATS_WRITE=1`, like the other baseline fixtures (D16).
+ * It is rewritten only in writer mode, `AZGUARD_FORMATS_WRITE=1`, like the other baseline fixtures.
  *
- * A disagreement is an I9 finding. The ones the code has are reported to the owner in the plan log and listed, by
+ * A disagreement between scalar, batch and SQL answers is a parity finding. The ones the code has are listed, by
  * finding, in the hand-written `i9-findings.json`; the matrix fails on any other disagreement and on a listed
  * one that no longer occurs. That file is never generated.
  */
@@ -69,7 +69,7 @@ final class ParityLedger
     }
 
     /**
-     * The disagreements of a section reported as I9 findings, in the shape of `disagreements()`.
+     * The disagreements of a section reported as parity findings, in the shape of `disagreements()`.
      *
      * @return array<string, string>
      */

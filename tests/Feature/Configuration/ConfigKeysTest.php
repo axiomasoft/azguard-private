@@ -222,7 +222,7 @@ it('registers Gate::before only while gate.enabled is true', function (): void {
 });
 
 /*
- * I17, blocking now: the default of every key of the published core and Filament files and the environment names they
+ * The default of every key of the published core and Filament files and the environment names they
  * read, as they ship; `defaults.gate` stays absent from them (an unknown key, see AzGuardConfigTest).
  */
 it('keeps the defaults of the published files and the environment names they read', function (): void {

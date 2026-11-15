@@ -17,7 +17,7 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
 /*
- * Checks a database source brings for the grants it stores: orphaned role grants (V11), dead grants and decision
+ * Checks a database source brings for the grants it stores: orphaned role grants, dead grants and decision
  * fields kept in meta. They read stored grants the way the inspection of grants does, and write nothing.
  */
 

@@ -91,7 +91,7 @@ it('has every builder method of the panel description and exposes only its id to
 
         $methods[] = $method->getName();
 
-        // panelId() is the one read accessor: the id the builder describes (knowledge/contracts#panel-builder).
+        // panelId() is the one read accessor: the id the builder describes.
         expect((string) $method->getReturnType())->toBe($method->getName() === 'panelId' ? 'string' : 'static', $method->getName());
     }
 

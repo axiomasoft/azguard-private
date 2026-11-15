@@ -7,7 +7,7 @@ use Symfony\Component\Yaml\Yaml;
 require_once dirname(__DIR__, 2).'/bin/release-evidence.php';
 
 /*
- * The release evidence validator (knowledge/release-integrity#evidence): the valid fixture passes offline and against
+ * The release evidence validator: the valid fixture passes offline and against
  * recorded runs, and each negative fixture breaks exactly the rule it is named after, so a validator that stops detecting
  * a rule fails here. A swapped run commit cannot be seen offline, only against the recorded runs.
  */

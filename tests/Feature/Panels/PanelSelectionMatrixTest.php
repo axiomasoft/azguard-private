@@ -134,7 +134,7 @@ it('pins the outcomes the table must contain', function (string $model, string $
 ]);
 
 /*
- * V64 rows of the trait and SubjectAccess: the same table through `HasAzGuard` (with `guard:` as the named panel) and
+ * Rows of the trait and SubjectAccess: the same table through `HasAzGuard` (with `guard:` as the named panel) and
  * through a wrapper fixed on a panel (the fixed panel is a named panel; a different `guard:` is a conflict).
  */
 

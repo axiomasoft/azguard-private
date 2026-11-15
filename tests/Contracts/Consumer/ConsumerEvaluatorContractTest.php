@@ -14,7 +14,7 @@ use AzGuard\Tests\TestCase;
 
 require_once dirname(__DIR__, 2).'/Fixtures/Modules/Consumer/autoload.php';
 
-/** I8: the scope evaluator of a package outside `AzGuard\` passes the evaluator suite. */
+/** The scope evaluator of a package outside `AzGuard\` passes the evaluator suite. */
 final class ConsumerEvaluatorContractTest extends TestCase
 {
     use AssignmentScopeEvaluatorContractTests;

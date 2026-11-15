@@ -47,10 +47,10 @@ use Livewire\Livewire;
 
 /*
  * CRM through its Filament panel /crm/{organization} over the guard panel `crm`: admission with the tenant Filament
- * chose (R39), the boundaries of list, count, widget, global search, bulk action and export (R34), the calling
- * workflow of a caller of project P1 (R40), and the grant editors over the managed panel `backoffice`: contexts
- * offered for the target subject (R36), ids of organization B refused in a form of A (R37), stale and inactive grants
- * listed and revoked (R28).
+ * chose, the boundaries of list, count, widget, global search, bulk action and export, the calling
+ * workflow of a caller of project P1, and the grant editors over the managed panel `backoffice`: contexts
+ * offered for the target subject, ids of organization B refused in a form of A, stale and inactive grants
+ * listed and revoked.
  */
 
 uses(BootsCrmFilament::class);
