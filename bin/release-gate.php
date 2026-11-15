@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-const EXPECTED_GITLEAKS_CONFIG_SHA256 = '72d02105f6cb4acddfe9cb1b105d1db4814b21d62b639e608194aa38590ae01c';
+const EXPECTED_GITLEAKS_CONFIG_SHA256 = '54a3ebb1b75191bd827685e2c13febe5309278ccbcd71cf92ccdadf074265e35';
 
 /**
  * Validate Gitleaks configuration digest, product-code allowlist restrictions, and .gitleaksignore absence.

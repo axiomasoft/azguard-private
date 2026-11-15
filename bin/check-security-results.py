@@ -11,7 +11,7 @@ import sys
 import tomllib
 
 ROOT = Path(__file__).resolve().parent.parent
-EXPECTED_GITLEAKS_CONFIG_SHA256 = '72d02105f6cb4acddfe9cb1b105d1db4814b21d62b639e608194aa38590ae01c'
+EXPECTED_GITLEAKS_CONFIG_SHA256 = '54a3ebb1b75191bd827685e2c13febe5309278ccbcd71cf92ccdadf074265e35'
 FORBIDDEN_GITLEAKS_PATHS = (
     'packages/',
     'src/',
