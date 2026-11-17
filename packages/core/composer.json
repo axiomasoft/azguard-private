@@ -46,9 +46,6 @@
         "dragonmantank/cron-expression": "Required to validate cron expressions and run Laravel scheduled maintenance without laravel/framework."
     },
     "autoload": {
-        "files": [
-            "src/aliases.php"
-        ],
         "psr-4": {
             "AzGuard\\": "src/"
         }
@@ -63,7 +60,41 @@
             ]
         },
         "packman": {
-            "error-prefix": "azguard"
+            "schema-version": 1,
+            "package-type": "capability",
+            "stability": "stable",
+            "error-prefix": "azguard",
+            "owns": [
+                "Attributes",
+                "Authorization",
+                "Catalog",
+                "Changes",
+                "Concerns",
+                "Configuration",
+                "Context",
+                "Contracts",
+                "Diagnostics",
+                "Directories",
+                "Errors",
+                "Events",
+                "Exceptions",
+                "Extensions",
+                "Facades",
+                "Kernel",
+                "Laravel",
+                "Panels",
+                "Permissions",
+                "Plugins",
+                "Policies",
+                "Registrars",
+                "Roles",
+                "Schema",
+                "Sources",
+                "Storage",
+                "Support",
+                "Tenancy",
+                "Testing"
+            ]
         }
     }
 }

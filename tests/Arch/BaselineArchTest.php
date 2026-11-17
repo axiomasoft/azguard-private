@@ -36,8 +36,7 @@ it('keeps package sources free of debug calls', function (): void {
 });
 
 /*
- * The zone baseline over every production root, the module roots (`packages/core/modules/<module>/src`) included: Pest arch
- * reads only the namespaces composer autoloads, a module root is autoloaded from P3.
+ * The zone baseline over every production root (`packages/<name>/src`), covering every subpackage root directly.
  */
 it('finds a production file without strict types, in any root', function (): void {
     $directory = sys_get_temp_dir().'/azguard-strict-types-'.bin2hex(random_bytes(4));

@@ -143,7 +143,7 @@ it('is not signed in before the call and survives the application events being f
 
     $fake->assertPermissionGranted($user, 'seller:orders.cancel');
     $fake->assertChecked('seller:orders.cancel');
-    Event::assertNotDispatched(AzGuard\Events\AccessDecided::class);
+    Event::assertNotDispatched(AzGuard\Events\Access\AccessDecided::class);
 });
 
 it('keeps the check a deny with source_error inside another transaction above the test baseline', function (): void {

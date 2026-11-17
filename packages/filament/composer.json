@@ -45,6 +45,19 @@
             "providers": [
                 "AzGuard\\Filament\\AzGuardFilamentServiceProvider"
             ]
+        },
+        "packman": {
+            "schema-version": 1,
+            "package-type": "integration",
+            "stability": "stable",
+            "owns": [
+                "Attributes",
+                "Authorization",
+                "Exports",
+                "Extensions",
+                "Pages",
+                "Sources"
+            ]
         }
     }
 }

@@ -11006,14 +11006,14 @@
             "kind": "bootstrap",
             "lines": 83,
             "current_marker": "internal",
-            "owner": "core",
+            "owner": "retired",
             "target": null,
-            "target_path": "packages/core/src/aliases.php",
-            "marker": "internal",
+            "target_path": null,
+            "marker": null,
             "enum": null,
-            "action": "keep",
-            "phase": "\u2014",
-            "reason": "Packman integration (Slice A)"
+            "action": "retire",
+            "phase": "Slice C",
+            "reason": "retired transition aliases (Slice C)"
         },
         {
             "current": "AzGuard\\Audit\\Diagnostics\\AuditHealthCheck",

@@ -59,9 +59,6 @@ const AZGUARD_PUBLICATION_MARKERS = [
     'Packman\Attributes\Spi',
     'Packman\Attributes\SpiKind',
     'Packman\Attributes\Internal',
-    'AzGuard\Attributes\Api',
-    'AzGuard\Attributes\Spi',
-    'AzGuard\Attributes\SpiKind',
 ];
 
 it('keeps the publication markers leaves that name nothing but PHP and each other', function (): void {
@@ -107,7 +104,7 @@ it('keeps the kernel free of framework helper calls', function (): void {
 /*
  * The kernel names no framework, zone or module code. Pest arch sees imports and class names of the
  * autoloaded namespaces only; this scan also reads grouped imports, `::class` constants, `class-string<…>` types and
- * qualified class-name strings, and covers the module roots (`packages/core/modules/<module>/src`) by their namespaces.
+ * qualified class-name strings, and covers the subpackage roots (`packages/<name>/src`) by their namespaces.
  */
 /**
  * @param  list<string>  $files
@@ -140,7 +137,7 @@ it('finds a kernel file that names framework, zone or module code in any form', 
         use AzGuard\Audit\{AuditPlugin};
         use AzGuard\Filament\AzGuardPlugin;
         use AzGuard\Tenancy\TenantMode;
-        use AzGuard\Attributes\Api;
+        use Packman\Attributes\Api;
         use AzGuard\Attributes\AsSource;
         /** @var class-string<\AzGuard\DevTools\DevToolsServiceProvider> $provider */
         #[Api(since: '1.0')]

@@ -37,8 +37,8 @@ an alias; see the [morph identity runbook](../advanced/operations.md#morph-ident
 ## 2. Make the model a subject
 
 ```php
-use AzGuard\Concerns\HasAzGuard;
-use AzGuard\Contracts\AzGuardSubject;
+use AzGuard\Concerns\Subjects\HasAzGuard;
+use AzGuard\Contracts\Subjects\AzGuardSubject;
 
 class User extends Authenticatable implements AzGuardSubject
 {

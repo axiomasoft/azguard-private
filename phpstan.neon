@@ -5,8 +5,6 @@ includes:
 
 parameters:
   tmpDir: build/phpstan
-  bootstrapFiles:
-    - packages/core/src/aliases.php
   paths:
     - packages/core/src
     - packages/scopes/src

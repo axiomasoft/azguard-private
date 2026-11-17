@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "057c042bd029a3091f2b841e1bbd0515",
+    "content-hash": "f47fff2ce479ae23ad440d28c93abe69",
     "packages": [
         {
             "name": "anourvalar/eloquent-serialize",
@@ -77,7 +77,7 @@
             "dist": {
                 "type": "path",
                 "url": "packages/core",
-                "reference": "32eec9cfa69cb23731be4b5ec5417e92f3e4fec8"
+                "reference": "d508eb8e41474e7beecdd276bc08defa4c45dfc2"
             },
             "require": {
                 "axiomasoft/packman": "^0.1",
@@ -110,13 +110,44 @@
                     ]
                 },
                 "packman": {
-                    "error-prefix": "azguard"
+                    "schema-version": 1,
+                    "package-type": "capability",
+                    "stability": "stable",
+                    "error-prefix": "azguard",
+                    "owns": [
+                        "Attributes",
+                        "Authorization",
+                        "Catalog",
+                        "Changes",
+                        "Concerns",
+                        "Configuration",
+                        "Context",
+                        "Contracts",
+                        "Diagnostics",
+                        "Directories",
+                        "Errors",
+                        "Events",
+                        "Exceptions",
+                        "Extensions",
+                        "Facades",
+                        "Kernel",
+                        "Laravel",
+                        "Panels",
+                        "Permissions",
+                        "Plugins",
+                        "Policies",
+                        "Registrars",
+                        "Roles",
+                        "Schema",
+                        "Sources",
+                        "Storage",
+                        "Support",
+                        "Tenancy",
+                        "Testing"
+                    ]
                 }
             },
             "autoload": {
-                "files": [
-                    "src/aliases.php"
-                ],
                 "psr-4": {
                     "AzGuard\\": "src/"
                 }
@@ -158,7 +189,7 @@
             "dist": {
                 "type": "path",
                 "url": "packages/audit",
-                "reference": "6102688d4da1ffd964266f7106ae835f719b3c77"
+                "reference": "698e3c2164606e36ddf13f9bb6e795a204a3c828"
             },
             "require": {
                 "axiomasoft/azguard": "^2.0",
@@ -180,6 +211,14 @@
                 "laravel": {
                     "providers": [
                         "AzGuard\\Audit\\AuditServiceProvider"
+                    ]
+                },
+                "packman": {
+                    "schema-version": 1,
+                    "package-type": "addon",
+                    "stability": "stable",
+                    "owns": [
+                        "Extensions"
                     ]
                 }
             },
@@ -224,7 +263,7 @@
             "dist": {
                 "type": "path",
                 "url": "packages/filament",
-                "reference": "9d903e052b930fb665a0af7de143aaf7d6b6ef87"
+                "reference": "976490da91c16f4522d1ee83f9d0a4bcfa34dcaa"
             },
             "require": {
                 "axiomasoft/azguard": "^2.0",
@@ -242,6 +281,19 @@
                 "laravel": {
                     "providers": [
                         "AzGuard\\Filament\\AzGuardFilamentServiceProvider"
+                    ]
+                },
+                "packman": {
+                    "schema-version": 1,
+                    "package-type": "integration",
+                    "stability": "stable",
+                    "owns": [
+                        "Attributes",
+                        "Authorization",
+                        "Exports",
+                        "Extensions",
+                        "Pages",
+                        "Sources"
                     ]
                 }
             },
@@ -286,7 +338,7 @@
             "dist": {
                 "type": "path",
                 "url": "packages/scopes",
-                "reference": "fc3f79b8e8a556025e95e68740f24f39c68c4d13"
+                "reference": "1bcce697e38686b69672648ac02b06e37afe7974"
             },
             "require": {
                 "axiomasoft/azguard": "^2.0",
@@ -304,6 +356,14 @@
                 "laravel": {
                     "providers": [
                         "AzGuard\\Scopes\\ScopesServiceProvider"
+                    ]
+                },
+                "packman": {
+                    "schema-version": 1,
+                    "package-type": "addon",
+                    "stability": "stable",
+                    "owns": [
+                        "Extensions"
                     ]
                 }
             },
@@ -348,7 +408,7 @@
             "dist": {
                 "type": "path",
                 "url": "../packman/packages/core",
-                "reference": "ece339bbf32eb6cd147104eb94962be03a203071"
+                "reference": "30df59b1a617c47b58516fc185e379b18d13ade6"
             },
             "require": {
                 "php": "^8.4",
@@ -430,7 +490,7 @@
             "dist": {
                 "type": "path",
                 "url": "../packman/packages/filament",
-                "reference": "17ee5376c8b562b8df028e02ec9c6710f78e87e1"
+                "reference": "71ef9547b2f66fdb87509c55367c02e9ba229e2c"
             },
             "require": {
                 "axiomasoft/packman": "^0.1|^1.0@dev",
@@ -481,7 +541,7 @@
             "dist": {
                 "type": "path",
                 "url": "../packman/packages/panels",
-                "reference": "00813adec75faae11f7fdc940c7c95781391434b"
+                "reference": "f36a3b687195f1836566afd95d74c1959fbfb6bb"
             },
             "require": {
                 "axiomasoft/packman": "^0.1|^1.0@dev",
@@ -535,7 +595,7 @@
             "dist": {
                 "type": "path",
                 "url": "../packman/packages/plugins",
-                "reference": "e1161c5723b05610ada754d5ea00a9d90fb09de9"
+                "reference": "876766d448fdc867633deb7494099476bf48d800"
             },
             "require": {
                 "axiomasoft/packman": "^0.1|^1.0@dev",
@@ -587,7 +647,7 @@
             "dist": {
                 "type": "path",
                 "url": "../packman/packages/schema",
-                "reference": "f829613a4c21225ace2c2a172fc0aa49e4b09bc2"
+                "reference": "6a830dd0c871c4c97f716c351613991bb1464046"
             },
             "require": {
                 "axiomasoft/packman": "^0.1|^1.0@dev",
@@ -8786,7 +8846,7 @@
             "dist": {
                 "type": "path",
                 "url": "packages/devtools",
-                "reference": "c9f87e01cd978f76aaff3fdf19590563e6e15fd8"
+                "reference": "1f660cb55bff54e5f1569aa9a075655362b5eb5c"
             },
             "require": {
                 "axiomasoft/azguard": "^2.0",
@@ -8810,7 +8870,13 @@
                     ]
                 },
                 "packman": {
-                    "dev-only": true
+                    "schema-version": 1,
+                    "package-type": "dev",
+                    "stability": "stable",
+                    "dev-only": true,
+                    "owns": [
+                        "Extensions"
+                    ]
                 }
             },
             "autoload": {
@@ -8854,7 +8920,7 @@
             "dist": {
                 "type": "path",
                 "url": "../packman/packages/devtools",
-                "reference": "db4ab48b27f1b143ae24e587983e45792ce242e8"
+                "reference": "7ca9644100f1b0f8704c7fc893ccc5a6ec78d307"
             },
             "require": {
                 "axiomasoft/packman": "^0.1|^1.0@dev",
@@ -8909,7 +8975,7 @@
             "dist": {
                 "type": "path",
                 "url": "../packman/packages/testkit",
-                "reference": "5af0ee8df784892318e54476eed2abc247911aab"
+                "reference": "dc6f5fadc05d77393b209cae5092cf59a3004104"
             },
             "require": {
                 "axiomasoft/packman": "^0.1|^1.0@dev",

@@ -50,7 +50,13 @@
             ]
         },
         "packman": {
-            "dev-only": true
+            "schema-version": 1,
+            "package-type": "dev",
+            "stability": "stable",
+            "dev-only": true,
+            "owns": [
+                "Extensions"
+            ]
         }
     }
 }

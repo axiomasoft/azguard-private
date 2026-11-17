@@ -30,9 +30,9 @@ with tempfile.TemporaryDirectory(prefix='azguard-sqlite-probe-') as directory:
     assert missing_audit.returncode != 0 and 'Migration unavailable' in missing_audit.stderr
 
     # A present migration that throws is not migration-readiness evidence.
-    audit = checkout / 'packages/core/modules/audit/database/migrations'
+    audit = checkout / 'packages/audit/database/migrations'
     audit.mkdir(parents=True)
-    shutil.copy2(root / 'packages/core/modules/audit/database/migrations/2026_10_20_000000_create_azguard_audit_log.php', audit)
+    shutil.copy2(root / 'packages/audit/database/migrations/2026_10_20_000000_create_azguard_audit_log.php', audit)
     (checkout / 'vendor').symlink_to(root / 'vendor', target_is_directory=True)
     (migrations / '2026_10_01_000000_create_azguard_storage.php').write_text(
         '<?php return new class extends \\Illuminate\\Database\\Migrations\\Migration {'

@@ -126,7 +126,7 @@ it('reports a missing cron parser as a configuration error in an illuminate-only
                 'azguard' => ['schedule' => ['prune_expired' => '0 3 * * *']],
             ]));
             exit(2);
-        } catch (AzGuard\Exceptions\InvalidConfigurationException $error) {
+        } catch (AzGuard\Exceptions\Configuration\InvalidConfigurationException $error) {
             echo $error->getMessage();
         }
         PHP;

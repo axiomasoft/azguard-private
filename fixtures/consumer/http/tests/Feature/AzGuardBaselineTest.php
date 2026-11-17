@@ -6,7 +6,7 @@ namespace Tests\Feature;
 
 use App\Guards\Stored\Permissions\StoredPermission;
 use App\Models\User;
-use AzGuard\Exceptions\InvalidConfigurationException;
+use AzGuard\Exceptions\Configuration\InvalidConfigurationException;
 use AzGuard\Facades\AzGuard;
 use AzGuard\Kernel\Decision\DecisionReason;
 use AzGuard\Panels\Reads;

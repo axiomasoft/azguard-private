@@ -62,7 +62,6 @@ return static function (RectorConfig $rectorConfig): void {
         BoundarySafeStringClassRector::class => [
             __DIR__.'/packages/core/src/Configuration/AzGuardOptions.php',
             __DIR__.'/packages/core/src/Configuration/Internal/AzGuardConfig.php',
-            __DIR__.'/packages/core/src/aliases.php',
         ],
         ReadOnlyPropertyRector::class => [
             __DIR__.'/packages/core/src/Authorization/Internal/Query/PredicateQuery.php',

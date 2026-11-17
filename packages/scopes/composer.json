@@ -45,6 +45,14 @@
             "providers": [
                 "AzGuard\\Scopes\\ScopesServiceProvider"
             ]
+        },
+        "packman": {
+            "schema-version": 1,
+            "package-type": "addon",
+            "stability": "stable",
+            "owns": [
+                "Extensions"
+            ]
         }
     }
 }

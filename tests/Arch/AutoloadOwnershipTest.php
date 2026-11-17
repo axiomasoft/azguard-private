@@ -7,10 +7,10 @@ use AzGuard\Tests\Arch\Ownership;
 use AzGuard\Tests\Arch\SourceScan;
 
 /*
- * Every production FQCN under packages/<name>/src and
- * packages/core/modules/<module>/src has exactly one PSR-4 owner among the `autoload` entries of packages/<name>/composer.json,
- * the authoritative classmap built from the sources has no type declared in two files, and `src/Scopes`, `src/Audit`,
- * `src/DevTools` and `src/Plugins/Audit` are reported. Any violation fails. The optimized-autoload run is the consumer job of CI.
+ * Every production FQCN under `packages/<name>/src` has exactly one PSR-4 owner among the `autoload` entries of
+ * `packages/<name>/composer.json`, the authoritative classmap built from the sources has no type declared in two files,
+ * and `src/Scopes`, `src/Audit`, `src/DevTools` and `src/Plugins/Audit` are reported. Any violation fails. The
+ * optimized-autoload run is the consumer job of CI.
  */
 
 /**
