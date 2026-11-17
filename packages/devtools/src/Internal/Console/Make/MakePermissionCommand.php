@@ -6,7 +6,6 @@ namespace AzGuard\DevTools\Internal\Console\Make;
 
 use AzGuard\Concerns\Subjects\SubjectAccess;
 use AzGuard\DevTools\Internal\Scaffold\EnumSource;
-use AzGuard\DevTools\Internal\Scaffold\GeneratedFile;
 use AzGuard\DevTools\Internal\Scaffold\Layout;
 use AzGuard\DevTools\Internal\Scaffold\PolicyFile;
 use AzGuard\DevTools\Internal\Scaffold\StubStore;
@@ -41,11 +40,6 @@ final class MakePermissionCommand extends MakeCommand
 
     /** @var string */
     protected $description = 'Create the permission enum of a group of a panel, with its policy and abilities on request';
-
-    protected function stubName(): string
-    {
-        return 'permission';
-    }
 
     protected function plan(Layout $layout, StubStore $stubs): array
     {
@@ -87,17 +81,17 @@ final class MakePermissionCommand extends MakeCommand
         if ($source->policyOnly !== $policyOnly) {
             throw new InvalidCommandInput('The permission stub does not declare the authority with {{ authority }}, so --authority would be ignored: publish the stubs again with azguard:stubs --force.');
         }
-        $files = [new GeneratedFile($permissions->file($enum), $contents)];
+        $files = [$this->generated($layout, $permissions->file($enum), $contents)];
 
         // A permission that only a policy decides has no grant behind it, so its policy is not optional.
         if ($this->option('policy') === true || $policyOnly) {
             $policy = $panel->in($layout->folder('policies').'/'.$relative);
-            $files[] = new GeneratedFile($policy->file($name.'Policy'), PolicyFile::render($stubs, $policy, $name.'Policy', $permissions->fqcn($enum), $cases, false, ! $policyOnly));
+            $files[] = $this->generated($layout, $policy->file($name.'Policy'), PolicyFile::render($stubs, $policy, $name.'Policy', $permissions->fqcn($enum), $cases, false, ! $policyOnly));
         }
 
         if ($this->option('abilities') === true) {
             $abilities = $panel->in($layout->folder('abilities').'/'.$relative);
-            $files[] = new GeneratedFile($abilities->file($name.'Abilities'), $this->abilities($stubs, $abilities->namespace, $name.'Abilities', $permissions->fqcn($enum), $enum, $cases, Str::headline($group[array_key_last($group)])));
+            $files[] = $this->generated($layout, $abilities->file($name.'Abilities'), $this->abilities($stubs, $abilities->namespace, $name.'Abilities', $permissions->fqcn($enum), $enum, $cases, Str::headline($group[array_key_last($group)])));
         }
 
         return $files;

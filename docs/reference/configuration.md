@@ -59,7 +59,7 @@ A panel setting is resolved from these layers. The first layer that sets it wins
 | `discovery.abilities` | `Abilities` | Folder name of the abilities, relative to a panel provider |
 | `discovery.queries` | `Queries` | Folder name of the queries, relative to a panel provider |
 | `discovery.shared` | `Shared` | Folder, a sibling of the panel directories, that holds `#[AsSource]` sources |
-| `scaffold.namespace` / `scaffold.path` | `App\Guards` / `app/Guards` | Where the generators create panels. Owned by the development tools module: the published file does not list them, add the section to change them |
+| `scaffold.namespace` / `scaffold.path` | `App\Guards` / `app/Guards` | Where the generators create panels. Optional tooling settings in the published file; core also accepts them when DevTools is absent |
 
 ### Environment variables
 

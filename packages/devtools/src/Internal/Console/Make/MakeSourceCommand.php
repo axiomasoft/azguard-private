@@ -13,7 +13,6 @@ use AzGuard\Contracts\Sources\ProvidesPolicies;
 use AzGuard\Contracts\Sources\ProvidesRoles;
 use AzGuard\Contracts\Sources\Source;
 use AzGuard\Contracts\Sources\Volatility;
-use AzGuard\DevTools\Internal\Scaffold\GeneratedFile;
 use AzGuard\DevTools\Internal\Scaffold\Layout;
 use AzGuard\DevTools\Internal\Scaffold\StubStore;
 use AzGuard\Kernel\Decision\Grant;
@@ -46,11 +45,6 @@ final class MakeSourceCommand extends MakeCommand
     /** @var string */
     protected $description = 'Create a source of an AzGuard panel';
 
-    protected function stubName(): string
-    {
-        return 'source';
-    }
-
     protected function plan(Layout $layout, StubStore $stubs): array
     {
         $place = $this->panelOrShared($layout, 'Sources', $this->stringOption('panel'), (bool) $this->option('shared'));
@@ -76,7 +70,7 @@ final class MakeSourceCommand extends MakeCommand
             $imports[] = Source::class;
         }
 
-        return [new GeneratedFile($place->file($class), $stubs->render('source', [
+        return [$this->generated($layout, $place->file($class), $stubs->render('source', [
             'namespace' => $place->namespace,
             'imports' => StubStore::imports($imports),
             'name' => Str::kebab(substr($class, 0, -6)),

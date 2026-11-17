@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace AzGuard\DevTools\Internal\Console\Make;
 
 use AzGuard\Contracts\Plugins\Plugin;
-use AzGuard\DevTools\Internal\Scaffold\GeneratedFile;
 use AzGuard\DevTools\Internal\Scaffold\Layout;
 use AzGuard\DevTools\Internal\Scaffold\StubStore;
 use AzGuard\Panels\PanelBuilder;
@@ -29,17 +28,12 @@ final class MakePluginCommand extends MakeCommand
     /** @var string */
     protected $description = 'Create a plugin of an AzGuard panel';
 
-    protected function stubName(): string
-    {
-        return 'plugin';
-    }
-
     protected function plan(Layout $layout, StubStore $stubs): array
     {
         $place = $this->panelOrShared($layout, 'Plugins', $this->stringOption('panel'), (bool) $this->option('shared'));
         $class = $layout->className($this->stringArgument('name'), 'Plugin');
 
-        return [new GeneratedFile($place->file($class), $stubs->render('plugin', [
+        return [$this->generated($layout, $place->file($class), $stubs->render('plugin', [
             'namespace' => $place->namespace,
             'imports' => StubStore::imports([Plugin::class, PanelBuilder::class, PluginContext::class]),
             'class' => $class,

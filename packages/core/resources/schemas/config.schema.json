@@ -261,6 +261,20 @@
                     },
                     "additionalProperties": false
                 },
+                "scaffold": {
+                    "type": "object",
+                    "properties": {
+                        "namespace": {
+                            "type": "string",
+                            "default": "App\\Guards"
+                        },
+                        "path": {
+                            "type": "string",
+                            "default": "app/Guards"
+                        }
+                    },
+                    "additionalProperties": false
+                },
                 "schedule": {
                     "type": "object",
                     "properties": {

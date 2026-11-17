@@ -54,7 +54,7 @@
                 },
                 "manages": {
                     "type": [
-                        "string",
+                        "array",
                         "null"
                     ],
                     "default": null

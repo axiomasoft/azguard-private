@@ -1129,75 +1129,19 @@
             "abstract": false,
             "extends": [],
             "implements": [],
-            "uses": [],
+            "uses": [
+                "Packman\\Filament\\Concerns\\Authorization\\AuthorizesRelationManager"
+            ],
             "doc": [],
             "methods": {
-                "canViewForRecord": {
+                "getRelatedResource": {
                     "visibility": "public",
                     "static": true,
                     "final": false,
                     "abstract": false,
                     "by_reference": false,
-                    "parameters": [
-                        {
-                            "name": "ownerRecord",
-                            "type": "Illuminate\\Database\\Eloquent\\Model",
-                            "by_reference": false,
-                            "variadic": false,
-                            "optional": false,
-                            "default": null,
-                            "flags": 0
-                        },
-                        {
-                            "name": "pageClass",
-                            "type": "string",
-                            "by_reference": false,
-                            "variadic": false,
-                            "optional": false,
-                            "default": null,
-                            "flags": 0
-                        }
-                    ],
-                    "return": "bool",
-                    "doc": []
-                },
-                "getAuthorizationResponse": {
-                    "visibility": "public",
-                    "static": false,
-                    "final": false,
-                    "abstract": false,
-                    "by_reference": false,
-                    "parameters": [
-                        {
-                            "name": "action",
-                            "type": "string",
-                            "by_reference": false,
-                            "variadic": false,
-                            "optional": false,
-                            "default": null,
-                            "flags": 0
-                        },
-                        {
-                            "name": "record",
-                            "type": "?Illuminate\\Database\\Eloquent\\Model",
-                            "by_reference": false,
-                            "variadic": false,
-                            "optional": true,
-                            "default": "null",
-                            "flags": 0
-                        }
-                    ],
-                    "return": "Illuminate\\Auth\\Access\\Response",
-                    "doc": []
-                },
-                "makeTable": {
-                    "visibility": "protected",
-                    "static": false,
-                    "final": false,
-                    "abstract": false,
-                    "by_reference": false,
                     "parameters": [],
-                    "return": "Filament\\Tables\\Table",
+                    "return": "?string",
                     "doc": []
                 }
             },

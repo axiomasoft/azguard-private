@@ -55,21 +55,7 @@ final class AzGuardFilamentSecurityRegistrar implements PackageRegistrar
             });
         });
 
-        $events = $app->make(Dispatcher::class);
-        $events->forget(ActionCalling::class);
-        $events->listen(ActionCalling::class, AuthorizesActions::class);
-        $events->listen(ActionCalling::class, AuthorizesExports::class);
-        $events->listen(ServingFilament::class, static function (): void {
-            $panel = Filament::getCurrentPanel();
-
-            if ($panel === null || ! $panel->hasTenancy()) {
-                return;
-            }
-
-            foreach ($panel->getResources() as $resource) {
-                $resource::registerTenancyModelGlobalScope($panel);
-            }
-        });
+        self::attachEventListeners($app->make(Dispatcher::class));
 
         if ($app->bound('livewire')) {
             self::attachLivewireHooks($app->make(LivewireManager::class));
@@ -89,6 +75,32 @@ final class AzGuardFilamentSecurityRegistrar implements PackageRegistrar
             // Delegates through Packman FilamentGate -> FilamentSurfaceGate -> AzGuardFilamentSurfaceGate.
             $app->make(Gate::class)->before(PackmanFilamentGate::before(...));
         });
+    }
+
+    private static function attachEventListeners(Dispatcher $events): void
+    {
+        /** @var WeakMap<Dispatcher, true>|null $attached */
+        static $attached = null;
+        $attached ??= new WeakMap;
+
+        if (isset($attached[$events])) {
+            return;
+        }
+
+        $events->listen(ActionCalling::class, AuthorizesActions::class);
+        $events->listen(ActionCalling::class, AuthorizesExports::class);
+        $events->listen(ServingFilament::class, static function (): void {
+            $panel = Filament::getCurrentPanel();
+
+            if ($panel === null || ! $panel->hasTenancy()) {
+                return;
+            }
+
+            foreach ($panel->getResources() as $resource) {
+                $resource::registerTenancyModelGlobalScope($panel);
+            }
+        });
+        $attached[$events] = true;
     }
 
     private static function attachLivewireHooks(LivewireManager $livewire): void

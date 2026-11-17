@@ -1,7 +1,7 @@
 {
     "schema": "urn:azguard:compatibility:1",
     "major": 2,
-    "candidate": "bbeab4e9c7ed86b410559c0b61cf7a1bec10483f",
+    "candidate": "82b5429c3223b64007c1765603073818354e5f29",
     "artifacts": [
         {
             "id": "source-capabilities",

@@ -17,6 +17,7 @@ final class AzGuardFilamentConfigurationRegistrar implements PackageRegistrar
 {
     public function register(Application $app): void
     {
+        // Replace an earlier Packman fallback; its singletonIf also preserves this binding when discovered later.
         $app->singleton(FilamentSurfaceGate::class, AzGuardFilamentSurfaceGate::class);
         $app->bindIf(DownloadExport::class, RefusesUnverifiableDownload::class);
     }

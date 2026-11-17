@@ -1221,6 +1221,20 @@
                     "contracts": []
                 },
                 {
+                    "name": "getRelatedResource",
+                    "visibility": "public",
+                    "static": true,
+                    "abstract": false,
+                    "final": false,
+                    "parameters": [],
+                    "return": "?string",
+                    "returnsReference": false,
+                    "namedArguments": true,
+                    "contracts": [
+                        "@return class-string<FilamentResource>|null"
+                    ]
+                },
+                {
                     "name": "makeTable",
                     "visibility": "protected",
                     "static": false,

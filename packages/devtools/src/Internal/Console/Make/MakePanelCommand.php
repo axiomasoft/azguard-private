@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace AzGuard\DevTools\Internal\Console\Make;
 
-use AzGuard\DevTools\Internal\Scaffold\GeneratedFile;
 use AzGuard\DevTools\Internal\Scaffold\Layout;
 use AzGuard\DevTools\Internal\Scaffold\ProviderRegistration;
 use AzGuard\DevTools\Internal\Scaffold\StubStore;
@@ -32,11 +31,6 @@ final class MakePanelCommand extends MakeCommand
 
     private ?string $provider = null;
 
-    protected function stubName(): string
-    {
-        return 'panel-provider';
-    }
-
     protected function plan(Layout $layout, StubStore $stubs): array
     {
         $panel = $layout->panelName($this->stringArgument('panel'));
@@ -45,7 +39,7 @@ final class MakePanelCommand extends MakeCommand
         $model = $this->subjectModel();
         $this->provider = $place->fqcn($class);
 
-        return [new GeneratedFile($place->file($class), $stubs->render('panel-provider', [
+        return [$this->generated($layout, $place->file($class), $stubs->render('panel-provider', [
             'namespace' => $place->namespace,
             'imports' => StubStore::imports([DatabaseSource::class, PanelBuilder::class, PanelProvider::class, $model]),
             'class' => $class,

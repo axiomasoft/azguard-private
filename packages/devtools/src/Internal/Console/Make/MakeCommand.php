@@ -5,17 +5,16 @@ declare(strict_types=1);
 namespace AzGuard\DevTools\Internal\Console\Make;
 
 use AzGuard\DevTools\Internal\Scaffold\AtomicFileWriter;
-use AzGuard\DevTools\Internal\Scaffold\GeneratedFile;
 use AzGuard\DevTools\Internal\Scaffold\Layout;
 use AzGuard\DevTools\Internal\Scaffold\Place;
 use AzGuard\DevTools\Internal\Scaffold\StubStore;
 use AzGuard\DevTools\Internal\ScaffoldConfig;
 use AzGuard\Laravel\Console\CommandSupport;
 use AzGuard\Laravel\Console\InvalidCommandInput;
-use Illuminate\Console\GeneratorCommand;
+use Illuminate\Console\Command;
+use Illuminate\Filesystem\Filesystem;
 use Packman\Attributes\Internal;
-use Symfony\Component\Console\Input\InputInterface;
-use Symfony\Component\Console\Output\OutputInterface;
+use Packman\DevTools\Scaffold\GeneratedFile;
 
 /**
  * @internal The generators of the structure of a panel: the files a generator makes are planned first, and none is
@@ -26,15 +25,14 @@ use Symfony\Component\Console\Output\OutputInterface;
  * other commands: 0 done, 1 a file exists or the work failed, 2 invalid input.
  */
 #[Internal]
-abstract class MakeCommand extends GeneratorCommand
+abstract class MakeCommand extends Command
 {
     use CommandSupport;
 
-    /** @var string */
-    protected $type = 'Class';
-
-    /** The stub that names the command in messages; the files may use more. */
-    abstract protected function stubName(): string;
+    public function __construct(protected Filesystem $files)
+    {
+        parent::__construct();
+    }
 
     /**
      * The files of the command, none written yet.
@@ -46,16 +44,7 @@ abstract class MakeCommand extends GeneratorCommand
     /** Runs after the files are written: registrations and hints. */
     protected function written(Layout $layout): void {}
 
-    /**
-     * Generation runs in {@see self::execute()}, which returns the exit code; the generator contract of the framework
-     * returns a flag, and a flag would make a refusal exit with 0.
-     */
-    public function handle(): ?bool
-    {
-        return null;
-    }
-
-    protected function execute(InputInterface $input, OutputInterface $output): int
+    public function handle(): int
     {
         return $this->attempt(function (): int {
             $layout = new Layout(ScaffoldConfig::fromRepository($this->laravel->make('config')), $this->laravel->basePath());
@@ -63,10 +52,11 @@ abstract class MakeCommand extends GeneratorCommand
 
             $existing = [];
             foreach ($files as $file) {
-                $this->assertWritable($file);
+                $path = $layout->absolute($file->relativePath);
+                $this->assertWritable($path);
 
-                if (is_file($file->path)) {
-                    $existing[] = $layout->relative($file->path);
+                if (is_file($path)) {
+                    $existing[] = $file->relativePath;
                 }
             }
 
@@ -80,8 +70,8 @@ abstract class MakeCommand extends GeneratorCommand
 
             $planned = array_map(
                 static fn (GeneratedFile $file): array => [
-                    'target' => $file->path,
-                    'file' => $file->toPackman($layout->relative($file->path), $force),
+                    'target' => $layout->absolute($file->relativePath),
+                    'file' => $file,
                 ],
                 $files,
             );
@@ -95,15 +85,9 @@ abstract class MakeCommand extends GeneratorCommand
         });
     }
 
-    protected function getStub(): string
+    protected function generated(Layout $layout, string $path, string $contents): GeneratedFile
     {
-        return $this->stubs()->path($this->stubName());
-    }
-
-    /** @return array<string, string> */
-    protected function promptForMissingArgumentsUsing(): array
-    {
-        return [];
+        return new GeneratedFile($layout->relative($path), $contents, $this->option('force') === true);
     }
 
     protected function stubs(): StubStore
@@ -125,10 +109,10 @@ abstract class MakeCommand extends GeneratorCommand
         return $place->in($folder);
     }
 
-    private function assertWritable(GeneratedFile $file): void
+    private function assertWritable(string $path): void
     {
-        if (is_dir($file->path)) {
-            throw new InvalidCommandInput($file->path.' is a directory.');
+        if (is_dir($path)) {
+            throw new InvalidCommandInput($path.' is a directory.');
         }
     }
 }

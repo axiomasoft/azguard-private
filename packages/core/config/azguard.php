@@ -213,4 +213,10 @@ return [
         'shared' => 'Shared',
     ],
 
+    // Optional generator settings; accepted even when the DevTools package is absent.
+    'scaffold' => [
+        'namespace' => 'App\\Guards',
+        'path' => 'app/Guards',
+    ],
+
 ];

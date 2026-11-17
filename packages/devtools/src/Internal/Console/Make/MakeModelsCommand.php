@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace AzGuard\DevTools\Internal\Console\Make;
 
 use AzGuard\AzGuard;
-use AzGuard\DevTools\Internal\Scaffold\GeneratedFile;
 use AzGuard\DevTools\Internal\Scaffold\Layout;
 use AzGuard\DevTools\Internal\Scaffold\StubStore;
 use AzGuard\Laravel\Console\InvalidCommandInput;
@@ -32,11 +31,6 @@ final class MakeModelsCommand extends MakeCommand
     /** @var string */
     protected $description = 'Create the grant models of a panel and the migration of their columns';
 
-    protected function stubName(): string
-    {
-        return 'panel-models';
-    }
-
     protected function plan(Layout $layout, StubStore $stubs): array
     {
         $panel = $layout->panelName($this->stringArgument('panel'));
@@ -50,7 +44,7 @@ final class MakeModelsCommand extends MakeCommand
         }
         $files = [];
         foreach (['RoleGrant' => RoleGrant::class, 'PermissionGrant' => PermissionGrant::class] as $name => $base) {
-            $files[] = new GeneratedFile($place->file($panel.$name), $stubs->render('panel-models', [
+            $files[] = $this->generated($layout, $place->file($panel.$name), $stubs->render('panel-models', [
                 'namespace' => $place->namespace,
                 'imports' => StubStore::imports([$base, Field::class]),
                 'class' => $panel.$name,
@@ -60,7 +54,7 @@ final class MakeModelsCommand extends MakeCommand
         $suffix = '_add_'.Str::snake($panel).'_columns_to_azguard_tables.php';
         $directory = $this->laravel->databasePath('migrations');
         $existing = $this->files->glob($directory.'/*'.$suffix);
-        $files[] = new GeneratedFile(is_string($existing[0] ?? null) ? $existing[0] : $directory.'/'.date('Y_m_d_His').$suffix, $stubs->render('models-migration', [
+        $files[] = $this->generated($layout, is_string($existing[0] ?? null) ? $existing[0] : $directory.'/'.date('Y_m_d_His').$suffix, $stubs->render('models-migration', [
             'storage' => $storage,
             'panel' => $place->namespace,
         ]));

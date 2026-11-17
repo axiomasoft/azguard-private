@@ -127,6 +127,12 @@ final readonly class Layout
         return str_starts_with($path, $base) ? substr($path, strlen($base)) : $path;
     }
 
+    /** Resolve a planned path, preserving a host's custom absolute migration directory. */
+    public function absolute(string $path): string
+    {
+        return str_starts_with($path, '/') ? $path : rtrim($this->basePath, '/').'/'.$path;
+    }
+
     /** `Orders` is `Order`: the name a group gives its enum, policy and abilities. */
     public static function nameOf(string $segment): string
     {

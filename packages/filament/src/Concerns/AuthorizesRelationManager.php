@@ -4,14 +4,11 @@ declare(strict_types=1);
 
 namespace AzGuard\Filament\Concerns;
 
-use AzGuard\Filament\Authorization\FilamentGate;
-use AzGuard\Filament\Internal\Authorization\FilamentContext;
 use Filament\Resources\RelationManagers\RelationManager;
-use Filament\Tables\Table;
-use Illuminate\Auth\Access\Response;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Model;
+use Filament\Resources\Resource as FilamentResource;
 use Packman\Attributes\Api;
+use Packman\Filament\Concerns\Authorization\AuthorizesRelationManager as PackmanAuthorizesRelationManager;
+use ReflectionProperty;
 
 /**
  * Decides a relation manager by the permissions of the resource of its records: the related resource, or the resource
@@ -24,23 +21,18 @@ use Packman\Attributes\Api;
 #[Api(since: '1.0')]
 trait AuthorizesRelationManager
 {
-    public static function canViewForRecord(Model $ownerRecord, string $pageClass): bool
-    {
-        return FilamentGate::relationManager(static::class, 'view_any', otherwise: static fn (): Response => parent::canViewForRecord($ownerRecord, $pageClass)
-            ? Response::allow() : Response::deny())->allowed();
-    }
+    use PackmanAuthorizesRelationManager;
 
-    public function getAuthorizationResponse(string $action, ?Model $record = null): Response
+    /** @return class-string<FilamentResource>|null */
+    public static function getRelatedResource(): ?string
     {
-        return FilamentGate::relationManager(static::class, $action, $record, fn (): Response => parent::getAuthorizationResponse($action, $record));
-    }
+        $resource = parent::getRelatedResource();
 
-    protected function makeTable(): Table
-    {
-        return parent::makeTable()->modifyQueryUsing(static function (Builder $query): Builder {
-            $resource = FilamentContext::relationResource(static::class);
+        // Expose the existing AzGuard declaration to Packman's shared surface hooks and query filter.
+        if ($resource === null && property_exists(static::class, 'azguardResource')) {
+            $resource = new ReflectionProperty(static::class, 'azguardResource')->getValue();
+        }
 
-            return $resource === null ? $query : FilamentGate::visible($resource, $query);
-        });
+        return is_string($resource) && is_subclass_of($resource, FilamentResource::class) ? $resource : null;
     }
 }

@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace AzGuard\DevTools\Internal\Console\Make;
 
-use AzGuard\DevTools\Internal\Scaffold\GeneratedFile;
 use AzGuard\DevTools\Internal\Scaffold\Layout;
 use AzGuard\DevTools\Internal\Scaffold\StubStore;
 use AzGuard\Kernel\Grammar\PermissionGrammar;
@@ -31,11 +30,6 @@ final class MakeRoleCommand extends MakeCommand
     /** @var string */
     protected $description = 'Create a role of a panel with an explicit key';
 
-    protected function stubName(): string
-    {
-        return 'role';
-    }
-
     protected function plan(Layout $layout, StubStore $stubs): array
     {
         $place = $layout->existingPanel($layout->panelName($this->stringArgument('panel')))->in($layout->folder('roles'));
@@ -47,7 +41,7 @@ final class MakeRoleCommand extends MakeCommand
             throw new InvalidCommandInput('The role key "'.$key.'" of '.$class.' is not valid: it is lowercase letters, digits and hyphens, at most 64 characters.');
         }
 
-        return [new GeneratedFile($place->file($class), $stubs->render('role', [
+        return [$this->generated($layout, $place->file($class), $stubs->render('role', [
             'namespace' => $place->namespace,
             'imports' => StubStore::imports([BaseRole::class, Role::class, UnitEnum::class]),
             'key' => $key,

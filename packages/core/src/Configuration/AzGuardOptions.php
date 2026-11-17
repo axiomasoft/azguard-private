@@ -463,6 +463,8 @@ final readonly class AzGuardOptions implements OptionsFactory
             'defaults.trace_decisions',
             'defaults.tenants.resolvers',
             'defaults.scopes.resolvers',
+            'scaffold.namespace',
+            'scaffold.path',
         ];
         $groups = [
             'cache' => self::CACHE_KEYS,

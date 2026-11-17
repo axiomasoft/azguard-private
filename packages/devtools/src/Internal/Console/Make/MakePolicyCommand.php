@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace AzGuard\DevTools\Internal\Console\Make;
 
 use AzGuard\DevTools\Internal\Scaffold\EnumSource;
-use AzGuard\DevTools\Internal\Scaffold\GeneratedFile;
 use AzGuard\DevTools\Internal\Scaffold\Layout;
 use AzGuard\DevTools\Internal\Scaffold\PolicyFile;
 use AzGuard\DevTools\Internal\Scaffold\StubStore;
@@ -33,11 +32,6 @@ final class MakePolicyCommand extends MakeCommand
     /** @var string */
     protected $description = 'Create the policy of a group of a panel with #[Decides] for each permission';
 
-    protected function stubName(): string
-    {
-        return 'policy';
-    }
-
     protected function plan(Layout $layout, StubStore $stubs): array
     {
         $panel = $layout->existingPanel($layout->panelName($this->stringArgument('panel')));
@@ -51,7 +45,7 @@ final class MakePolicyCommand extends MakeCommand
         if ($enum !== null) {
             [$enumClass, $cases] = $this->enumOf($enum);
 
-            return [new GeneratedFile($place->file($class), PolicyFile::render($stubs, $place, $class, $enumClass, $cases, true, ! $this->isPolicyOnly($enumClass)))];
+            return [$this->generated($layout, $place->file($class), PolicyFile::render($stubs, $place, $class, $enumClass, $cases, true, ! $this->isPolicyOnly($enumClass)))];
         }
         [$enumClass, $cases, $policyOnly] = $this->enumOfGroup($layout, $panel->in($layout->folder('permissions').'/'.$relative)->directory, $relative);
         $matched = glob($place->directory.'/*.php');
@@ -65,7 +59,7 @@ final class MakePolicyCommand extends MakeCommand
                 .$enumClass.' to bind this policy to its enum with #[PolicyFor].');
         }
 
-        return [new GeneratedFile($place->file($class), PolicyFile::render($stubs, $place, $class, $enumClass, $cases, false, ! $policyOnly))];
+        return [$this->generated($layout, $place->file($class), PolicyFile::render($stubs, $place, $class, $enumClass, $cases, false, ! $policyOnly))];
     }
 
     /** A policy of a policy-only enum starts by denying: no grant stands behind it. */
