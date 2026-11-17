@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace AzGuard\Panels;
 
-use AzGuard\Attributes\Spi;
-use AzGuard\Attributes\SpiKind;
 use AzGuard\Contracts\Panels\PanelRegistry;
 use Illuminate\Support\ServiceProvider;
+use Packman\Attributes\Spi;
+use Packman\Attributes\SpiKind;
 
 /**
  * Describes one panel of the application; the directory of the provider is the directory of the panel.

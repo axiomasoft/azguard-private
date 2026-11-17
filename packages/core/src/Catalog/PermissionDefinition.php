@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace AzGuard\Catalog;
 
-use AzGuard\Attributes\Spi;
-use AzGuard\Attributes\SpiKind;
-use AzGuard\Exceptions\InvalidPermissionKeyException;
+use AzGuard\Exceptions\Identity\InvalidPermissionKeyException;
 use AzGuard\Kernel\Decision\PermissionAuthority;
 use AzGuard\Kernel\Grammar\PermissionGrammar;
 use BackedEnum;
 use Illuminate\Database\Eloquent\Model;
+use Packman\Attributes\Spi;
+use Packman\Attributes\SpiKind;
 
 /**
  * One permission of a panel catalog as a source contributes it: the local name, who decides it and how it is shown.

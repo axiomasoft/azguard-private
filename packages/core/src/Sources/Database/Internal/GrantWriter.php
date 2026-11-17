@@ -11,8 +11,8 @@ use AzGuard\Changes\ChangeResult;
 use AzGuard\Changes\ChangeType;
 use AzGuard\Changes\EffectKind;
 use AzGuard\Changes\GrantRecord;
-use AzGuard\Exceptions\StaleSelectionException;
-use AzGuard\Exceptions\UnsupportedDirectWriteException;
+use AzGuard\Exceptions\Changes\StaleSelectionException;
+use AzGuard\Exceptions\Storage\UnsupportedDirectWriteException;
 use AzGuard\Kernel\Identity\ActorRef;
 use AzGuard\Kernel\Identity\PermissionPattern;
 use AzGuard\Kernel\Identity\RoleKey;
@@ -23,6 +23,7 @@ use AzGuard\Storage\Internal\StorageMutation;
 use DateTimeImmutable;
 use DateTimeZone;
 use Illuminate\Support\Str;
+use Packman\Attributes\Internal;
 
 /**
  * @internal Writes one validated change inside the active mutation of the panel: insert, update, delete or nothing.
@@ -32,6 +33,7 @@ use Illuminate\Support\Str;
  * role key migration carries a historical row to the current key and is the only change that writes `role`.
  * Writes go through the query builder of the mutation only.
  */
+#[Internal]
 final readonly class GrantWriter
 {
     public function __construct(private Storage $storage, private StorageMutation $mutation, private LockedReads $reads) {}
@@ -138,7 +140,7 @@ final readonly class GrantWriter
             'meta' => $row['meta'] === [] ? null : json_encode($row['meta'], JSON_THROW_ON_ERROR | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE),
             'created_at' => $now, 'updated_at' => $now,
         ];
-        $id = (int) $this->mutation->table($kind.'_grants')->insertGetId($values);
+        $id = $this->mutation->table($kind.'_grants')->insertGetId($values);
         $after = $this->reload($kind, $id);
 
         return [$after, new ChangeEffect(EffectKind::Created, $change->type, null, $after, self::eventId())];

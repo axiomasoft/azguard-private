@@ -5,7 +5,7 @@ declare(strict_types=1);
 use AzGuard\Context\AssignmentScopePhase;
 use AzGuard\Directories\Internal\DirectoryResolver;
 use AzGuard\Directories\Internal\ModelSubjectDirectory;
-use AzGuard\Exceptions\DefinitionException;
+use AzGuard\Exceptions\Definitions\DefinitionException;
 use AzGuard\Kernel\Identity\SubjectRef;
 use AzGuard\Panels\Panel;
 use AzGuard\Panels\PanelBuilder;

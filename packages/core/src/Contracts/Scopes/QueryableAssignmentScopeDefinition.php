@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace AzGuard\Contracts\Scopes;
 
-use AzGuard\Attributes\Spi;
-use AzGuard\Attributes\SpiKind;
 use AzGuard\Kernel\Identity\TenantRef;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use Packman\Attributes\Spi;
+use Packman\Attributes\SpiKind;
 
 /**
  * An assignment scope backed by an Eloquent query.

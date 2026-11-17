@@ -11,6 +11,7 @@ use AzGuard\Panels\Internal\PanelRegistry;
 use AzGuard\Sources\Database\DatabaseSource;
 use DateTimeImmutable;
 use DateTimeZone;
+use Packman\Attributes\Internal;
 
 /**
  * `roles.orphaned` of a database source: stored role grants that give nothing. A role key the PHP catalog no longer
@@ -19,6 +20,7 @@ use DateTimeZone;
  *
  * @internal
  */
+#[Internal]
 final readonly class RolesOrphaned implements DoctorCheck
 {
     public function __construct(private DatabaseSource $source) {}
@@ -39,7 +41,7 @@ final readonly class RolesOrphaned implements DoctorCheck
         $former = [];
         foreach ($roles as $key => $role) {
             foreach ($role['former_keys'] as $old) {
-                $former[$old] = (string) $key;
+                $former[$old] = $key;
             }
         }
 

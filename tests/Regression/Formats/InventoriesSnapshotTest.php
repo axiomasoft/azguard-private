@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use AzGuard\Exceptions\DefinitionException;
+use AzGuard\Exceptions\Definitions\DefinitionException;
 use AzGuard\Panels\Internal\PanelRegistry;
 use AzGuard\Schema\Field;
 use AzGuard\Tests\Arch\Ownership;

@@ -1,0 +1,57 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+PHP84_BIN="${PHP84_BIN:-$(command -v php8.4 || true)}"
+
+if [[ -z "${PHP84_BIN}" || ! -x "${PHP84_BIN}" ]]; then
+    echo "php8.4 executable not found (set PHP84_BIN to override)." >&2
+    exit 1
+fi
+
+SHIM_DIR="${ROOT_DIR}/build/php84/bin"
+mkdir -p "${SHIM_DIR}"
+
+if [[ ! -L "${SHIM_DIR}/php" || "$(readlink "${SHIM_DIR}/php" 2>/dev/null || true)" != "${PHP84_BIN}" ]]; then
+    ln -sf "${PHP84_BIN}" "${SHIM_DIR}/php"
+fi
+
+export PATH="${SHIM_DIR}:${PATH}"
+
+if [[ "${1:-}" == "--check" ]]; then
+    "${PHP84_BIN}" -r '
+        if (version_compare(PHP_VERSION, "8.4.0", "<") || version_compare(PHP_VERSION, "8.5.0", ">=")) {
+            fwrite(STDERR, "Expected PHP 8.4.x, got " . PHP_VERSION . "\n");
+            exit(1);
+        }
+        $required = ["bcmath", "ctype", "dom", "fileinfo", "json", "mbstring", "openssl", "pdo", "pdo_pgsql", "pdo_sqlite", "pgsql", "tokenizer", "xml"];
+        $missing = array_values(array_filter($required, static fn (string $ext): bool => ! extension_loaded($ext)));
+        if ($missing !== []) {
+            fwrite(STDERR, "Missing PHP 8.4 extensions: " . implode(", ", $missing) . "\n");
+            exit(1);
+        }
+        echo "php84 OK: " . PHP_VERSION . ", extensions complete\n";
+    '
+    exit 0
+fi
+
+if [[ $# -eq 0 ]]; then
+    exec "${PHP84_BIN}" -v
+fi
+
+case "$1" in
+    composer)
+        COMPOSER_BIN="$(command -v composer)"
+        shift
+        exec "${PHP84_BIN}" "${COMPOSER_BIN}" "$@"
+        ;;
+    -*)
+        exec "${PHP84_BIN}" "$@"
+        ;;
+    *)
+        if [[ -f "$1" ]] && [[ "$1" == *.php || "$(head -n 1 "$1" 2>/dev/null || true)" == *php* ]]; then
+            exec "${PHP84_BIN}" "$@"
+        fi
+        exec "$@"
+        ;;
+esac

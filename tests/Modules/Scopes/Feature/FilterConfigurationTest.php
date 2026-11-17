@@ -5,7 +5,7 @@ declare(strict_types=1);
 use AzGuard\Context\AssignmentScopeDeclaration;
 use AzGuard\Context\AssignmentScopeMode;
 use AzGuard\Context\AssignmentScopeRuntime;
-use AzGuard\Exceptions\DefinitionException;
+use AzGuard\Exceptions\Definitions\DefinitionException;
 use AzGuard\Kernel\Identity\ActorRef;
 use AzGuard\Kernel\Identity\AssignmentScopeRef;
 use AzGuard\Kernel\Identity\TenantRef;

@@ -10,11 +10,11 @@ use AzGuard\Catalog\Internal\PanelCatalog;
 use AzGuard\Configuration\Internal\AzGuardConfig;
 use AzGuard\Contracts\Panels\PanelRegistry as PanelRegistryContract;
 use AzGuard\Contracts\Sources\Source;
-use AzGuard\Exceptions\DefinitionException;
-use AzGuard\Exceptions\DuplicatePanelException;
-use AzGuard\Exceptions\InvalidPanelIdException;
-use AzGuard\Exceptions\RegistryFrozenException;
-use AzGuard\Exceptions\UnknownPanelException;
+use AzGuard\Exceptions\Definitions\DefinitionException;
+use AzGuard\Exceptions\Definitions\DuplicatePanelException;
+use AzGuard\Exceptions\Definitions\RegistryFrozenException;
+use AzGuard\Exceptions\Definitions\UnknownPanelException;
+use AzGuard\Exceptions\Identity\InvalidPanelIdException;
 use AzGuard\Kernel\Grammar\PermissionGrammar;
 use AzGuard\Kernel\Identity\IdentityCodec;
 use AzGuard\Panels\Panel;
@@ -27,6 +27,7 @@ use AzGuard\Sources\Relation\RelationSource;
 use AzGuard\Sources\SourceManager;
 use Closure;
 use Illuminate\Contracts\Foundation\Application;
+use Packman\Attributes\Internal;
 
 /**
  * Collects panel providers and adjustments while the application boots, then compiles every panel and its catalog
@@ -34,6 +35,7 @@ use Illuminate\Contracts\Foundation\Application;
  *
  * @phpstan-import-type PanelEntry from CatalogCache
  */
+#[Internal]
 final class PanelRegistry implements PanelRegistryContract
 {
     /** @var array<string, class-string<PanelProvider>> */
@@ -179,7 +181,7 @@ final class PanelRegistry implements PanelRegistryContract
 
         foreach ([...array_keys($this->replacements), ...array_keys($this->configure)] as $id) {
             if (! isset($this->providers[$id])) {
-                throw $this->unknown((string) $id);
+                throw $this->unknown(strval($id));
             }
         }
 
@@ -194,7 +196,7 @@ final class PanelRegistry implements PanelRegistryContract
         $panels = $recipes = $fingerprints = $recipeFingerprints = $catalogs = $enums = [];
 
         foreach ($providers as $id => $providerClass) {
-            $id = (string) $id;
+            $id = strval($id);
             $recipes[$id] = $this->write($id, $providerClass, $buildId);
             $stored = $this->storedDiscovery($cached, $buildId, $id);
             $discovery = PanelDiscovery::resolve($recipes[$id], $this->app, $stored);
@@ -351,7 +353,7 @@ final class PanelRegistry implements PanelRegistryContract
         }
 
         foreach ($this->recipeFingerprints as $id => $fingerprint) {
-            if (self::cachedCatalog($file, (string) $this->buildId, (string) $id, $fingerprint) === null) {
+            if (self::cachedCatalog($file, (string) $this->buildId, strval($id), $fingerprint) === null) {
                 return CacheState::Stale;
             }
         }

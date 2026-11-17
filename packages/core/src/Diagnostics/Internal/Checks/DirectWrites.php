@@ -11,6 +11,7 @@ use AzGuard\Sources\Database\DatabaseSource;
 use AzGuard\Storage\Models\Permission;
 use AzGuard\Storage\Models\PermissionGrant;
 use AzGuard\Storage\Models\RoleGrant;
+use Packman\Attributes\Internal;
 
 /**
  * `direct_writes`: every model of a storage extends its base model, whose write methods refuse a direct write.
@@ -18,6 +19,7 @@ use AzGuard\Storage\Models\RoleGrant;
  *
  * @internal
  */
+#[Internal]
 final readonly class DirectWrites implements DoctorCheck
 {
     /** @var array<string, class-string> */

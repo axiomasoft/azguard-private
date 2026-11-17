@@ -14,10 +14,12 @@ use AzGuard\Panels\Panel;
 use AzGuard\Roles\BaseRole;
 use DateTimeImmutable;
 use Illuminate\Database\Eloquent\Model;
+use Packman\Attributes\Internal;
 
 /**
  * @internal What the engine gives a source for one read, fixed by the suite: the panel, the scope and one `now`.
  */
+#[Internal]
 final readonly class ContractContext implements EvaluationContext
 {
     public function __construct(private Panel $panel, private AccessScope $scope, private DateTimeImmutable $now) {}

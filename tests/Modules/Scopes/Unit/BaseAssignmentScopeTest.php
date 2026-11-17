@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use AzGuard\Exceptions\DefinitionException;
+use AzGuard\Exceptions\Definitions\DefinitionException;
 use AzGuard\Tests\Modules\Scopes\Fixtures\ActiveProjects;
 use AzGuard\Tests\Modules\Scopes\Fixtures\ConfiguredProjectScope;
 use AzGuard\Tests\Modules\Scopes\Fixtures\Project;

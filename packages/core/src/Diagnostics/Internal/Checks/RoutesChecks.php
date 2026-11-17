@@ -13,6 +13,7 @@ use AzGuard\Panels\Internal\PanelResolver;
 use AzGuard\Panels\Panel;
 use Illuminate\Routing\Route;
 use Illuminate\Routing\Router;
+use Packman\Attributes\Internal;
 use UnitEnum;
 
 /**
@@ -23,6 +24,7 @@ use UnitEnum;
  *
  * @internal
  */
+#[Internal]
 final readonly class RoutesChecks implements DoctorCheck
 {
     public function __construct(private Router $router, private RouteChecks $checks, private PanelResolver $resolver) {}

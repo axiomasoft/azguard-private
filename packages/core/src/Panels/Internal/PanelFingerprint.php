@@ -12,6 +12,7 @@ use AzGuard\Contracts\Sources\Source;
 use AzGuard\Panels\Panel;
 use AzGuard\Policies\PolicyBinding;
 use Closure;
+use Packman\Attributes\Internal;
 use UnitEnum;
 
 /**
@@ -22,6 +23,7 @@ use UnitEnum;
  * nor model instances are serialized. The fingerprint of a compiled panel adds its catalog to the fingerprint of the
  * recipe; the recipe part alone decides whether a cached catalog belongs to the panel.
  */
+#[Internal]
 final class PanelFingerprint
 {
     /**

@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace AzGuard\Schema;
 
-use AzGuard\Attributes\Api;
 use BackedEnum;
 use Closure;
 use Illuminate\Database\Eloquent\Model;
 use JsonSerializable;
+use Packman\Attributes\Api;
 use Stringable;
 
 /**

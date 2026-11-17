@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace AzGuard\Storage\Internal;
 
-use AzGuard\Exceptions\StorageMismatchException;
+use AzGuard\Exceptions\Storage\StorageMismatchException;
+use Packman\Attributes\Internal;
 use Throwable;
 
 /** @internal The `storage_state` row compared with the schema this process expects. */
+#[Internal]
 final class StoredSchema
 {
     private function __construct() {}

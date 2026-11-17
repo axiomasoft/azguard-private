@@ -7,7 +7,7 @@ use AzGuard\Changes\Change;
 use AzGuard\Changes\ChangeResult;
 use AzGuard\Changes\GrantDetails;
 use AzGuard\Contracts\Roles\RoleCatalog;
-use AzGuard\Exceptions\StaleSelectionException;
+use AzGuard\Exceptions\Changes\StaleSelectionException;
 use AzGuard\Schema\Internal\SchemaBuilder;
 use AzGuard\Schema\RoleSchema;
 use AzGuard\Tests\Feature\Changes\Managers\ManagerWorld as M;

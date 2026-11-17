@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace AzGuard\Roles\Attributes;
 
 use Attribute;
-use AzGuard\Attributes\Api;
+use Packman\Attributes\Api;
 
 /**
  * Stable key, label and display level of a code role; the label may be a translation key.

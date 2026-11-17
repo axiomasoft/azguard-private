@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use AzGuard\Exceptions\PrefixConflictException;
+use AzGuard\Exceptions\Definitions\PrefixConflictException;
 use AzGuard\Panels\PanelBuilder;
 use AzGuard\Tests\Fixtures\Panels\AdminPanel;
 use AzGuard\Tests\Fixtures\Panels\CabinetPanel;

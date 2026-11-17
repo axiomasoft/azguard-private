@@ -1,0 +1,19 @@
+<?php
+
+declare(strict_types=1);
+
+namespace AzGuard\Exceptions\Definitions;
+
+use Packman\Attributes\Api;
+
+/**
+ * A panel has more than one source that stores grants.
+ */
+#[Api(since: '1.0')]
+final class WriterConflictException extends DefinitionException
+{
+    public function code(): string
+    {
+        return 'writer_conflict';
+    }
+}

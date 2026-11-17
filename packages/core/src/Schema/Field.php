@@ -4,10 +4,11 @@ declare(strict_types=1);
 
 namespace AzGuard\Schema;
 
-use AzGuard\Attributes\Api;
-use AzGuard\Exceptions\DefinitionException;
+use AzGuard\Exceptions\Definitions\DefinitionException;
 use BackedEnum;
 use Illuminate\Database\Eloquent\Model;
+use Packman\Attributes\Api;
+use Packman\Attributes\Internal;
 
 /** An immutable description of a custom grant column or meta value. */
 #[Api(since: '1.0')]
@@ -121,7 +122,7 @@ final class Field
         return $copy;
     }
 
-    /** @internal Assigned by the panel compiler or the model field collector. */
+    #[Internal('Assigned by the panel compiler or the model field collector.')]
     public function withContribution(string $origin): self
     {
         $copy = clone $this;

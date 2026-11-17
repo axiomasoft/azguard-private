@@ -6,7 +6,7 @@ use AzGuard\Contracts\Authorization\EvaluationContext;
 use AzGuard\Contracts\Authorization\Restriction;
 use AzGuard\Contracts\Sources\AssignmentScopeSelection;
 use AzGuard\Contracts\Sources\FencesReads;
-use AzGuard\Exceptions\VisibilityNotSupportedException;
+use AzGuard\Exceptions\Authorization\VisibilityNotSupportedException;
 use AzGuard\Kernel\Decision\AccessPredicate as P;
 use AzGuard\Kernel\Decision\AccessRequest;
 use AzGuard\Kernel\Decision\Grant;

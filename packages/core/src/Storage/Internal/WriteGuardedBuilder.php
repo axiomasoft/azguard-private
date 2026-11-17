@@ -4,15 +4,17 @@ declare(strict_types=1);
 
 namespace AzGuard\Storage\Internal;
 
-use AzGuard\Exceptions\UnsupportedDirectWriteException;
+use AzGuard\Exceptions\Storage\UnsupportedDirectWriteException;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Query\Builder as QueryBuilder;
+use Packman\Attributes\Internal;
 
 /** Direct Eloquent writes are forbidden; raw SQL via toBase()/getQuery() is outside this contract.
  * @template TModel of Model
  *
  * @extends Builder<TModel> */
+#[Internal]
 final class WriteGuardedBuilder extends Builder
 {
     /** @param TModel $model */
@@ -139,19 +141,28 @@ final class WriteGuardedBuilder extends Builder
         $this->rejectDirectWrite();
     }
 
-    /** @param array<mixed> $attributes */
+    /**
+     * @param  array<mixed>  $attributes
+     * @param  array<mixed>|object  $values
+     */
     final public function firstOrCreate(array $attributes = [], mixed $values = []): never
     {
         $this->rejectDirectWrite();
     }
 
-    /** @param array<mixed> $attributes */
+    /**
+     * @param  array<mixed>  $attributes
+     * @param  array<mixed>|object  $values
+     */
     final public function updateOrCreate(array $attributes, mixed $values = []): never
     {
         $this->rejectDirectWrite();
     }
 
-    /** @param array<mixed> $attributes */
+    /**
+     * @param  array<mixed>  $attributes
+     * @param  array<mixed>|object  $values
+     */
     final public function createOrFirst(array $attributes = [], mixed $values = []): never
     {
         $this->rejectDirectWrite();

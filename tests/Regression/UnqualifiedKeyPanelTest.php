@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use AzGuard\Exceptions\PanelNotResolvedException;
+use AzGuard\Exceptions\Definitions\PanelNotResolvedException;
 use AzGuard\Tests\Fixtures\Panels\PanelWorld;
 use AzGuard\Tests\Fixtures\Panels\User;
 

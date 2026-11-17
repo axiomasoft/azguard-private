@@ -10,6 +10,7 @@ use AzGuard\Diagnostics\DoctorFinding;
 use AzGuard\Panels\Panel;
 use AzGuard\Panels\Reads;
 use AzGuard\Sources\Database\DatabaseSource;
+use Packman\Attributes\Internal;
 
 /**
  * `consistency.reads`: a panel that reads decisions from the default connection while that connection has read
@@ -17,6 +18,7 @@ use AzGuard\Sources\Database\DatabaseSource;
  *
  * @internal
  */
+#[Internal]
 final readonly class ConsistencyReads implements DoctorCheck
 {
     public function key(): string

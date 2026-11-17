@@ -13,7 +13,9 @@ use AzGuard\Kernel\Identity\TenantRef;
 use AzGuard\Laravel\Console\CommandSupport;
 use AzGuard\Laravel\Console\InvalidCommandInput;
 use Illuminate\Console\Command;
+use Packman\Attributes\Internal;
 
+#[Internal]
 final class ExplainCommand extends Command
 {
     use CommandSupport;
@@ -33,9 +35,9 @@ final class ExplainCommand extends Command
     public function handle(Authorizer $authorizer, ModelSubjectResolver $subjects): int
     {
         return $this->attempt(function () use ($authorizer, $subjects): int {
-            [$type, $id] = $this->identity($this->argument('subject'));
+            [$type, $id] = $this->identity($this->stringArgument('subject'));
             $subject = SubjectRef::of($type, $id);
-            [$panel, $permission] = $authorizer->resolve($subject, (string) $this->argument('permission'), $this->option('panel'));
+            [$panel, $permission] = $authorizer->resolve($subject, $this->stringArgument('permission'), $this->stringOption('panel'));
 
             if ($subjects->resolve($panel, $subject) === null) {
                 throw new InvalidCommandInput('The subject does not exist in panel '.$panel->id().'.');
@@ -43,19 +45,23 @@ final class ExplainCommand extends Command
 
             $request = AccessRequest::for($subject, $permission);
 
-            if ($this->option('tenant') !== null) {
-                [$type, $id] = $this->identity($this->option('tenant'));
+            $tenant = $this->stringOption('tenant');
+
+            if ($tenant !== null) {
+                [$type, $id] = $this->identity($tenant);
                 $request = $request->inTenant(TenantRef::of($type, $id));
             }
 
-            if ($this->option('context') !== null) {
-                [$type, $id] = $this->identity($this->option('context'));
+            $context = $this->stringOption('context');
+
+            if ($context !== null) {
+                [$type, $id] = $this->identity($context);
                 $request = $request->on(AssignmentScopeRef::of($type, $id));
             }
 
             $explanation = $authorizer->explain($panel, $request);
 
-            if ($this->option('json')) {
+            if ((bool) $this->option('json')) {
                 $this->line(json_encode($explanation->toArray(), JSON_THROW_ON_ERROR | JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_INVALID_UTF8_SUBSTITUTE));
             } else {
                 $this->line($explanation->decision()->effect->value.': '.$explanation->decision()->reason->value);

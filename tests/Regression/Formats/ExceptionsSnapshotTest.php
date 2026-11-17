@@ -15,9 +15,15 @@ use AzGuard\Tests\Fixtures\Formats\FormatSnapshot;
 function baselineExceptionClasses(): array
 {
     $classes = [DecisionFailedException::class];
+    $base = dirname(__DIR__, 3).'/packages/core/src/Exceptions';
+    $files = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($base, FilesystemIterator::SKIP_DOTS));
 
-    foreach (glob(dirname(__DIR__, 3).'/packages/core/src/Exceptions/*.php') ?: [] as $file) {
-        $classes[] = 'AzGuard\\Exceptions\\'.basename($file, '.php');
+    foreach ($files as $file) {
+        if (! $file instanceof SplFileInfo || $file->getExtension() !== 'php') {
+            continue;
+        }
+        $relative = str_replace('/', '\\', substr($file->getPathname(), strlen($base) + 1, -4));
+        $classes[] = 'AzGuard\\Exceptions\\'.$relative;
     }
     usort($classes, static fn (string $a, string $b): int => strcmp(class_basename($a), class_basename($b)));
 

@@ -6,12 +6,13 @@ namespace AzGuard\Panels\Internal;
 
 use AzGuard\Contracts\Plugins\Plugin;
 use AzGuard\Contracts\Sources\Source;
-use AzGuard\Exceptions\RegistryFrozenException;
+use AzGuard\Exceptions\Definitions\RegistryFrozenException;
 use AzGuard\Panels\PanelProvider;
 use AzGuard\Roles\BaseRole;
 use BackedEnum;
 use Closure;
 use Illuminate\Database\Eloquent\Model;
+use Packman\Attributes\Internal;
 
 /**
  * What a panel is built from: every builder call kept as a record of the setting, its value and its origin.
@@ -23,6 +24,7 @@ use Illuminate\Database\Eloquent\Model;
  * @phpstan-type Record array{setting: string, value: mixed, origin: Origin}
  * @phpstan-type Subject array{model: class-string<Model>, guard: ?string, directory: ?string}
  */
+#[Internal]
 final class PanelRecipe
 {
     public const string PROVIDER = 'provider';

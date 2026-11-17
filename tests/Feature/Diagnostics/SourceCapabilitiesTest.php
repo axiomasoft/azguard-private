@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use AzGuard\Configuration\Internal\AzGuardConfig;
+use AzGuard\Configuration\AzGuardOptions;
 use AzGuard\Contracts\Authorization\EvaluationContext;
 use AzGuard\Contracts\Authorization\FiltersAccessQueries;
 use AzGuard\Contracts\Sources\FencesReads;
@@ -15,7 +15,7 @@ use AzGuard\Diagnostics\DoctorContext;
 use AzGuard\Diagnostics\DoctorFinding;
 use AzGuard\Diagnostics\Internal\Checks\PanelsSources;
 use AzGuard\Diagnostics\PanelOverview;
-use AzGuard\Exceptions\VisibilityNotSupportedException;
+use AzGuard\Exceptions\Authorization\VisibilityNotSupportedException;
 use AzGuard\Filament\Sources\FilamentSource;
 use AzGuard\Kernel\Decision\AccessPredicate;
 use AzGuard\Kernel\Decision\AccessRequest;
@@ -111,7 +111,7 @@ class CapabilityQueryableRole extends CapabilityAutomaticRole implements Selects
 /** @return list<DoctorFinding> */
 function capabilityFindings(Panel $panel): array
 {
-    $context = new DoctorContext([$panel], [], false, app(AzGuardConfig::class));
+    $context = new DoctorContext([$panel], [], false, app(AzGuardOptions::class));
 
     return iterator_to_array((new PanelsSources(app(PanelRegistry::class)))->run($context));
 }

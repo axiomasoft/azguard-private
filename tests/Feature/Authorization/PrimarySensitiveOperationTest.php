@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use AzGuard\Concerns\SubjectAccess;
+use AzGuard\Concerns\Subjects\SubjectAccess;
 use AzGuard\Context\Internal\CurrentContext;
 use AzGuard\Context\Internal\WithinContext;
 use AzGuard\Kernel\Identity\AccessScope;

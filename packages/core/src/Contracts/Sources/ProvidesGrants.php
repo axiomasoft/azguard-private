@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace AzGuard\Contracts\Sources;
 
-use AzGuard\Attributes\Spi;
-use AzGuard\Attributes\SpiKind;
 use AzGuard\Contracts\Authorization\EvaluationContext;
 use AzGuard\Kernel\Decision\Grant;
 use AzGuard\Kernel\Identity\AccessScope;
 use AzGuard\Kernel\Identity\SubjectRef;
+use Packman\Attributes\Spi;
+use Packman\Attributes\SpiKind;
 
 /**
  * Direct grants a source gives a subject.

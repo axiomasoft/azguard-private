@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use AzGuard\Exceptions\InvalidIdentityException;
+use AzGuard\Exceptions\Identity\InvalidIdentityException;
 use AzGuard\Kernel\Decision\CodeStateToken;
 use AzGuard\Kernel\Decision\StateToken;
 use AzGuard\Tests\Fixtures\Fuzz\FuzzInput;

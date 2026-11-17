@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use AzGuard\Concerns\SubjectAccess;
+use AzGuard\Concerns\Subjects\SubjectAccess;
 use AzGuard\Kernel\Decision\AccessRequest;
 use AzGuard\Kernel\Identity\PermissionKey;
 use AzGuard\Sources\Database\DatabaseSource;

@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace AzGuard\Roles;
 
-use AzGuard\Attributes\Spi;
-use AzGuard\Attributes\SpiKind;
 use AzGuard\Contracts\Authorization\EvaluationContext;
 use AzGuard\Kernel\Identity\AccessScope;
 use Illuminate\Database\Eloquent\Model;
+use Packman\Attributes\Spi;
+use Packman\Attributes\SpiKind;
 
 /**
  * Optional exact selection for a GrantedAutomatically role. Return every scope in which appliesTo() would return

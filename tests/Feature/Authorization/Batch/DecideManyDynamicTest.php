@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 use AzGuard\Contracts\Authorization\EvaluationContext;
-use AzGuard\Exceptions\UnknownPermissionException;
+use AzGuard\Exceptions\Changes\UnknownPermissionException;
 use AzGuard\Kernel\Decision\AccessRequest;
 use AzGuard\Kernel\Decision\CodeStateToken;
 use AzGuard\Kernel\Decision\Decision;

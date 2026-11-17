@@ -8,13 +8,13 @@ use AzGuard\Context\AssignmentScopeMode;
 use AzGuard\Context\Internal\ContextIdentity;
 use AzGuard\Contracts\Scopes\AssignmentScopeDefinition;
 use AzGuard\Contracts\Sources\ProvidesRoles;
-use AzGuard\Exceptions\DefinitionException;
-use AzGuard\Exceptions\DuplicateRoleException;
-use AzGuard\Exceptions\InvalidConfigurationException;
-use AzGuard\Exceptions\InvalidPermissionKeyException;
-use AzGuard\Exceptions\InvalidRoleKeyException;
-use AzGuard\Exceptions\InvalidSourceContributionException;
-use AzGuard\Exceptions\UnknownPermissionException;
+use AzGuard\Exceptions\Authorization\InvalidSourceContributionException;
+use AzGuard\Exceptions\Changes\UnknownPermissionException;
+use AzGuard\Exceptions\Configuration\InvalidConfigurationException;
+use AzGuard\Exceptions\Definitions\DefinitionException;
+use AzGuard\Exceptions\Definitions\DuplicateRoleException;
+use AzGuard\Exceptions\Identity\InvalidPermissionKeyException;
+use AzGuard\Exceptions\Identity\InvalidRoleKeyException;
 use AzGuard\Kernel\Decision\PermissionAuthority;
 use AzGuard\Kernel\Grammar\PermissionGrammar;
 use AzGuard\Kernel\Identity\PermissionPattern;
@@ -23,6 +23,7 @@ use AzGuard\Panels\Panel;
 use AzGuard\Roles\BaseRole;
 use AzGuard\Sources\Internal\PanelSources;
 use Illuminate\Contracts\Container\Container;
+use Packman\Attributes\Internal;
 use UnitEnum;
 
 /**
@@ -35,6 +36,7 @@ use UnitEnum;
  * @phpstan-type CompiledScope array{type: string, class: class-string<AssignmentScopeDefinition>, filter_configuration?: list<string>}
  * @phpstan-type CompiledRole array{class: class-string<BaseRole>, key: string, former_keys: list<string>, permissions: list<string>, scopes: list<CompiledScope>, scope_required: bool, super_admin: bool, grantable: bool, source: string, origin: string}
  */
+#[Internal]
 final readonly class RoleCompiler
 {
     public function __construct(private Container $container) {}

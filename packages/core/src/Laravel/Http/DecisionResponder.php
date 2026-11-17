@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace AzGuard\Laravel\Http;
 
-use AzGuard\Attributes\Api;
 use AzGuard\Kernel\Decision\Decision;
 use AzGuard\Kernel\Decision\FailureKind;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Auth\Access\Response;
+use Packman\Attributes\Api;
 
 /**
  * The reference HTTP mapping of a decision (audits/2026-10-09-consistency-design.md, step 6): 403 for a policy denial,

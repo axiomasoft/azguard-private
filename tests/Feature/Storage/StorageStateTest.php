@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 use AzGuard\Configuration\Internal\AzGuardConfig;
-use AzGuard\Exceptions\StorageMismatchException;
+use AzGuard\Exceptions\Storage\StorageMismatchException;
 use AzGuard\Storage\Internal\StorageRegistry;
 use AzGuard\Storage\Schema\StorageSchema;
 

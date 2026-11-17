@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace AzGuard\Contracts\Changes;
 
-use AzGuard\Attributes\Spi;
-use AzGuard\Attributes\SpiKind;
 use AzGuard\Changes\ChangeRecord;
+use Packman\Attributes\Spi;
+use Packman\Attributes\SpiKind;
 
 /**
  * A participant of the write operations of a panel: it appends rows to its own tables inside the transaction of the

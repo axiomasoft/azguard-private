@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace AzGuard\Kernel\Identity;
 
-use AzGuard\Attributes\Api;
+use Packman\Attributes\Api;
 
 /**
  * Where an assignment applies: a tenant and an assignment scope inside it.

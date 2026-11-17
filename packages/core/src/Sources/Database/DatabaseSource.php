@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace AzGuard\Sources\Database;
 
-use AzGuard\Attributes\Api;
 use AzGuard\Catalog\Internal\PanelCatalog;
 use AzGuard\Catalog\PermissionDefinition;
 use AzGuard\Changes\Change;
@@ -29,13 +28,13 @@ use AzGuard\Diagnostics\Internal\Checks\DecisionFieldsInMeta;
 use AzGuard\Diagnostics\Internal\Checks\GrantsDead;
 use AzGuard\Diagnostics\Internal\Checks\ModelColumns;
 use AzGuard\Diagnostics\Internal\Checks\RolesOrphaned;
-use AzGuard\Exceptions\ConsistencyException;
-use AzGuard\Exceptions\DefinitionException;
-use AzGuard\Exceptions\InvalidConfigurationException;
-use AzGuard\Exceptions\InvalidSourceContributionException;
-use AzGuard\Exceptions\PanelNotWritableException;
-use AzGuard\Exceptions\StorageMismatchException;
-use AzGuard\Exceptions\UnsupportedDirectWriteException;
+use AzGuard\Exceptions\Authorization\ConsistencyException;
+use AzGuard\Exceptions\Authorization\InvalidSourceContributionException;
+use AzGuard\Exceptions\Changes\PanelNotWritableException;
+use AzGuard\Exceptions\Configuration\InvalidConfigurationException;
+use AzGuard\Exceptions\Definitions\DefinitionException;
+use AzGuard\Exceptions\Storage\StorageMismatchException;
+use AzGuard\Exceptions\Storage\UnsupportedDirectWriteException;
 use AzGuard\Kernel\Decision\Grant;
 use AzGuard\Kernel\Decision\PermissionAuthority;
 use AzGuard\Kernel\Decision\RoleContribution;
@@ -77,6 +76,9 @@ use Illuminate\Contracts\Container\Container;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Str;
+use InvalidArgumentException;
+use Packman\Attributes\Api;
+use Packman\Attributes\Internal;
 use ReflectionClass;
 use Throwable;
 
@@ -102,7 +104,7 @@ final class DatabaseSource implements ChecksHealth, DescribesSchema, FencesReads
 
     private ?Container $services = null;
 
-    /** @internal Bind the panel factory container without capturing scoped services. */
+    #[Internal('Bind the panel factory container without capturing scoped services.')]
     public function bindServices(Container $container): void
     {
         $this->services = $container;
@@ -156,9 +158,12 @@ final class DatabaseSource implements ChecksHealth, DescribesSchema, FencesReads
         return $copy;
     }
 
-    /** @internal A storage object that the registry does not hold, for tests and modules; hosts name a registered storage by id. */
-    public function usingStorage(Storage $storage): static
+    #[Internal('A storage object that the registry does not hold, for tests and modules; hosts name a registered storage by id.')]
+    public function usingStorage(object $storage): static
     {
+        if (! $storage instanceof Storage) {
+            throw new InvalidArgumentException('DatabaseSource::usingStorage requires an internal Storage instance.');
+        }
         $copy = clone $this;
         $copy->selectedStorage = $storage;
 
@@ -216,7 +221,7 @@ final class DatabaseSource implements ChecksHealth, DescribesSchema, FencesReads
 
     private static function validateModel(string $class, string $base): void
     {
-        if (! is_a($class, $base, true) || ! (new ReflectionClass($class))->isInstantiable()) {
+        if (! is_a($class, $base, true) || ! new ReflectionClass($class)->isInstantiable()) {
             throw new StorageMismatchException("DatabaseSource model must be a concrete subclass of {$base}.");
         }
     }
@@ -241,7 +246,7 @@ final class DatabaseSource implements ChecksHealth, DescribesSchema, FencesReads
         return Volatility::Stable;
     }
 
-    /** @internal panel attachment binds the writer without reading authority. */
+    #[Internal('panel attachment binds the writer without reading authority.')]
     public function bindPanel(string $panel): void
     {
         if ($this->panelId !== null && $this->panelId !== $panel) {
@@ -254,11 +259,10 @@ final class DatabaseSource implements ChecksHealth, DescribesSchema, FencesReads
      * Resolves the storage the source names and checks its models against it, so a misspelled storage or a model of
      * another table stops the boot instead of the first check.
      *
-     * @internal
-     *
      * @throws InvalidConfigurationException when the storage is not registered
      * @throws StorageMismatchException when a model does not fit the storage
      */
+    #[Internal]
     public function validateStorage(): void
     {
         $storage = $this->resolvedStorage();
@@ -274,39 +278,38 @@ final class DatabaseSource implements ChecksHealth, DescribesSchema, FencesReads
         return [new RolesOrphaned($this), new GrantsDead($this), new DecisionFieldsInMeta($this), new ModelColumns($this)];
     }
 
-    /** @internal The storage the source reads and writes. */
-    public function boundStorage(): Storage
+    /** @return Storage */
+    #[Internal('The storage the source reads and writes.')]
+    public function boundStorage(): object
     {
         return $this->resolvedStorage();
     }
 
     /**
-     * @internal The model class of each storage kind the source uses: its own one or the default of the configuration.
-     *
      * @return array<string, class-string>
      */
+    #[Internal('The model class of each storage kind the source uses: its own one or the default of the configuration.')]
     public function storageModels(): array
     {
         return [...$this->services()->make(AzGuardConfig::class)->defaultModels(), ...$this->selectedModels];
     }
 
-    /** @internal Whether the connection of the storage has separate read hosts. */
+    #[Internal('Whether the connection of the storage has separate read hosts.')]
     public function hasReadHosts(): bool
     {
         return $this->resolvedStorage()->connection()->getRawReadPdo() !== null;
     }
 
-    /** @internal Whether a table of the storage exists, by its base name. */
+    #[Internal('Whether a table of the storage exists, by its base name.')]
     public function hasTable(string $base): bool
     {
         return StorageHealth::missingTables($this->resolvedStorage(), [$base]) === [];
     }
 
     /**
-     * @internal Tenants of the panel that hold permissions created at run time.
-     *
      * @return list<TenantRef>
      */
+    #[Internal('Tenants of the panel that hold permissions created at run time.')]
     public function dynamicTenants(Panel $panel): array
     {
         $this->bindPanelServices($panel);
@@ -320,21 +323,20 @@ final class DatabaseSource implements ChecksHealth, DescribesSchema, FencesReads
     }
 
     /**
-     * @internal The catalog of the panel with the permissions the tenant created at run time.
+     * @return PanelCatalog
      *
      * @throws DefinitionException when a stored permission collides with the catalog
      */
-    public function inspectCatalog(Panel $panel, TenantRef $tenant): PanelCatalog
+    #[Internal('The catalog of the panel with the permissions the tenant created at run time.')]
+    public function inspectCatalog(Panel $panel, TenantRef $tenant): object
     {
         return $this->inspecting($panel, $tenant, static fn (GrantInspection $inspection): PanelCatalog => $inspection->catalog());
     }
 
     /**
-     * @internal Stored grants of the panel the current code no longer gives, counted by tenant, origin and name, as
-     * the inspection of grants classifies them.
-     *
      * @return list<array{kind: 'role'|'permission', name: string, tenant: string, origin: string, rows: int}>
      */
+    #[Internal('Stored grants of the panel the current code no longer gives, counted by tenant, origin and name, as the inspection of grants classifies them.')]
     public function orphanedGrants(Panel $panel, DateTimeImmutable $now): array
     {
         $this->bindPanelServices($panel);
@@ -355,7 +357,7 @@ final class DatabaseSource implements ChecksHealth, DescribesSchema, FencesReads
 
             foreach ($orphans as $kind => $names) {
                 foreach ($names as $name => $rows) {
-                    $found[] = ['kind' => $kind, 'name' => (string) $name, 'tenant' => $tenant->key(), 'origin' => $origin, 'rows' => $rows];
+                    $found[] = ['kind' => $kind, 'name' => $name, 'tenant' => $tenant->key(), 'origin' => $origin, 'rows' => $rows];
                 }
             }
         }
@@ -364,10 +366,9 @@ final class DatabaseSource implements ChecksHealth, DescribesSchema, FencesReads
     }
 
     /**
-     * @internal Stored grants of the panel whose subject type is the morph class of no subject model of the panel.
-     *
      * @return list<array{kind: 'role'|'permission', type: string, rows: int}>
      */
+    #[Internal('Stored grants of the panel whose subject type is the morph class of no subject model of the panel.')]
     public function unacceptedSubjects(Panel $panel): array
     {
         $this->bindPanelServices($panel);
@@ -385,10 +386,9 @@ final class DatabaseSource implements ChecksHealth, DescribesSchema, FencesReads
     }
 
     /**
-     * @internal Decision fields the source reads that the grant model or the panel keeps in `meta`.
-     *
      * @return list<array{kind: string, field: string}>
      */
+    #[Internal('Decision fields the source reads that the grant model or the panel keeps in `meta`.')]
     public function decisionFieldsInMeta(Panel $panel): array
     {
         $this->bindPanelServices($panel);
@@ -406,10 +406,9 @@ final class DatabaseSource implements ChecksHealth, DescribesSchema, FencesReads
     }
 
     /**
-     * @internal Columns the grant models of the source declare outside `meta` that their tables lack.
-     *
      * @return list<array{table: string, model: class-string, columns: list<string>}>
      */
+    #[Internal('Columns the grant models of the source declare outside `meta` that their tables lack.')]
     public function missingModelColumns(Panel $panel): array
     {
         $this->bindPanelServices($panel);
@@ -516,8 +515,9 @@ final class DatabaseSource implements ChecksHealth, DescribesSchema, FencesReads
         return $this->definitions($session, $panel, $tenant, $rows);
     }
 
-    /** @internal The engine retains this pinned handle for the complete Prepare/authority attempt. */
-    public function openReadSession(EvaluationContext $context): StorageReadSession
+    /** @return StorageReadSession */
+    #[Internal('The engine retains this pinned handle for the complete Prepare/authority attempt.')]
+    public function openReadSession(EvaluationContext $context): object
     {
         $this->bindContext($context);
 
@@ -531,17 +531,22 @@ final class DatabaseSource implements ChecksHealth, DescribesSchema, FencesReads
             : $context->panel()->settings()->reads();
     }
 
-    /** @internal Read both edges on the same attempt handle. */
-    public function readState(StorageReadSession $session, EvaluationContext $context): StateToken
+    /** @param StorageReadSession $session */
+    #[Internal('Read both edges on the same attempt handle.')]
+    public function readState(object $session, EvaluationContext $context): StateToken
     {
-        return $this->token($session, $context->panel(), $context->state()->fingerprint());
+        return $this->token(self::assertSession($session), $context->panel(), $context->state()->fingerprint());
     }
 
-    /** @internal Unfenced capability; the engine owns the surrounding whole-attempt fence.
+    /**
+     * @param  StorageReadSession  $session
      * @return list<PermissionDefinition>
      */
-    public function readPermissions(StorageReadSession $session, Panel $panel, TenantRef $tenant): array
+    #[Internal('Unfenced capability; the engine owns the surrounding whole-attempt fence.')]
+    public function readPermissions(object $session, Panel $panel, TenantRef $tenant): array
     {
+        $session = self::assertSession($session);
+
         if (! $this->dynamic) {
             return [];
         }
@@ -550,13 +555,14 @@ final class DatabaseSource implements ChecksHealth, DescribesSchema, FencesReads
     }
 
     /**
-     * @internal The dynamic catalog of the tenant at one state of the panel: raw rows read consistently, definitions
-     * built after the read.
-     *
+     * @param  StorageReadSession  $session
      * @return array{StateToken, list<PermissionDefinition>}
      */
-    public function materializePermissions(StorageReadSession $session, EvaluationContext $context, TenantRef $tenant, ?StateToken $before = null): array
+    #[Internal('The dynamic catalog of the tenant at one state of the panel: raw rows read consistently, definitions built after the read.')]
+    public function materializePermissions(object $session, EvaluationContext $context, TenantRef $tenant, ?StateToken $before = null): array
     {
+        $session = self::assertSession($session);
+
         if (! $this->dynamic) {
             return [$this->readState($session, $context), []];
         }
@@ -603,12 +609,13 @@ final class DatabaseSource implements ChecksHealth, DescribesSchema, FencesReads
         return $definitions;
     }
 
-    /** @internal Joint root helper; the public host facade is defined separately.
+    /**
      * @template T
      *
      * @param  Closure(): T  $callback
      * @return T
      */
+    #[Internal('Joint root helper; the public host facade is defined separately.')]
     public function withinAuthorityTransaction(Panel $panel, Closure $callback): mixed
     {
         $this->bindPanelServices($panel);
@@ -647,8 +654,8 @@ final class DatabaseSource implements ChecksHealth, DescribesSchema, FencesReads
         $reads = $this->lockedReads($this->services()->make(PanelRegistry::class)->get($panel));
 
         return $change->isAction()
-            ? (new ActionWriter($storage->mutation($panel), $reads))->apply($change)
-            : (new GrantWriter($storage, $storage->mutation($panel), $reads))->apply($change);
+            ? new ActionWriter($storage->mutation($panel), $reads)->apply($change)
+            : new GrantWriter($storage, $storage->mutation($panel), $reads)->apply($change);
     }
 
     /**
@@ -667,13 +674,11 @@ final class DatabaseSource implements ChecksHealth, DescribesSchema, FencesReads
     }
 
     /**
-     * @internal Runs `$callback` after the root commit that makes the active mutation of the panel durable; a rollback
-     * of that commit, a retry or a failed mutation drops it.
-     *
      * @param  Closure(): void  $callback
      *
      * @throws UnsupportedDirectWriteException outside the active mutation of the panel
      */
+    #[Internal('Runs `$callback` after the root commit that makes the active mutation of the panel durable; a rollback of that commit, a retry or a failed mutation drops it.')]
     public function afterCommit(Panel $panel, Closure $callback): void
     {
         $this->bindPanelServices($panel);
@@ -681,11 +686,9 @@ final class DatabaseSource implements ChecksHealth, DescribesSchema, FencesReads
     }
 
     /**
-     * @internal Runs `$callback` after the commit of the transaction the package itself holds open on the storage of
-     * the panel and returns true; returns false, running nothing, when no such transaction is active.
-     *
      * @param  Closure(): void  $callback
      */
+    #[Internal('Runs `$callback` after the commit of the transaction the package itself holds open on the storage of the panel and returns true; returns false, running nothing, when no such transaction is active.')]
     public function afterAuthorityCommit(Closure $callback): bool
     {
         $storage = $this->resolvedStorage();
@@ -699,18 +702,19 @@ final class DatabaseSource implements ChecksHealth, DescribesSchema, FencesReads
     }
 
     /**
-     * @internal The active mutation of the panel, for the participants of the change pipeline.
+     * @return StorageMutation
      *
      * @throws UnsupportedDirectWriteException outside the active mutation of the panel
      */
-    public function mutation(Panel $panel): StorageMutation
+    #[Internal('The active mutation of the panel, for the participants of the change pipeline.')]
+    public function mutation(Panel $panel): object
     {
         $this->bindPanelServices($panel);
 
         return $this->resolvedStorage()->mutation($panel->id());
     }
 
-    /** @internal What identifies the storage this source reads and writes. */
+    #[Internal('What identifies the storage this source reads and writes.')]
     public function descriptor(): StorageDescriptor
     {
         if (! $this->selectedStorage instanceof Storage) {
@@ -722,10 +726,9 @@ final class DatabaseSource implements ChecksHealth, DescribesSchema, FencesReads
     }
 
     /**
-     * @internal Tenants of the panel that still hold a grant whose expiry has passed; `$tenant` narrows to one.
-     *
      * @return list<TenantRef>
      */
+    #[Internal('Tenants of the panel that still hold a grant whose expiry has passed; `$tenant` narrows to one.')]
     public function tenantsWithExpired(Panel $panel, ?TenantRef $tenant, DateTimeImmutable $now): array
     {
         $this->bindPanelServices($panel);
@@ -748,10 +751,9 @@ final class DatabaseSource implements ChecksHealth, DescribesSchema, FencesReads
     }
 
     /**
-     * @internal Tenants of the panel that hold a stored grant of the role key `$role`, in every origin.
-     *
      * @return list<TenantRef>
      */
+    #[Internal('Tenants of the panel that hold a stored grant of the role key `$role`, in every origin.')]
     public function tenantsHolding(Panel $panel, string $role): array
     {
         $this->bindPanelServices($panel);
@@ -764,10 +766,7 @@ final class DatabaseSource implements ChecksHealth, DescribesSchema, FencesReads
         return array_values($found);
     }
 
-    /**
-     * @internal How many grants of the panel expired by `$now`, in every origin; `$tenant` narrows to one. Counted for a
-     * dry run of the prune, never for a decision.
-     */
+    #[Internal('How many grants of the panel expired by `$now`, in every origin; `$tenant` narrows to one. Counted for a dry run of the prune, never for a decision.')]
     public function countExpired(Panel $panel, ?TenantRef $tenant, DateTimeImmutable $now): int
     {
         $this->bindPanelServices($panel);
@@ -786,11 +785,9 @@ final class DatabaseSource implements ChecksHealth, DescribesSchema, FencesReads
     }
 
     /**
-     * @internal Distinct subjects with a stored role grant that has not expired by `$now`, by role key, in the tenant and
-     * every origin and context. Read for listings, never for a decision.
-     *
      * @return array<string, int>
      */
+    #[Internal('Distinct subjects with a stored role grant that has not expired by `$now`, by role key, in the tenant and every origin and context. Read for listings, never for a decision.')]
     public function holderCounts(Panel $panel, TenantRef $tenant, DateTimeImmutable $now): array
     {
         $this->bindPanelServices($panel);
@@ -809,10 +806,9 @@ final class DatabaseSource implements ChecksHealth, DescribesSchema, FencesReads
     }
 
     /**
-     * @internal Origins of the stored grants of the subject in the tenant, of both kinds, sorted.
-     *
      * @return list<string>
      */
+    #[Internal('Origins of the stored grants of the subject in the tenant, of both kinds, sorted.')]
     public function grantOrigins(Panel $panel, TenantRef $tenant, SubjectRef $subject): array
     {
         $this->bindPanelServices($panel);
@@ -833,34 +829,27 @@ final class DatabaseSource implements ChecksHealth, DescribesSchema, FencesReads
         return $origins;
     }
 
-    /**
-     * @internal One stored grant by id inside the panel, tenant and origin, whatever its state, read on the primary
-     * outside any mutation; a foreign or malformed id is null.
-     */
+    #[Internal('One stored grant by id inside the panel, tenant and origin, whatever its state, read on the primary outside any mutation; a foreign or malformed id is null.')]
     public function inspectGrant(Panel $panel, TenantRef $tenant, string $origin, string $id): ?GrantRecord
     {
         return $this->inspecting($panel, $tenant, static fn (GrantInspection $inspection): ?GrantRecord => $inspection->find($tenant, $origin, $id));
     }
 
     /**
-     * @internal At most `$limit` stored grants of the panel, tenant and origin that match the filter after `$after`,
-     * expired and orphaned grants included as the filter asks.
-     *
      * @param  array{'role'|'permission', int}|null  $after
      * @return list<GrantRecord>
      */
+    #[Internal('At most `$limit` stored grants of the panel, tenant and origin that match the filter after `$after`, expired and orphaned grants included as the filter asks.')]
     public function inspectGrants(Panel $panel, TenantRef $tenant, string $origin, GrantFilter $filter, ?array $after, DateTimeImmutable $now, int $limit): array
     {
         return $this->inspecting($panel, $tenant, static fn (GrantInspection $inspection): array => $inspection->page($tenant, $origin, $filter, $after, $now, $limit));
     }
 
     /**
-     * @internal The stored grants of one kind of the subject inside the panel, tenant and origin as write-guarded models
-     * of the panel, in one context or in all contexts of the tenant, whatever their state.
-     *
      * @param  'role'|'permission'  $kind
      * @return list<RoleGrant|PermissionGrant>
      */
+    #[Internal('The stored grants of one kind of the subject inside the panel, tenant and origin as write-guarded models of the panel, in one context or in all contexts of the tenant, whatever their state.')]
     public function grantModels(Panel $panel, TenantRef $tenant, string $origin, string $kind, SubjectRef $subject, ?AssignmentScopeRef $context): array
     {
         return $this->inspecting($panel, $tenant, static fn (GrantInspection $inspection): array => $inspection->models($kind, $tenant, $origin, $subject, $context));
@@ -897,11 +886,12 @@ final class DatabaseSource implements ChecksHealth, DescribesSchema, FencesReads
     }
 
     /**
-     * @internal Reads of the change pipeline under the panel lock of the active mutation.
+     * @return LockedReads
      *
      * @throws UnsupportedDirectWriteException outside the active mutation of the panel
      */
-    public function lockedReads(Panel $panel): LockedReads
+    #[Internal('Reads of the change pipeline under the panel lock of the active mutation.')]
+    public function lockedReads(Panel $panel): object
     {
         $this->bindPanelServices($panel);
         $storage = $this->resolvedStorage();
@@ -909,7 +899,7 @@ final class DatabaseSource implements ChecksHealth, DescribesSchema, FencesReads
         return new LockedReads($storage, $storage->mutation($panel->id()), $panel, $this->services()->make(PanelRegistry::class), $this->selectedModels, $this->dynamic);
     }
 
-    /** @internal Whether a transaction is already open on the writer connection; its commit is then not ours. */
+    #[Internal('Whether a transaction is already open on the writer connection; its commit is then not ours.')]
     public function inTransaction(): bool
     {
         return $this->resolvedStorage()->connection()->transactionLevel() > 0;
@@ -958,10 +948,11 @@ final class DatabaseSource implements ChecksHealth, DescribesSchema, FencesReads
         return $this->readContributions($subject, $scopes, $context)['roles'];
     }
 
-    /** @internal one whole-set fence for both capabilities.
+    /**
      * @param  list<AccessScope>  $scopes
      * @return array{state: StateToken, grants: list<Grant>, roles: list<RoleContribution>}
      */
+    #[Internal('one whole-set fence for both capabilities.')]
     public function readContributions(SubjectRef $subject, array $scopes, EvaluationContext $context): array
     {
         $this->bindContext($context);
@@ -971,23 +962,25 @@ final class DatabaseSource implements ChecksHealth, DescribesSchema, FencesReads
     }
 
     /**
-     * @internal Both capabilities at one state of the panel: raw rows read consistently, contributions hydrated once
-     * after the read.
-     *
+     * @param  StorageReadSession  $session
      * @param  list<AccessScope>  $scopes
      * @return array{StateToken, array{grants: list<Grant>, roles: list<RoleContribution>}}
      */
-    public function materializeAssignments(StorageReadSession $session, EvaluationContext $context, SubjectRef $subject, array $scopes, ?StateToken $before = null): array
+    #[Internal('Both capabilities at one state of the panel: raw rows read consistently, contributions hydrated once after the read.')]
+    public function materializeAssignments(object $session, EvaluationContext $context, SubjectRef $subject, array $scopes, ?StateToken $before = null): array
     {
+        $session = self::assertSession($session);
         $this->prepareAssignments($session, $context);
         [$state, $rows] = $this->readConsistently($session, $context, fn (): array => $this->assignmentRows($session, $context, $subject, $scopes), $before, $subject);
 
         return [$state, $this->hydrateAssignments($session, $context, $subject, $rows)];
     }
 
-    /** @internal Checks the models and fields of both assignment kinds before any read. */
-    public function prepareAssignments(StorageReadSession $session, EvaluationContext $context): void
+    /** @param StorageReadSession $session */
+    #[Internal('Checks the models and fields of both assignment kinds before any read.')]
+    public function prepareAssignments(object $session, EvaluationContext $context): void
     {
+        $session = self::assertSession($session);
         $this->bindContext($context);
 
         if (! $this->onlyRoles) {
@@ -997,14 +990,14 @@ final class DatabaseSource implements ChecksHealth, DescribesSchema, FencesReads
     }
 
     /**
-     * @internal Raw assignment rows of one subject on the session, inside the caller's consistent read: scopes in
-     * chunks of 100 pairs, plain arrays, no model or host code.
-     *
+     * @param  StorageReadSession  $session
      * @param  list<AccessScope>  $scopes
      * @return array{permission_grant: list<array<string, mixed>>, role_grant: list<array<string, mixed>>}
      */
-    public function assignmentRows(StorageReadSession $session, EvaluationContext $context, SubjectRef $subject, array $scopes): array
+    #[Internal('Raw assignment rows of one subject on the session, inside the caller\'s consistent read: scopes in chunks of 100 pairs, plain arrays, no model or host code.')]
+    public function assignmentRows(object $session, EvaluationContext $context, SubjectRef $subject, array $scopes): array
     {
+        $session = self::assertSession($session);
         $this->bindContext($context);
         $rows = ['permission_grant' => [], 'role_grant' => []];
         foreach (['permission_grant', 'role_grant'] as $kind) {
@@ -1026,16 +1019,15 @@ final class DatabaseSource implements ChecksHealth, DescribesSchema, FencesReads
     public const int ASSIGNMENT_SUBJECT_CHUNK = 500;
 
     /**
-     * @internal The raw assignment rows of many subjects of one panel under the same scopes, as {@see assignmentRows()}
-     * returns them for each, in one statement per kind, subject type and chunk instead of one per subject and kind. A
-     * subject whose id is not a host key of the storage gets its error instead of rows; the others are unaffected.
-     *
+     * @param  StorageReadSession  $session
      * @param  array<int|string, SubjectRef>  $subjects
      * @param  list<AccessScope>  $scopes
      * @return array<int|string, array{permission_grant: list<array<string, mixed>>, role_grant: list<array<string, mixed>>}|Throwable>
      */
-    public function assignmentRowsMany(StorageReadSession $session, EvaluationContext $context, array $subjects, array $scopes): array
+    #[Internal('The raw assignment rows of many subjects of one panel under the same scopes, as {@see assignmentRows()} returns them for each, in one statement per kind, subject type and chunk instead of one per subject and kind. A subject whose id is not a host key of the storage gets its error instead of rows; the others are unaffected.')]
+    public function assignmentRowsMany(object $session, EvaluationContext $context, array $subjects, array $scopes): array
     {
+        $session = self::assertSession($session);
         $this->bindContext($context);
         $scopes = self::validatedScopes($scopes);
         $hostKeys = $this->resolvedStorage()->hostKeys();
@@ -1090,13 +1082,15 @@ final class DatabaseSource implements ChecksHealth, DescribesSchema, FencesReads
     }
 
     /**
-     * @internal Grants and role contributions of raw rows, built after the read committed.
-     *
+     * @param  StorageReadSession  $session
      * @param  array{permission_grant: list<array<string, mixed>>, role_grant: list<array<string, mixed>>}  $rows
      * @return array{grants: list<Grant>, roles: list<RoleContribution>}
      */
-    public function hydrateAssignments(StorageReadSession $session, EvaluationContext $context, SubjectRef $subject, array $rows): array
+    #[Internal('Grants and role contributions of raw rows, built after the read committed.')]
+    public function hydrateAssignments(object $session, EvaluationContext $context, SubjectRef $subject, array $rows): array
     {
+        $session = self::assertSession($session);
+
         return [
             'grants' => $this->hydrate($session, 'permission_grant', $rows['permission_grant'], $subject, $context),
             'roles' => $this->hydrate($session, 'role_grant', $rows['role_grant'], $subject, $context),
@@ -1117,12 +1111,13 @@ final class DatabaseSource implements ChecksHealth, DescribesSchema, FencesReads
     }
 
     /**
-     * @internal The selection at one state of the panel: raw witnesses read consistently, hydrated after the read.
-     *
+     * @param  StorageReadSession  $session
      * @return array{StateToken, AssignmentScopeSelection}
      */
-    public function materializeSelection(StorageReadSession $session, SubjectRef $subject, PermissionKey $key, string $contextType, EvaluationContext $context, ?StateToken $before = null): array
+    #[Internal('The selection at one state of the panel: raw witnesses read consistently, hydrated after the read.')]
+    public function materializeSelection(object $session, SubjectRef $subject, PermissionKey $key, string $contextType, EvaluationContext $context, ?StateToken $before = null): array
     {
+        $session = self::assertSession($session);
         IdentityCodec::assertTypeAlias($contextType);
 
         if ($key->panel() !== $context->panel()->id()) {
@@ -1190,44 +1185,41 @@ final class DatabaseSource implements ChecksHealth, DescribesSchema, FencesReads
     }
 
     /**
-     * @internal Raw rows read at one state of the panel, with that state. `$rows` reads plain rows on the session and
-     * nothing else (no model, event or host code). Without an open transaction the state and the rows are read in one
-     * snapshot transaction and never retried; inside tentative authority or a test baseline a bounded fence repeats
-     * the raw reads up to three times, then ConsistencyException (audits/2026-10-09-consistency-design.md, steps 1-2).
-     *
      * @template T
      *
+     * @param  StorageReadSession  $session
      * @param  Closure(): T  $rows
      * @param  ?StateToken  $before  a state read on this session earlier, the start of the first attempt's fence
      * @return array{StateToken, T}
      */
-    public function readConsistently(StorageReadSession $session, EvaluationContext $context, Closure $rows, ?StateToken $before = null, ?SubjectRef $subject = null): array
+    #[Internal('Raw rows read at one state of the panel, with that state. `$rows` reads plain rows on the session and nothing else (no model, event or host code). Without an open transaction the state and the rows are read in one snapshot transaction and never retried; inside tentative authority or a test baseline a bounded fence repeats the raw reads up to three times, then ConsistencyException (audits/2026-10-09-consistency-design.md, steps 1-2).')]
+    public function readConsistently(object $session, EvaluationContext $context, Closure $rows, ?StateToken $before = null, ?SubjectRef $subject = null): array
     {
+        $session = self::assertSession($session);
         $this->bindContext($context);
 
         return $this->consistently($session, $context->panel(), $context->state()->fingerprint(), $rows, $before, $subject);
     }
 
-    /**
-     * @internal The observed state of one subject's grants: panel version, epoch, incarnation and the subject's
-     * revision, read in one statement.
-     */
-    public function readObserved(StorageReadSession $session, EvaluationContext $context, SubjectRef $subject): StateToken
+    /** @param StorageReadSession $session */
+    #[Internal('The observed state of one subject\'s grants: panel version, epoch, incarnation and the subject\'s revision, read in one statement.')]
+    public function readObserved(object $session, EvaluationContext $context, SubjectRef $subject): StateToken
     {
+        $session = self::assertSession($session);
         $this->bindContext($context);
 
         return $this->token($session, $context->panel(), $context->state()->fingerprint(), $subject);
     }
 
     /**
-     * @internal The observed states of many subjects of this source's panel: {@see readObserved()} for a DecisionSet,
-     * one statement per subject type and {@see StorageReadSession::OBSERVED_CHUNK} subjects instead of one per subject.
-     *
+     * @param  StorageReadSession  $session
      * @param  array<array-key, array{EvaluationContext, SubjectRef}>  $entries
      * @return array<array-key, StateToken> by the keys of $entries
      */
-    public function readObservedMany(StorageReadSession $session, array $entries): array
+    #[Internal('The observed states of many subjects of this source\'s panel: {@see readObserved()} for a DecisionSet, one statement per subject type and {@see StorageReadSession::OBSERVED_CHUNK} subjects instead of one per subject.')]
+    public function readObservedMany(object $session, array $entries): array
     {
+        $session = self::assertSession($session);
         $ids = [];
         foreach ($entries as $n => [$context, $subject]) {
             $this->bindContext($context);
@@ -1244,6 +1236,13 @@ final class DatabaseSource implements ChecksHealth, DescribesSchema, FencesReads
         }
 
         return $tokens;
+    }
+
+    private static function assertSession(object $session): StorageReadSession
+    {
+        return $session instanceof StorageReadSession
+            ? $session
+            : throw new InvalidArgumentException('DatabaseSource requires an internal StorageReadSession instance.');
     }
 
     /**

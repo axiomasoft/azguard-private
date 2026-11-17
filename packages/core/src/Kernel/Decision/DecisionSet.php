@@ -5,12 +5,12 @@ declare(strict_types=1);
 namespace AzGuard\Kernel\Decision;
 
 use ArrayIterator;
-use AzGuard\Attributes\Api;
-use AzGuard\Exceptions\ConsistencyException;
+use AzGuard\Exceptions\Authorization\ConsistencyException;
 use AzGuard\Kernel\Identity\IdentityCodec;
 use Countable;
 use IteratorAggregate;
 use OutOfRangeException;
+use Packman\Attributes\Api;
 
 /**
  * Ordered decisions of one batch check and the distinct states they were made against.

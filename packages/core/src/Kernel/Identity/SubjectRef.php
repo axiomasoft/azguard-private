@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace AzGuard\Kernel\Identity;
 
-use AzGuard\Attributes\Api;
-use AzGuard\Exceptions\InvalidIdentityException;
+use AzGuard\Exceptions\Identity\InvalidIdentityException;
+use Packman\Attributes\Api;
 
 /**
  * The subject a decision is about: a type alias of its identity domain and a canonical id.

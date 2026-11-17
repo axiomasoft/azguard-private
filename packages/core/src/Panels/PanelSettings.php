@@ -4,8 +4,9 @@ declare(strict_types=1);
 
 namespace AzGuard\Panels;
 
-use AzGuard\Attributes\Api;
-use AzGuard\Exceptions\DefinitionException;
+use AzGuard\Exceptions\Definitions\DefinitionException;
+use Packman\Attributes\Api;
+use Packman\Attributes\Internal;
 
 /**
  * Effective settings of a compiled panel and where each value came from.
@@ -42,10 +43,9 @@ final readonly class PanelSettings
     ];
 
     /**
-     * @internal built by the panel compiler
-     *
      * @param  array<string, string>  $origins  setting name => `provider`, `plugin:<id>`, `configure` or `default`
      */
+    #[Internal('built by the panel compiler')]
     public function __construct(
         private ?string $resourcePrefix,
         private ?string $cacheStore,

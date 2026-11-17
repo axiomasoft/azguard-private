@@ -4,19 +4,18 @@ declare(strict_types=1);
 
 namespace AzGuard\Configuration;
 
-use AzGuard\Attributes\Spi;
-use AzGuard\Attributes\SpiKind;
-use AzGuard\Exceptions\InvalidConfigurationException;
+use AzGuard\Exceptions\Configuration\InvalidConfigurationException;
 use Closure;
+use Illuminate\Contracts\Foundation\Application;
+use Packman\Attributes\Internal;
+use Packman\Attributes\Spi;
+use Packman\Attributes\SpiKind;
+use Packman\Config\Exceptions\InvalidConfiguration;
+use Packman\Config\Laravel\ConfigSectionRegistration;
 
 /**
- * The root sections of `config/azguard.php` that an owner other than core validates. A module registers its section
- * from its provider's `register()` after `$this->app->singletonIf(ConfigSections::class)` (the registry is shared only
- * once bound, and a provider may register before core's); the configuration then accepts `azguard.<root>` and hands its value to the
- * owner's closure, and still rejects every root key nobody owns.
- *
- * Registration closes when the configuration is read for the first time: a section registered later would never be
- * validated.
+ * The root sections of `config/azguard.php` that an owner other than core validates; delegates section
+ * registration to {@see ConfigSectionRegistration} when bound to an application container.
  */
 #[Spi(kind: SpiKind::Call, since: '1.0')]
 final class ConfigSections
@@ -26,13 +25,15 @@ final class ConfigSections
 
     private bool $frozen = false;
 
+    public function __construct(private readonly ?Application $app = null) {}
+
     /**
      * Called from a module provider's register(); the owner validates azguard.<root>.
      *
      * @param  Closure(array<string, mixed>): void  $validate  throws `InvalidConfigurationException` for an invalid section
      *
      * @throws InvalidConfigurationException after the configuration was read, for a malformed root or a root that
-     *                                       already has an owner (a root of core is refused when the configuration is read)
+     *                                       already has an owner
      */
     public function own(string $root, Closure $validate): void
     {
@@ -47,14 +48,31 @@ final class ConfigSections
         if (isset($this->owners[$root])) {
             throw new InvalidConfigurationException('The section azguard.'.$root.' already has an owner.');
         }
+
+        if ($this->app !== null) {
+            try {
+                ConfigSectionRegistration::own($this->app, $root, $validate);
+            } catch (InvalidConfiguration $error) {
+                throw new InvalidConfigurationException($error->getMessage(), previous: $error);
+            }
+        }
+
         $this->owners[$root] = $validate;
     }
 
     /**
-     * @internal The registered sections with their validators; reading them closes the registration.
-     *
      * @return array<string, Closure(array<string, mixed>): void>
      */
+    #[Internal('Inspects registered module section owners without sealing registration.')]
+    public function peekOwned(): array
+    {
+        return $this->owners;
+    }
+
+    /**
+     * @return array<string, Closure(array<string, mixed>): void>
+     */
+    #[Internal('The registered sections with their validators; reading them closes the registration.')]
     public function owned(): array
     {
         $this->frozen = true;

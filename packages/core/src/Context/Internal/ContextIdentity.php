@@ -8,19 +8,21 @@ use AzGuard\Context\AssignmentScopeDescription;
 use AzGuard\Contracts\Scopes\AssignmentScopeDefinition;
 use AzGuard\Contracts\Scopes\AssignmentScopeEvaluator;
 use AzGuard\Contracts\Scopes\DescribesAssignmentScope;
-use AzGuard\Exceptions\AssignmentScopeNotAcceptedException;
-use AzGuard\Exceptions\DefinitionException;
+use AzGuard\Exceptions\Changes\AssignmentScopeNotAcceptedException;
+use AzGuard\Exceptions\Definitions\DefinitionException;
 use AzGuard\Kernel\Identity\AssignmentScopeRef;
 use AzGuard\Panels\Panel;
 use AzGuard\Support\ModelKey;
 use Illuminate\Contracts\Container\Container;
 use Illuminate\Database\Eloquent\Model;
+use Packman\Attributes\Internal;
 
 /**
  * The assignment scope context a model is inside one panel, and the evaluator the panel declares. One reading of the
  * panel declaration for the subject wrapper, the facade, the stages and the compilers, so none of them keeps a second
  * rule.
  */
+#[Internal]
 final class ContextIdentity
 {
     /**

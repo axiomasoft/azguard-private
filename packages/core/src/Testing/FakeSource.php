@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace AzGuard\Testing;
 
-use AzGuard\Attributes\Api;
 use AzGuard\Contracts\Authorization\EvaluationContext;
 use AzGuard\Contracts\Sources\ProvidesGrants;
 use AzGuard\Contracts\Sources\ProvidesRoleGrants;
@@ -20,6 +19,7 @@ use AzGuard\Kernel\Identity\TenantRef;
 use AzGuard\Support\ModelKey;
 use DateTimeImmutable;
 use Illuminate\Database\Eloquent\Model;
+use Packman\Attributes\Api;
 
 /**
  * A source of grants that lives in memory, for a test of the application: the test says who holds which permission or
@@ -99,13 +99,7 @@ final class FakeSource implements ProvidesGrants, ProvidesRoleGrants
     /** @param list<AccessScope> $scopes */
     private static function covers(array $scopes, AccessScope $held): bool
     {
-        foreach ($scopes as $scope) {
-            if ($scope->equals($held)) {
-                return true;
-            }
-        }
-
-        return false;
+        return array_any($scopes, fn (AccessScope $scope): bool => $scope->equals($held));
     }
 
     private static function key(Model|SubjectRef $subject): string

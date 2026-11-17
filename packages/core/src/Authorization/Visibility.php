@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace AzGuard\Authorization;
 
-use AzGuard\Attributes\Api;
 use AzGuard\Authorization\Internal\Authorizer;
 use AzGuard\Authorization\Internal\ContributionQualifier;
 use AzGuard\Authorization\Internal\EvaluationFrame;
@@ -22,10 +21,10 @@ use AzGuard\Contracts\Scopes\ProvidesAccessScope;
 use AzGuard\Contracts\Scopes\ProvidesAssignmentScope;
 use AzGuard\Contracts\Scopes\QueryableAssignmentScopeDefinition;
 use AzGuard\Contracts\Tenancy\TenantMembership;
-use AzGuard\Exceptions\ConflictingPanelException;
-use AzGuard\Exceptions\ConsistencyException;
-use AzGuard\Exceptions\SubjectNotAcceptedException;
-use AzGuard\Exceptions\VisibilityNotSupportedException;
+use AzGuard\Exceptions\Authorization\ConsistencyException;
+use AzGuard\Exceptions\Authorization\VisibilityNotSupportedException;
+use AzGuard\Exceptions\Definitions\ConflictingPanelException;
+use AzGuard\Exceptions\Definitions\SubjectNotAcceptedException;
 use AzGuard\Kernel\Decision\AccessPredicate as P;
 use AzGuard\Kernel\Decision\AccessRequest;
 use AzGuard\Kernel\Decision\CodeStateToken;
@@ -53,6 +52,8 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Query\Builder as QueryBuilder;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Carbon;
+use Packman\Attributes\Api;
+use Packman\Attributes\Internal;
 use Throwable;
 use UnitEnum;
 
@@ -62,8 +63,8 @@ use UnitEnum;
 #[Api(since: '1.0')]
 final readonly class Visibility
 {
-    /** @internal built by the container */
-    public function __construct(private PanelRegistry $registry, private ModelSubjectResolver $subjects, private Container $container, private CurrentContext $current) {}
+    #[Internal('built by the container')]
+    public function __construct(private Container $container) {}
 
     /** @template TModel of Model
      * @param  Builder<TModel>  $query
@@ -100,7 +101,7 @@ final readonly class Visibility
     private function build(Panel $panel, Builder $query, Model|SubjectRef $subject, UnitEnum|string $permission, ?AccessScope $scope, DateTimeImmutable $now): Builder
     {
         [$request, $frame, $catalog] = $this->inputs($panel, $subject, $permission, $scope, $now);
-        $sourceRead = new ReadAttempt($catalog, PanelSources::of($this->registry->recipe($panel->id()), $this->container, catalog: $catalog)->all(), $frame, publish: false);
+        $sourceRead = new ReadAttempt($catalog, PanelSources::of($this->container->make(PanelRegistry::class)->recipe($panel->id()), $this->container, catalog: $catalog)->all(), $frame, publish: false);
 
         if (! $catalog->has($request->permission()) && $catalog->isDynamic()) {
             $catalog = $sourceRead->catalog();
@@ -124,7 +125,7 @@ final readonly class Visibility
             $member = Narrow::instance(is_string($declared) ? $this->container->make($declared) : $declared, TenantMembership::class, 'tenant membership');
 
             if (! $member->isMember($request->subject(), $frame->scope()->tenant)) {
-                $group->whereRaw('1 = 0');
+                $group->getQuery()->whereRaw('1 = 0');
             }
         }
         foreach ($panel->before() as $declared) {
@@ -236,21 +237,22 @@ final readonly class Visibility
         if (! $panel->accepts($ref)) {
             throw new SubjectNotAcceptedException('Selected panel does not accept this subject.');
         }
-        $catalog = $this->registry->catalog($panel->id());
+        $registry = $this->container->make(PanelRegistry::class);
+        $catalog = $registry->catalog($panel->id());
         $key = $permission instanceof UnitEnum ? $catalog->keyOf($permission) : (str_contains($permission, ':') ? PermissionKey::parse($permission) : PermissionKey::of($panel->id(), $permission));
 
         if ($key->panel() !== $panel->id()) {
             throw new ConflictingPanelException('Visibility permission belongs to another panel.');
         }
-        $scope ??= $this->current->get($panel) ?? AccessScope::in(TenantRef::global());
+        $scope ??= $this->container->make(CurrentContext::class)->get($panel) ?? AccessScope::in(TenantRef::global());
 
         if (($panel->tenants()->mode() === TenantMode::Required && ($scope->tenant->isGlobal() || $scope->tenant->type() !== $panel->tenants()->definition()?->type()))
             || ($panel->tenants()->mode() === TenantMode::None && ! $scope->tenant->isGlobal())
             || (! $scope->context->isGlobal() && (($panel->scopeDeclaration()->mode ?? AssignmentScopeMode::None) === AssignmentScopeMode::None || $panel->scopeDefinition($scope->context->type() ?? '') === null))) {
             throw new VisibilityNotSupportedException('selected_scope');
         }
-        $model = ModelSubjectResolver::given($panel, $subject, $ref) ?? $this->subjects->resolve($panel, $ref);
-        $frame = new EvaluationFrame($panel, $scope, CodeStateToken::of($panel->id(), $this->registry->buildId(), $this->registry->fingerprint($panel->id())), $now,
+        $model = ModelSubjectResolver::given($panel, $subject, $ref) ?? $this->container->make(ModelSubjectResolver::class)->resolve($panel, $ref);
+        $frame = new EvaluationFrame($panel, $scope, CodeStateToken::of($panel->id(), $registry->buildId(), $registry->fingerprint($panel->id())), $now,
             ActorRef::of($ref->type(), $ref->id()), $model, $model);
 
         return [AccessRequest::for($ref, $key)->inScope($scope), $frame, $catalog];
@@ -357,16 +359,18 @@ final readonly class Visibility
                 $mapping->constrain($candidate, $mapping->query($request, $frame, false, false));
             }
         }
-        $records = $candidate->limit($limit + 1)->get();
+        $candidate->getQuery()->limit($limit + 1);
+        $records = $candidate->get();
 
         if ($records->count() > $limit) {
             throw new VisibilityNotSupportedException('bounded_universe_limit');
         }
         $authorizer = $this->container->make(Authorizer::class);
         $context = $request->context();
+        $targetContext = $context === null || $context->isGlobal() ? null : $context;
         $allowed = [];
         foreach ($records as $record) {
-            if ($authorizer->decideAt($panel, $request->on($context?->isGlobal() ? null : $context, $record), $now)->allowed()) {
+            if ($authorizer->decideAt($panel, $request->on($targetContext, $record), $now)->allowed()) {
                 $allowed[] = $record;
             }
         }

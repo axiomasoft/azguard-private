@@ -5,7 +5,7 @@ declare(strict_types=1);
 use AzGuard\Contracts\Authorization\EvaluationContext;
 use AzGuard\Contracts\Sources\AssignmentScopeSelection;
 use AzGuard\Contracts\Sources\Source;
-use AzGuard\Exceptions\VisibilityNotSupportedException;
+use AzGuard\Exceptions\Authorization\VisibilityNotSupportedException;
 use AzGuard\Facades\AzGuard;
 use AzGuard\Kernel\Decision\AccessRequest;
 use AzGuard\Kernel\Decision\DecisionReason;

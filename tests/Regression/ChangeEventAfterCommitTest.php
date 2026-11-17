@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 use AzGuard\Changes\ChangeStatus;
-use AzGuard\Events\RoleGranted;
+use AzGuard\Events\Changes\RoleGranted;
 use AzGuard\Tests\Fixtures\Changes\ChangeWorld;
 use AzGuard\Tests\Fixtures\Concerns\SubjectWorld;
 use AzGuard\Tests\Fixtures\Crm\CrmWorld;

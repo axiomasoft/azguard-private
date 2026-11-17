@@ -5,7 +5,7 @@ declare(strict_types=1);
 use AzGuard\Configuration\ConfigSections;
 use AzGuard\Configuration\Internal\AzGuardConfig;
 use AzGuard\DevTools\Internal\ScaffoldConfig;
-use AzGuard\Exceptions\InvalidConfigurationException;
+use AzGuard\Exceptions\Configuration\InvalidConfigurationException;
 use Illuminate\Config\Repository;
 
 /*

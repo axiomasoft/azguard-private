@@ -7,7 +7,7 @@ namespace AzGuard\Sources\Database\Internal;
 use AzGuard\Catalog\Internal\PanelCatalog;
 use AzGuard\Changes\GrantFilter;
 use AzGuard\Changes\GrantRecord;
-use AzGuard\Exceptions\InvalidPermissionKeyException;
+use AzGuard\Exceptions\Identity\InvalidPermissionKeyException;
 use AzGuard\Kernel\Decision\PermissionAuthority;
 use AzGuard\Kernel\Identity\AssignmentScopeRef;
 use AzGuard\Kernel\Identity\SubjectRef;
@@ -24,6 +24,7 @@ use Closure;
 use DateTimeImmutable;
 use DateTimeZone;
 use Illuminate\Database\Query\Builder;
+use Packman\Attributes\Internal;
 
 /**
  * @internal Stored grants of one panel, tenant and origin as an administrator inspects them: expired, inactive and
@@ -36,6 +37,7 @@ use Illuminate\Database\Query\Builder;
  * the mode does not make them orphaned. Every other stored grant is orphaned. The classification is SQL over the partition, so a
  * page is exact under its limit.
  */
+#[Internal]
 final readonly class GrantInspection
 {
     public function __construct(
@@ -254,7 +256,7 @@ final readonly class GrantInspection
             $grants = [];
             foreach ($this->catalog->all() as $local => $definition) {
                 if ($definition->authority === PermissionAuthority::Grants) {
-                    $grants[] = $names[] = (string) $local;
+                    $grants[] = $names[] = $local;
                 }
             }
             $patterns = $this->partition('permission', $tenant, $origin)->where('permission', 'like', '%*%')->distinct()->pluck('permission');

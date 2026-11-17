@@ -54,13 +54,21 @@ const AZGUARD_KERNEL_FORBIDDEN = ['Illuminate', 'Carbon', 'Laravel', 'AzGuard\Fi
  * The publication markers: every zone, the kernel included, names them to publish its supported types. They are
  * leaves that depend on nothing but PHP, so naming them adds no dependency on zone code.
  */
-const AZGUARD_PUBLICATION_MARKERS = ['AzGuard\Attributes\Api', 'AzGuard\Attributes\Spi', 'AzGuard\Attributes\SpiKind'];
+const AZGUARD_PUBLICATION_MARKERS = [
+    'Packman\Attributes\Api',
+    'Packman\Attributes\Spi',
+    'Packman\Attributes\SpiKind',
+    'Packman\Attributes\Internal',
+    'AzGuard\Attributes\Api',
+    'AzGuard\Attributes\Spi',
+    'AzGuard\Attributes\SpiKind',
+];
 
 it('keeps the publication markers leaves that name nothing but PHP and each other', function (): void {
     $names = [];
 
-    foreach (AZGUARD_PUBLICATION_MARKERS as $marker) {
-        $file = dirname(__DIR__, 2).'/packages/core/src/Attributes/'.substr($marker, strrpos($marker, '\\') + 1).'.php';
+    foreach (['Api', 'Spi', 'SpiKind', 'Internal'] as $short) {
+        $file = dirname(__DIR__, 2).'/vendor/axiomasoft/packman/src/Attributes/'.$short.'.php';
 
         foreach (SourceScan::ownershipReferences((string) file_get_contents($file)) as $reference) {
             $names[] = $reference['value'];
@@ -425,8 +433,8 @@ arch('code roles do not use storage, changes or authorization')
 arch('only storage, the database source and the Audit module touch the database layer')
     ->expect(AZGUARD_DATABASE_ACCESS)
     ->toOnlyBeUsedIn(['AzGuard\Storage', 'AzGuard\Sources\Database', 'AzGuard\Audit'])
-    // The tests and the load bench are applications of the package: they seed and query their own tables.
-    ->ignoring(['AzGuard\Tests', 'AzGuardBench']);
+    // The tests, the load bench, and Packman testkit are outside the core runtime boundary.
+    ->ignoring(['AzGuard\Tests', 'AzGuardBench', 'Packman']);
 
 it('only storage and database sources call storage models statically', function (): void {
     expect(SourceScan::modelStaticCallsIn(SourceScan::files()))->toBe([]);

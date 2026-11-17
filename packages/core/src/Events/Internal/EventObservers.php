@@ -6,6 +6,7 @@ namespace AzGuard\Events\Internal;
 
 use AzGuard\Events\AccessEvent;
 use Closure;
+use Packman\Attributes\Internal;
 use Throwable;
 
 /**
@@ -13,6 +14,7 @@ use Throwable;
  * host's `Event::fake()` replaces. The events are the ones the package publishes; an observer reads them and nothing it
  * does changes a decision or a change. A failing observer is reported and the rest still see the event.
  */
+#[Internal]
 final class EventObservers
 {
     /** @var array<int, Closure(AccessEvent): void> */

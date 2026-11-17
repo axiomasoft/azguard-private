@@ -7,16 +7,18 @@ namespace AzGuard\Diagnostics\Internal\Checks;
 use AzGuard\Contracts\Diagnostics\DoctorCheck;
 use AzGuard\Diagnostics\DoctorContext;
 use AzGuard\Diagnostics\DoctorFinding;
-use AzGuard\Exceptions\PluginConflictException;
+use AzGuard\Exceptions\Plugins\PluginConflictException;
 use AzGuard\Panels\Internal\PanelCompiler;
 use AzGuard\Panels\Internal\PanelRecipe;
 use AzGuard\Panels\Internal\PanelRegistry;
+use Packman\Attributes\Internal;
 
 /**
  * `panels.plugins`: the plugins of each panel do not set one setting differently.
  *
  * @internal
  */
+#[Internal]
 final readonly class PanelsPlugins implements DoctorCheck
 {
     public function __construct(private PanelRegistry $registry) {}

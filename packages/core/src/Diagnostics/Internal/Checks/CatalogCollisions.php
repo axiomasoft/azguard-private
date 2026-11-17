@@ -9,11 +9,12 @@ use AzGuard\Contracts\Diagnostics\DoctorCheck;
 use AzGuard\Diagnostics\DoctorContext;
 use AzGuard\Diagnostics\DoctorFinding;
 use AzGuard\Exceptions\AzGuardException;
-use AzGuard\Exceptions\PrefixConflictException;
+use AzGuard\Exceptions\Definitions\PrefixConflictException;
 use AzGuard\Panels\Internal\PanelCompiler;
 use AzGuard\Panels\Internal\PanelRegistry;
 use AzGuard\Panels\Panel;
 use AzGuard\Sources\Database\DatabaseSource;
+use Packman\Attributes\Internal;
 
 /**
  * `catalog.collisions`: permission names of the panels do not collide through their prefixes, and the permissions a
@@ -21,6 +22,7 @@ use AzGuard\Sources\Database\DatabaseSource;
  *
  * @internal
  */
+#[Internal]
 final readonly class CatalogCollisions implements DoctorCheck
 {
     public function __construct(private PanelRegistry $registry) {}

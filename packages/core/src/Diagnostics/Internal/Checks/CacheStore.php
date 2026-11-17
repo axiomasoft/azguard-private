@@ -8,12 +8,14 @@ use AzGuard\Contracts\Diagnostics\DoctorCheck;
 use AzGuard\Diagnostics\DoctorContext;
 use AzGuard\Diagnostics\DoctorFinding;
 use AzGuard\Panels\Panel;
+use Packman\Attributes\Internal;
 
 /**
  * `cache.store`: a panel that keeps permission sets in a persistent store also expires them.
  *
  * @internal
  */
+#[Internal]
 final readonly class CacheStore implements DoctorCheck
 {
     public function key(): string

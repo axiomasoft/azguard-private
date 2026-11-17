@@ -18,8 +18,10 @@ use AzGuard\Kernel\Decision\Decision;
 use AzGuard\Kernel\Decision\DecisionReason;
 use AzGuard\Kernel\Decision\StateToken;
 use Closure;
+use Packman\Attributes\Internal;
 use Throwable;
 
+#[Internal]
 final readonly class AccessPipeline
 {
     public function __construct(private BoundaryStage $boundary, private BeforeStage $before, private AuthorityStage $authority, private RestrictionStage $restrictions, private AfterStage $after) {}

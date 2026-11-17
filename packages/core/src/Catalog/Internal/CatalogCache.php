@@ -4,7 +4,8 @@ declare(strict_types=1);
 
 namespace AzGuard\Catalog\Internal;
 
-use AzGuard\Exceptions\InvalidConfigurationException;
+use AzGuard\Exceptions\Configuration\InvalidConfigurationException;
+use Packman\Attributes\Internal;
 
 /**
  * The file `azguard:catalog:cache` writes: a PHP array of scalars with the static catalogs of all panels.
@@ -16,6 +17,7 @@ use AzGuard\Exceptions\InvalidConfigurationException;
  *
  * @phpstan-type PanelEntry array{fingerprint: string, catalog: Snapshot}
  */
+#[Internal]
 final readonly class CatalogCache
 {
     public const int VERSION = 2;

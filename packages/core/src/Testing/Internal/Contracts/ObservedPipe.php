@@ -12,12 +12,14 @@ use Closure;
 use Illuminate\Contracts\Container\Container;
 use Illuminate\Database\Events\QueryExecuted;
 use LogicException;
+use Packman\Attributes\Internal;
 
 /**
  * @internal Runs the pipe of the author and counts the statements that change data which the pipe itself issued: the
  * ones that ran before it passed the change on or after the writer returned. What the writer issued inside `$next` is
  * the writer's and is not counted.
  */
+#[Internal]
 final class ObservedPipe implements ChangePipe
 {
     /** @var list<string> */

@@ -2,8 +2,8 @@
 
 declare(strict_types=1);
 
-use AzGuard\Exceptions\InvalidConfigurationException;
-use AzGuard\Exceptions\UnknownRoleException;
+use AzGuard\Exceptions\Changes\UnknownRoleException;
+use AzGuard\Exceptions\Configuration\InvalidConfigurationException;
 use AzGuard\Facades\AzGuard;
 use AzGuard\Kernel\Decision\DecisionReason;
 use AzGuard\Kernel\Decision\Effect;

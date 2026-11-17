@@ -3,6 +3,7 @@
          xsi:noNamespaceSchemaLocation="vendor/phpunit/phpunit/phpunit.xsd"
          bootstrap="vendor/autoload.php"
          colors="true"
+         cacheDirectory=".phpunit.cache"
          executionOrder="random"
          failOnWarning="true"
          failOnRisky="true"
@@ -47,9 +48,17 @@
     </source>
 
     <php>
+        <ini name="memory_limit" value="1G"/>
         <env name="APP_ENV" value="testing"/>
+        <env name="CACHE_STORE" value="array"/>
         <env name="CACHE_DRIVER" value="array"/>
+        <env name="QUEUE_CONNECTION" value="sync"/>
         <env name="DB_CONNECTION" value="sqlite"/>
         <env name="DB_DATABASE" value=":memory:"/>
+        <env name="PGSQL_HOST" value="127.0.0.1"/>
+        <env name="PGSQL_PORT" value="54329"/>
+        <env name="PGSQL_DATABASE" value="azguard_test"/>
+        <env name="PGSQL_USERNAME" value="skm"/>
+        <env name="PGSQL_PASSWORD" value="skm_dev"/>
     </php>
 </phpunit>

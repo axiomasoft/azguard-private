@@ -3,8 +3,8 @@
 declare(strict_types=1);
 
 use AzGuard\Changes\Internal\ChangePipeline;
-use AzGuard\Exceptions\UnknownPermissionException;
-use AzGuard\Exceptions\UnknownRoleException;
+use AzGuard\Exceptions\Changes\UnknownPermissionException;
+use AzGuard\Exceptions\Changes\UnknownRoleException;
 use AzGuard\Tests\Fixtures\Changes\ChangeWorld;
 use AzGuard\Tests\Fixtures\Concerns\SubjectWorld;
 use AzGuard\Tests\Fixtures\Crm\CrmWorld;

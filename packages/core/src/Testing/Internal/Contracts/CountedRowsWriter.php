@@ -7,8 +7,10 @@ namespace AzGuard\Testing\Internal\Contracts;
 use AzGuard\Contracts\Changes\OwnedRowsWriter;
 use AzGuard\Storage\StorageDescriptor;
 use Closure;
+use Packman\Attributes\Internal;
 
 /** @internal Counts writes made by a participant through its supplied writer. */
+#[Internal]
 final readonly class CountedRowsWriter implements OwnedRowsWriter
 {
     /** @param Closure(Closure(): void, string, int): void $through */

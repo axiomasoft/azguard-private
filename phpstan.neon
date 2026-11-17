@@ -1,29 +1,42 @@
 includes:
+  - vendor/axiomasoft/packman-devtools/config/phpstan-base.neon
   - vendor/larastan/larastan/extension.neon
+  - vendor/phpstan/phpstan-strict-rules/rules.neon
 
 parameters:
+  tmpDir: build/phpstan
+  bootstrapFiles:
+    - packages/core/src/aliases.php
   paths:
     - packages/core/src
-    - packages/core/modules/scopes/src
-    - packages/core/modules/audit/src
-    - packages/core/modules/devtools/src
-    - packages/filament/src
+    # Deferred to Slice B (module extraction & filament migration):
+    # - packages/core/modules/scopes/src
+    # - packages/core/modules/audit/src
+    # - packages/core/modules/devtools/src
+    # - packages/filament/src
+    # - tests/Modules/Scopes/Fixtures/FilterProbe.php
+    # - tests/Fixtures/Filament/Resources/OrderResource.php
+    # - tests/Fixtures/Filament/RelationManagers/ProductsRelationManager.php
+    # - tests/Fixtures/Filament/Pages/ReportsPage.php
+    # - tests/Fixtures/Filament/Widgets/OrderCountWidget.php
     - bench/src
     - bench/bin
     - tests/Fixtures/Visibility/VisibilityProject.php
     - tests/Fixtures/Concerns/Member.php
     - tests/Fixtures/Contracts/Probes
-    - tests/Modules/Scopes/Fixtures/FilterProbe.php
-    # Users of the authorization traits of the Filament package, so that the traits are analysed.
-    - tests/Fixtures/Filament/Resources/OrderResource.php
-    - tests/Fixtures/Filament/RelationManagers/ProductsRelationManager.php
-    - tests/Fixtures/Filament/Pages/ReportsPage.php
-    - tests/Fixtures/Filament/Widgets/OrderCountWidget.php
     # A consumer of the testing kit, so that the trait the package publishes is analysed.
     - tests/Fixtures/Testing/AnalysedConsumer.php
 
-  level: max
-
   checkModelProperties: true
-  checkPhpDocMissingReturn: true
-  reportUnmatchedIgnoredErrors: true
+
+  ignoreErrors:
+    # AzGuard::guard() intentionally overloads Eloquent Model::guard(array) to return SubjectAccess for string panel ids.
+    -
+      identifier: method.childReturnType
+      message: '#of method .*::guard\(\) should be covariant with return type .* of method Illuminate\\Database\\Eloquent\\Model::guard\(\)#'
+      path: packages/core/src/Concerns/Subjects/HasAzGuard.php
+    # Illuminate\Support\Manager::extend() lacks callable parameter types on Closure in upstream Laravel.
+    -
+      identifier: method.childParameterType
+      message: '#Parameter \#2 \$callback \(Closure\(Illuminate\\Contracts\\Foundation\\Application, array<string, mixed>\): AzGuard\\Contracts\\Sources\\Source\) of method AzGuard\\Sources\\SourceManager::extend\(\) should be contravariant with parameter \$callback \(Closure\) of method Illuminate\\Support\\Manager::extend\(\)#'
+      path: packages/core/src/Sources/SourceManager.php

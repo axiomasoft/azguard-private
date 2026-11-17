@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace AzGuard\Kernel\Identity;
 
-use AzGuard\Attributes\Api;
-use AzGuard\Exceptions\InvalidIdentityException;
+use AzGuard\Exceptions\Identity\InvalidIdentityException;
+use Packman\Attributes\Api;
 
 /**
  * A tenant: the data boundary of an organization, or the global tenant.

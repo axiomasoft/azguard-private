@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace AzGuard\Schema;
 
-use AzGuard\Attributes\Api;
 use AzGuard\Kernel\Decision\PermissionAuthority;
 use AzGuard\Kernel\Identity\PermissionKey;
 use JsonSerializable;
+use Packman\Attributes\Api;
 
 /**
  * One permission of a panel as an interface shows it: who decides it, which sources can give it and where.

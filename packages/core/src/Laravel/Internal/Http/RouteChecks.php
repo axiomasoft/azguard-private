@@ -12,6 +12,7 @@ use Closure;
 use Illuminate\Auth\Middleware\Authorize;
 use Illuminate\Routing\Route;
 use Illuminate\Routing\Router;
+use Packman\Attributes\Internal;
 use ReflectionAttribute;
 use ReflectionClass;
 use ReflectionException;
@@ -28,6 +29,7 @@ use ReflectionMethod;
  *
  * @internal
  */
+#[Internal]
 final class RouteChecks
 {
     private const array LARAVEL_CHECKS = ['can:', Authorize::class.':'];

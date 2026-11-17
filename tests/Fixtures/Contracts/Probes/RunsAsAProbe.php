@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace AzGuard\Tests\Fixtures\Contracts\Probes;
 
 use PHPUnit\Framework\Assert;
+use ReflectionMethod;
 
 /**
  * Lets a contract suite run outside a test case: its assertions are the static ones of PHPUnit, so a broken
@@ -16,11 +17,11 @@ trait RunsAsAProbe
     /** @param list<mixed> $arguments */
     public function __call(string $name, array $arguments): mixed
     {
-        return Assert::$name(...$arguments);
+        return (new ReflectionMethod(Assert::class, $name))->invokeArgs(null, $arguments);
     }
 
     public function run(string $method): void
     {
-        $this->{$method}();
+        (new ReflectionMethod($this, $method))->invoke($this);
     }
 }

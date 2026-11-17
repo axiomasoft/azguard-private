@@ -9,6 +9,7 @@ use AzGuard\Contracts\Diagnostics\DoctorCheck;
 use AzGuard\Diagnostics\DoctorContext;
 use AzGuard\Diagnostics\DoctorFinding;
 use AzGuard\Panels\Internal\PanelRegistry;
+use Packman\Attributes\Internal;
 
 /**
  * `panels.policies` of the folder source: what discovery finds in the folders of the panel now is what the catalog
@@ -17,6 +18,7 @@ use AzGuard\Panels\Internal\PanelRegistry;
  *
  * @internal
  */
+#[Internal]
 final readonly class DiscoveryCached implements DoctorCheck
 {
     private const array PARTS = ['definitions', 'bindings', 'roles', 'scopes', 'granted_to_all', 'sources', 'enums', 'files'];

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use AzGuard\Configuration\Internal\AzGuardConfig;
+use AzGuard\Configuration\AzGuardOptions;
 use AzGuard\Contracts\Scopes\AssignmentScopeDefinition;
 use AzGuard\Contracts\Scopes\ResolvedAssignmentScope;
 use AzGuard\Diagnostics\DoctorContext;
@@ -64,7 +64,7 @@ function morphProbe(array $models, bool $production = true): array
 {
     $settings = new PanelSettings(null, null, 300, 1, Reads::Primary, StateRefresh::Request, false, []);
     $panel = new Panel(id: 'test', label: 'test', default: false, settings: $settings, subjectModels: $models, pluginIds: [], tenantPolicy: null);
-    $context = new DoctorContext([$panel], [], $production, app(AzGuardConfig::class));
+    $context = new DoctorContext([$panel], [], $production, app(AzGuardOptions::class));
 
     return iterator_to_array(app(MorphIdentity::class)->run($context), false);
 }
@@ -112,7 +112,7 @@ it('checks declared tenant and context identity types', function (): void {
     $panel = new Panel(id: 'test', label: 'test', default: false, settings: $settings, subjectModels: [], pluginIds: [],
         tenantPolicy: TenantPolicy::required(ModelTenantDefinition::make(MorphProbeOne::class, 'wrongtenant')),
         scopeDefinitions: ['wrong' => $definition]);
-    $context = new DoctorContext([$panel], [], true, app(AzGuardConfig::class));
+    $context = new DoctorContext([$panel], [], true, app(AzGuardOptions::class));
     $findings = iterator_to_array(app(MorphIdentity::class)->run($context), false);
     expect(array_column(array_map(fn ($finding) => $finding->details, $findings), 'alias'))->toBe(['wrongtenant', 'wrong']);
 });

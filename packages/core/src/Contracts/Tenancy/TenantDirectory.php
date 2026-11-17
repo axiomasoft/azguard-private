@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace AzGuard\Contracts\Tenancy;
 
-use AzGuard\Attributes\Spi;
-use AzGuard\Attributes\SpiKind;
 use AzGuard\Directories\LookupContext;
 use AzGuard\Directories\TenantOption;
 use AzGuard\Kernel\Identity\TenantRef;
+use Packman\Attributes\Spi;
+use Packman\Attributes\SpiKind;
 
 /**
  * Search of tenants for the interface. It does not decide membership.

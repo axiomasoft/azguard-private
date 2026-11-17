@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace AzGuard\Events;
 
-use AzGuard\Attributes\Api;
 use AzGuard\Kernel\Decision\CodeStateToken;
 use AzGuard\Kernel\Decision\StateToken;
 use AzGuard\Kernel\Identity\ActorRef;
@@ -13,6 +12,7 @@ use AzGuard\Kernel\Identity\SubjectRef;
 use AzGuard\Kernel\Identity\TenantRef;
 use DateTimeImmutable;
 use DateTimeZone;
+use Packman\Attributes\Api;
 
 /**
  * An immutable fact about a change of access or a traced decision, delivered through the Laravel event dispatcher.

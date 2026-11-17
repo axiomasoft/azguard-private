@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace AzGuard\Contracts\Changes;
 
-use AzGuard\Attributes\Spi;
-use AzGuard\Attributes\SpiKind;
 use AzGuard\Changes\Change;
 use AzGuard\Changes\ChangeResult;
 use Closure;
+use Packman\Attributes\Spi;
+use Packman\Attributes\SpiKind;
 
 /**
  * A pipe a change of grants passes through: it may replace `until` and `fields` or cancel by throwing, must call

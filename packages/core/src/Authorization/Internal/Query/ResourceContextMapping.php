@@ -11,7 +11,7 @@ use AzGuard\Contracts\Authorization\FiltersAccessQueries;
 use AzGuard\Contracts\Scopes\AssignmentScopeDefinition;
 use AzGuard\Contracts\Scopes\QueryableAssignmentScopeDefinition;
 use AzGuard\Contracts\Scopes\QueryableAssignmentScopeEvaluator;
-use AzGuard\Exceptions\VisibilityNotSupportedException;
+use AzGuard\Exceptions\Authorization\VisibilityNotSupportedException;
 use AzGuard\Kernel\Decision\AccessPredicate as P;
 use AzGuard\Kernel\Decision\AccessRequest;
 use AzGuard\Kernel\Identity\AccessScope;
@@ -23,6 +23,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\Relation;
+use Packman\Attributes\Internal;
 use ReflectionMethod;
 use ReflectionNamedType;
 
@@ -33,6 +34,7 @@ use ReflectionNamedType;
  * one branch per context the owner reaches (at most `CONTEXT_BUDGET`); a concrete runtime it cannot express exactly
  * is unsupported, never approximated.
  */
+#[Internal]
 final readonly class ResourceContextMapping
 {
     /** Contexts a global list may expand into before it is unsupported. */
@@ -68,7 +70,7 @@ final readonly class ResourceContextMapping
                 throw new VisibilityNotSupportedException('resource_context_relation');
             }
             // A single belongs-to context avoids ambiguous scalar scope for a resource.
-            $related = Relation::noConstraints(fn () => $host->getModel()->{$relation}());
+            $related = Relation::noConstraints(static fn (): mixed => $method->invoke($host->getModel()));
 
             if (! $related instanceof BelongsTo || $related->getRelated()::class !== $model
                 || $related->getRelated()->getConnection() !== $host->getModel()->getConnection()) {
@@ -166,12 +168,15 @@ final readonly class ResourceContextMapping
      */
     private function perContext(QueryableAssignmentScopeEvaluator $evaluator, AccessRequest $request, EvaluationFrame $frame, bool $common, Builder $owned): Builder
     {
-        $records = (clone $owned)->limit(self::CONTEXT_BUDGET + 1)->get();
+        $cloned = clone $owned;
+        $cloned->getQuery()->limit(self::CONTEXT_BUDGET + 1);
+        $records = $cloned->get();
 
         if ($records->count() > self::CONTEXT_BUDGET) {
             throw new VisibilityNotSupportedException('scope_runtime_budget', $evaluator::class);
         }
-        $branches = $owned->getModel()->newModelQuery()->whereRaw('1 = 0');
+        $branches = $owned->getModel()->newModelQuery();
+        $branches->getQuery()->whereRaw('1 = 0');
 
         foreach ($records as $record) {
             $ref = AssignmentScopeRef::of($this->definition->type(), ModelKey::of($record));
@@ -217,7 +222,8 @@ final readonly class ResourceContextMapping
         if (! $frame->scope()->context->isGlobal()) {
             ModelKey::where($probe, $frame->scope()->context->id());
         }
-        $records = $probe->limit(1001)->get();
+        $probe->getQuery()->limit(1001);
+        $records = $probe->get();
 
         if ($records->count() > 1000) {
             throw new VisibilityNotSupportedException('owner_budget', $this->definition::class);
@@ -259,14 +265,17 @@ final readonly class ResourceContextMapping
     public function constrain(Builder $resource, Builder $context): void
     {
         $key = $context->getModel()->getQualifiedKeyName();
-        $context->select($key)->setEagerLoads([]);
+        $context->getQuery()->select($key);
+        $context->setEagerLoads([]);
 
         if ($this->relation === null) {
-            $resource->whereIn($resource->getModel()->getQualifiedKeyName(), $context->toBase());
+            $resource->getQuery()->whereIn($resource->getModel()->getQualifiedKeyName(), $context->toBase());
 
             return;
         }
-        $resource->whereHas($this->relation, static fn (Builder $related): Builder => $related->whereIn($related->getModel()->getQualifiedKeyName(), $context->toBase()));
+        $resource->whereHas($this->relation, static function (Builder $related) use ($context): void {
+            $related->getQuery()->whereIn($related->getModel()->getQualifiedKeyName(), $context->toBase());
+        });
     }
 
     public function frame(EvaluationFrame $frame, AssignmentScopeRef $ref): EvaluationFrame

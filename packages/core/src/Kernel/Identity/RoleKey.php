@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace AzGuard\Kernel\Identity;
 
-use AzGuard\Attributes\Api;
-use AzGuard\Exceptions\InvalidPanelIdException;
-use AzGuard\Exceptions\InvalidRoleKeyException;
+use AzGuard\Exceptions\Identity\InvalidPanelIdException;
+use AzGuard\Exceptions\Identity\InvalidRoleKeyException;
 use AzGuard\Kernel\Grammar\PermissionGrammar;
+use Packman\Attributes\Api;
 
 /**
  * A role key inside a panel; full form `admin:manager`.

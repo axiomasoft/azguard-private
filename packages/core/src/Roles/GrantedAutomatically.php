@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace AzGuard\Roles;
 
-use AzGuard\Attributes\Spi;
-use AzGuard\Attributes\SpiKind;
 use AzGuard\Kernel\Identity\AccessScope;
 use Illuminate\Database\Eloquent\Model;
+use Packman\Attributes\Spi;
+use Packman\Attributes\SpiKind;
 
 /**
  * A role every subject matching a code rule receives; the rule assigns the role, it never defines one.

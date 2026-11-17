@@ -15,6 +15,7 @@ use AzGuard\Testing\FakeSubject;
 use Closure;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Events\QueryExecuted;
+use Packman\Attributes\Internal;
 use RuntimeException;
 use Throwable;
 use UnitEnum;
@@ -23,6 +24,7 @@ use UnitEnum;
  * @internal The stand the contract suites share: a fresh registry with the panel `contract` (and `other` when asked),
  * built the way the application builds its own, so a source, a plugin or a hook is checked against the real engine.
  */
+#[Internal]
 final class ContractWorld
 {
     public const string PANEL = 'contract';

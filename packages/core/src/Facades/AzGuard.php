@@ -4,8 +4,7 @@ declare(strict_types=1);
 
 namespace AzGuard\Facades;
 
-use AzGuard\Attributes\Api;
-use AzGuard\Contracts\PanelAccess;
+use AzGuard\Contracts\Panels\PanelAccess;
 use AzGuard\Kernel\Identity\AssignmentScopeRef;
 use AzGuard\Kernel\Identity\SubjectRef;
 use AzGuard\Panels\Panel;
@@ -17,6 +16,7 @@ use Closure;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Facade;
+use Packman\Attributes\Api;
 use UnitEnum;
 
 /**

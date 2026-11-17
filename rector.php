@@ -2,6 +2,9 @@
 
 declare(strict_types=1);
 
+use Packman\DevTools\Rector\PackmanRectorSet;
+use Packman\DevTools\Rector\Rules\Boundaries\BoundarySafeStringClassRector;
+use Packman\DevTools\Rector\Rules\Laravel\ServerVariableToRequestFacadeRector;
 use Rector\CodeQuality\Rector\Catch_\ThrowWithPreviousExceptionRector;
 use Rector\CodeQuality\Rector\ClassMethod\LocallyCalledStaticMethodToNonStaticRector;
 use Rector\CodeQuality\Rector\FuncCall\SimplifyRegexPatternRector;
@@ -10,69 +13,71 @@ use Rector\CodeQuality\Rector\If_\ExplicitNullableObjectInstanceRector;
 use Rector\Config\RectorConfig;
 use Rector\DeadCode\Rector\ClassMethod\RemoveEmptyClassMethodRector;
 use Rector\DeadCode\Rector\ClassMethod\RemoveUnusedPublicMethodParameterRector;
+use Rector\DeadCode\Rector\ClassMethod\RemoveUselessParamTagRector;
 use Rector\DeadCode\Rector\Node\RemoveNonExistingVarAnnotationRector;
+use Rector\DeadCode\Rector\Return_\RemoveDeadConditionAboveReturnRector;
 use Rector\Instanceof_\Rector\Ternary\FlipNegatedTernaryInstanceofRector;
 use Rector\Php55\Rector\String_\StringClassNameToClassConstantRector;
 use Rector\Php80\Rector\Ternary\TernaryToNullsafeCoalesceRector;
 use Rector\Php81\Rector\Property\ReadOnlyPropertyRector;
 use Rector\Php82\Rector\Class_\ReadOnlyClassRector;
-use Rector\Set\ValueObject\SetList;
+use Rector\TypeDeclaration\Rector\ClassMethod\NarrowObjectReturnTypeRector;
 
-// `$a === null ? [] : $a->b` → `$a?->b ?? []` hides which side may be null; PHPStan then reports nullsafe.neverNull on
-// non-nullable properties. The rule exists from Rector 2.7: an older install has nothing to skip, and naming a missing
-// rule would stop every run.
-$skipped = class_exists(TernaryToNullsafeCoalesceRector::class) ? [TernaryToNullsafeCoalesceRector::class] : [];
+return static function (RectorConfig $rectorConfig): void {
+    $skipped = class_exists(TernaryToNullsafeCoalesceRector::class) ? [TernaryToNullsafeCoalesceRector::class] : [];
 
-// Rector 2.8 adds another null-to-instanceof rule; keep the same explicit nullable checks adopted below.
-if (class_exists(ExplicitNullableObjectInstanceRector::class)) {
-    $skipped[] = ExplicitNullableObjectInstanceRector::class;
-}
+    if (class_exists(ExplicitNullableObjectInstanceRector::class)) {
+        $skipped[] = ExplicitNullableObjectInstanceRector::class;
+    }
 
-return RectorConfig::configure()
-    ->withPaths([
+    $rectorConfig->paths([
         __DIR__.'/packages/core/src',
-        __DIR__.'/packages/core/modules/scopes/src',
-        __DIR__.'/packages/core/modules/audit/src',
-        __DIR__.'/packages/core/modules/devtools/src',
-        __DIR__.'/packages/filament/src',
+        // Deferred to Slice B:
+        // __DIR__.'/packages/core/modules/scopes/src',
+        // __DIR__.'/packages/core/modules/audit/src',
+        // __DIR__.'/packages/core/modules/devtools/src',
+        // __DIR__.'/packages/filament/src',
         __DIR__.'/bench/src',
-    ])
-    ->withPhpSets(php83: true)
-    ->withSets([
-        SetList::CODE_QUALITY,
-        SetList::DEAD_CODE,
-        SetList::EARLY_RETURN,
-        SetList::TYPE_DECLARATION,
-    ])
-    // Docblock-only references stay fully qualified: an import would be a real `use` that the zone arch rules
-    // count as a dependency (Facades → Testing, SchemaBuilder → Catalog).
-    ->withImportNames(importDocBlockNames: false)
-    ->withSkip([
+    ]);
+    $rectorConfig->importNames(importDocBlockNames: false);
+
+    PackmanRectorSet::configure($rectorConfig, [
         ...$skipped,
-        // Provider skeletons keep empty register()/boot() as the registration points later items fill in.
         RemoveEmptyClassMethodRector::class => [
             __DIR__.'/packages/core/src/AzGuardServiceProvider.php',
             __DIR__.'/packages/filament/src/AzGuardFilamentServiceProvider.php',
         ],
-        // Keep identifier/permission grammar regex explicit; `\w` is not a documented contract.
         SimplifyRegexPatternRector::class,
-        // DefinitionException::code() is the machine code. Copying Throwable::getCode() into the int code of
-        // RuntimeException changes the thrown code and can receive a string — everywhere, not only in two files.
         ThrowWithPreviousExceptionRector::class,
-        // `$x === null` reads as the intent for a nullable value; PHPStan level 9 already proves the type, so
-        // `! $x instanceof Foo` adds churn (87 files with Rector 2.7) and no safety.
         FlipTypeControlToUseExclusiveTypeRector::class,
         FlipNegatedTernaryInstanceofRector::class,
-        // Private static helpers are deliberate: they cannot touch instance state. Converting them is churn.
         LocallyCalledStaticMethodToNonStaticRector::class,
-        // A public method parameter is a contract (a change pipe receives $next even when it cancels).
         RemoveUnusedPublicMethodParameterRector::class,
-        // `readonly class` is a public API change recorded in api-manifest.json; promote classes deliberately.
         ReadOnlyClassRector::class,
-        // Drops `@var class-string` narrowing that PHPStan needs on a string built from a regex match.
+        NarrowObjectReturnTypeRector::class,
         RemoveNonExistingVarAnnotationRector::class,
-        // Configuration names default storage models as strings on purpose: the zone rule forbids it to depend on Storage.
-        StringClassNameToClassConstantRector::class => [__DIR__.'/packages/core/src/Configuration/Internal/AzGuardConfig.php'],
-        // PredicateQuery is cloned and re-bound to a new guard; readonly breaks the clone (NativeBuilderTest).
-        ReadOnlyPropertyRector::class => [__DIR__.'/packages/core/src/Authorization/Internal/Query/PredicateQuery.php'],
+        RemoveDeadConditionAboveReturnRector::class => [
+            __DIR__.'/packages/core/src/Authorization/Internal/Query/PredicateBuilder.php',
+        ],
+        RemoveUselessParamTagRector::class => [
+            __DIR__.'/packages/core/src/Storage/Internal/Concerns/GuardsDirectWrites.php',
+            __DIR__.'/packages/core/src/Storage/Internal/WriteGuardedBuilder.php',
+        ],
+        ServerVariableToRequestFacadeRector::class => [
+            __DIR__.'/bench/src/Stand.php',
+        ],
+        BoundarySafeStringClassRector::class => [
+            __DIR__.'/packages/core/src/Configuration/AzGuardOptions.php',
+            __DIR__.'/packages/core/src/Configuration/Internal/AzGuardConfig.php',
+            __DIR__.'/packages/core/src/aliases.php',
+        ],
+        StringClassNameToClassConstantRector::class => [
+            __DIR__.'/packages/core/src/Configuration/AzGuardOptions.php',
+            __DIR__.'/packages/core/src/Configuration/Internal/AzGuardConfig.php',
+            __DIR__.'/packages/core/src/aliases.php',
+        ],
+        ReadOnlyPropertyRector::class => [
+            __DIR__.'/packages/core/src/Authorization/Internal/Query/PredicateQuery.php',
+        ],
     ]);
+};

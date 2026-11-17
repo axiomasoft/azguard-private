@@ -2,8 +2,8 @@
 
 declare(strict_types=1);
 
-use AzGuard\Exceptions\DefinitionException;
-use AzGuard\Exceptions\InvalidConfigurationException;
+use AzGuard\Exceptions\Configuration\InvalidConfigurationException;
+use AzGuard\Exceptions\Definitions\DefinitionException;
 use AzGuard\Panels\PanelBuilder;
 use AzGuard\Sources\Folder\FolderSource;
 use AzGuard\Tests\Fixtures\Panels\AdminPanel;

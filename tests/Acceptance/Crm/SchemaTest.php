@@ -2,8 +2,8 @@
 
 declare(strict_types=1);
 
-use AzGuard\Exceptions\PermissionNotGrantableException;
-use AzGuard\Exceptions\RoleNotGrantableException;
+use AzGuard\Exceptions\Changes\PermissionNotGrantableException;
+use AzGuard\Exceptions\Changes\RoleNotGrantableException;
 use AzGuard\Kernel\Identity\PermissionPattern;
 use AzGuard\Kernel\Identity\TenantRef;
 use AzGuard\Panels\Internal\PanelRegistry;

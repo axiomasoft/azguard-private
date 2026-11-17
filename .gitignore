@@ -8,6 +8,7 @@ Thumbs.db
 vendor/
 .php-cs-fixer.cache
 .phpunit.result.cache
+.phpunit.cache/
 .pestphp-laravel-unit-test-result-cache
 packages/*/composer.lock
 

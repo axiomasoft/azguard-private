@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use AzGuard\Exceptions\InvalidConfigurationException;
+use AzGuard\Exceptions\Configuration\InvalidConfigurationException;
 use AzGuard\Panels\Reads;
 use AzGuard\Storage\Internal\Storage;
 use AzGuard\Storage\Schema\StorageSchema;

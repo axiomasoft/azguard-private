@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace AzGuard\Contracts\Subjects;
 
-use AzGuard\Attributes\Spi;
-use AzGuard\Attributes\SpiKind;
 use AzGuard\Directories\LookupContext;
 use AzGuard\Directories\SubjectOption;
 use AzGuard\Kernel\Identity\SubjectRef;
+use Packman\Attributes\Spi;
+use Packman\Attributes\SpiKind;
 
 /**
  * Search of subjects for the interface.

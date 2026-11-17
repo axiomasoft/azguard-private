@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use AzGuard\Exceptions\InvalidPermissionKeyException;
+use AzGuard\Exceptions\Identity\InvalidPermissionKeyException;
 use AzGuard\Kernel\Decision\DecisionReason;
 use AzGuard\Kernel\Decision\Grant;
 use AzGuard\Kernel\Decision\RoleContribution;

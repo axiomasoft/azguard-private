@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace AzGuard\Permissions;
 
 use Attribute;
-use AzGuard\Attributes\Api;
+use Packman\Attributes\Api;
 
 /**
  * Marks a case that every subject of the panel holds. Discovery records the mark; grants read it later.

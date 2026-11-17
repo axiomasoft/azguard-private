@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace AzGuard\Kernel\Identity;
 
-use AzGuard\Attributes\Api;
-use AzGuard\Exceptions\InvalidIdentityException;
+use AzGuard\Exceptions\Identity\InvalidIdentityException;
 use JsonException;
+use Packman\Attributes\Api;
 use ReflectionReference;
 
 /**

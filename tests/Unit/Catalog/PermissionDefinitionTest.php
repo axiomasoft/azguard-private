@@ -3,14 +3,14 @@
 declare(strict_types=1);
 
 use AzGuard\Catalog\PermissionDefinition;
-use AzGuard\Exceptions\DefinitionException;
-use AzGuard\Exceptions\DuplicatePermissionException;
-use AzGuard\Exceptions\DuplicatePolicyBindingException;
-use AzGuard\Exceptions\DuplicateRoleException;
-use AzGuard\Exceptions\InvalidPermissionKeyException;
-use AzGuard\Exceptions\InvalidPolicyStructureException;
-use AzGuard\Exceptions\UnknownSourceException;
-use AzGuard\Exceptions\WriterConflictException;
+use AzGuard\Exceptions\Definitions\DefinitionException;
+use AzGuard\Exceptions\Definitions\DuplicatePermissionException;
+use AzGuard\Exceptions\Definitions\DuplicatePolicyBindingException;
+use AzGuard\Exceptions\Definitions\DuplicateRoleException;
+use AzGuard\Exceptions\Definitions\InvalidPolicyStructureException;
+use AzGuard\Exceptions\Definitions\UnknownSourceException;
+use AzGuard\Exceptions\Definitions\WriterConflictException;
+use AzGuard\Exceptions\Identity\InvalidPermissionKeyException;
 use AzGuard\Kernel\Decision\PermissionAuthority;
 use AzGuard\Policies\PolicyBinding;
 use AzGuard\Tests\Fixtures\Panels\NumericPermission;

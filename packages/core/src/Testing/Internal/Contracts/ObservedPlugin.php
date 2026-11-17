@@ -8,12 +8,14 @@ use AzGuard\Contracts\Plugins\Plugin;
 use AzGuard\Panels\PanelBuilder;
 use AzGuard\Plugins\PluginContext;
 use Closure;
+use Packman\Attributes\Internal;
 
 /**
  * Observes the actual `register()` of the plugin under test, on the panel's own plugin copy.
  *
  * @internal
  */
+#[Internal]
 final class ObservedPlugin implements Plugin
 {
     /** @param Closure(PluginContext, Closure(): void): void $observe called around every `register()` of the plugin */

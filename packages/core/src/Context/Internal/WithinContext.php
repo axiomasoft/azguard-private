@@ -5,16 +5,18 @@ declare(strict_types=1);
 namespace AzGuard\Context\Internal;
 
 use AzGuard\Context\AssignmentScopeMode;
-use AzGuard\Exceptions\InvalidAssignmentScopeException;
+use AzGuard\Exceptions\Identity\InvalidAssignmentScopeException;
 use AzGuard\Kernel\Identity\AccessScope;
 use AzGuard\Kernel\Identity\IdentityCodec;
 use AzGuard\Panels\Panel;
 use AzGuard\Tenancy\TenantMode;
 use Closure;
+use Packman\Attributes\Internal;
 
 /**
  * Runs an operation inside a panel scope and restores state even when entry resolution fails.
  */
+#[Internal]
 final readonly class WithinContext
 {
     public function __construct(private CurrentContext $current) {}

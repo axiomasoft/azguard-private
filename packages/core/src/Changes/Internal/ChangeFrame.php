@@ -7,14 +7,16 @@ namespace AzGuard\Changes\Internal;
 use AzGuard\Changes\Change;
 use AzGuard\Changes\ChangeContext;
 use AzGuard\Changes\ChangeResult;
-use AzGuard\Exceptions\InvalidConfigurationException;
+use AzGuard\Exceptions\Configuration\InvalidConfigurationException;
 use Closure;
 use DateTimeImmutable;
+use Packman\Attributes\Internal;
 use WeakMap;
 
 /**
  * @internal Binds the changes of one pipeline attempt to their checked context. A retry gets a new frame.
  */
+#[Internal]
 final class ChangeFrame
 {
     /** @var WeakMap<Change, ChangeContext> */

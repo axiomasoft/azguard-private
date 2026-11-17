@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-use AzGuard\Exceptions\InvalidRoleKeyException;
-use AzGuard\Exceptions\PanelNotWritableException;
-use AzGuard\Exceptions\UnknownPermissionException;
-use AzGuard\Exceptions\UnknownRoleException;
+use AzGuard\Exceptions\Changes\PanelNotWritableException;
+use AzGuard\Exceptions\Changes\UnknownPermissionException;
+use AzGuard\Exceptions\Changes\UnknownRoleException;
+use AzGuard\Exceptions\Identity\InvalidRoleKeyException;
 use AzGuard\Kernel\Identity\PermissionKey;
 use AzGuard\Kernel\Identity\RoleKey;
 use AzGuard\Tests\Fixtures\Changes\ChangeWorld as W;

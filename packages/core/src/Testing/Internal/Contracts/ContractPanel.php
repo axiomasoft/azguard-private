@@ -8,10 +8,12 @@ use AzGuard\Panels\PanelBuilder;
 use AzGuard\Panels\PanelProvider;
 use AzGuard\Testing\FakeSubject;
 use Closure;
+use Packman\Attributes\Internal;
 
 /**
  * @internal The panel `contract` of the contract suites: fake subjects and two permissions; the suite adds the rest.
  */
+#[Internal]
 final class ContractPanel extends PanelProvider
 {
     /** @var (Closure(PanelBuilder): mixed)|null */

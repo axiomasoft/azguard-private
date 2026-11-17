@@ -26,7 +26,11 @@
         "source": "https://github.com/axiomasoft/azguard"
     },
     "require": {
-        "php": "^8.3",
+        "php": "^8.4",
+        "axiomasoft/packman": "^0.1",
+        "axiomasoft/packman-panels": "^0.1",
+        "axiomasoft/packman-plugins": "^0.1",
+        "axiomasoft/packman-schema": "^0.1",
         "illuminate/auth": "^13.0",
         "illuminate/console": "^13.0",
         "illuminate/contracts": "^13.0",
@@ -42,6 +46,9 @@
         "dragonmantank/cron-expression": "Required to validate cron expressions and run Laravel scheduled maintenance without laravel/framework."
     },
     "autoload": {
+        "files": [
+            "src/aliases.php"
+        ],
         "psr-4": {
             "AzGuard\\": "src/",
             "AzGuard\\Scopes\\": "modules/scopes/src/",
@@ -59,6 +66,9 @@
                 "AzGuard\\Audit\\AuditServiceProvider",
                 "AzGuard\\DevTools\\DevToolsServiceProvider"
             ]
+        },
+        "packman": {
+            "error-prefix": "azguard"
         }
     }
 }

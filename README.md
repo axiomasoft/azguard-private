@@ -95,9 +95,9 @@ This repository is the development monorepo of both packages.
 
 ## Requirements
 
-The 2.0 line supports PHP 8.3–8.5 and Laravel 13.
+The 2.0 line supports PHP 8.4–8.5 and Laravel 13.
 The Filament plugin requires Filament `^5.8.4` and the exact same AzGuard core version (`self.version`).
-CI resolves lowest and latest dependencies for PHP 8.3, 8.4 and 8.5 with Laravel 13 on SQLite. Server lanes use
+CI resolves lowest and latest dependencies for PHP 8.4 and 8.5 with Laravel 13 on SQLite. Server lanes use
 MySQL 9.7 and PostgreSQL 18, plus Redis 7. MariaDB stays available on the local Compose stand and is not a CI lane.
 These lanes do not represent every platform cross-product.
 See the [compatibility policy](docs/reference/compatibility.md).

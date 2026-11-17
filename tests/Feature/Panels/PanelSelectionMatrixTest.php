@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-use AzGuard\Concerns\SubjectAccess;
-use AzGuard\Exceptions\AmbiguousPanelException;
-use AzGuard\Exceptions\ConflictingPanelException;
-use AzGuard\Exceptions\PanelNotResolvedException;
-use AzGuard\Exceptions\SubjectNotAcceptedException;
-use AzGuard\Exceptions\UnknownPermissionException;
+use AzGuard\Concerns\Subjects\SubjectAccess;
+use AzGuard\Exceptions\Changes\UnknownPermissionException;
+use AzGuard\Exceptions\Definitions\AmbiguousPanelException;
+use AzGuard\Exceptions\Definitions\ConflictingPanelException;
+use AzGuard\Exceptions\Definitions\PanelNotResolvedException;
+use AzGuard\Exceptions\Definitions\SubjectNotAcceptedException;
 use AzGuard\Tests\Fixtures\Concerns\SelectionSubjects;
 use AzGuard\Tests\Fixtures\Panels\OrderPermission;
 use AzGuard\Tests\Fixtures\Panels\PanelWorld;

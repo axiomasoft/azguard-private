@@ -14,6 +14,7 @@ use AzGuard\Panels\Panel;
 use AzGuard\Sources\Database\DatabaseSource;
 use Carbon\CarbonImmutable;
 use Illuminate\Console\Command;
+use Packman\Attributes\Internal;
 
 /**
  * Removes expired grants through the change pipeline, each removal publishing `GrantExpired`, as the system actor
@@ -21,6 +22,7 @@ use Illuminate\Console\Command;
  * each tenant is its own mutation. `--before` moves the cut-off back in time, never forward: a grant that has not
  * expired is never removed. `--dry-run` only counts.
  */
+#[Internal]
 final class GrantsPruneCommand extends Command
 {
     use GrantCommandSupport;

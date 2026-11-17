@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace AzGuard\Attributes;
 
 use Attribute;
+use Packman\Attributes\Api;
 
 /**
  * Registers the class under a source name. Discovery of the attribute is separate from this declaration.

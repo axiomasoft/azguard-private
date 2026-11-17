@@ -7,12 +7,14 @@ namespace AzGuard\Tenancy\Internal;
 use AzGuard\Contracts\Authorization\EvaluationContext;
 use AzGuard\Contracts\Authorization\Restriction;
 use AzGuard\Contracts\Tenancy\TenantMembership;
-use AzGuard\Exceptions\DefinitionException;
+use AzGuard\Exceptions\Definitions\DefinitionException;
 use AzGuard\Kernel\Decision\AccessRequest;
 use AzGuard\Kernel\Decision\RestrictionResult;
 use Illuminate\Contracts\Container\Container;
+use Packman\Attributes\Internal;
 
 /** Active tenant membership is independent of grants and remains mandatory for administrative candidates. */
+#[Internal]
 final readonly class TenantMembershipRestriction implements Restriction
 {
     public function __construct(private Container $container) {}

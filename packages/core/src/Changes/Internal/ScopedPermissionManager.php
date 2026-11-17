@@ -10,6 +10,7 @@ use AzGuard\Contracts\Changes\PermissionManager;
 use AzGuard\Kernel\Identity\TenantRef;
 use AzGuard\Panels\Panel;
 use AzGuard\Schema\Internal\SchemaBuilder;
+use Packman\Attributes\Internal;
 
 /**
  * The permissions of one panel and tenant: listed from the schema, changed through the change pipeline, which refuses
@@ -17,6 +18,7 @@ use AzGuard\Schema\Internal\SchemaBuilder;
  *
  * @internal made by the panel managers
  */
+#[Internal]
 final readonly class ScopedPermissionManager implements PermissionManager
 {
     public function __construct(private ChangePipeline $pipeline, private SchemaBuilder $schema, private Panel $panel, private TenantRef $tenant) {}

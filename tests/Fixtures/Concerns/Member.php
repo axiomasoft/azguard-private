@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace AzGuard\Tests\Fixtures\Concerns;
 
-use AzGuard\Concerns\HasAzGuard;
-use AzGuard\Contracts\AzGuardSubject;
+use AzGuard\Concerns\Subjects\HasAzGuard;
+use AzGuard\Contracts\Subjects\AzGuardSubject;
 use Illuminate\Database\Eloquent\Model;
 
 /** A subject of both fixture panels with the trait; `$default` overrides the panel of the model. */

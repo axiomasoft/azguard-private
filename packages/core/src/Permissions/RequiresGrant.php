@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace AzGuard\Permissions;
 
 use Attribute;
-use AzGuard\Attributes\Api;
+use Packman\Attributes\Api;
 
 /**
  * The permission is decided by a qualified assignment; a bound policy may only veto it.

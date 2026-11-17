@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-use AzGuard\Exceptions\AmbiguousPanelException;
-use AzGuard\Exceptions\ConflictingPanelException;
-use AzGuard\Exceptions\UnknownRoleException;
+use AzGuard\Exceptions\Changes\UnknownRoleException;
+use AzGuard\Exceptions\Definitions\AmbiguousPanelException;
+use AzGuard\Exceptions\Definitions\ConflictingPanelException;
 use AzGuard\Panels\Internal\PanelResolver;
 use AzGuard\Tests\Fixtures\Concerns\Roles\AuditorRole;
 use AzGuard\Tests\Fixtures\Concerns\Roles\EditorRole;

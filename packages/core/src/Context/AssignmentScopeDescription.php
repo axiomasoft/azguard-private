@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace AzGuard\Context;
 
-use AzGuard\Attributes\Spi;
-use AzGuard\Attributes\SpiKind;
 use AzGuard\Contracts\Scopes\AssignmentScopeDirectory;
+use Packman\Attributes\Spi;
+use Packman\Attributes\SpiKind;
 
 /**
  * What `DescribesAssignmentScope::description()` tells core about a definition. Core compares and fingerprints the

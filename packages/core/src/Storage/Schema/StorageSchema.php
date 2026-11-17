@@ -4,11 +4,13 @@ declare(strict_types=1);
 
 namespace AzGuard\Storage\Schema;
 
-use AzGuard\Attributes\Api;
 use AzGuard\Storage\Internal\Schema\HostKeyColumns;
 use AzGuard\Storage\Internal\Storage;
 use AzGuard\Storage\Internal\StorageRegistry;
+use Illuminate\Contracts\Container\Container;
 use Illuminate\Database\Schema\Blueprint;
+use Packman\Attributes\Api;
+use Packman\Attributes\Internal;
 
 /**
  * Creates and drops the six authority tables of a configured AzGuard storage: `permissions`, `role_grants`,
@@ -18,12 +20,12 @@ use Illuminate\Database\Schema\Blueprint;
 #[Api(since: '1.0')]
 final readonly class StorageSchema
 {
-    /** @internal built by the container */
-    public function __construct(private StorageRegistry $storages) {}
+    #[Internal('built by the container')]
+    public function __construct(private Container $container) {}
 
     public function create(string $storage): void
     {
-        $storage = $this->storages->get($storage);
+        $storage = $this->container->make(StorageRegistry::class)->get($storage);
         $schema = $storage->connection()->getSchemaBuilder();
         $prefix = $storage->prefix();
         $driver = $storage->connection()->getDriverName();
@@ -84,7 +86,7 @@ final readonly class StorageSchema
 
     public function drop(string $storage): void
     {
-        $storage = $this->storages->get($storage);
+        $storage = $this->container->make(StorageRegistry::class)->get($storage);
         foreach (['permission_grants', 'role_grants', 'permissions', 'subject_revisions', 'panel_state', 'storage_state'] as $base) {
             $storage->connection()->getSchemaBuilder()->dropIfExists($storage->prefix().$base);
         }

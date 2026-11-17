@@ -17,8 +17,9 @@ declare(strict_types=1);
  * `AzGuard\AzGuard` and every manifest names the PSR-4 roots of its package.
  */
 
-use AzGuard\Attributes\Api;
-use AzGuard\Attributes\Spi;
+use Packman\Attributes\Api;
+use Packman\Attributes\Internal;
+use Packman\Attributes\Spi;
 
 $root = dirname(__DIR__);
 require $root.'/vendor/autoload.php';
@@ -104,8 +105,8 @@ function apiManifest(string $root, string $package): array
  */
 function apiPublication(ReflectionClass $class): ?array
 {
-    $api = $class->getAttributes(Api::class);
-    $spi = $class->getAttributes(Spi::class);
+    $api = $class->getAttributes(Api::class, ReflectionAttribute::IS_INSTANCEOF);
+    $spi = $class->getAttributes(Spi::class, ReflectionAttribute::IS_INSTANCEOF);
 
     if ($api === [] && $spi === []) {
         return null;
@@ -194,7 +195,7 @@ function apiMembers(ReflectionClass $class, bool $facade = false): array
 
     $constants = [];
     foreach ($class->getReflectionConstants($visibility) as $constant) {
-        if ($constant->isEnumCase() || $constant->getDeclaringClass()->getName() !== $name || apiHasTag($constant->getDocComment(), 'internal')) {
+        if ($constant->isEnumCase() || $constant->getDeclaringClass()->getName() !== $name || apiIsInternal($constant)) {
             continue;
         }
         $constants[$constant->getName()] = [
@@ -208,7 +209,7 @@ function apiMembers(ReflectionClass $class, bool $facade = false): array
 
     $properties = [];
     foreach ($class->getProperties($visibility) as $property) {
-        if ($property->getDeclaringClass()->getName() !== $name || apiHasTag($property->getDocComment(), 'internal')) {
+        if ($property->getDeclaringClass()->getName() !== $name || apiIsInternal($property)) {
             continue;
         }
         $properties[$property->getName()] = [
@@ -224,7 +225,7 @@ function apiMembers(ReflectionClass $class, bool $facade = false): array
 
     $methods = [];
     foreach ($class->getMethods($visibility) as $method) {
-        if ($method->getDeclaringClass()->getName() !== $name || apiHasTag($method->getDocComment(), 'internal')) {
+        if ($method->getDeclaringClass()->getName() !== $name || apiIsInternal($method)) {
             continue;
         }
         $methods[$method->getName()] = [
@@ -253,6 +254,11 @@ function apiVisibility(ReflectionClassConstant|ReflectionProperty|ReflectionMeth
 function apiHasTag(string|false $doc, string $tag): bool
 {
     return preg_match('/^\s*(?:\/\*\*|\*)\s*@'.preg_quote($tag, '/').'\b/m', (string) $doc) === 1;
+}
+
+function apiIsInternal(ReflectionClassConstant|ReflectionProperty|ReflectionMethod $member): bool
+{
+    return $member->getAttributes(Internal::class, ReflectionAttribute::IS_INSTANCEOF) !== [] || apiHasTag($member->getDocComment(), 'internal');
 }
 
 /**
@@ -391,7 +397,7 @@ function apiFacadeSource(): string
 {
     $entry = new ReflectionClass(API_ENTRY);
     $entryImports = apiImports((string) file_get_contents((string) $entry->getFileName()));
-    $imports = ['AzGuard\Attributes\Api' => true, 'Illuminate\Support\Facades\Facade' => true];
+    $imports = ['Packman\Attributes\Api' => true, 'Illuminate\Support\Facades\Facade' => true];
     $short = static function (string $fqcn) use (&$imports): string {
         // The facade zone imports no testing code (ZonesArchTest): the fake is named by its full name.
         if (str_starts_with($fqcn, 'AzGuard\\Testing\\')) {

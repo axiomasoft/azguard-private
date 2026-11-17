@@ -4,22 +4,22 @@ declare(strict_types=1);
 
 namespace AzGuard\Testing;
 
-use AzGuard\Attributes\Api;
 use AzGuard\Events\AccessEvent;
+use AzGuard\Events\Changes\GrantExpired;
+use AzGuard\Events\Changes\PermissionGranted;
+use AzGuard\Events\Changes\PermissionGrantUpdated;
+use AzGuard\Events\Changes\PermissionRevoked;
+use AzGuard\Events\Changes\RoleGranted;
+use AzGuard\Events\Changes\RoleGrantUpdated;
+use AzGuard\Events\Changes\RoleRevoked;
 use AzGuard\Events\EventType;
-use AzGuard\Events\GrantExpired;
-use AzGuard\Events\PermissionGranted;
-use AzGuard\Events\PermissionGrantUpdated;
-use AzGuard\Events\PermissionRevoked;
-use AzGuard\Events\RoleGranted;
-use AzGuard\Events\RoleGrantUpdated;
-use AzGuard\Events\RoleRevoked;
 use AzGuard\Kernel\Identity\ActorRef;
 use AzGuard\Kernel\Identity\AssignmentScopeRef;
 use AzGuard\Kernel\Identity\PermissionPattern;
 use AzGuard\Kernel\Identity\RoleKey;
 use AzGuard\Kernel\Identity\SubjectRef;
 use AzGuard\Kernel\Identity\TenantRef;
+use Packman\Attributes\Api;
 
 /**
  * One change the fake saw, taken from the event the change published after its commit. A change of the permission

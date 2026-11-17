@@ -1,0 +1,19 @@
+<?php
+
+declare(strict_types=1);
+
+namespace AzGuard\Exceptions\Authorization;
+
+use Packman\Attributes\Api;
+
+/**
+ * A grant, role contribution or restriction result supplied by an extension breaks the decision contract.
+ */
+#[Api(since: '1.0')]
+final class InvalidSourceContributionException extends AuthorizationEngineException
+{
+    public function code(): string
+    {
+        return 'invalid_source_contribution';
+    }
+}

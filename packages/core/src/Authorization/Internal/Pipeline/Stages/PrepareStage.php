@@ -12,8 +12,8 @@ use AzGuard\Authorization\Internal\Pipeline\Trace;
 use AzGuard\Authorization\Internal\ReadAttempt;
 use AzGuard\Catalog\Internal\PanelCatalog;
 use AzGuard\Catalog\PermissionDefinition;
-use AzGuard\Exceptions\ConsistencyException;
-use AzGuard\Exceptions\SubjectNotAcceptedException;
+use AzGuard\Exceptions\Authorization\ConsistencyException;
+use AzGuard\Exceptions\Definitions\SubjectNotAcceptedException;
 use AzGuard\Kernel\Decision\AccessRequest;
 use AzGuard\Kernel\Decision\CodeStateToken;
 use AzGuard\Kernel\Decision\Decision;
@@ -31,8 +31,10 @@ use DateTimeImmutable;
 use Illuminate\Contracts\Container\Container;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Carbon;
+use Packman\Attributes\Internal;
 use Throwable;
 
+#[Internal]
 final readonly class PrepareStage
 {
     public function __construct(private PanelRegistry $registry, private ModelSubjectResolver $resolver, private Container $container, private BoundaryStage $boundary) {}

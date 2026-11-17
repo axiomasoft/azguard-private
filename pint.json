@@ -3,7 +3,9 @@
     "exclude": [
         ".semgrep",
         "audits",
-        "plans"
+        "build",
+        "plans",
+        "vendor"
     ],
     "rules": {
         "blank_line_before_statement": {

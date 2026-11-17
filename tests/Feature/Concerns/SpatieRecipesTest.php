@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 use AzGuard\Changes\ChangeStatus;
-use AzGuard\Concerns\SubjectAccess;
+use AzGuard\Concerns\Subjects\SubjectAccess;
 use AzGuard\Tests\Fixtures\Concerns\AdminPermission;
 use AzGuard\Tests\Fixtures\Concerns\CabinetPermission;
 use AzGuard\Tests\Fixtures\Concerns\Member;

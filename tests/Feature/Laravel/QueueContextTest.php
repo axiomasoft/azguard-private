@@ -2,8 +2,8 @@
 
 declare(strict_types=1);
 
-use AzGuard\Exceptions\PanelNotResolvedException;
-use AzGuard\Exceptions\UnknownPanelException;
+use AzGuard\Exceptions\Definitions\PanelNotResolvedException;
+use AzGuard\Exceptions\Definitions\UnknownPanelException;
 use AzGuard\Panels\Internal\CurrentPanel;
 use AzGuard\Panels\Internal\PanelResolver;
 use AzGuard\Tests\Fixtures\Crm\CrmWorld;

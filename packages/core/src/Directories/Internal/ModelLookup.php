@@ -4,11 +4,12 @@ declare(strict_types=1);
 
 namespace AzGuard\Directories\Internal;
 
-use AzGuard\Exceptions\DefinitionException;
+use AzGuard\Exceptions\Definitions\DefinitionException;
 use AzGuard\Support\ModelKey;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Query\Expression;
+use Packman\Attributes\Internal;
 use ReflectionMethod;
 
 /**
@@ -19,6 +20,7 @@ use ReflectionMethod;
  *
  * @internal
  */
+#[Internal]
 final class ModelLookup
 {
     public static function label(Model $record): string
@@ -69,7 +71,7 @@ final class ModelLookup
             }
 
             if ($matchers === 0) {
-                $group->whereRaw('0 = 1');
+                $group->getQuery()->whereRaw('0 = 1');
             }
         });
     }
@@ -79,10 +81,10 @@ final class ModelLookup
      */
     public static function searchColumns(Model $model): array
     {
-        if (! method_exists($model, 'azguardSearchColumns') || ! (new ReflectionMethod($model, 'azguardSearchColumns'))->isStatic()) {
+        if (! method_exists($model, 'azguardSearchColumns') || ! new ReflectionMethod($model, 'azguardSearchColumns')->isStatic()) {
             return [];
         }
-        $columns = (new ReflectionMethod($model, 'azguardSearchColumns'))->invoke(null);
+        $columns = new ReflectionMethod($model, 'azguardSearchColumns')->invoke(null);
 
         if (! is_array($columns)) {
             throw new DefinitionException($model::class.'::azguardSearchColumns() must return a list of column names.');

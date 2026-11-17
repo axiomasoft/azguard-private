@@ -8,6 +8,7 @@ use AzGuard\Contracts\Diagnostics\DoctorCheck;
 use AzGuard\Diagnostics\DoctorContext;
 use AzGuard\Diagnostics\DoctorFinding;
 use Illuminate\Contracts\Config\Repository;
+use Packman\Attributes\Internal;
 
 /**
  * `catalog.build_id`, for a production deployment: the build is named by `catalog.build_id` (`AZGUARD_BUILD_ID`).
@@ -17,6 +18,7 @@ use Illuminate\Contracts\Config\Repository;
  *
  * @internal
  */
+#[Internal]
 final readonly class CatalogBuildId implements DoctorCheck
 {
     public function __construct(private Repository $config) {}

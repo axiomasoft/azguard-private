@@ -7,7 +7,9 @@ namespace AzGuard\Storage\Internal;
 use AzGuard\Kernel\Internal\Narrow;
 use DateTimeImmutable;
 use DateTimeZone;
+use Packman\Attributes\Internal;
 
+#[Internal]
 final readonly class PanelState
 {
     public function __construct(
@@ -21,7 +23,8 @@ final readonly class PanelState
     /** @internal A row of `panel_state`: panel, version, incarnation, updated_at (UTC) and epoch. */
     public static function fromRow(object $row): self
     {
-        $value = static fn (string $column): mixed => property_exists($row, $column) ? $row->{$column} : null;
+        $fields = get_object_vars($row);
+        $value = static fn (string $column): mixed => $fields[$column] ?? null;
 
         return new self(Narrow::string($value('panel'), 'panel_state.panel'), Narrow::int($value('version'), 'panel_state.version'),
             Narrow::string($value('incarnation'), 'panel_state.incarnation'),

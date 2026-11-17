@@ -8,6 +8,7 @@ use AzGuard\Contracts\Diagnostics\DoctorCheck;
 use AzGuard\Diagnostics\DoctorContext;
 use AzGuard\Diagnostics\DoctorFinding;
 use AzGuard\Sources\Database\DatabaseSource;
+use Packman\Attributes\Internal;
 
 /**
  * `storage.schema` of a database source: every field the grant models and the panel keep outside `meta` has its
@@ -15,6 +16,7 @@ use AzGuard\Sources\Database\DatabaseSource;
  *
  * @internal
  */
+#[Internal]
 final readonly class ModelColumns implements DoctorCheck
 {
     public function __construct(private DatabaseSource $source) {}

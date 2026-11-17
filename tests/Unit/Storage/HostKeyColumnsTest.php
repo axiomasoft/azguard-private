@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use AzGuard\Exceptions\InvalidIdentityException;
+use AzGuard\Exceptions\Identity\InvalidIdentityException;
 use AzGuard\Storage\Internal\Schema\HostKeyColumns;
 
 it('accepts canonical host keys', function (string $type, int|string $id): void {

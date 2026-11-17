@@ -2,8 +2,8 @@
 
 declare(strict_types=1);
 
-use AzGuard\Exceptions\DuplicatePermissionException;
-use AzGuard\Exceptions\UnknownPermissionException;
+use AzGuard\Exceptions\Changes\UnknownPermissionException;
+use AzGuard\Exceptions\Definitions\DuplicatePermissionException;
 use AzGuard\Storage\Schema\StorageSchema;
 use AzGuard\Tests\Engines\Support\CacheEngineWorld;
 use AzGuard\Tests\Engines\Support\Processes;

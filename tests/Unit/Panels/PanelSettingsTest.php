@@ -3,10 +3,10 @@
 declare(strict_types=1);
 
 use AzGuard\Contracts\Authorization\EvaluationContext;
-use AzGuard\Exceptions\DefinitionException;
-use AzGuard\Exceptions\InvalidConfigurationException;
-use AzGuard\Exceptions\PluginConflictException;
-use AzGuard\Exceptions\PluginException;
+use AzGuard\Exceptions\Configuration\InvalidConfigurationException;
+use AzGuard\Exceptions\Definitions\DefinitionException;
+use AzGuard\Exceptions\Plugins\PluginConflictException;
+use AzGuard\Exceptions\Plugins\PluginException;
 use AzGuard\Kernel\Decision\AccessRequest;
 use AzGuard\Kernel\Decision\BeforeResult;
 use AzGuard\Panels\Internal\PanelCompiler;

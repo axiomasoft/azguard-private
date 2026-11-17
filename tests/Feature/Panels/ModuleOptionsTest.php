@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 use AzGuard\Audit\AuditOptions;
 use AzGuard\Audit\AuditPlugin;
-use AzGuard\Exceptions\DefinitionException;
-use AzGuard\Exceptions\PluginConflictException;
+use AzGuard\Exceptions\Definitions\DefinitionException;
+use AzGuard\Exceptions\Plugins\PluginConflictException;
 use AzGuard\Panels\Internal\PanelFingerprint;
 use AzGuard\Panels\Internal\PanelRecipe;
 use AzGuard\Panels\Internal\PanelRegistry;
@@ -22,6 +22,7 @@ use AzGuard\Tests\Fixtures\Panels\Options\OptionsPlugin;
 use AzGuard\Tests\Fixtures\Panels\PanelWorld;
 use AzGuard\Tests\Fixtures\Panels\User;
 use Illuminate\Http\Request;
+use Packman\Attributes\Internal;
 
 it('reads the options a panel was given by class, and null for a class it was not given', function (): void {
     [, , $registry] = PanelWorld::compile([AdminPanel::class => static fn (PanelBuilder $panel): PanelBuilder => $panel->options(new LimitOptions(25, 'admin'))]);
@@ -151,9 +152,9 @@ it('exposes the id the builder describes', function (): void {
 });
 
 it('marks the raw compiled lists of a panel internal', function (string $method): void {
-    $doc = (string) (new ReflectionMethod(Panel::class, $method))->getDocComment();
+    $attributes = (new ReflectionMethod(Panel::class, $method))->getAttributes(Internal::class);
 
-    expect($doc)->toContain('@internal');
+    expect($attributes)->not->toBeEmpty();
 })->with(['changing', 'before', 'after', 'restrictions', 'grantConditions', 'doctorChecks', 'attachedSources', 'scopeDefinition', 'scopeDefinitions', 'scopeResolvers', 'tenantResolvers', 'resourceScopes']);
 
 it('rejects a grant field in the reserved azg_ namespace', function (string $name): void {

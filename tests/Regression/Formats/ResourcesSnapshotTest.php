@@ -9,7 +9,7 @@ use AzGuard\AzGuardServiceProvider;
 use AzGuard\Configuration\Internal\AzGuardConfig;
 use AzGuard\Contracts\Plugins\Plugin;
 use AzGuard\DevTools\Internal\Scaffold\StubStore;
-use AzGuard\Exceptions\PluginConflictException;
+use AzGuard\Exceptions\Plugins\PluginConflictException;
 use AzGuard\Filament\AzGuardFilamentServiceProvider;
 use AzGuard\Kernel\Identity\ActorRef;
 use AzGuard\Laravel\Internal\Queue\PanelContext;

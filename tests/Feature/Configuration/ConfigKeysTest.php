@@ -5,7 +5,7 @@ declare(strict_types=1);
 use AzGuard\AzGuardServiceProvider;
 use AzGuard\Configuration\Internal\AzGuardConfig;
 use AzGuard\DevTools\Internal\ScaffoldConfig;
-use AzGuard\Exceptions\InvalidConfigurationException;
+use AzGuard\Exceptions\Configuration\InvalidConfigurationException;
 use AzGuard\Panels\Internal\PanelCompiler;
 use AzGuard\Panels\Internal\PanelRecipe;
 use AzGuard\Panels\PanelBuilder;

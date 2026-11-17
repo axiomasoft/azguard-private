@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace AzGuard\Directories;
 
-use AzGuard\Attributes\Api;
 use AzGuard\Kernel\Identity\AssignmentScopeRef;
+use Packman\Attributes\Api;
 
 /**
  * One assignment scope a directory offers to the interface.

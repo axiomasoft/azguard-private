@@ -2,8 +2,8 @@
 
 declare(strict_types=1);
 
-use AzGuard\Exceptions\InvalidIdentityException;
-use AzGuard\Exceptions\InvalidPanelIdException;
+use AzGuard\Exceptions\Identity\InvalidIdentityException;
+use AzGuard\Exceptions\Identity\InvalidPanelIdException;
 use AzGuard\Kernel\Decision\CodeStateToken;
 use AzGuard\Kernel\Decision\StateToken;
 

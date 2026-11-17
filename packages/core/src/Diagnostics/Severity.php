@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace AzGuard\Diagnostics;
 
-use AzGuard\Attributes\Api;
+use Packman\Attributes\Api;
 
 /**
  * How serious a doctor finding is: an error fails `azguard:doctor`, a warning is reported only.

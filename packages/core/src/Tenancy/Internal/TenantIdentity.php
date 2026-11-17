@@ -4,16 +4,18 @@ declare(strict_types=1);
 
 namespace AzGuard\Tenancy\Internal;
 
-use AzGuard\Exceptions\TenantMismatchException;
+use AzGuard\Exceptions\Changes\TenantMismatchException;
 use AzGuard\Kernel\Identity\TenantRef;
 use AzGuard\Panels\Panel;
 use AzGuard\Support\ModelKey;
 use Illuminate\Database\Eloquent\Model;
+use Packman\Attributes\Internal;
 
 /**
  * The tenant a model is inside one panel. One reading of the panel definition for the subject wrapper, the panel
  * access and the facade, so none of them keeps a second rule.
  */
+#[Internal]
 final class TenantIdentity
 {
     /** @throws TenantMismatchException when the model is not the tenant model of the panel */

@@ -9,7 +9,7 @@ use AzGuard\Contracts\Sources\ProvidesGrants;
 use AzGuard\Contracts\Sources\ProvidesPermissions;
 use AzGuard\Contracts\Sources\ProvidesRoleGrants;
 use AzGuard\Contracts\Sources\Volatility;
-use AzGuard\Exceptions\StorageMismatchException;
+use AzGuard\Exceptions\Storage\StorageMismatchException;
 use AzGuard\Sources\Database\DatabaseSource;
 use AzGuard\Sources\SourceManager;
 use AzGuard\Storage\Models\PermissionGrant;

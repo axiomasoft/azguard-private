@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace AzGuard\Kernel\Identity;
 
-use AzGuard\Attributes\Api;
-use AzGuard\Exceptions\InvalidPanelIdException;
-use AzGuard\Exceptions\InvalidPermissionKeyException;
+use AzGuard\Exceptions\Identity\InvalidPanelIdException;
+use AzGuard\Exceptions\Identity\InvalidPermissionKeyException;
 use AzGuard\Kernel\Grammar\PermissionGrammar;
 use JsonSerializable;
+use Packman\Attributes\Api;
 use Stringable;
 
 /**

@@ -29,9 +29,11 @@ use AzGuard\Support\ModelKey;
 use AzGuard\Tenancy\TenantMode;
 use Illuminate\Contracts\Container\Container;
 use Illuminate\Http\Request;
+use Packman\Attributes\Internal;
 use RuntimeException;
 use Throwable;
 
+#[Internal]
 final readonly class BoundaryStage
 {
     public function __construct(private Container $container, private CurrentContext $current) {}

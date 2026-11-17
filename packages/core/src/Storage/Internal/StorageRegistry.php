@@ -5,12 +5,14 @@ declare(strict_types=1);
 namespace AzGuard\Storage\Internal;
 
 use AzGuard\Configuration\Internal\AzGuardConfig;
-use AzGuard\Exceptions\InvalidConfigurationException;
-use AzGuard\Exceptions\StorageMismatchException;
+use AzGuard\Exceptions\Configuration\InvalidConfigurationException;
+use AzGuard\Exceptions\Storage\StorageMismatchException;
 use AzGuard\Kernel\Identity\IdentityCodec;
 use AzGuard\Storage\StorageDescriptor;
 use Illuminate\Database\DatabaseManager;
+use Packman\Attributes\Internal;
 
+#[Internal]
 final class StorageRegistry
 {
     /** @var array<string, Storage> */

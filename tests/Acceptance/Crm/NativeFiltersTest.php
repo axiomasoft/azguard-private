@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use AzGuard\Exceptions\VisibilityNotSupportedException;
+use AzGuard\Exceptions\Authorization\VisibilityNotSupportedException;
 use AzGuard\Kernel\Decision\DecisionReason;
 use AzGuard\Tests\Fixtures\Crm\CrmWorld as World;
 use AzGuard\Tests\Fixtures\Crm\Guards\Crm\Filters\ActiveProjects;

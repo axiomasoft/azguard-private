@@ -8,9 +8,9 @@ use AzGuard\AzGuard;
 use AzGuard\Changes\ChangeResult;
 use AzGuard\Changes\GrantRecord;
 use AzGuard\Changes\Internal\ActingActor;
-use AzGuard\Contracts\PanelAccess;
-use AzGuard\Exceptions\TenantMismatchException;
-use AzGuard\Exceptions\TenantRequiredException;
+use AzGuard\Contracts\Panels\PanelAccess;
+use AzGuard\Exceptions\Changes\TenantMismatchException;
+use AzGuard\Exceptions\Changes\TenantRequiredException;
 use AzGuard\Kernel\Identity\ActorRef;
 use AzGuard\Kernel\Identity\AssignmentScopeRef;
 use AzGuard\Kernel\Identity\IdentityCodec;
@@ -27,6 +27,7 @@ use DateTimeImmutable;
 use DateTimeZone;
 use Illuminate\Console\Command;
 use Illuminate\Database\Eloquent\Model;
+use Packman\Attributes\Internal;
 
 /**
  * @internal Rules of the core commands that read and change grants, on top of `CommandSupport`.
@@ -38,6 +39,7 @@ use Illuminate\Database\Eloquent\Model;
  *
  * @phpstan-require-extends Command
  */
+#[Internal]
 trait GrantCommandSupport
 {
     use CommandSupport;

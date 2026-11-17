@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace AzGuard\Panels;
 
-use AzGuard\Attributes\Api;
 use AzGuard\Context\AssignmentScopeDeclaration;
 use AzGuard\Contracts\Authorization\AfterHook;
 use AzGuard\Contracts\Authorization\BeforeHook;
@@ -30,6 +29,9 @@ use Closure;
 use Illuminate\Container\Container as LaravelContainer;
 use Illuminate\Contracts\Container\Container;
 use Illuminate\Database\Eloquent\Model;
+use InvalidArgumentException;
+use Packman\Attributes\Api;
+use Packman\Attributes\Internal;
 use UnitEnum;
 
 /**
@@ -38,13 +40,30 @@ use UnitEnum;
 #[Api(since: '1.0')]
 final readonly class Panel
 {
+    private ?PanelSources $resolved;
+
     /**
-     * @internal built by the panel compiler
-     *
      * @param  list<class-string<Model>>  $subjectModels
      * @param  list<string>  $pluginIds
      * @param  Closure(): (?DatabaseSource)  $writer
+     * @param  array<string, list<Field>>  $grantFields
+     * @param  list<BeforeHook|class-string<BeforeHook>|Closure(mixed...): mixed>  $beforeHooks
+     * @param  list<AfterHook|class-string<AfterHook>|Closure(mixed...): mixed>  $afterHooks
+     * @param  list<Restriction|class-string<Restriction>>  $accessRestrictions
+     * @param  list<GrantCondition|class-string<GrantCondition>>  $conditions
+     * @param  array<string, AssignmentScopeDefinition>  $scopeDefinitions
+     * @param  list<TenantResolver|class-string<TenantResolver>>  $tenantResolvers
+     * @param  list<AssignmentScopeResolver|class-string<AssignmentScopeResolver>>  $scopeResolvers
+     * @param  array<class-string<Model>, ResourceScopeResolver|class-string<ResourceScopeResolver>>  $resourceScopes
+     * @param  list<ChangePipe|class-string<ChangePipe>|Closure(mixed...): mixed>  $changingPipes
+     * @param  list<array{participant: ChangeParticipant|class-string<ChangeParticipant>, tables: list<string>}>  $changeParticipants
+     * @param  list<SubjectDescriptor>  $subjectDescriptors
+     * @param  (Closure(mixed...): mixed)|string|null  $deniedResponse
+     * @param  list<string>  $entryMiddleware
+     * @param  list<array{check: DoctorCheck|class-string<DoctorCheck>, origin: string}>  $healthChecks
+     * @param  array<class-string, object>  $options
      */
+    #[Internal('built by the panel compiler')]
     public function __construct(
         private string $id,
         private string $label,
@@ -52,45 +71,35 @@ final readonly class Panel
         private PanelSettings $settings,
         private array $subjectModels,
         private array $pluginIds,
-        private ?PanelSources $resolved = null,
+        ?object $resolved = null,
         private bool $writable = false,
         private ?Closure $writer = null,
-        /** @var array<string, list<Field>> */
         private array $grantFields = [],
-        /** @var list<BeforeHook|class-string<BeforeHook>|Closure> */
         private array $beforeHooks = [],
-        /** @var list<AfterHook|class-string<AfterHook>|Closure> */
         private array $afterHooks = [],
-        /** @var list<Restriction|class-string<Restriction>> */
         private array $accessRestrictions = [],
-        /** @var list<GrantCondition|class-string<GrantCondition>> */
         private array $conditions = [],
         private ?TenantPolicy $tenantPolicy = null,
         private ?AssignmentScopeDeclaration $scopeDeclaration = null,
-        /** @var array<string, AssignmentScopeDefinition> */
         private array $scopeDefinitions = [],
-        /** @var list<TenantResolver|class-string<TenantResolver>> */
         private array $tenantResolvers = [],
-        /** @var list<AssignmentScopeResolver|class-string<AssignmentScopeResolver>> */
         private array $scopeResolvers = [],
-        /** @var array<class-string<Model>, ResourceScopeResolver|class-string<ResourceScopeResolver>> */
         private array $resourceScopes = [],
-        /** @var list<ChangePipe|class-string<ChangePipe>|Closure> */
         private array $changingPipes = [],
-        /** @var list<array{participant: ChangeParticipant|class-string<ChangeParticipant>, tables: list<string>}> */
         private array $changeParticipants = [],
-        /** @var list<SubjectDescriptor> */
         private array $subjectDescriptors = [],
         private string|UnitEnum|null $entryPermission = null,
         private Closure|string|null $deniedResponse = null,
-        /** @var list<string> */
         private array $entryMiddleware = [],
         private bool $routeChecks = false,
-        /** @var list<array{check: DoctorCheck|class-string<DoctorCheck>, origin: string}> */
         private array $healthChecks = [],
-        /** @var array<class-string, object> */
         private array $options = [],
-    ) {}
+    ) {
+        if ($resolved !== null && ! $resolved instanceof PanelSources) {
+            throw new InvalidArgumentException('Panel resolved sources must be an internal PanelSources instance.');
+        }
+        $this->resolved = $resolved;
+    }
 
     /**
      * The permission required to enter the panel in addition to a role of the panel, or null when a role is enough.
@@ -103,6 +112,8 @@ final readonly class Panel
     /**
      * The response to a denied entry: a closure that takes the request and the panel and returns a response, or a
      * redirect target (a route name or a URL); null answers 403.
+     *
+     * @return (Closure(mixed...): mixed)|string|null
      */
     public function onDenied(): Closure|string|null
     {
@@ -131,10 +142,9 @@ final readonly class Panel
      * Doctor checks of the panel and its plugins in the order provider, plugins, `configure`, each with where it came
      * from: `provider`, `configure` or `plugin:<id>`.
      *
-     * @internal read by the doctor
-     *
      * @return list<array{check: DoctorCheck|class-string<DoctorCheck>, origin: string}>
      */
+    #[Internal('read by the doctor')]
     public function doctorChecks(): array
     {
         return $this->healthChecks;
@@ -143,16 +153,15 @@ final readonly class Panel
     /**
      * The source objects of the panel in the order they were assembled.
      *
-     * @internal read by the doctor
-     *
      * @return list<Source>
      */
+    #[Internal('read by the doctor')]
     public function attachedSources(): array
     {
         return $this->resolved === null ? [] : array_column($this->resolved->all(), 'source');
     }
 
-    /** @internal The panel assembly container, or the application container for a manually constructed panel. */
+    #[Internal('The panel assembly container, or the application container for a manually constructed panel.')]
     public function sourceContainer(): Container
     {
         return $this->resolved?->container() ?? LaravelContainer::getInstance();
@@ -161,10 +170,9 @@ final readonly class Panel
     /**
      * Pipes every change of grants passes through, in the order provider, plugins, `configure`.
      *
-     * @return list<ChangePipe|class-string<ChangePipe>|Closure>
-     *
-     * @internal raw compiled list, not a supported surface
+     * @return list<ChangePipe|class-string<ChangePipe>|Closure(mixed...): mixed>
      */
+    #[Internal('raw compiled list, not a supported surface')]
     public function changing(): array
     {
         return $this->changingPipes;
@@ -175,9 +183,8 @@ final readonly class Panel
      * plugins, `configure`.
      *
      * @return list<array{participant: ChangeParticipant|class-string<ChangeParticipant>, tables: list<string>}>
-     *
-     * @internal read by the change pipeline and the panel fingerprint
      */
+    #[Internal('read by the change pipeline and the panel fingerprint')]
     public function participants(): array
     {
         return $this->changeParticipants;
@@ -244,9 +251,7 @@ final readonly class Panel
         return $this->scopeDeclaration;
     }
 
-    /**
-     * @internal raw compiled list, not a supported surface
-     */
+    #[Internal('raw compiled list, not a supported surface')]
     public function scopeDefinition(string $type): ?AssignmentScopeDefinition
     {
         return $this->scopeDefinitions[$type] ?? null;
@@ -254,9 +259,8 @@ final readonly class Panel
 
     /**
      * @return array<string, AssignmentScopeDefinition>
-     *
-     * @internal raw compiled list, not a supported surface
      */
+    #[Internal('raw compiled list, not a supported surface')]
     public function scopeDefinitions(): array
     {
         return $this->scopeDefinitions;
@@ -264,9 +268,8 @@ final readonly class Panel
 
     /**
      * @return list<TenantResolver|class-string<TenantResolver>>
-     *
-     * @internal raw compiled list, not a supported surface
      */
+    #[Internal('raw compiled list, not a supported surface')]
     public function tenantResolvers(): array
     {
         return $this->tenantResolvers;
@@ -274,9 +277,8 @@ final readonly class Panel
 
     /**
      * @return list<AssignmentScopeResolver|class-string<AssignmentScopeResolver>>
-     *
-     * @internal raw compiled list, not a supported surface
      */
+    #[Internal('raw compiled list, not a supported surface')]
     public function scopeResolvers(): array
     {
         return $this->scopeResolvers;
@@ -284,29 +286,26 @@ final readonly class Panel
 
     /**
      * @return array<class-string<Model>, ResourceScopeResolver|class-string<ResourceScopeResolver>>
-     *
-     * @internal raw compiled list, not a supported surface
      */
+    #[Internal('raw compiled list, not a supported surface')]
     public function resourceScopes(): array
     {
         return $this->resourceScopes;
     }
 
     /**
-     * @return list<BeforeHook|class-string<BeforeHook>|Closure>
-     *
-     * @internal raw compiled list, not a supported surface
+     * @return list<BeforeHook|class-string<BeforeHook>|Closure(mixed...): mixed>
      */
+    #[Internal('raw compiled list, not a supported surface')]
     public function before(): array
     {
         return $this->beforeHooks;
     }
 
     /**
-     * @return list<AfterHook|class-string<AfterHook>|Closure>
-     *
-     * @internal raw compiled list, not a supported surface
+     * @return list<AfterHook|class-string<AfterHook>|Closure(mixed...): mixed>
      */
+    #[Internal('raw compiled list, not a supported surface')]
     public function after(): array
     {
         return $this->afterHooks;
@@ -314,9 +313,8 @@ final readonly class Panel
 
     /**
      * @return list<Restriction|class-string<Restriction>>
-     *
-     * @internal raw compiled list, not a supported surface
      */
+    #[Internal('raw compiled list, not a supported surface')]
     public function restrictions(): array
     {
         return $this->accessRestrictions;
@@ -324,9 +322,8 @@ final readonly class Panel
 
     /**
      * @return list<GrantCondition|class-string<GrantCondition>>
-     *
-     * @internal raw compiled list, not a supported surface
      */
+    #[Internal('raw compiled list, not a supported surface')]
     public function grantConditions(): array
     {
         return $this->conditions;
@@ -349,9 +346,8 @@ final readonly class Panel
 
     /**
      * @return array<class-string, object>
-     *
-     * @internal read by the panel fingerprint
      */
+    #[Internal('read by the panel fingerprint')]
     public function optionObjects(): array
     {
         return $this->options;
@@ -434,9 +430,8 @@ final readonly class Panel
     /**
      * The core database source that writes the panel's grants in the current request or job, or null when the panel
      * stores nothing. An object writer is the object of the recipe; a named writer is built again for each scope.
-     *
-     * @internal write paths of the package; supported code reads `writer()`
      */
+    #[Internal('write paths of the package; supported code reads `writer()`')]
     public function writerSource(): ?DatabaseSource
     {
         if ($this->writer === null) {
@@ -462,12 +457,6 @@ final readonly class Panel
      */
     public function accepts(Model|SubjectRef $subject): bool
     {
-        foreach ($this->subjectModels as $model) {
-            if ($subject instanceof Model ? $subject instanceof $model : $subject->type() === (new $model)->getMorphClass()) {
-                return true;
-            }
-        }
-
-        return false;
+        return array_any($this->subjectModels, fn (string $model): bool => $subject instanceof Model ? $subject instanceof $model : $subject->type() === (new $model)->getMorphClass());
     }
 }

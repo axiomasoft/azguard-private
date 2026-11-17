@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace AzGuard\Tests\Fixtures\Concerns;
 
 use AzGuard\Authorization\Internal\Authorizer;
-use AzGuard\Concerns\SubjectAccess;
+use AzGuard\Concerns\Subjects\SubjectAccess;
 use AzGuard\Panels\Internal\CurrentPanel;
 use AzGuard\Panels\Internal\PanelRegistry;
 use AzGuard\Panels\Internal\PanelResolver;

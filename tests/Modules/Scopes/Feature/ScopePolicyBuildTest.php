@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 use AzGuard\Context\AssignmentScopeDeclaration;
 use AzGuard\Context\AssignmentScopeMode;
-use AzGuard\Exceptions\DefinitionException;
-use AzGuard\Exceptions\InvalidConfigurationException;
+use AzGuard\Exceptions\Configuration\InvalidConfigurationException;
+use AzGuard\Exceptions\Definitions\DefinitionException;
 use AzGuard\Panels\PanelBuilder;
 use AzGuard\Roles\BaseRole;
 use AzGuard\Scopes\Internal\Checks\ScopeMembershipConfigured;

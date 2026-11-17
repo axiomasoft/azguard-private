@@ -4,8 +4,9 @@ declare(strict_types=1);
 
 namespace AzGuard\Plugins;
 
-use AzGuard\Attributes\Spi;
-use AzGuard\Attributes\SpiKind;
+use Packman\Attributes\Internal;
+use Packman\Attributes\Spi;
+use Packman\Attributes\SpiKind;
 
 /**
  * What a plugin is told about the build it takes part in: the panel, its own id and the build.
@@ -15,9 +16,7 @@ use AzGuard\Attributes\SpiKind;
 #[Spi(kind: SpiKind::Call, since: '1.0')]
 final readonly class PluginContext
 {
-    /**
-     * @internal built by the panel compiler
-     */
+    #[Internal('built by the panel compiler')]
     public function __construct(
         private string $panelId,
         private string $pluginId,

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use AzGuard\Exceptions\ConfigurationException;
+use AzGuard\Exceptions\Configuration\ConfigurationException;
 use AzGuard\Filament\FilamentTenantResolver;
 use AzGuard\Kernel\Identity\TenantRef;
 use AzGuard\Tests\Fixtures\Filament\FilamentFixture;

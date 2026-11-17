@@ -11,7 +11,7 @@ use AzGuard\Changes\ChangeResult;
 use AzGuard\Contracts\Changes\ChangeParticipant;
 use AzGuard\Contracts\Changes\OwnedRowsWriter;
 use AzGuard\Events\AccessEvent;
-use AzGuard\Exceptions\ChangeCancelledException;
+use AzGuard\Exceptions\Changes\ChangeCancelledException;
 use AzGuard\Kernel\Identity\ActorRef;
 use AzGuard\Panels\Panel;
 use AzGuard\Panels\PanelBuilder;

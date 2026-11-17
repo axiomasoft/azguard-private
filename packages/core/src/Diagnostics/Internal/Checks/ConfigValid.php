@@ -8,12 +8,13 @@ use AzGuard\Configuration\Internal\AzGuardConfig;
 use AzGuard\Contracts\Diagnostics\DoctorCheck;
 use AzGuard\Diagnostics\DoctorContext;
 use AzGuard\Diagnostics\DoctorFinding;
-use AzGuard\Exceptions\ConfigurationException;
+use AzGuard\Exceptions\Configuration\ConfigurationException;
 use AzGuard\Panels\PanelSettings;
 use AzGuard\Panels\Reads;
 use AzGuard\Panels\StateRefresh;
 use BackedEnum;
 use Illuminate\Contracts\Config\Repository;
+use Packman\Attributes\Internal;
 
 /**
  * `config.valid`: the configuration as it is now loads, its enumerated defaults are in their lists and every storage
@@ -21,6 +22,7 @@ use Illuminate\Contracts\Config\Repository;
  *
  * @internal
  */
+#[Internal]
 final readonly class ConfigValid implements DoctorCheck
 {
     /** @var array<string, class-string<BackedEnum>> */
@@ -87,7 +89,7 @@ final readonly class ConfigValid implements DoctorCheck
 
             if (is_string($value) && $enum::tryFrom($value) === null) {
                 $findings[] = DoctorFinding::error('config.valid', 'azguard.defaults.'.$setting.' is "'.$value.'", which is not one of: '
-                    .implode(', ', array_map(static fn (BackedEnum $case): string => (string) $case->value, $enum::cases())).'.',
+                    .implode(', ', array_map(static fn (BackedEnum $case): string => $case->value, $enum::cases())).'.',
                     details: ['code' => 'invalid_configuration.enum', 'setting' => $setting]);
             }
         }

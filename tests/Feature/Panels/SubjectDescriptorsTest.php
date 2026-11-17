@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use AzGuard\Exceptions\DefinitionException;
+use AzGuard\Exceptions\Definitions\DefinitionException;
 use AzGuard\Kernel\Identity\SubjectRef;
 use AzGuard\Panels\Internal\PanelRegistry;
 use AzGuard\Panels\PanelBuilder;

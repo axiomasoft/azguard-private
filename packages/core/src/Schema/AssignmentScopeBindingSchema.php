@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace AzGuard\Schema;
 
-use AzGuard\Attributes\Api;
 use JsonSerializable;
+use Packman\Attributes\Api;
 
 /**
  * How a role binds one assignment scope type: the classes of the components its definition describes (filters of the

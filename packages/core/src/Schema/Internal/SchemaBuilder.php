@@ -15,8 +15,8 @@ use AzGuard\Contracts\Sources\ProvidesPermissions;
 use AzGuard\Contracts\Sources\ProvidesRoleGrants;
 use AzGuard\Contracts\Sources\SourceDescription;
 use AzGuard\Directories\Internal\DirectoryResolver;
-use AzGuard\Exceptions\DefinitionException;
-use AzGuard\Exceptions\TenantMismatchException;
+use AzGuard\Exceptions\Changes\TenantMismatchException;
+use AzGuard\Exceptions\Definitions\DefinitionException;
 use AzGuard\Kernel\Decision\PermissionAuthority;
 use AzGuard\Kernel\Identity\PermissionKey;
 use AzGuard\Kernel\Identity\PermissionPattern;
@@ -43,6 +43,7 @@ use Closure;
 use Illuminate\Contracts\Container\Container;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
+use Packman\Attributes\Internal;
 use ReflectionEnumUnitCase;
 
 /**
@@ -55,6 +56,7 @@ use ReflectionEnumUnitCase;
  *
  * @phpstan-import-type CompiledRole from \AzGuard\Catalog\Internal\RoleCompiler
  */
+#[Internal]
 final readonly class SchemaBuilder
 {
     public function __construct(private PanelRegistry $registry, private Container $container) {}
@@ -216,7 +218,7 @@ final readonly class SchemaBuilder
             }
         }
         $grantedToAll = $definition->case !== null
-            && (new ReflectionEnumUnitCase($definition->case::class, $definition->case->name))->getAttributes(GrantedToAll::class) !== [];
+            && new ReflectionEnumUnitCase($definition->case::class, $definition->case->name)->getAttributes(GrantedToAll::class) !== [];
         $sources = [];
 
         foreach ($descriptions as $description) {

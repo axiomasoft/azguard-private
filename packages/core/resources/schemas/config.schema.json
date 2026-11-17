@@ -1,0 +1,322 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "title": "axiomasoft/azguard configuration",
+    "type": "object",
+    "properties": {
+        "azguard": {
+            "type": "object",
+            "properties": {
+                "cache": {
+                    "type": "object",
+                    "properties": {
+                        "key_id": {
+                            "type": "string",
+                            "default": "active"
+                        },
+                        "max_memo_entries": {
+                            "type": "integer",
+                            "default": 1024
+                        },
+                        "max_state_entries": {
+                            "type": "integer",
+                            "default": 1024
+                        },
+                        "namespace": {
+                            "type": [
+                                "string",
+                                "integer",
+                                "number",
+                                "boolean",
+                                "null"
+                            ],
+                            "default": null
+                        },
+                        "previous_keys": {
+                            "type": [
+                                "array",
+                                "object"
+                            ]
+                        },
+                        "signing_key": {
+                            "type": [
+                                "string",
+                                "integer",
+                                "number",
+                                "boolean",
+                                "null"
+                            ],
+                            "default": null
+                        }
+                    },
+                    "additionalProperties": false
+                },
+                "catalog": {
+                    "type": "object",
+                    "properties": {
+                        "build_id": {
+                            "type": [
+                                "string",
+                                "integer",
+                                "number",
+                                "boolean",
+                                "null"
+                            ],
+                            "default": null
+                        },
+                        "cache_path": {
+                            "type": [
+                                "string",
+                                "null"
+                            ],
+                            "default": null
+                        }
+                    },
+                    "additionalProperties": false
+                },
+                "decision_sets": {
+                    "type": "object",
+                    "properties": {
+                        "max_subjects": {
+                            "type": "integer",
+                            "default": 500
+                        }
+                    },
+                    "additionalProperties": false
+                },
+                "defaults": {
+                    "type": "object",
+                    "properties": {
+                        "cache": {
+                            "type": "object",
+                            "properties": {
+                                "generation": {
+                                    "type": "integer",
+                                    "default": 1
+                                },
+                                "store": {
+                                    "type": [
+                                        "string",
+                                        "null"
+                                    ],
+                                    "default": null
+                                },
+                                "ttl": {
+                                    "type": "integer",
+                                    "default": 300
+                                }
+                            },
+                            "additionalProperties": false
+                        },
+                        "consistency": {
+                            "type": "object",
+                            "properties": {
+                                "reads": {
+                                    "type": "string",
+                                    "default": "primary"
+                                },
+                                "state_refresh": {
+                                    "type": "string",
+                                    "default": "request"
+                                }
+                            },
+                            "additionalProperties": false
+                        },
+                        "models": {
+                            "type": "object",
+                            "properties": {
+                                "permission": {
+                                    "type": [
+                                        "string",
+                                        "integer",
+                                        "number",
+                                        "boolean",
+                                        "array",
+                                        "object",
+                                        "null"
+                                    ]
+                                },
+                                "permission_grant": {
+                                    "type": [
+                                        "string",
+                                        "integer",
+                                        "number",
+                                        "boolean",
+                                        "array",
+                                        "object",
+                                        "null"
+                                    ]
+                                },
+                                "role_grant": {
+                                    "type": [
+                                        "string",
+                                        "integer",
+                                        "number",
+                                        "boolean",
+                                        "array",
+                                        "object",
+                                        "null"
+                                    ]
+                                }
+                            },
+                            "additionalProperties": false
+                        },
+                        "resource_prefix": {
+                            "type": "boolean",
+                            "default": true
+                        },
+                        "scopes": {
+                            "type": "object",
+                            "properties": {
+                                "resolvers": {
+                                    "type": [
+                                        "array",
+                                        "object"
+                                    ]
+                                }
+                            },
+                            "additionalProperties": false
+                        },
+                        "tenants": {
+                            "type": "object",
+                            "properties": {
+                                "resolvers": {
+                                    "type": [
+                                        "array",
+                                        "object"
+                                    ]
+                                }
+                            },
+                            "additionalProperties": false
+                        },
+                        "trace_decisions": {
+                            "type": "boolean",
+                            "default": false
+                        }
+                    },
+                    "additionalProperties": false
+                },
+                "discovery": {
+                    "type": "object",
+                    "properties": {
+                        "abilities": {
+                            "type": "string",
+                            "default": "Abilities"
+                        },
+                        "permissions": {
+                            "type": "string",
+                            "default": "Permissions"
+                        },
+                        "policies": {
+                            "type": "string",
+                            "default": "Policies"
+                        },
+                        "queries": {
+                            "type": "string",
+                            "default": "Queries"
+                        },
+                        "roles": {
+                            "type": "string",
+                            "default": "Roles"
+                        },
+                        "scopes": {
+                            "type": "string",
+                            "default": "Scopes"
+                        },
+                        "shared": {
+                            "type": "string",
+                            "default": "Shared"
+                        }
+                    },
+                    "additionalProperties": false
+                },
+                "gate": {
+                    "type": "object",
+                    "properties": {
+                        "enabled": {
+                            "type": "boolean",
+                            "default": true
+                        }
+                    },
+                    "additionalProperties": false
+                },
+                "ids": {
+                    "type": "object",
+                    "properties": {
+                        "host_keys": {
+                            "type": "string",
+                            "default": "string"
+                        }
+                    },
+                    "additionalProperties": false
+                },
+                "panels": {
+                    "type": "object",
+                    "properties": {
+                        "providers": {
+                            "type": [
+                                "array",
+                                "object"
+                            ]
+                        }
+                    },
+                    "additionalProperties": false
+                },
+                "schedule": {
+                    "type": "object",
+                    "properties": {
+                        "enabled": {
+                            "type": "boolean",
+                            "default": true
+                        },
+                        "prune_expired": {
+                            "type": "string",
+                            "default": "daily"
+                        }
+                    },
+                    "additionalProperties": false
+                },
+                "sources": {
+                    "type": [
+                        "array",
+                        "object"
+                    ]
+                },
+                "storages": {
+                    "type": "object",
+                    "properties": {
+                        "default": {
+                            "type": "object",
+                            "properties": {
+                                "connection": {
+                                    "type": [
+                                        "string",
+                                        "integer",
+                                        "number",
+                                        "boolean",
+                                        "null"
+                                    ],
+                                    "default": null
+                                },
+                                "host_keys": {
+                                    "type": [
+                                        "string",
+                                        "null"
+                                    ],
+                                    "default": null
+                                },
+                                "table_prefix": {
+                                    "type": "string",
+                                    "default": "azg_"
+                                }
+                            },
+                            "additionalProperties": false
+                        }
+                    },
+                    "additionalProperties": false
+                }
+            },
+            "additionalProperties": false
+        }
+    },
+    "additionalProperties": false
+}

@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace AzGuard\Directories;
 
-use AzGuard\Attributes\Api;
 use AzGuard\Context\AssignmentScopePhase;
 use AzGuard\Kernel\Identity\AccessScope;
 use AzGuard\Kernel\Identity\ActorRef;
@@ -13,6 +12,7 @@ use AzGuard\Panels\Panel;
 use AzGuard\Roles\BaseRole;
 use DateTimeImmutable;
 use Illuminate\Database\Eloquent\Model;
+use Packman\Attributes\Api;
 
 /**
  * Immutable inputs of a directory search. `proposed` holds assignment fields, not role configuration.

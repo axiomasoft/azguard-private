@@ -3,8 +3,8 @@
 declare(strict_types=1);
 
 use AzGuard\Contracts\Plugins\Plugin;
-use AzGuard\Exceptions\DefinitionException;
-use AzGuard\Exceptions\RegistryFrozenException;
+use AzGuard\Exceptions\Definitions\DefinitionException;
+use AzGuard\Exceptions\Definitions\RegistryFrozenException;
 use AzGuard\Panels\Internal\PanelCompiler;
 use AzGuard\Panels\Internal\PanelRecipe;
 use AzGuard\Panels\PanelBuilder;

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use AzGuard\Exceptions\InvalidSourceContributionException;
+use AzGuard\Exceptions\Authorization\InvalidSourceContributionException;
 use AzGuard\Kernel\Identity\AccessScope;
 use AzGuard\Kernel\Identity\PermissionKey;
 use AzGuard\Kernel\Identity\SubjectRef;

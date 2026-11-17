@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace AzGuard\Tests\Fixtures\Crm\Filament;
 
-use AzGuard\Concerns\HasAzGuard;
-use AzGuard\Contracts\AzGuardSubject;
+use AzGuard\Concerns\Subjects\HasAzGuard;
+use AzGuard\Contracts\Subjects\AzGuardSubject;
 use AzGuard\Tests\Fixtures\Crm\Models\Organization;
 use Filament\Models\Contracts\FilamentUser;
 use Filament\Models\Contracts\HasTenants;

@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 use AzGuard\Authorization\Internal\Pipeline\Trace;
-use AzGuard\Exceptions\InvalidConfigurationException;
+use AzGuard\Exceptions\Configuration\InvalidConfigurationException;
 use Illuminate\Support\Facades\Log;
 
 it('only stores step diagnostics when the request asks for a trace', function (): void {

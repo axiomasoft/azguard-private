@@ -10,10 +10,10 @@ use AzGuard\Authorization\Internal\Pipeline\Trace;
 use AzGuard\Catalog\Internal\PanelCatalog;
 use AzGuard\Catalog\PermissionDefinition;
 use AzGuard\Contracts\Authorization\Restriction;
-use AzGuard\Exceptions\ConsistencyException;
-use AzGuard\Exceptions\DefinitionException;
-use AzGuard\Exceptions\InvalidConfigurationException;
-use AzGuard\Exceptions\UnknownPermissionException;
+use AzGuard\Exceptions\Authorization\ConsistencyException;
+use AzGuard\Exceptions\Changes\UnknownPermissionException;
+use AzGuard\Exceptions\Configuration\InvalidConfigurationException;
+use AzGuard\Exceptions\Definitions\DefinitionException;
 use AzGuard\Kernel\Decision\AccessRequest;
 use AzGuard\Kernel\Decision\Decision;
 use AzGuard\Kernel\Decision\DecisionReason;
@@ -26,11 +26,13 @@ use AzGuard\Roles\BaseRole;
 use Closure;
 use DateTimeImmutable;
 use Illuminate\Contracts\Container\Container;
+use Packman\Attributes\Internal;
 use Throwable;
 
 /** @internal Integrates the scalar stages against one grouped raw authority attempt.
  * @phpstan-type Prepared array{request: AccessRequest, catalog: PanelCatalog, definition: PermissionDefinition, frame: EvaluationFrame, denial: ?Decision, trace: Trace}
  */
+#[Internal]
 final readonly class BatchEvaluation
 {
     public function __construct(private PrepareStage $prepare, private AccessPipeline $pipeline, private Container $container) {}

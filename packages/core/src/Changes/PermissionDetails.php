@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace AzGuard\Changes;
 
-use AzGuard\Attributes\Api;
-use AzGuard\Exceptions\InvalidChangeFieldsException;
+use AzGuard\Exceptions\Changes\InvalidChangeFieldsException;
+use Packman\Attributes\Api;
 
 /**
  * The complete replacement of the editable values of one dynamic permission: label, group, description and fields.

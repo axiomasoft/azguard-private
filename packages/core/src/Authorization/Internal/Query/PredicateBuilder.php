@@ -10,9 +10,12 @@ use Illuminate\Contracts\Database\Query\Expression;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Query\Builder as QueryBuilder;
+use Packman\Attributes\Internal;
+use ReflectionProperty;
 use RuntimeException;
 
 /** @extends Builder<Model> */
+#[Internal]
 final class PredicateBuilder extends Builder
 {
     /** @param Builder<Model> $source */
@@ -21,7 +24,7 @@ final class PredicateBuilder extends Builder
         parent::__construct(new PredicateQuery($source->getQuery(), $guard));
         foreach (get_object_vars($source) as $name => $value) {
             if ($name !== 'query') {
-                $this->{$name} = $value;
+                new ReflectionProperty($this, $name)->setValue($this, $value);
             }
         }
     }
@@ -31,7 +34,7 @@ final class PredicateBuilder extends Builder
         $this->guard->reject();
     }
 
-    /** @param array<string,mixed> $attributes */
+    /** @param array<mixed> $attributes */
     public function newModelInstance($attributes = []): never
     {
         $this->guard->reject();
@@ -57,7 +60,9 @@ final class PredicateBuilder extends Builder
     }
 
     /**
-     * @param  array<int|string, mixed>|(Closure(static|QueryBuilder): mixed)|Expression|string  $column
+     * @param  mixed  $column
+     * @param  mixed  $operator
+     * @param  mixed  $value
      * @param  string  $boolean
      */
     public function where($column, $operator = null, $value = null, $boolean = 'and'): static
@@ -75,6 +80,15 @@ final class PredicateBuilder extends Builder
         }
 
         // Two arguments mean "equals": the query builder tells them from an explicit null operator by their count.
+        if (! is_array($column) && ! is_string($column) && ! $column instanceof Closure && ! $column instanceof Expression) {
+            $this->guard->reject();
+        }
+
+        if ($column instanceof Closure) {
+            /** @var Closure(static|QueryBuilder): mixed $column */
+            return func_num_args() === 2 ? parent::where($column, $operator) : parent::where($column, $operator, $value, $boolean);
+        }
+
         return func_num_args() === 2 ? parent::where($column, $operator) : parent::where($column, $operator, $value, $boolean);
     }
 

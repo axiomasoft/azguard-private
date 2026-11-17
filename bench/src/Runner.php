@@ -32,7 +32,8 @@ final class Runner
         if (! is_dir($directory) && ! mkdir($directory, 0777, true) && ! is_dir($directory)) {
             throw new RuntimeException("Cannot create [{$directory}].");
         }
-        array_map(unlink(...), glob($directory.'/w*') ?: []);
+        $workerFiles = glob($directory.'/w*');
+        array_map(unlink(...), $workerFiles === false ? [] : $workerFiles);
 
         $stand->disconnect();
         // Forking and opening connections takes time: every worker starts measuring at the same instant.
@@ -78,7 +79,8 @@ final class Runner
                 $first = min($first, $window['from']);
                 $last = max($last, $window['to']);
             }
-            foreach (file("{$directory}/w{$worker}.ndjson", FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES) ?: [] as $line) {
+            $lines = file("{$directory}/w{$worker}.ndjson", FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+            foreach ($lines === false ? [] : $lines as $line) {
                 $sample = json_decode($line, true);
 
                 if (is_array($sample) && is_string($sample['op'] ?? null) && is_numeric($sample['us'] ?? null) && is_int($sample['sql'] ?? null) && is_bool($sample['ok'] ?? null) && is_int($sample['t'] ?? null)) {
@@ -108,7 +110,8 @@ final class Runner
             });
             Probe::listen();
             $profile->boot($stand, $tier, $stage, $worker);
-            $out = fopen("{$directory}/w{$worker}.ndjson", 'wb') ?: throw new RuntimeException('Cannot write samples.');
+            $stream = fopen("{$directory}/w{$worker}.ndjson", 'wb');
+            $out = $stream === false ? throw new RuntimeException('Cannot write samples.') : $stream;
 
             for ($i = 0; $i < $stage->warmup; $i++) {
                 try {

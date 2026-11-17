@@ -11,13 +11,14 @@ use AzGuard\Changes\ChangeResult;
 use AzGuard\Changes\ChangeType;
 use AzGuard\Changes\EffectKind;
 use AzGuard\Changes\PermissionRecord;
-use AzGuard\Exceptions\DuplicatePermissionException;
-use AzGuard\Exceptions\UnknownPermissionException;
-use AzGuard\Exceptions\UnsupportedDirectWriteException;
+use AzGuard\Exceptions\Changes\UnknownPermissionException;
+use AzGuard\Exceptions\Definitions\DuplicatePermissionException;
+use AzGuard\Exceptions\Storage\UnsupportedDirectWriteException;
 use AzGuard\Kernel\Identity\TenantRef;
 use AzGuard\Storage\Internal\StorageMutation;
 use DateTimeZone;
 use Illuminate\Support\Str;
+use Packman\Attributes\Internal;
 
 /**
  * @internal Writes one validated change of a dynamic permission inside the active mutation of the panel: insert,
@@ -27,6 +28,7 @@ use Illuminate\Support\Str;
  * it, each through the pipes; this writer never deletes a grant. An update equal to the stored row is `Unchanged`:
  * no write, no touch, no effect. Writes go through the query builder of the mutation only.
  */
+#[Internal]
 final readonly class ActionWriter
 {
     public function __construct(private StorageMutation $mutation, private LockedReads $reads) {}
@@ -61,7 +63,7 @@ final readonly class ActionWriter
         }
         $details = $change->details ?? throw new UnsupportedDirectWriteException('A dynamic permission change carries its details.');
         $now = $context->now->setTimezone(new DateTimeZone('UTC'))->format('Y-m-d H:i:s');
-        $id = (int) $this->mutation->table('permissions')->insertGetId([
+        $id = $this->mutation->table('permissions')->insertGetId([
             'panel' => $change->panel,
             'tenant_key' => $tenant->key(), 'tenant_type' => $tenant->type(), 'tenant_id' => $tenant->id(),
             'name' => $name, 'label' => $details->label, 'group' => $details->group, 'description' => $details->description,

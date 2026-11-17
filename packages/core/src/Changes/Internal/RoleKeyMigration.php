@@ -6,7 +6,7 @@ namespace AzGuard\Changes\Internal;
 
 use AzGuard\Changes\ChangeResult;
 use AzGuard\Changes\GrantRecord;
-use AzGuard\Exceptions\PanelNotWritableException;
+use AzGuard\Exceptions\Changes\PanelNotWritableException;
 use AzGuard\Kernel\Identity\ActorRef;
 use AzGuard\Kernel\Identity\RoleKey;
 use AzGuard\Kernel\Identity\TenantRef;
@@ -16,6 +16,7 @@ use AzGuard\Roles\BaseRole;
 use AzGuard\Sources\Database\DatabaseSource;
 use DateTimeImmutable;
 use Illuminate\Contracts\Container\Container;
+use Packman\Attributes\Internal;
 
 /**
  * @internal The explicit migration of stored grants from a former key of a code role to its current key.
@@ -25,6 +26,7 @@ use Illuminate\Contracts\Container\Container;
  * a repeated run continues where an interrupted one stopped. `plan()` shows the same targets and collisions without
  * writing anything.
  */
+#[Internal]
 final readonly class RoleKeyMigration
 {
     public function __construct(private Container $container, private ChangePipeline $pipeline) {}

@@ -8,6 +8,7 @@ use AzGuard\Contracts\Subjects\SubjectDirectory;
 use AzGuard\Directories\LookupContext;
 use AzGuard\Directories\SubjectOption;
 use AzGuard\Kernel\Identity\SubjectRef;
+use Packman\Attributes\Internal;
 
 /**
  * The subject directories of a panel with several subject models: a search reads each directory once in
@@ -15,6 +16,7 @@ use AzGuard\Kernel\Identity\SubjectRef;
  *
  * @internal
  */
+#[Internal]
 final readonly class PanelSubjectDirectory implements SubjectDirectory
 {
     /** @param array<string, SubjectDirectory> $byType directory of each morph type, in declaration order */

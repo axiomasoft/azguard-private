@@ -7,22 +7,33 @@ namespace AzGuard\Configuration\Internal;
 use DateTimeImmutable;
 use DateTimeZone;
 use Illuminate\Contracts\Config\Repository;
+use Packman\Attributes\Internal;
 use Throwable;
 
 /** @internal Validated signing material shared by configuration and the cache envelope. */
+#[Internal]
 final class CacheSigningConfig
 {
     /** @return array{namespace: string, active: string, keys: array<string, array{key: string, until: ?DateTimeImmutable}>}|null */
     public static function fromConfig(Repository $config): ?array
     {
-        $namespace = $config->get('azguard.cache.namespace');
-        $active = $config->get('azguard.cache.key_id', 'active');
         $secret = $config->get('azguard.cache.signing_key');
 
         if ($secret === null || $secret === '') {
             $secret = $config->get('app.key');
         }
 
+        return self::fromParts(
+            $config->get('azguard.cache.namespace'),
+            $config->get('azguard.cache.key_id', 'active'),
+            $secret,
+            $config->get('azguard.cache.previous_keys', []),
+        );
+    }
+
+    /** @return array{namespace: string, active: string, keys: array<string, array{key: string, until: ?DateTimeImmutable}>}|null */
+    public static function fromParts(mixed $namespace, mixed $active, mixed $secret, mixed $previous): ?array
+    {
         if (! is_string($namespace) || $namespace === '' || strlen($namespace) > 255 || preg_match('//u', $namespace) !== 1 || ! is_string($active)
             || preg_match('/\A[a-zA-Z0-9_.-]{1,64}\z/', $active) !== 1 || ! is_string($secret)) {
             return null;
@@ -33,7 +44,6 @@ final class CacheSigningConfig
             return null;
         }
         $keys = [$active => ['key' => $key, 'until' => null]];
-        $previous = $config->get('azguard.cache.previous_keys', []);
 
         if (! is_array($previous)) {
             return null;

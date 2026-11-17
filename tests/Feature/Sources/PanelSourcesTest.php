@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-use AzGuard\Exceptions\DefinitionException;
-use AzGuard\Exceptions\UnknownSourceException;
-use AzGuard\Exceptions\WriterConflictException;
+use AzGuard\Exceptions\Definitions\DefinitionException;
+use AzGuard\Exceptions\Definitions\UnknownSourceException;
+use AzGuard\Exceptions\Definitions\WriterConflictException;
 use AzGuard\Facades\AzGuard;
 use AzGuard\Panels\Internal\PanelRegistry;
 use AzGuard\Panels\PanelBuilder;

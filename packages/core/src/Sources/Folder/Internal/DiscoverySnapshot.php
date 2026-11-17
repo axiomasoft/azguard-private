@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace AzGuard\Sources\Folder\Internal;
 
+use Packman\Attributes\Internal;
+
 /**
  * What one panel's folders contributed, as scalars, so a catalog cache can restore it without parsing.
  *
@@ -13,6 +15,7 @@ namespace AzGuard\Sources\Folder\Internal;
  * @phpstan-type BindingRow array{permission: string|array{enum: string, name: string}, policy: class-string, method: string, roots: list<string>}
  * @phpstan-type Payload array{names: Names, roots: list<Root>, files: array<string, string>, definitions: list<DefinitionRow>, roles: list<class-string>, role_origins: array<class-string, list<string>>, scopes: list<class-string>, bindings: list<BindingRow>, granted_to_all: list<string>, sources: list<class-string>, enums: list<class-string>}
  */
+#[Internal]
 final readonly class DiscoverySnapshot
 {
     /**

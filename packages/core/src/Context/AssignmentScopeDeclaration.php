@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace AzGuard\Context;
 
-use AzGuard\Attributes\Api;
 use AzGuard\Contracts\Scopes\AssignmentScopeDefinition;
 use AzGuard\Contracts\Scopes\AssignmentScopeDirectory;
 use AzGuard\Contracts\Scopes\AssignmentScopeEvaluator;
+use Packman\Attributes\Api;
 
 /**
  * The assignment scopes a panel accepts: the mode, the scope types by alias, a directory per alias and the class that

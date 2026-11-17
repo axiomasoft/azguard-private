@@ -2,14 +2,12 @@
 
 declare(strict_types=1);
 
-use AzGuard\Attributes\Api;
-use AzGuard\Attributes\Spi;
-use AzGuard\Diagnostics\DoctorContext;
-use AzGuard\Sources\Internal\EvaluatesAutomaticRoles;
 use AzGuard\Testing\AzGuardFake;
 use AzGuard\Tests\Arch\ApiUsage;
 use AzGuard\Tests\Arch\Ownership;
 use AzGuard\Tests\Arch\SourceScan;
+use Packman\Attributes\Api;
+use Packman\Attributes\Spi;
 
 /*
  * The supported surface: publication is the #[Api]/#[Spi] attribute, the attributed types equal the markers of the
@@ -40,9 +38,9 @@ function apiAttributedTypes(): array
             continue;
         }
         $class = new ReflectionClass($fqcn);
-        $spi = $class->getAttributes(Spi::class);
+        $spi = $class->getAttributes(Spi::class, ReflectionAttribute::IS_INSTANCEOF);
 
-        if ($class->getAttributes(Api::class) !== []) {
+        if ($class->getAttributes(Api::class, ReflectionAttribute::IS_INSTANCEOF) !== []) {
             $types[$fqcn] = 'Api';
         } elseif ($spi !== []) {
             $types[$fqcn] = 'Spi('.ucfirst($spi[0]->newInstance()->kind->value).')';
@@ -451,26 +449,39 @@ it('closes the supported surface: no supported member or type names an unsupport
 
     foreach (['packages/core/api-manifest.json', 'packages/filament/api-manifest.json'] as $path) {
         $manifest = json_decode((string) file_get_contents(apiManifestRoot().'/'.$path), true, flags: JSON_THROW_ON_ERROR);
-        // The marker FolderSource carries is empty and unimplementable outside core: it names no member a consumer could use.
-        array_push($leaks, ...apiInternalLeaks($manifest['classes'], ['AzGuard\\Sources\\Internal\\EvaluatesAutomaticRoles']));
+        array_push($leaks, ...apiInternalLeaks($manifest['classes']));
     }
 
     expect($leaks)->toBe([]);
 });
 
 it('reports a native type, a parent and a PHPDoc contract that leak an unsupported class', function (): void {
-    $type = ['name' => DoctorContext::class, 'contracts' => [], 'interfaces' => [EvaluatesAutomaticRoles::class], 'parent' => null,
-        'properties' => [['name' => 'storage', 'type' => '?AzGuard\\Storage\\Internal\\Storage', 'contracts' => []]],
-        'methods' => [
-            ['name' => 'storages', 'return' => 'array', 'parameters' => [], 'contracts' => ['@return list<Storage> the selected storages']],
-            ['name' => 'config', 'return' => 'AzGuard\\Configuration\\Internal\\AzGuardConfig', 'parameters' => [['type' => 'int']], 'contracts' => []],
-            ['name' => 'panels', 'return' => 'array', 'parameters' => [], 'contracts' => ['@return list<Panel>']],
-        ]];
+    $dir = sys_get_temp_dir().'/azguard-leak-'.bin2hex(random_bytes(4));
+    mkdir($dir, 0777, true);
+    $file = $dir.'/LeakProbe.php';
+    $suffix = bin2hex(random_bytes(4));
+    $probeClass = 'AzGuard\\Diagnostics\\LeakProbe'.$suffix;
+    file_put_contents($file, "<?php\nnamespace AzGuard\\Diagnostics;\nuse AzGuard\\Storage\\Internal\\Storage;\nfinal class LeakProbe{$suffix} {}\n");
+    require_once $file;
 
-    expect(apiInternalLeaks([$type]))->toBe([
-        'AzGuard\\Diagnostics\\DoctorContext extends or implements AzGuard\\Sources\\Internal\\EvaluatesAutomaticRoles',
-        'AzGuard\\Diagnostics\\DoctorContext::$storage is typed AzGuard\\Storage\\Internal\\Storage',
-        'AzGuard\\Diagnostics\\DoctorContext::storages() contract names AzGuard\\Storage\\Internal\\Storage',
-        'AzGuard\\Diagnostics\\DoctorContext::config() is typed AzGuard\\Configuration\\Internal\\AzGuardConfig',
-    ])->and(apiInternalLeaks([$type], [EvaluatesAutomaticRoles::class]))->toHaveCount(3);
+    try {
+        $internalContract = 'AzGuard\\Sources\\Internal\\InternalContract';
+        $type = ['name' => $probeClass, 'contracts' => [], 'interfaces' => [$internalContract], 'parent' => null,
+            'properties' => [['name' => 'storage', 'type' => '?AzGuard\\Storage\\Internal\\Storage', 'contracts' => []]],
+            'methods' => [
+                ['name' => 'storages', 'return' => 'array', 'parameters' => [], 'contracts' => ['@return list<Storage> the selected storages']],
+                ['name' => 'config', 'return' => 'AzGuard\\Configuration\\Internal\\AzGuardConfig', 'parameters' => [['type' => 'int']], 'contracts' => []],
+                ['name' => 'panels', 'return' => 'array', 'parameters' => [], 'contracts' => ['@return list<Panel>']],
+            ]];
+
+        expect(apiInternalLeaks([$type]))->toBe([
+            $probeClass.' extends or implements '.$internalContract,
+            $probeClass.'::$storage is typed AzGuard\\Storage\\Internal\\Storage',
+            $probeClass.'::storages() contract names AzGuard\\Storage\\Internal\\Storage',
+            $probeClass.'::config() is typed AzGuard\\Configuration\\Internal\\AzGuardConfig',
+        ])->and(apiInternalLeaks([$type], [$internalContract]))->toHaveCount(3);
+    } finally {
+        @unlink($file);
+        @rmdir($dir);
+    }
 });

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace AzGuard\Context;
 
-use AzGuard\Attributes\Api;
+use Packman\Attributes\Api;
 
 /**
  * How a panel treats assignment scopes: `None` accepts only global requests, `Inherit` and `Isolated` accept the

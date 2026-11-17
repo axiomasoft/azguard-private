@@ -4,12 +4,14 @@ declare(strict_types=1);
 
 namespace AzGuard\Kernel\Internal;
 
-use AzGuard\Exceptions\InvalidPermissionKeyException;
+use AzGuard\Exceptions\Identity\InvalidPermissionKeyException;
 use AzGuard\Kernel\Grammar\PermissionGrammar;
+use Packman\Attributes\Internal;
 
 /**
  * Segment-wise coverage of a local permission key by a grant pattern; no regex is built from input.
  */
+#[Internal]
 final class PatternMatcher
 {
     private function __construct() {}

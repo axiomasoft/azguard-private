@@ -2,8 +2,8 @@
 
 declare(strict_types=1);
 
-use AzGuard\Exceptions\PanelNotResolvedException;
-use AzGuard\Exceptions\PrefixConflictException;
+use AzGuard\Exceptions\Definitions\PanelNotResolvedException;
+use AzGuard\Exceptions\Definitions\PrefixConflictException;
 use AzGuard\Panels\Internal\PanelRegistry;
 use AzGuard\Panels\Internal\PanelResolver;
 use AzGuard\Panels\PanelBuilder;

@@ -84,8 +84,12 @@ final class ApiUsage
             foreach (SourceScan::ownershipReferences($code) as $reference) {
                 $typeRow = $ownership->typeRow($reference['value']);
 
-                if (($typeRow['owner'] ?? null) === 'core' && self::exists($reference['value']) && ! isset($supported[strtolower($reference['value'])])) {
-                    $found[strtolower($reference['value'])] = ['reference' => self::canonical($reference['value']), 'kind' => 'type', 'row' => $typeRow];
+                if (($typeRow['owner'] ?? null) === 'core' && self::exists($reference['value'])) {
+                    $canonical = self::canonical($reference['value']);
+
+                    if (! isset($supported[strtolower($canonical)])) {
+                        $found[strtolower($reference['value'])] = ['reference' => $canonical, 'kind' => 'type', 'row' => $typeRow];
+                    }
                 }
             }
 

@@ -4,16 +4,16 @@ declare(strict_types=1);
 
 namespace AzGuard\Panels\Internal;
 
-use AzGuard\Exceptions\AmbiguousPanelException;
-use AzGuard\Exceptions\ConflictingPanelException;
-use AzGuard\Exceptions\DefinitionException;
-use AzGuard\Exceptions\InvalidPanelIdException;
-use AzGuard\Exceptions\InvalidPermissionKeyException;
-use AzGuard\Exceptions\PanelNotResolvedException;
-use AzGuard\Exceptions\SubjectNotAcceptedException;
-use AzGuard\Exceptions\UnknownPanelException;
-use AzGuard\Exceptions\UnknownPermissionException;
-use AzGuard\Exceptions\UnknownRoleException;
+use AzGuard\Exceptions\Changes\UnknownPermissionException;
+use AzGuard\Exceptions\Changes\UnknownRoleException;
+use AzGuard\Exceptions\Definitions\AmbiguousPanelException;
+use AzGuard\Exceptions\Definitions\ConflictingPanelException;
+use AzGuard\Exceptions\Definitions\DefinitionException;
+use AzGuard\Exceptions\Definitions\PanelNotResolvedException;
+use AzGuard\Exceptions\Definitions\SubjectNotAcceptedException;
+use AzGuard\Exceptions\Definitions\UnknownPanelException;
+use AzGuard\Exceptions\Identity\InvalidPanelIdException;
+use AzGuard\Exceptions\Identity\InvalidPermissionKeyException;
 use AzGuard\Kernel\Identity\PermissionKey;
 use AzGuard\Kernel\Identity\PermissionPattern;
 use AzGuard\Kernel\Identity\SubjectRef;
@@ -21,6 +21,7 @@ use AzGuard\Panels\Panel;
 use AzGuard\Roles\BaseRole;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\Relation;
+use Packman\Attributes\Internal;
 use UnitEnum;
 
 /**
@@ -36,6 +37,7 @@ use UnitEnum;
  *
  * @phpstan-type Resolution array{panel: Panel, key: ?PermissionKey, step: 'explicit'|'current'|'model'}
  */
+#[Internal]
 final class PanelResolver
 {
     public const string EXPLICIT = 'explicit';

@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-use AzGuard\Exceptions\DefinitionException;
-use AzGuard\Exceptions\InvalidPolicyStructureException;
-use AzGuard\Exceptions\InvalidRoleKeyException;
+use AzGuard\Exceptions\Definitions\DefinitionException;
+use AzGuard\Exceptions\Definitions\InvalidPolicyStructureException;
+use AzGuard\Exceptions\Identity\InvalidRoleKeyException;
 use AzGuard\Facades\AzGuard;
 use AzGuard\Kernel\Decision\PermissionAuthority;
 use AzGuard\Panels\Internal\PanelRegistry;

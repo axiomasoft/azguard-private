@@ -4,13 +4,15 @@ declare(strict_types=1);
 
 namespace AzGuard\Storage\Internal\Concerns;
 
-use AzGuard\Exceptions\InvalidIdentityException;
-use AzGuard\Exceptions\StorageMismatchException;
+use AzGuard\Exceptions\Identity\InvalidIdentityException;
+use AzGuard\Exceptions\Storage\StorageMismatchException;
 use AzGuard\Kernel\Grammar\PermissionGrammar;
 use AzGuard\Kernel\Identity\TenantRef;
 use AzGuard\Storage\Internal\Schema\HostKeyColumns;
 use AzGuard\Storage\Internal\Storage;
+use Packman\Attributes\Internal;
 
+#[Internal]
 trait BelongsToStorage
 {
     /** Read and written only by `ModelBinding` (the models expose no storage member to hosts). */

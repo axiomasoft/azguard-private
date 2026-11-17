@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 use AzGuard\Contracts\Sources\DescribesSchema;
 use AzGuard\Contracts\Sources\ProvidesPolicies;
-use AzGuard\Exceptions\DefinitionException;
+use AzGuard\Exceptions\Definitions\DefinitionException;
 use AzGuard\Kernel\Decision\DecisionReason;
 use AzGuard\Policies\PolicyBinding;
 use AzGuard\Sources\Gate\GateSource;

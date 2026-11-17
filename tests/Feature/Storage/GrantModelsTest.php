@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use AzGuard\Exceptions\InvalidIdentityException;
+use AzGuard\Exceptions\Identity\InvalidIdentityException;
 use AzGuard\Kernel\Identity\ActorRef;
 use AzGuard\Kernel\Identity\PermissionKey;
 use AzGuard\Kernel\Identity\PermissionPattern;

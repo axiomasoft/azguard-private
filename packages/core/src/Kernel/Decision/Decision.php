@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace AzGuard\Kernel\Decision;
 
-use AzGuard\Attributes\Api;
-use AzGuard\Exceptions\ConsistencyException;
-use AzGuard\Exceptions\InvalidSourceContributionException;
+use AzGuard\Exceptions\Authorization\ConsistencyException;
+use AzGuard\Exceptions\Authorization\InvalidSourceContributionException;
 use AzGuard\Kernel\Identity\AccessScope;
+use Packman\Attributes\Api;
 
 /**
  * The answer to an access request: effect, reason consistent with it, the state it was made against and the scope.

@@ -10,15 +10,17 @@ use Closure;
 use Illuminate\Contracts\Auth\Access\Gate;
 use Illuminate\Contracts\Container\Container;
 use Illuminate\Support\Str;
+use Packman\Attributes\Internal;
 use ReflectionFunction;
 use RuntimeException;
 
 /** Resolves the original native callback without running global Gate hooks. */
+#[Internal]
 final readonly class NativeGateBinding
 {
     public function __construct(private Container $container) {}
 
-    /** @return array{callback: callable, policy: ?object, ability: string} */
+    /** @return array{callback: callable(mixed...): mixed, policy: ?object, ability: string} */
     public function resolve(PolicyBinding $binding): array
     {
         $gate = $this->container->make(Gate::class);

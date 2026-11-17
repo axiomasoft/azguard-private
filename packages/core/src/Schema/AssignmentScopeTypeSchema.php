@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace AzGuard\Schema;
 
-use AzGuard\Attributes\Api;
 use AzGuard\Contracts\Scopes\AssignmentScopeDirectory;
 use Illuminate\Database\Eloquent\Model;
 use JsonSerializable;
+use Packman\Attributes\Api;
 
 /**
  * An assignment scope type registered on a panel: how it is shown and which directory looks its scopes up.

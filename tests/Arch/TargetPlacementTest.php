@@ -61,6 +61,14 @@ function targetPlacementDifferences(array $rows, string $root, array $pending = 
                 }
                 $declared = Ownership::declaredType((string) file_get_contents($file));
 
+                if (($row['kind'] ?? null) === 'bootstrap' && ($row['target'] ?? null) === null) {
+                    if ($declared !== null) {
+                        $differences[] = 'wrong-type '.$path.' declares '.$declared.', expected no declaration';
+                    }
+
+                    continue;
+                }
+
                 if ($declared !== $types[$index]) {
                     $differences[] = 'wrong-type '.$path.' declares '.($declared ?? 'nothing').', expected '.$types[$index];
                 }

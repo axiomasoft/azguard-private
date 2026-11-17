@@ -4,14 +4,14 @@ declare(strict_types=1);
 
 namespace AzGuard\Sources\Relation\Internal;
 
-use AzGuard\Exceptions\InvalidSourceContributionException;
+use AzGuard\Exceptions\Authorization\InvalidSourceContributionException;
 use AzGuard\Kernel\Internal\Narrow;
 use Closure;
 use Illuminate\Contracts\Database\Query\Expression;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Database\Query\Builder as QueryBuilder;
+use Packman\Attributes\Internal;
 
 /**
  * A predicate builder for trusted host callbacks, with terminal operations disabled.
@@ -19,6 +19,7 @@ use Illuminate\Database\Query\Builder as QueryBuilder;
  *
  * @extends Builder<Model>
  */
+#[Internal]
 final class RelationScopeQuery extends Builder
 {
     /** @param Builder<Model> $query */
@@ -26,17 +27,14 @@ final class RelationScopeQuery extends Builder
     {
         $raw = $query->getQuery();
 
-        return (new self(new RelationPredicateQuery($raw->connection, $raw->grammar, $raw->processor)))
+        return new self(new RelationPredicateQuery($raw->connection, $raw->grammar, $raw->processor))
             ->setModel(clone $query->getModel());
     }
 
-    /** @param mixed $column
+    /**
+     * @param  mixed  $column
      * @param  mixed  $operator
      * @param  mixed  $value
-     * @param  string  $boolean
-     */
-    /**
-     * @param  array<int|string, mixed>|(Closure(static|QueryBuilder): mixed)|Expression|string  $column
      * @param  string  $boolean
      */
     public function where($column, $operator = null, $value = null, $boolean = 'and'): static
@@ -49,16 +47,22 @@ final class RelationScopeQuery extends Builder
             return $this;
         }
 
+        if (! is_array($column) && ! is_string($column) && ! $column instanceof Closure && ! $column instanceof Expression) {
+            $this->refuse();
+        }
+
+        if ($column instanceof Closure) {
+            /** @var Closure(static|QueryBuilder): mixed $column */
+            parent::where($column, $operator, $value, $boolean);
+
+            return $this;
+        }
+
         parent::where($column, $operator, $value, $boolean);
 
         return $this;
     }
 
-    /** @param string|Relation<Model, Model, mixed> $relation
-     * @param  string  $operator
-     * @param  Expression|int  $count
-     * @param  string  $boolean
-     */
     public function has($relation, $operator = '>=', $count = 1, $boolean = 'and', ?Closure $callback = null): static
     {
         return parent::has($relation, $operator, $count, $boolean, $callback instanceof Closure ? static function (Builder $nested) use ($callback): void {
@@ -73,13 +77,13 @@ final class RelationScopeQuery extends Builder
         } : null);
     }
 
-    /** @param array<string, mixed> $attributes */
+    /** @param array<mixed> $attributes */
     public function newModelInstance($attributes = []): never
     {
         $this->refuse();
     }
 
-    /** @param array<string>|string $columns */
+    /** @param mixed $columns */
     public function getModels($columns = ['*']): never
     {
         $this->refuse();
@@ -90,7 +94,8 @@ final class RelationScopeQuery extends Builder
         $this->refuse();
     }
 
-    /** @param string $column
+    /**
+     * @param  mixed  $column
      * @param  string|null  $key
      */
     public function pluck($column, $key = null): never

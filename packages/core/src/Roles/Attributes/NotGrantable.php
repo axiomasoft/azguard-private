@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace AzGuard\Roles\Attributes;
 
 use Attribute;
-use AzGuard\Attributes\Api;
+use Packman\Attributes\Api;
 
 /**
  * The role is only granted automatically and never assigned by hand.

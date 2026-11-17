@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use AzGuard\Exceptions\InvalidRoleKeyException;
+use AzGuard\Exceptions\Identity\InvalidRoleKeyException;
 use AzGuard\Kernel\Identity\AccessScope;
 use AzGuard\Kernel\Identity\TenantRef;
 use AzGuard\Roles\Attributes\FormerKeys;

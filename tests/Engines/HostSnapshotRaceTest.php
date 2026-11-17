@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use AzGuard\Exceptions\InvalidConfigurationException;
+use AzGuard\Exceptions\Configuration\InvalidConfigurationException;
 use AzGuard\Kernel\Decision\DecisionReason;
 use AzGuard\Sources\Database\DatabaseSource;
 use AzGuard\Tests\Engines\Support\AuthorityProcess;

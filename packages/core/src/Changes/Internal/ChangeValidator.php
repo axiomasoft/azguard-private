@@ -16,21 +16,21 @@ use AzGuard\Context\AssignmentScopePhase;
 use AzGuard\Context\AssignmentScopeRuntime;
 use AzGuard\Contracts\Scopes\ResourceScopeResolver;
 use AzGuard\Directories\Internal\DirectoryResolver;
-use AzGuard\Exceptions\AssignmentScopeRequiredException;
 use AzGuard\Exceptions\AzGuardException;
-use AzGuard\Exceptions\DefinitionException;
-use AzGuard\Exceptions\DuplicatePermissionException;
-use AzGuard\Exceptions\InvalidChangeFieldsException;
-use AzGuard\Exceptions\InvalidConfigurationException;
-use AzGuard\Exceptions\PanelNotWritableException;
-use AzGuard\Exceptions\PermissionNotGrantableException;
-use AzGuard\Exceptions\RoleNotGrantableException;
-use AzGuard\Exceptions\StaleSelectionException;
-use AzGuard\Exceptions\SubjectNotAcceptedException;
-use AzGuard\Exceptions\TenantMismatchException;
-use AzGuard\Exceptions\TenantRequiredException;
-use AzGuard\Exceptions\UnknownPermissionException;
-use AzGuard\Exceptions\UnknownRoleException;
+use AzGuard\Exceptions\Changes\AssignmentScopeRequiredException;
+use AzGuard\Exceptions\Changes\InvalidChangeFieldsException;
+use AzGuard\Exceptions\Changes\PanelNotWritableException;
+use AzGuard\Exceptions\Changes\PermissionNotGrantableException;
+use AzGuard\Exceptions\Changes\RoleNotGrantableException;
+use AzGuard\Exceptions\Changes\StaleSelectionException;
+use AzGuard\Exceptions\Changes\TenantMismatchException;
+use AzGuard\Exceptions\Changes\TenantRequiredException;
+use AzGuard\Exceptions\Changes\UnknownPermissionException;
+use AzGuard\Exceptions\Changes\UnknownRoleException;
+use AzGuard\Exceptions\Configuration\InvalidConfigurationException;
+use AzGuard\Exceptions\Definitions\DefinitionException;
+use AzGuard\Exceptions\Definitions\DuplicatePermissionException;
+use AzGuard\Exceptions\Definitions\SubjectNotAcceptedException;
 use AzGuard\Kernel\Decision\PermissionAuthority;
 use AzGuard\Kernel\Decision\StateToken;
 use AzGuard\Kernel\Identity\AccessScope;
@@ -49,6 +49,7 @@ use DateTimeImmutable;
 use DateTimeZone;
 use Illuminate\Contracts\Container\Container;
 use Illuminate\Database\Eloquent\Model;
+use Packman\Attributes\Internal;
 
 /**
  * @internal Checks of one pipeline attempt under the panel lock, after all pipes, over the final change.
@@ -61,6 +62,7 @@ use Illuminate\Database\Eloquent\Model;
  * change of a dynamic permission checks the opt-in, the tenant, the details and the name against the catalog read
  * under the lock; it needs neither a subject nor an eligibility check.
  */
+#[Internal]
 final class ChangeValidator
 {
     /** @var array<string, ?Model> */

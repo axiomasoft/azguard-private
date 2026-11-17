@@ -48,7 +48,8 @@ final class FilamentPagination extends BaseProfile
     {
         $stand->newRequest();
         $resource = Catalog::resource('PostResource');
-        $query = $resource::getEloquentQuery()->orderBy('id');
+        $query = $resource::getEloquentQuery();
+        $query->getQuery()->orderBy('id');
 
         if ($i % 2 === 0) {
             $page = $query->paginate(25, ['*'], 'page', 1);
@@ -67,7 +68,7 @@ final class FilamentPagination extends BaseProfile
             return 'page';
         }
 
-        if ($query->count() !== $this->expected($tier)) {
+        if ($query->toBase()->count() !== $this->expected($tier)) {
             throw new RuntimeException('Filament count was incorrect.');
         }
 
@@ -78,7 +79,7 @@ final class FilamentPagination extends BaseProfile
     {
         $this->serve();
         $resource = Catalog::resource('PostResource');
-        $count = $resource::getEloquentQuery()->count();
+        $count = $resource::getEloquentQuery()->toBase()->count();
 
         return [['name' => 'Filament count matches visible posts', 'ok' => $count === $this->expected($tier), 'detail' => "{$count} expected ".$this->expected($tier)]];
     }

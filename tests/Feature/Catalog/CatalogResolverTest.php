@@ -3,8 +3,8 @@
 declare(strict_types=1);
 
 use AzGuard\Catalog\PermissionDefinition;
-use AzGuard\Exceptions\AmbiguousPanelException;
-use AzGuard\Exceptions\ConflictingPanelException;
+use AzGuard\Exceptions\Definitions\AmbiguousPanelException;
+use AzGuard\Exceptions\Definitions\ConflictingPanelException;
 use AzGuard\Kernel\Decision\PermissionAuthority;
 use AzGuard\Panels\Internal\PanelRegistry;
 use AzGuard\Panels\Internal\PanelResolver;

@@ -6,7 +6,7 @@ use AzGuard\Context\AssignmentScopeDescription;
 use AzGuard\Context\Internal\ContextIdentity;
 use AzGuard\Contracts\Scopes\DescribesAssignmentScope;
 use AzGuard\Contracts\Scopes\ResolvedAssignmentScope;
-use AzGuard\Exceptions\InvalidConfigurationException;
+use AzGuard\Exceptions\Configuration\InvalidConfigurationException;
 use AzGuard\Kernel\Identity\AssignmentScopeRef;
 use AzGuard\Kernel\Identity\TenantRef;
 use AzGuard\Panels\PanelBuilder;

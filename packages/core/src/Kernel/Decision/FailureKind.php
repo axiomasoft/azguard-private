@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace AzGuard\Kernel\Decision;
 
-use AzGuard\Attributes\Api;
+use Packman\Attributes\Api;
 
 /**
  * Why a decision could not be computed: the closed taxonomy of failures (audits/2026-10-09-consistency-design.md,

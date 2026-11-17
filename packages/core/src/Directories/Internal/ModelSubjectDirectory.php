@@ -10,6 +10,7 @@ use AzGuard\Directories\SubjectOption;
 use AzGuard\Kernel\Identity\SubjectRef;
 use AzGuard\Support\ModelKey;
 use Illuminate\Database\Eloquent\Model;
+use Packman\Attributes\Internal;
 
 /**
  * Default subject directory over the models a panel declares with `for(model:)`.
@@ -18,6 +19,7 @@ use Illuminate\Database\Eloquent\Model;
  * `azguardLabel()` or its key. It does not depend on the target of the lookup, so it works while the subject is
  * still being chosen.
  */
+#[Internal]
 final readonly class ModelSubjectDirectory implements SubjectDirectory
 {
     /** @param list<class-string<Model>> $models */
@@ -42,8 +44,9 @@ final readonly class ModelSubjectDirectory implements SubjectDirectory
             }
             $query = $model::query();
             ModelLookup::match($query, $term);
+            $query->getQuery()->orderBy($query->getModel()->getQualifiedKeyName())->limit($limit - count($options));
 
-            foreach ($query->orderBy($query->getModel()->getQualifiedKeyName())->limit($limit - count($options))->get() as $record) {
+            foreach ($query->get() as $record) {
                 $options[] = new SubjectOption(SubjectRef::of($alias, ModelKey::of($record)), ModelLookup::label($record));
             }
         }

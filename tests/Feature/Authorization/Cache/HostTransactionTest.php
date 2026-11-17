@@ -6,7 +6,7 @@ use AzGuard\Authorization\Internal\Authorizer;
 use AzGuard\Authorization\Internal\EvaluationFrame;
 use AzGuard\Contracts\Authorization\EvaluationContext;
 use AzGuard\Contracts\Authorization\GrantCondition;
-use AzGuard\Exceptions\InvalidConfigurationException;
+use AzGuard\Exceptions\Configuration\InvalidConfigurationException;
 use AzGuard\Kernel\Decision\AccessRequest;
 use AzGuard\Kernel\Decision\BeforeResult;
 use AzGuard\Kernel\Decision\DecisionReason;

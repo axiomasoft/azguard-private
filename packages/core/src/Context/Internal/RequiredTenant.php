@@ -4,12 +4,14 @@ declare(strict_types=1);
 
 namespace AzGuard\Context\Internal;
 
-use AzGuard\Exceptions\TenantRequiredException;
+use AzGuard\Exceptions\Changes\TenantRequiredException;
 use AzGuard\Kernel\Identity\TenantRef;
 use AzGuard\Panels\Panel;
 use AzGuard\Tenancy\TenantMode;
+use Packman\Attributes\Internal;
 
 /** @internal The tenant of an access: the one given, the current context, or the global tenant of a panel without tenants. */
+#[Internal]
 final class RequiredTenant
 {
     private function __construct() {}

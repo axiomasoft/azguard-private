@@ -4,12 +4,13 @@ declare(strict_types=1);
 
 namespace AzGuard\Diagnostics;
 
-use AzGuard\Attributes\Spi;
-use AzGuard\Attributes\SpiKind;
-use AzGuard\Configuration\Internal\AzGuardConfig;
+use AzGuard\Configuration\AzGuardOptions;
+use AzGuard\Diagnostics\Internal\DoctorStorages;
 use AzGuard\Panels\Panel;
-use AzGuard\Storage\Internal\Storage;
 use AzGuard\Storage\StorageDescriptor;
+use Packman\Attributes\Internal;
+use Packman\Attributes\Spi;
+use Packman\Attributes\SpiKind;
 
 /**
  * What one run of `azguard:doctor` inspects: the selected panels and storages, whether the run checks a production
@@ -18,19 +19,22 @@ use AzGuard\Storage\StorageDescriptor;
 #[Spi(kind: SpiKind::Call, since: '1.0')]
 final readonly class DoctorContext
 {
+    private AzGuardOptions $config;
+
     /**
-     * @internal built by the doctor
-     *
      * @param  list<Panel>  $panels
-     * @param  list<Storage>  $storages
+     * @param  list<StorageDescriptor>  $storages
      */
+    #[Internal('built by the doctor')]
     public function __construct(
         private array $panels,
         private array $storages,
         private bool $production,
-        private AzGuardConfig $config,
+        ?AzGuardOptions $config = null,
         private ?Panel $panel = null,
-    ) {}
+    ) {
+        $this->config = $config ?? AzGuardOptions::defaultsOnly();
+    }
 
     /** @return list<Panel> the selected panels in registration order */
     public function panels(): array
@@ -41,16 +45,6 @@ final readonly class DoctorContext
     /** @return list<StorageDescriptor> the selected storages */
     public function storages(): array
     {
-        return array_map(static fn (Storage $storage): StorageDescriptor => new StorageDescriptor($storage->id(), $storage->connectionName(), $storage->prefix(), $storage->hostKeys()), $this->storages);
-    }
-
-    /**
-     * @internal the storages the checks of the core open
-     *
-     * @return list<Storage>
-     */
-    public function storageObjects(): array
-    {
         return $this->storages;
     }
 
@@ -60,8 +54,8 @@ final readonly class DoctorContext
         return $this->production;
     }
 
-    /** @internal the configuration the checks of the core read */
-    public function config(): AzGuardConfig
+    /** Compiled package configuration for doctor checks. */
+    public function config(): AzGuardOptions
     {
         return $this->config;
     }
@@ -75,6 +69,9 @@ final readonly class DoctorContext
     /** The same run for a check that belongs to one panel. */
     public function forPanel(Panel $panel): self
     {
-        return new self($this->panels, $this->storages, $this->production, $this->config, $panel);
+        return DoctorStorages::propagate(
+            $this,
+            new self($this->panels, $this->storages, $this->production, $this->config, $panel),
+        );
     }
 }

@@ -11,6 +11,7 @@ use AzGuard\Kernel\Identity\SubjectRef;
 use AzGuard\Panels\Panel;
 use AzGuard\Tenancy\TenantMode;
 use Illuminate\Database\Eloquent\Model;
+use Packman\Attributes\Internal;
 
 /**
  * Entry into the interface of a panel: one evaluator for routes and admin panels.
@@ -27,6 +28,7 @@ use Illuminate\Database\Eloquent\Model;
  *
  * @internal
  */
+#[Internal]
 final readonly class PanelAdmission
 {
     public function __construct(private Authorizer $authorizer) {}

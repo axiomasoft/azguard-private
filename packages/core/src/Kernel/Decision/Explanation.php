@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace AzGuard\Kernel\Decision;
 
-use AzGuard\Attributes\Api;
 use AzGuard\Kernel\Identity\AccessScope;
 use AzGuard\Kernel\Identity\SubjectRef;
 use DateTimeImmutable;
+use Packman\Attributes\Api;
 
 /** An immutable, scalar diagnostic snapshot of one evaluation.
  */

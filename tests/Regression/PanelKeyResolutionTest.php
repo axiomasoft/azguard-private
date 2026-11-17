@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use AzGuard\Exceptions\ConflictingPanelException;
+use AzGuard\Exceptions\Definitions\ConflictingPanelException;
 use AzGuard\Facades\AzGuard;
 use AzGuard\Kernel\Decision\AccessRequest;
 use AzGuard\Kernel\Identity\PermissionKey;

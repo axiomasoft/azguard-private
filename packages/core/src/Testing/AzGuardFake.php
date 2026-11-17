@@ -4,12 +4,11 @@ declare(strict_types=1);
 
 namespace AzGuard\Testing;
 
-use AzGuard\Attributes\Api;
 use AzGuard\AzGuard;
 use AzGuard\Changes\Internal\ChangePipeline;
 use AzGuard\Context\Internal\ContextIdentity;
-use AzGuard\Contracts\PanelAccess;
-use AzGuard\Events\AccessDecided;
+use AzGuard\Contracts\Panels\PanelAccess;
+use AzGuard\Events\Access\AccessDecided;
 use AzGuard\Events\AccessEvent;
 use AzGuard\Events\EventType;
 use AzGuard\Events\Internal\EventObservers;
@@ -32,6 +31,7 @@ use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Contracts\Container\Container;
 use Illuminate\Database\Eloquent\Model;
 use InvalidArgumentException;
+use Packman\Attributes\Api;
 use PHPUnit\Framework\Assert;
 use Throwable;
 use UnitEnum;

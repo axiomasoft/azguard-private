@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 use AzGuard\Changes\GrantFilter;
-use AzGuard\Exceptions\PermissionNotGrantableException;
+use AzGuard\Exceptions\Changes\PermissionNotGrantableException;
 use AzGuard\Facades\AzGuard;
 use AzGuard\Filament\Internal\Editors\GrantEditor;
 use AzGuard\Filament\Internal\Editors\TargetSelector;

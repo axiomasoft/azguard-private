@@ -3,10 +3,10 @@
 declare(strict_types=1);
 
 use AzGuard\Configuration\Internal\AzGuardConfig;
-use AzGuard\Exceptions\DefinitionException;
-use AzGuard\Exceptions\InvalidChangeFieldsException;
-use AzGuard\Exceptions\InvalidConfigurationException;
-use AzGuard\Exceptions\InvalidSourceContributionException;
+use AzGuard\Exceptions\Authorization\InvalidSourceContributionException;
+use AzGuard\Exceptions\Changes\InvalidChangeFieldsException;
+use AzGuard\Exceptions\Configuration\InvalidConfigurationException;
+use AzGuard\Exceptions\Definitions\DefinitionException;
 use AzGuard\Schema\Field;
 use AzGuard\Schema\FieldTarget;
 use AzGuard\Storage\Internal\GrantFields;

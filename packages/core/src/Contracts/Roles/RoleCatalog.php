@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace AzGuard\Contracts\Roles;
 
-use AzGuard\Attributes\Api;
 use AzGuard\Roles\BaseRole;
 use AzGuard\Schema\RoleSchema;
+use Packman\Attributes\Api;
 
 /**
  * The code roles of one panel, read-only. A role is a PHP class: its key, permissions and scopes change only in code

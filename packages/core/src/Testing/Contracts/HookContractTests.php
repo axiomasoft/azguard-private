@@ -4,16 +4,14 @@ declare(strict_types=1);
 
 namespace AzGuard\Testing\Contracts;
 
-use AzGuard\Attributes\Spi;
-use AzGuard\Attributes\SpiKind;
 use AzGuard\Changes\Change;
 use AzGuard\Changes\ChangeResult;
 use AzGuard\Contracts\Authorization\AfterHook;
 use AzGuard\Contracts\Authorization\BeforeHook;
 use AzGuard\Contracts\Authorization\EvaluationContext;
 use AzGuard\Contracts\Changes\ChangePipe;
-use AzGuard\Exceptions\ChangeCancelledException;
-use AzGuard\Exceptions\DefinitionException;
+use AzGuard\Exceptions\Changes\ChangeCancelledException;
+use AzGuard\Exceptions\Definitions\DefinitionException;
 use AzGuard\Facades\AzGuard;
 use AzGuard\Kernel\Decision\AccessRequest;
 use AzGuard\Kernel\Decision\BeforeResult;
@@ -28,7 +26,11 @@ use AzGuard\Testing\Internal\Contracts\ContractWorld;
 use AzGuard\Testing\Internal\Contracts\ObservedPipe;
 use Closure;
 use Illuminate\Database\Eloquent\Model;
+use Packman\Attributes\Spi;
+use Packman\Attributes\SpiKind;
+use PHPUnit\Framework\Assert;
 use PHPUnit\Framework\Attributes\Test;
+use PHPUnit\Framework\TestCase;
 use Throwable;
 use UnitEnum;
 
@@ -102,7 +104,9 @@ trait HookContractTests
         $pipe = $this->azguardChangePipe();
 
         if ($before === null && $after === null && $pipe === null) {
-            $this->assertNull($before, 'There is no hook or pipe to check.');
+            if ($this instanceof TestCase) {
+                $this->addToAssertionCount(1);
+            }
 
             return;
         }
@@ -110,10 +114,10 @@ trait HookContractTests
         try {
             $panel = ContractWorld::panel(static fn (PanelBuilder $builder): PanelBuilder => $builder->before($before === null ? [] : [$before])->after($after === null ? [] : [$after])->changing($pipe === null ? [] : [$pipe]));
         } catch (DefinitionException $error) {
-            $this->fail('The panel does not accept the hook or pipe: '.$error->getMessage());
+            Assert::fail('The panel does not accept the hook or pipe: '.$error->getMessage());
         }
 
-        $this->assertSame([$before === null ? 0 : 1, $after === null ? 0 : 1, $pipe === null ? 0 : 1], [count($panel->before()), count($panel->after()), count($panel->changing())]);
+        Assert::assertSame([$before === null ? 0 : 1, $after === null ? 0 : 1, $pipe === null ? 0 : 1], [count($panel->before()), count($panel->after()), count($panel->changing())]);
     }
 
     #[Test]
@@ -122,7 +126,9 @@ trait HookContractTests
         $hook = $this->azguardAfterHook();
 
         if ($hook === null) {
-            $this->assertNull($hook, 'There is no after hook to check.');
+            if ($this instanceof TestCase) {
+                $this->addToAssertionCount(1);
+            }
 
             return;
         }
@@ -140,11 +146,11 @@ trait HookContractTests
             }
         });
 
-        $this->assertSame([], $writes, 'The after hook wrote while it observed: '.implode('; ', $writes));
+        Assert::assertSame([], $writes, 'The after hook wrote while it observed: '.implode('; ', $writes));
 
         foreach ($expected as $position => $decision) {
-            $this->assertSame($decision->effect, $actual[$position]->effect, 'The after hook changed the effect of a decision.');
-            $this->assertSame($decision->reason, $actual[$position]->reason, 'The after hook changed the reason of a decision.');
+            Assert::assertSame($decision->effect, $actual[$position]->effect, 'The after hook changed the effect of a decision.');
+            Assert::assertSame($decision->reason, $actual[$position]->reason, 'The after hook changed the reason of a decision.');
         }
     }
 
@@ -154,7 +160,9 @@ trait HookContractTests
         $hook = $this->azguardBeforeHook();
 
         if ($hook === null) {
-            $this->assertNull($hook, 'There is no before hook to check.');
+            if ($this instanceof TestCase) {
+                $this->addToAssertionCount(1);
+            }
 
             return;
         }
@@ -169,12 +177,12 @@ trait HookContractTests
             }
         });
 
-        $this->assertSame([], $writes, 'The before hook wrote while it decided: '.implode('; ', $writes));
+        Assert::assertSame([], $writes, 'The before hook wrote while it decided: '.implode('; ', $writes));
 
         foreach ($decisions as [$first, $second]) {
-            $this->assertNotSame(DecisionReason::HookError, $first->reason, 'The before hook threw or did not return a BeforeResult.');
-            $this->assertSame($first->reason, $second->reason, 'The before hook answers differently to the same request.');
-            $this->assertSame($first->effect, $second->effect, 'The before hook changes the effect between two identical requests.');
+            Assert::assertNotSame(DecisionReason::HookError, $first->reason, 'The before hook threw or did not return a BeforeResult.');
+            Assert::assertSame($first->reason, $second->reason, 'The before hook answers differently to the same request.');
+            Assert::assertSame($first->effect, $second->effect, 'The before hook changes the effect between two identical requests.');
         }
     }
 
@@ -184,7 +192,9 @@ trait HookContractTests
         $pipe = $this->azguardChangePipe();
 
         if ($pipe === null) {
-            $this->assertNull($pipe, 'There is no pipe to check.');
+            if ($this instanceof TestCase) {
+                $this->addToAssertionCount(1);
+            }
 
             return;
         }
@@ -198,7 +208,7 @@ trait HookContractTests
             // A pipe may cancel the change; it still must not have written.
         }
 
-        $this->assertSame([], $observed->outside, 'The pipe wrote to the database itself, around the writer: '.implode('; ', $observed->outside));
+        Assert::assertSame([], $observed->outside, 'The pipe wrote to the database itself, around the writer: '.implode('; ', $observed->outside));
     }
 
     #[Test]
@@ -207,7 +217,9 @@ trait HookContractTests
         $pipe = $this->azguardChangePipe();
 
         if ($pipe === null) {
-            $this->assertNull($pipe, 'There is no pipe to check.');
+            if ($this instanceof TestCase) {
+                $this->addToAssertionCount(1);
+            }
 
             return;
         }
@@ -217,13 +229,13 @@ trait HookContractTests
 
         try {
             AzGuard::actingAs('contract', fn () => AzGuard::panel($panel->id())->for($subject)->grantPermission(ContractPermission::View));
-            $this->fail('The change was not cancelled by the last pipe: the pipe of the author does not pass the change on.');
+            Assert::fail('The change was not cancelled by the last pipe: the pipe of the author does not pass the change on.');
         } catch (ChangeCancelledException) {
             // The expected end.
         } catch (Throwable $error) {
-            $this->fail('The cancelled change ended with '.$error::class.': '.$error->getMessage());
+            Assert::fail('The cancelled change ended with '.$error::class.': '.$error->getMessage());
         }
 
-        $this->assertSame($before, ContractWorld::rowCounts(), 'A cancelled change left rows behind.');
+        Assert::assertSame($before, ContractWorld::rowCounts(), 'A cancelled change left rows behind.');
     }
 }

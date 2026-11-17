@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace AzGuard\Kernel\Grammar;
 
-use AzGuard\Attributes\Api;
-use AzGuard\Exceptions\InvalidPanelIdException;
-use AzGuard\Exceptions\InvalidPermissionKeyException;
-use AzGuard\Exceptions\InvalidRoleKeyException;
+use AzGuard\Exceptions\Identity\InvalidPanelIdException;
+use AzGuard\Exceptions\Identity\InvalidPermissionKeyException;
+use AzGuard\Exceptions\Identity\InvalidRoleKeyException;
+use Packman\Attributes\Api;
 
 /**
  * The single grammar of permission keys, grant patterns, panel ids and role keys.

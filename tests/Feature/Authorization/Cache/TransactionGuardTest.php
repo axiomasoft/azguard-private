@@ -6,7 +6,7 @@ use AzGuard\Authorization\Internal\Cache\SignedEnvelope;
 use AzGuard\Authorization\Internal\Pipeline\Stages\AuthorityStage;
 use AzGuard\Authorization\Internal\Pipeline\Trace;
 use AzGuard\Contracts\Sources\Volatility;
-use AzGuard\Exceptions\InvalidConfigurationException;
+use AzGuard\Exceptions\Configuration\InvalidConfigurationException;
 use AzGuard\Kernel\Decision\DecisionReason;
 use AzGuard\Panels\PanelBuilder;
 use AzGuard\Sources\Database\DatabaseSource;

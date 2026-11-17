@@ -4,11 +4,12 @@ declare(strict_types=1);
 
 namespace AzGuard\Kernel\Decision;
 
-use AzGuard\Attributes\Api;
-use AzGuard\Exceptions\InvalidIdentityException;
-use AzGuard\Exceptions\InvalidPanelIdException;
+use AzGuard\Exceptions\Identity\InvalidIdentityException;
+use AzGuard\Exceptions\Identity\InvalidPanelIdException;
 use AzGuard\Kernel\Grammar\PermissionGrammar;
 use JsonException;
+use Packman\Attributes\Api;
+use Packman\Attributes\Internal;
 
 /**
  * State evidence of a decision made from code alone: the panel build, without storage. The token is opaque: compare
@@ -88,33 +89,31 @@ final readonly class CodeStateToken
             JSON_THROW_ON_ERROR | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE)), '+/', '-_'), '=');
     }
 
-    /** @internal */
+    #[Internal]
     public function buildId(): string
     {
         return $this->buildId;
     }
 
-    /** @internal */
+    #[Internal]
     public function fingerprint(): string
     {
         return $this->fingerprint;
     }
 
     /**
-     * @internal The `state` object of an event payload: exactly the keys journal rows have always carried.
-     *
      * @return array{kind: 'code', panel: string, build_id: string, fingerprint: string}
      */
+    #[Internal('The `state` object of an event payload: exactly the keys journal rows have always carried.')]
     public function payload(): array
     {
         return ['kind' => 'code', 'panel' => $this->panel, 'build_id' => $this->buildId, 'fingerprint' => $this->fingerprint];
     }
 
     /**
-     * @internal Every recorded value by name, for explanations and traces.
-     *
      * @return array{panel: string, buildId: string, fingerprint: string}
      */
+    #[Internal('Every recorded value by name, for explanations and traces.')]
     public function fields(): array
     {
         return ['panel' => $this->panel, 'buildId' => $this->buildId, 'fingerprint' => $this->fingerprint];

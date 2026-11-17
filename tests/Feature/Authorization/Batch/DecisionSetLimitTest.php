@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 use AzGuard\Authorization\Internal\Authorizer;
 use AzGuard\Configuration\Internal\AzGuardConfig;
-use AzGuard\Exceptions\DecisionSetTooLargeException;
-use AzGuard\Exceptions\InvalidConfigurationException;
+use AzGuard\Exceptions\Authorization\DecisionSetTooLargeException;
+use AzGuard\Exceptions\Configuration\InvalidConfigurationException;
 use AzGuard\Kernel\Decision\AccessRequest;
 use AzGuard\Kernel\Identity\PermissionKey;
 use AzGuard\Kernel\Identity\SubjectRef;

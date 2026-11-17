@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 use AzGuard\Authorization\Internal\Authorizer;
 use AzGuard\Catalog\Internal\CatalogCache;
-use AzGuard\Exceptions\DefinitionException;
-use AzGuard\Exceptions\DuplicatePolicyBindingException;
-use AzGuard\Exceptions\InvalidPolicyStructureException;
+use AzGuard\Exceptions\Definitions\DefinitionException;
+use AzGuard\Exceptions\Definitions\DuplicatePolicyBindingException;
+use AzGuard\Exceptions\Definitions\InvalidPolicyStructureException;
 use AzGuard\Panels\Internal\PanelRegistry;
 use AzGuard\Panels\PanelBuilder;
 use AzGuard\Policies\PolicyBinding;

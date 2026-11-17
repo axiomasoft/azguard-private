@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use AzGuard\Events\RoleGranted;
+use AzGuard\Events\Changes\RoleGranted;
 use AzGuard\Kernel\Identity\AssignmentScopeRef;
 use AzGuard\Tests\Fixtures\Changes\ChangeWorld;
 use AzGuard\Tests\Fixtures\Crm\CrmWorld;

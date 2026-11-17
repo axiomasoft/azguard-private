@@ -1,7 +1,7 @@
 # Installation
 
-For 2.0, use PHP 8.3, 8.4 or 8.5 with Laravel 13. Other Laravel majors are unsupported.
-The [compatibility policy](../reference/compatibility.md#supported-platforms) records the three CI pairs and server lanes.
+For 2.0, use PHP 8.4 or 8.5 with Laravel 13. Other Laravel majors are unsupported.
+The [compatibility policy](../reference/compatibility.md#supported-platforms) records the CI pairs and server lanes.
 
 AzGuard is not on Packagist yet. Until the first release, install it from a path or VCS repository as described in the
 repository's `DEVELOPMENT.md`; the commands are the same after that.

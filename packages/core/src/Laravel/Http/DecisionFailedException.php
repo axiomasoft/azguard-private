@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace AzGuard\Laravel\Http;
 
-use AzGuard\Attributes\Api;
 use AzGuard\Kernel\Decision\Decision;
 use AzGuard\Kernel\Decision\DecisionReason;
 use AzGuard\Kernel\Decision\FailureKind;
+use Packman\Attributes\Api;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 
 /**

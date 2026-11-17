@@ -13,7 +13,7 @@ use AzGuard\Contracts\Scopes\ResourceScopeResolver;
 use AzGuard\Contracts\Subjects\SubjectResolver;
 use AzGuard\Contracts\Tenancy\TenantMembership;
 use AzGuard\Contracts\Tenancy\TenantResolver;
-use AzGuard\Exceptions\InvalidIdentityException;
+use AzGuard\Exceptions\Identity\InvalidIdentityException;
 use AzGuard\Kernel\Identity\AssignmentScopeRef;
 use AzGuard\Kernel\Identity\IdentityCodec;
 use AzGuard\Kernel\Identity\TenantRef;

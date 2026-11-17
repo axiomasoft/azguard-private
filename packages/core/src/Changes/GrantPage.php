@@ -4,7 +4,8 @@ declare(strict_types=1);
 
 namespace AzGuard\Changes;
 
-use AzGuard\Attributes\Api;
+use Packman\Attributes\Api;
+use Packman\Attributes\Internal;
 
 /**
  * One page of stored grants of a grant manager. `nextCursor` is null on the last page; otherwise
@@ -14,9 +15,8 @@ use AzGuard\Attributes\Api;
 final readonly class GrantPage
 {
     /**
-     * @internal built by a grant manager
-     *
      * @param  list<GrantRecord>  $items
      */
+    #[Internal('built by a grant manager')]
     public function __construct(public array $items, public ?string $nextCursor) {}
 }

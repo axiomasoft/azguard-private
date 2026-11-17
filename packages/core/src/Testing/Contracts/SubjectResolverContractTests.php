@@ -4,11 +4,12 @@ declare(strict_types=1);
 
 namespace AzGuard\Testing\Contracts;
 
-use AzGuard\Attributes\Spi;
-use AzGuard\Attributes\SpiKind;
 use AzGuard\Contracts\Subjects\SubjectResolver;
 use AzGuard\Kernel\Identity\IdentityCodec;
 use AzGuard\Kernel\Identity\SubjectRef;
+use Packman\Attributes\Spi;
+use Packman\Attributes\SpiKind;
+use PHPUnit\Framework\Assert;
 use PHPUnit\Framework\Attributes\Test;
 use stdClass;
 use Throwable;
@@ -47,13 +48,13 @@ trait SubjectResolverContractTests
     public function resolvingIsIdempotent(): void
     {
         $resolver = $this->azguardSubjectResolver();
-        $this->assertNotSame([], $this->azguardSubjects(), 'Give the suite at least one subject.');
+        Assert::assertNotSame([], $this->azguardSubjects(), 'Give the suite at least one subject.');
 
         foreach ($this->azguardSubjects() as $subject) {
             $first = $resolver->resolve($subject);
 
-            $this->assertTrue($first->equals($resolver->resolve($subject)), 'The same subject resolves to different references.');
-            $this->assertTrue($first->equals($this->azguardSubjectResolver()->resolve($subject)), 'Two instances of the resolver disagree.');
+            Assert::assertTrue($first->equals($resolver->resolve($subject)), 'The same subject resolves to different references.');
+            Assert::assertTrue($first->equals($this->azguardSubjectResolver()->resolve($subject)), 'Two instances of the resolver disagree.');
         }
     }
 
@@ -65,14 +66,14 @@ trait SubjectResolverContractTests
         foreach ($this->azguardSubjects() as $subject) {
             $ref = $resolver->resolve($subject);
 
-            $this->assertStringNotContainsString(':', $ref->type(), 'The type of a subject reference has no ":".');
-            $this->assertSame($ref->type().':'.$ref->id(), $ref->key());
+            Assert::assertStringNotContainsString(':', $ref->type(), 'The type of a subject reference has no ":".');
+            Assert::assertSame($ref->type().':'.$ref->id(), $ref->key());
             $decoded = IdentityCodec::decode(IdentityCodec::encode($ref));
 
             if (! $decoded instanceof SubjectRef) {
-                $this->fail('The reference does not come back as a subject reference from the codec.');
+                Assert::fail('The reference does not come back as a subject reference from the codec.');
             }
-            $this->assertTrue($ref->equals($decoded), 'The reference changes when it goes through the codec.');
+            Assert::assertTrue($ref->equals($decoded), 'The reference changes when it goes through the codec.');
         }
     }
 
@@ -85,8 +86,8 @@ trait SubjectResolverContractTests
             $ref = $resolver->resolve($subject);
             $model = $resolver->model($ref);
 
-            $this->assertNotNull($model, 'The reference of an existing subject has no model.');
-            $this->assertTrue($ref->equals($resolver->resolve($model)), 'The model of a reference resolves to another reference.');
+            Assert::assertNotNull($model, 'The reference of an existing subject has no model.');
+            Assert::assertTrue($ref->equals($resolver->resolve($model)), 'The model of a reference resolves to another reference.');
         }
     }
 
@@ -95,24 +96,27 @@ trait SubjectResolverContractTests
     {
         $resolver = $this->azguardSubjectResolver();
         $subjects = $this->azguardSubjects();
-        $missing = $this->azguardMissingSubject($resolver->resolve($subjects[0] ?? $this->fail('Give the suite at least one subject.')));
+        $missing = $this->azguardMissingSubject($resolver->resolve($subjects[0] ?? Assert::fail('Give the suite at least one subject.')));
 
-        $this->assertNull($resolver->model($missing), 'A reference to a subject that does not exist has a model.');
+        Assert::assertNull($resolver->model($missing), 'A reference to a subject that does not exist has a model.');
     }
 
     #[Test]
     public function whatIsNotASubjectIsRefused(): void
     {
         $resolver = $this->azguardSubjectResolver();
+        $refused = 0;
 
         foreach ([new stdClass, null, 3.5] as $value) {
             try {
                 $ref = $resolver->resolve($value);
             } catch (Throwable) {
+                $refused++;
+
                 continue;
             }
-            $this->fail('A '.get_debug_type($value).' was resolved to the reference '.$ref->key().'.');
+            Assert::fail('A '.get_debug_type($value).' was resolved to the reference '.$ref->key().'.');
         }
-        $this->assertTrue(true);
+        Assert::assertSame(3, $refused);
     }
 }

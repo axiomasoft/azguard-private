@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace AzGuard\Contracts\Authorization;
 
-use AzGuard\Attributes\Spi;
-use AzGuard\Attributes\SpiKind;
 use AzGuard\Kernel\Decision\AccessRequest;
 use AzGuard\Kernel\Decision\BeforeResult;
+use Packman\Attributes\Spi;
+use Packman\Attributes\SpiKind;
 
 /**
  * A hook that runs before the sources and may only let the check continue or deny it; it never grants.

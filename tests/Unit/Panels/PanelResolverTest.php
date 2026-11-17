@@ -2,16 +2,16 @@
 
 declare(strict_types=1);
 
-use AzGuard\Exceptions\AmbiguousPanelException;
-use AzGuard\Exceptions\ChangeException;
-use AzGuard\Exceptions\ConflictingPanelException;
-use AzGuard\Exceptions\DefinitionException;
-use AzGuard\Exceptions\InvalidPermissionKeyException;
-use AzGuard\Exceptions\PanelNotResolvedException;
-use AzGuard\Exceptions\PrefixConflictException;
-use AzGuard\Exceptions\SubjectNotAcceptedException;
-use AzGuard\Exceptions\UnknownPanelException;
-use AzGuard\Exceptions\UnknownPermissionException;
+use AzGuard\Exceptions\Changes\ChangeException;
+use AzGuard\Exceptions\Changes\UnknownPermissionException;
+use AzGuard\Exceptions\Definitions\AmbiguousPanelException;
+use AzGuard\Exceptions\Definitions\ConflictingPanelException;
+use AzGuard\Exceptions\Definitions\DefinitionException;
+use AzGuard\Exceptions\Definitions\PanelNotResolvedException;
+use AzGuard\Exceptions\Definitions\PrefixConflictException;
+use AzGuard\Exceptions\Definitions\SubjectNotAcceptedException;
+use AzGuard\Exceptions\Definitions\UnknownPanelException;
+use AzGuard\Exceptions\Identity\InvalidPermissionKeyException;
 use AzGuard\Kernel\Identity\SubjectRef;
 use AzGuard\Panels\Internal\CurrentPanel;
 use AzGuard\Panels\Internal\PanelRegistry;

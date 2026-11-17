@@ -11,6 +11,7 @@ use AzGuard\Diagnostics\DoctorFinding;
 use AzGuard\Kernel\Decision\PermissionAuthority;
 use AzGuard\Panels\Internal\PanelRegistry;
 use AzGuard\Policies\Decides;
+use Packman\Attributes\Internal;
 use ReflectionClass;
 use ReflectionMethod;
 
@@ -21,6 +22,7 @@ use ReflectionMethod;
  *
  * @internal
  */
+#[Internal]
 final readonly class PoliciesComplete implements DoctorCheck
 {
     public function __construct(private PanelRegistry $registry) {}
@@ -45,16 +47,16 @@ final readonly class PoliciesComplete implements DoctorCheck
         $findings = [];
 
         foreach ($catalog->all() as $local => $definition) {
-            if ($definition->authority === PermissionAuthority::Policy && ! isset($bindings[(string) $local])) {
+            if ($definition->authority === PermissionAuthority::Policy && ! isset($bindings[$local])) {
                 $findings[] = DoctorFinding::error('policies.complete', 'Policy-only permission "'.$local.'" of panel '.$catalog->panel()
-                    .' has no policy method: add #[Decides] or declare #[RequiresGrant].', $scope, ['permission' => (string) $local]);
+                    .' has no policy method: add #[Decides] or declare #[RequiresGrant].', $scope, ['permission' => $local]);
             }
         }
 
         $policies = [];
         foreach ($bindings as $local => $binding) {
             if ($binding->kind === 'php' && is_string($binding->policy) && class_exists($binding->policy)) {
-                $policies[$binding->policy][] = $binding->method ?? $catalog->bindingMethod((string) $local);
+                $policies[$binding->policy][] = $binding->method ?? $catalog->bindingMethod($local);
             }
         }
         ksort($policies, SORT_STRING);

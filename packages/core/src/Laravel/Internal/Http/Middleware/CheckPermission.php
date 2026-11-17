@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace AzGuard\Laravel\Internal\Http\Middleware;
 
-use AzGuard\Concerns\SubjectAccess;
-use AzGuard\Exceptions\DefinitionException;
-use AzGuard\Exceptions\PanelNotResolvedException;
-use AzGuard\Exceptions\SubjectNotAcceptedException;
+use AzGuard\Concerns\Subjects\SubjectAccess;
+use AzGuard\Exceptions\Definitions\DefinitionException;
+use AzGuard\Exceptions\Definitions\PanelNotResolvedException;
+use AzGuard\Exceptions\Definitions\SubjectNotAcceptedException;
 use AzGuard\Kernel\Identity\AssignmentScopeRef;
 use AzGuard\Laravel\Internal\Http\PanelUser;
 use AzGuard\Laravel\Internal\Http\RouteChecks;
@@ -19,6 +19,7 @@ use Illuminate\Contracts\Translation\Translator;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Route;
+use Packman\Attributes\Internal;
 use UnitEnum;
 
 /**
@@ -32,6 +33,7 @@ use UnitEnum;
  * default 403 and the standard message. The response carries the stable reason code internally, but no decision
  * explanation; the host renderer controls what is exposed publicly.
  */
+#[Internal]
 final readonly class CheckPermission
 {
     public const string ALIAS = 'azguard.can';
@@ -74,7 +76,7 @@ final readonly class CheckPermission
 
         try {
             if ($user !== null) {
-                $decision = (new SubjectAccess($panel ?? $this->resolver->select($user, [$check]), $user))->decide($check, $target);
+                $decision = new SubjectAccess($panel ?? $this->resolver->select($user, [$check]), $user)->decide($check, $target);
             }
         } catch (SubjectNotAcceptedException) {
             $decision = null;

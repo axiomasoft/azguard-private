@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 use AzGuard\Contracts\Scopes\MapsAssignmentScope;
-use AzGuard\Exceptions\DefinitionException;
+use AzGuard\Exceptions\Definitions\DefinitionException;
 use AzGuard\Scopes\ContextAware;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;

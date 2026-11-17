@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use AzGuard\Exceptions\DefinitionException;
+use AzGuard\Exceptions\Definitions\DefinitionException;
 use AzGuard\Schema\Field;
 use AzGuard\Tests\Fixtures\Storage\Department;
 use AzGuard\Tests\Fixtures\Storage\Weekday;

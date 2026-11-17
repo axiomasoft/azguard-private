@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace AzGuard\Testing\Contracts;
 
-use AzGuard\Attributes\Spi;
-use AzGuard\Attributes\SpiKind;
 use AzGuard\Context\AssignmentScopeDeclaration;
 use AzGuard\Context\AssignmentScopeMode;
 use AzGuard\Context\AssignmentScopePhase;
@@ -28,8 +26,12 @@ use AzGuard\Support\ModelKey;
 use AzGuard\Testing\FakeSource;
 use AzGuard\Testing\Internal\Contracts\ContractPermission;
 use AzGuard\Testing\Internal\Contracts\ContractWorld;
+use AzGuard\Testing\Internal\Contracts\EvaluatorSpy;
 use DateTimeImmutable;
 use Illuminate\Database\Eloquent\Model;
+use Packman\Attributes\Spi;
+use Packman\Attributes\SpiKind;
+use PHPUnit\Framework\Assert;
 use PHPUnit\Framework\Attributes\Test;
 use RuntimeException;
 
@@ -80,10 +82,10 @@ trait AssignmentScopeEvaluatorContractTests
         $single = array_map(static fn (array $check): bool => $evaluator->allows($check[0], $check[1]), $checks);
         $many = $evaluator->allowsMany($checks);
 
-        $this->assertSame(array_keys($checks), array_keys($many), 'allowsMany() does not give one answer per check in a list.');
-        $this->assertSame($single, $many, 'allowsMany() answers differently than allows() for the same checks.');
-        $this->assertSame(array_reverse($single), $evaluator->allowsMany(array_reverse($checks)), 'allowsMany() does not follow the order of the checks.');
-        $this->assertSame([], $evaluator->allowsMany([]), 'allowsMany() answers checks nobody asked.');
+        Assert::assertSame(array_keys($checks), array_keys($many), 'allowsMany() does not give one answer per check in a list.');
+        Assert::assertSame($single, $many, 'allowsMany() answers differently than allows() for the same checks.');
+        Assert::assertSame(array_reverse($single), $evaluator->allowsMany(array_reverse($checks)), 'allowsMany() does not follow the order of the checks.');
+        Assert::assertSame([], $evaluator->allowsMany([]), 'allowsMany() answers checks nobody asked.');
     }
 
     #[Test]
@@ -92,56 +94,32 @@ trait AssignmentScopeEvaluatorContractTests
         $panel = $this->azguardScopePanel($this->azguardEvaluator(), new FakeSource);
 
         foreach ($this->azguardScopes() as $ref) {
-            $this->assertFalse($this->azguardDecide($panel, $ref)->allowed(), 'A scope the evaluator accepts granted '.$ref->key().' without a grant.');
+            Assert::assertFalse($this->azguardDecide($panel, $ref)->allowed(), 'A scope the evaluator accepts granted '.$ref->key().' without a grant.');
         }
     }
 
     #[Test]
     public function engineAsksTheEvaluatorOnlyAboutVerifiedScopes(): void
     {
-        $evaluator = $this->azguardEvaluator();
-        $spy = new class($evaluator) implements AssignmentScopeEvaluator
-        {
-            /** @var list<string> */
-            public array $asked = [];
-
-            public function __construct(private readonly AssignmentScopeEvaluator $evaluator) {}
-
-            public function validate(AssignmentScopeDefinition $definition, ?AssignmentScopeDefinition $registered): void
-            {
-                $this->evaluator->validate($definition, $registered);
-            }
-
-            public function allows(AssignmentScopeRuntime $runtime, ResolvedAssignmentScope $resolved): bool
-            {
-                $this->asked[] = $resolved->ref->key();
-
-                return $this->evaluator->allows($runtime, $resolved);
-            }
-
-            public function allowsMany(array $checks): array
-            {
-                foreach ($checks as [, $resolved]) {
-                    $this->asked[] = $resolved->ref->key();
-                }
-
-                return $this->evaluator->allowsMany($checks);
-            }
-        };
+        $spy = new EvaluatorSpy($this->azguardEvaluator());
         $source = new FakeSource;
         $panel = $this->azguardScopePanel($spy, $source);
         $type = $this->azguardScopeDefinition()->type();
 
         $this->azguardDecide($panel, AssignmentScopeRef::of($type === 'azguard-contract.other' ? 'azguard-contract.undeclared' : 'azguard-contract.other', 1));
-        $this->assertSame([], $spy->asked, 'The engine asked the evaluator about a scope type the panel does not declare.');
+        $unexpected = $spy->drainAsked();
+
+        if ($unexpected !== []) {
+            Assert::fail('The engine asked the evaluator about a scope type the panel does not declare: '.implode(', ', $unexpected).'.');
+        }
 
         foreach ($this->azguardScopes() as $ref) {
             $this->grant($panel, $source, $ref);
             $this->azguardDecide($panel, $ref);
         }
 
-        foreach ($spy->asked as $key) {
-            $this->assertContains($key, array_map(static fn (AssignmentScopeRef $ref): string => $ref->key(), $this->azguardScopes()),
+        foreach ($spy->drainAsked() as $key) {
+            Assert::assertContains($key, array_map(static fn (AssignmentScopeRef $ref): string => $ref->key(), $this->azguardScopes()),
                 'The engine asked the evaluator about a scope it did not resolve: '.$key.'.');
         }
     }
@@ -156,7 +134,7 @@ trait AssignmentScopeEvaluatorContractTests
             $this->grant($panel, $source, $ref);
             $decision = $this->azguardDecide($panel, $ref);
 
-            $this->assertNotSame(DecisionReason::AssignmentScopeFilterError, $decision->reason, 'The evaluator threw for '.$ref->key().': the engine denied the request instead of answering it.');
+            Assert::assertNotSame(DecisionReason::AssignmentScopeFilterError, $decision->reason, 'The evaluator threw for '.$ref->key().': the engine denied the request instead of answering it.');
         }
     }
 

@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace AzGuard\Contracts\Authorization;
 
-use AzGuard\Attributes\Spi;
-use AzGuard\Attributes\SpiKind;
 use AzGuard\Kernel\Decision\AccessPredicate;
 use AzGuard\Kernel\Decision\AccessRequest;
 use AzGuard\Kernel\Decision\Grant;
 use AzGuard\Kernel\Decision\RoleContribution;
+use Packman\Attributes\Spi;
+use Packman\Attributes\SpiKind;
 
 /**
  * Exact scalar/query equivalence for one permission, resource type and context.

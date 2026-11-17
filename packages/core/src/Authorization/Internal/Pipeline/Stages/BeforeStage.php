@@ -13,9 +13,11 @@ use AzGuard\Kernel\Decision\Decision;
 use AzGuard\Kernel\Decision\DecisionReason;
 use Closure;
 use Illuminate\Contracts\Container\Container;
+use Packman\Attributes\Internal;
 use RuntimeException;
 use Throwable;
 
+#[Internal]
 final readonly class BeforeStage
 {
     public function __construct(private Container $container) {}

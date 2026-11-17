@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 use AzGuard\Authorization\Internal\Authorizer;
 use AzGuard\Catalog\PermissionDefinition;
-use AzGuard\Exceptions\DefinitionException;
-use AzGuard\Exceptions\DuplicatePermissionException;
-use AzGuard\Exceptions\PrefixConflictException;
-use AzGuard\Exceptions\UnknownPermissionException;
+use AzGuard\Exceptions\Changes\UnknownPermissionException;
+use AzGuard\Exceptions\Definitions\DefinitionException;
+use AzGuard\Exceptions\Definitions\DuplicatePermissionException;
+use AzGuard\Exceptions\Definitions\PrefixConflictException;
 use AzGuard\Kernel\Decision\AccessRequest;
 use AzGuard\Kernel\Decision\DecisionReason;
 use AzGuard\Kernel\Decision\PermissionAuthority;

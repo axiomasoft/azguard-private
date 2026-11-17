@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use AzGuard\Concerns\SubjectAccess;
+use AzGuard\Concerns\Subjects\SubjectAccess;
 use AzGuard\Kernel\Decision\DecisionReason;
 use AzGuard\Panels\Reads;
 use AzGuard\Panels\StateRefresh;

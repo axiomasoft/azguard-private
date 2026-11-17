@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 use AzGuard\Catalog\Internal\CatalogCache;
-use AzGuard\Exceptions\DuplicateRoleException;
+use AzGuard\Exceptions\Definitions\DuplicateRoleException;
 use AzGuard\Panels\Internal\PanelRegistry;
 use AzGuard\Panels\PanelBuilder;
 use AzGuard\Sources\Folder\FolderSource;

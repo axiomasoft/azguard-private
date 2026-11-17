@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace AzGuard\Tests\Fixtures\Filament\Models;
 
-use AzGuard\Concerns\HasAzGuard;
-use AzGuard\Contracts\AzGuardSubject;
+use AzGuard\Concerns\Subjects\HasAzGuard;
+use AzGuard\Contracts\Subjects\AzGuardSubject;
 use Filament\Models\Contracts\FilamentUser;
 use Filament\Panel;
 use Illuminate\Foundation\Auth\User as Authenticatable;

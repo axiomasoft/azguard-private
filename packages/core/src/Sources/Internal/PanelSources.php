@@ -17,12 +17,12 @@ use AzGuard\Contracts\Sources\ProvidesRoleGrants;
 use AzGuard\Contracts\Sources\ProvidesRoles;
 use AzGuard\Contracts\Sources\Source;
 use AzGuard\Contracts\Sources\SourceDescription;
-use AzGuard\Exceptions\DefinitionException;
-use AzGuard\Exceptions\DuplicatePermissionException;
-use AzGuard\Exceptions\DuplicateRoleException;
-use AzGuard\Exceptions\InvalidIdentityException;
-use AzGuard\Exceptions\UnknownSourceException;
-use AzGuard\Exceptions\WriterConflictException;
+use AzGuard\Exceptions\Definitions\DefinitionException;
+use AzGuard\Exceptions\Definitions\DuplicatePermissionException;
+use AzGuard\Exceptions\Definitions\DuplicateRoleException;
+use AzGuard\Exceptions\Definitions\UnknownSourceException;
+use AzGuard\Exceptions\Definitions\WriterConflictException;
+use AzGuard\Exceptions\Identity\InvalidIdentityException;
 use AzGuard\Kernel\Identity\IdentityCodec;
 use AzGuard\Panels\Internal\PanelRecipe;
 use AzGuard\Panels\Panel;
@@ -36,6 +36,7 @@ use AzGuard\Sources\SourceManager;
 use BackedEnum;
 use Closure;
 use Illuminate\Contracts\Container\Container;
+use Packman\Attributes\Internal;
 
 /**
  * Sources of a panel in the order of the recipe layers and of registration, each with the layer that attached it.
@@ -45,6 +46,7 @@ use Illuminate\Contracts\Container\Container;
  *
  * @phpstan-type Attached array{source: Source, origin: string, plugin: ?string, name: ?string, role_origins?: array<class-string, string>}
  */
+#[Internal]
 final readonly class PanelSources
 {
     /** @var list<class-string<Source>> */

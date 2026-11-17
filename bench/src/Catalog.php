@@ -37,7 +37,8 @@ final class Catalog
             self::write($dir);
         }
 
-        foreach (glob($dir.'/*.php') ?: [] as $file) {
+        $files = glob($dir.'/*.php');
+        foreach ($files === false ? [] : $files as $file) {
             require_once $file;
         }
     }

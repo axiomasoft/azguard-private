@@ -4,13 +4,15 @@ declare(strict_types=1);
 
 namespace AzGuard\Storage\Internal\Concerns;
 
-use AzGuard\Exceptions\InvalidIdentityException;
+use AzGuard\Exceptions\Identity\InvalidIdentityException;
 use AzGuard\Kernel\Identity\ActorRef;
 use AzGuard\Kernel\Identity\AssignmentScopeRef;
 use AzGuard\Kernel\Identity\IdentityCodec;
 use AzGuard\Kernel\Identity\SubjectRef;
 use Carbon\CarbonImmutable;
+use Packman\Attributes\Internal;
 
+#[Internal]
 trait GrantIdentity
 {
     final public function subjectRef(): SubjectRef

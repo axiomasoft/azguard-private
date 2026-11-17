@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace AzGuard\Events;
 
-use AzGuard\Attributes\Api;
+use Packman\Attributes\Api;
 
 /**
  * The stable machine name of each access event; the value is part of the integration contract.

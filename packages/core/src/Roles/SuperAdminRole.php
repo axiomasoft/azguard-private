@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace AzGuard\Roles;
 
-use AzGuard\Attributes\Api;
 use AzGuard\Roles\Attributes\Role;
 use AzGuard\Roles\Attributes\SuperAdmin;
+use Packman\Attributes\Api;
 
 /**
  * Ready-made super-admin role, attached to a panel explicitly; it needs no permissions.

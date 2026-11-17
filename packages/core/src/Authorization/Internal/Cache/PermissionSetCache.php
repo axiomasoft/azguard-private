@@ -26,10 +26,12 @@ use Illuminate\Contracts\Cache\Factory;
 use Illuminate\Redis\Connections\PhpRedisConnection;
 use Illuminate\Redis\Connections\PredisConnection;
 use Illuminate\Support\Carbon;
+use Packman\Attributes\Internal;
 use Throwable;
 use UnexpectedValueException;
 
 /** @internal Request/job memo and revision-keyed store of raw authority; never a decision cache. */
+#[Internal]
 final class PermissionSetCache
 {
     private const int DEFAULT_SHARED_TTL = 300;
@@ -108,7 +110,7 @@ final class PermissionSetCache
 
                 if ($stored !== null && count($stored) === 2 && isset($stored['items'], $stored['validUntil']) && is_array($stored['items'])
                 && array_is_list($stored['items']) && $stored['validUntil'] instanceof DateTimeImmutable
-                && $stored['validUntil'] == $envelope['validUntil']) {
+                && $stored['validUntil']->format('U.u') === $envelope['validUntil']->format('U.u')) {
                     // Every item must be a contribution; one of another type discards the whole entry.
                     $items = [];
                     foreach ($stored['items'] as $item) {
@@ -231,7 +233,7 @@ final class PermissionSetCache
                 return null;
             }
 
-            if ($item['expiresAt'] != 0 && Carbon::now()->getPreciseTimestamp(3) / 1000 >= $item['expiresAt']) {
+            if ((float) $item['expiresAt'] !== 0.0 && Carbon::now()->getPreciseTimestamp(3) / 1000 >= $item['expiresAt']) {
                 $store->forget($key);
 
                 return null;
@@ -256,7 +258,7 @@ final class PermissionSetCache
                 return $connection->command('eval', [$script, 1, $redisKey, $maxBytes]);
             }
 
-            return $connection->get($redisKey);
+            return $connection->command('get', [$redisKey]);
         }
 
         return null;

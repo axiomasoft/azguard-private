@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-use AzGuard\Concerns\SubjectAccess;
-use AzGuard\Concerns\SubjectPanels;
+use AzGuard\Concerns\Subjects\SubjectAccess;
+use AzGuard\Concerns\Subjects\SubjectPanels;
 use AzGuard\Context\Internal\CurrentContext;
 use AzGuard\Context\Internal\WithinContext;
-use AzGuard\Exceptions\ConflictingPanelException;
-use AzGuard\Exceptions\TenantRequiredException;
-use AzGuard\Exceptions\UnknownRoleException;
+use AzGuard\Exceptions\Changes\TenantRequiredException;
+use AzGuard\Exceptions\Changes\UnknownRoleException;
+use AzGuard\Exceptions\Definitions\ConflictingPanelException;
 use AzGuard\Kernel\Identity\AssignmentScopeRef;
 use AzGuard\Kernel\Identity\TenantRef;
 use AzGuard\Panels\Internal\CurrentPanel;

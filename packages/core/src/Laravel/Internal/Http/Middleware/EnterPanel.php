@@ -6,7 +6,7 @@ namespace AzGuard\Laravel\Internal\Http\Middleware;
 
 use AzGuard\Authorization\Internal\PanelAdmission;
 use AzGuard\Context\Internal\CurrentContext;
-use AzGuard\Exceptions\MissingPermissionCheckException;
+use AzGuard\Exceptions\Configuration\MissingPermissionCheckException;
 use AzGuard\Laravel\Internal\Http\PanelUser;
 use AzGuard\Laravel\Internal\Http\RouteChecks;
 use AzGuard\Laravel\Internal\Queue\PanelContext;
@@ -25,6 +25,7 @@ use Illuminate\Pipeline\Pipeline;
 use Illuminate\Routing\Events\RouteMatched;
 use Illuminate\Routing\Route;
 use Illuminate\Routing\Router;
+use Packman\Attributes\Internal;
 
 /**
  * `azguard.panel:{id}`: enters the interface of a panel for the rest of the request.
@@ -40,6 +41,7 @@ use Illuminate\Routing\Router;
  * applied itself, each once. In strict mode an action without any check and without `#[SkipPermissionCheck]` throws
  * `MissingPermissionCheckException` in the local and testing environments and answers 403 elsewhere.
  */
+#[Internal]
 final readonly class EnterPanel
 {
     public const string ALIAS = 'azguard.panel';
@@ -141,7 +143,7 @@ final readonly class EnterPanel
     private function through(Request $request, array $middleware, Closure $destination): mixed
     {
         return $middleware === [] ? $destination($request)
-            : (new Pipeline($this->container))->send($request)->through($middleware)->then($destination);
+            : new Pipeline($this->container)->send($request)->through($middleware)->then($destination);
     }
 
     /**

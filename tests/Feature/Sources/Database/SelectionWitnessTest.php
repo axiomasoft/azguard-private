@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 use AzGuard\Contracts\Sources\AssignmentScopeSelection;
-use AzGuard\Exceptions\InvalidSourceContributionException;
+use AzGuard\Exceptions\Authorization\InvalidSourceContributionException;
 use AzGuard\Kernel\Decision\Grant;
 use AzGuard\Kernel\Decision\RoleContribution;
 use AzGuard\Kernel\Identity\AccessScope;

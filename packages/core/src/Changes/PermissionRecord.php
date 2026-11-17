@@ -4,10 +4,11 @@ declare(strict_types=1);
 
 namespace AzGuard\Changes;
 
-use AzGuard\Attributes\Api;
 use AzGuard\Kernel\Identity\PermissionKey;
 use AzGuard\Kernel\Identity\TenantRef;
 use DateTimeImmutable;
+use Packman\Attributes\Api;
+use Packman\Attributes\Internal;
 
 /**
  * One stored dynamic permission as the writer read it under the panel lock.
@@ -18,10 +19,9 @@ use DateTimeImmutable;
 final readonly class PermissionRecord
 {
     /**
-     * @internal built by the writer
-     *
      * @param  array<string, mixed>  $fields
      */
+    #[Internal('built by the writer')]
     public function __construct(
         public string $id,
         public string $panel,

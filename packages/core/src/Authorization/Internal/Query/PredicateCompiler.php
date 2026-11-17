@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace AzGuard\Authorization\Internal\Query;
 
-use AzGuard\Exceptions\DefinitionException;
+use AzGuard\Exceptions\Definitions\DefinitionException;
 use AzGuard\Kernel\Decision\AccessPredicate;
 use AzGuard\Kernel\Internal\Narrow;
 use Illuminate\Database\Eloquent\Builder;
@@ -13,10 +13,12 @@ use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Database\Query\Builder as QueryBuilder;
 use Illuminate\Database\Query\Expression;
+use Packman\Attributes\Internal;
 use ReflectionMethod;
 use ReflectionNamedType;
 
 /** Compiles exact descriptors as one AND group; never executes a resource query. */
+#[Internal]
 final class PredicateCompiler
 {
     /** @var array<string, list<string>> Schema observations live only for this compilation. */
@@ -39,7 +41,7 @@ final class PredicateCompiler
             throw new DefinitionException('Exact predicates require the model table as the query root.');
         }
 
-        if ($effective->getQuery()->unions) {
+        if ($effective->getQuery()->unions !== null && $effective->getQuery()->unions !== []) {
             throw new DefinitionException('Exact predicates cannot constrain every arm of a UNION query.');
         }
         foreach (self::wheres($effective->getQuery()) as $where) {
@@ -74,7 +76,7 @@ final class PredicateCompiler
             }
 
             if (in_array(strtolower(self::part($where, 'type')), ['exists', 'notexists'], true)) {
-                if ($nested->unions) {
+                if ($nested->unions !== null && $nested->unions !== []) {
                     throw new DefinitionException('Exact relation predicates cannot constrain every arm of a UNION query.');
                 }
                 foreach (self::wheres($nested) as $constraint) {
@@ -137,13 +139,7 @@ final class PredicateCompiler
             return true;
         }
 
-        foreach (['column', 'first', 'second', 'value'] as $part) {
-            if (($where[$part] ?? null) instanceof Expression) {
-                return true;
-            }
-        }
-
-        return false;
+        return array_any(['column', 'first', 'second', 'value'], fn (string $part): bool => ($where[$part] ?? null) instanceof Expression);
     }
 
     /**
@@ -154,17 +150,17 @@ final class PredicateCompiler
     {
         switch ($predicate->operation) {
             case 'pass':
-                $query->whereRaw('1 = 1');
+                $query->getQuery()->whereRaw('1 = 1');
 
                 break;
             case 'deny':
-                $query->whereRaw('1 = 0');
+                $query->getQuery()->whereRaw('1 = 0');
 
                 break;
             case 'all':
             case 'any':
                 if ($predicate->operands === []) {
-                    $query->whereRaw($predicate->operation === 'all' ? '1 = 1' : '1 = 0');
+                    $query->getQuery()->whereRaw($predicate->operation === 'all' ? '1 = 1' : '1 = 0');
 
                     break;
                 }
@@ -239,13 +235,13 @@ final class PredicateCompiler
         $value = $predicate->values[0] ?? null;
 
         if ($predicate->operation === 'is_null' || ($predicate->operation === 'eq' && $value === null)) {
-            $query->whereNull($column);
+            $query->getQuery()->whereNull($column);
 
             return;
         }
 
         if ($predicate->operation === 'not_null') {
-            $query->whereNotNull($column);
+            $query->getQuery()->whereNotNull($column);
 
             return;
         }
@@ -253,10 +249,10 @@ final class PredicateCompiler
         if ($predicate->operation === 'in') {
             $values = array_values(array_filter($predicate->values, static fn (bool|int|float|string|null $value): bool => $value !== null));
             $query->where(function (Builder $nested) use ($column, $values, $predicate): void {
-                $nested->whereNotNull($column)->whereIn($column, $values);
+                $nested->getQuery()->whereNotNull($column)->whereIn($column, $values);
 
                 if (in_array(null, $predicate->values, true)) {
-                    $nested->orWhereNull($column);
+                    $nested->getQuery()->orWhereNull($column);
                 }
             });
 
@@ -264,7 +260,8 @@ final class PredicateCompiler
         }
 
         // Without the explicit NULL guard, NOT(column = value) would lose NULL rows.
-        $query->whereNotNull($column)->where($column, match ($predicate->operation) {
+        $query->getQuery()->whereNotNull($column);
+        $query->where($column, match ($predicate->operation) {
             'eq' => '=', 'gte' => '>=', 'lt' => '<',
             default => throw new DefinitionException('Invalid exact comparison operator.'),
         }, $value);
@@ -286,7 +283,7 @@ final class PredicateCompiler
             if (! $return instanceof ReflectionNamedType || ! is_a($return->getName(), Relation::class, true)) {
                 throw new DefinitionException('Exact relation methods must declare an Eloquent Relation return type.');
             }
-            $relation = Relation::noConstraints(fn () => $model->{$name}());
+            $relation = Relation::noConstraints(static fn (): mixed => $method->invoke($model));
 
             if (! $relation instanceof Relation || $relation instanceof MorphTo) {
                 throw new DefinitionException('Exact predicates require a concrete Eloquent relation.');

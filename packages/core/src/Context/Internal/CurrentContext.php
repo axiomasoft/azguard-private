@@ -7,11 +7,13 @@ namespace AzGuard\Context\Internal;
 use AzGuard\Kernel\Identity\AccessScope;
 use AzGuard\Panels\Panel;
 use Fiber;
+use Packman\Attributes\Internal;
 use WeakMap;
 
 /**
  * Request/job-local scope state, isolated by panel.
  */
+#[Internal]
 final class CurrentContext
 {
     /** @var array<string, AccessScope> */

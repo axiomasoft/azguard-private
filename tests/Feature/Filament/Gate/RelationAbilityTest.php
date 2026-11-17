@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use AzGuard\Exceptions\InvalidConfigurationException;
+use AzGuard\Exceptions\Configuration\InvalidConfigurationException;
 use AzGuard\Filament\AzGuardPlugin;
 use AzGuard\Filament\Internal\Authorization\FilamentContext;
 use AzGuard\Tests\Fixtures\Filament\BootsFilament;

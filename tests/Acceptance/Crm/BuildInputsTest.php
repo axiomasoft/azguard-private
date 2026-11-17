@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 use AzGuard\Context\AssignmentScopeDeclaration;
 use AzGuard\Context\AssignmentScopeMode;
-use AzGuard\Exceptions\DefinitionException;
-use AzGuard\Exceptions\PluginConflictException;
+use AzGuard\Exceptions\Definitions\DefinitionException;
+use AzGuard\Exceptions\Plugins\PluginConflictException;
 use AzGuard\Kernel\Decision\DecisionReason;
 use AzGuard\Panels\Internal\PanelRegistry;
 use AzGuard\Panels\PanelBuilder;

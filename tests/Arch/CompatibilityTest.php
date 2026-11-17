@@ -186,7 +186,7 @@ it('rejects an intentional break with its rule id', function (string $artifact, 
     'publication changed' => ['api.core', compatOnType(COMPAT_PLUGIN, static fn (array $t): array => [...$t, 'publication' => 'spi-call']), ['type.publication_changed']],
     'since changed' => ['api.core', compatOnType(COMPAT_GRANT_FILTER, static fn (array $t): array => [...$t, 'since' => '1.1']), ['type.publication_changed']],
     'final added' => ['api.core', compatOnType(COMPAT_ACCESS_EVENT, static fn (array $t): array => [...$t, 'final' => true]), ['type.shape_changed']],
-    'interface removed' => ['api.core', compatOnType('AzGuard\\Exceptions\\AmbiguousPanelException', static fn (array $t): array => [...$t, 'interfaces' => ['Throwable']]), ['type.shape_changed']],
+    'interface removed' => ['api.core', compatOnType('AzGuard\\Exceptions\\Definitions\\AmbiguousPanelException', static fn (array $t): array => [...$t, 'interfaces' => ['Throwable']]), ['type.shape_changed']],
     'method removed' => ['api.core', compatOnType(COMPAT_ENTRY, static function (array $t): array {
         $t['methods'] = array_values(array_filter($t['methods'], static fn (array $m): bool => $m['name'] !== 'check'));
 

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use AzGuard\Exceptions\VisibilityNotSupportedException;
+use AzGuard\Exceptions\Authorization\VisibilityNotSupportedException;
 use AzGuard\Tests\Fixtures\Visibility\VisibilityProject;
 use AzGuard\Tests\Fixtures\Visibility\VisibilitySource;
 use AzGuard\Tests\Fixtures\Visibility\VisibilityWorld as W;

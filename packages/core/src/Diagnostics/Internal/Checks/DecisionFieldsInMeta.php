@@ -8,6 +8,7 @@ use AzGuard\Contracts\Diagnostics\DoctorCheck;
 use AzGuard\Diagnostics\DoctorContext;
 use AzGuard\Diagnostics\DoctorFinding;
 use AzGuard\Sources\Database\DatabaseSource;
+use Packman\Attributes\Internal;
 
 /**
  * `fields.meta` of a database source: a decision field kept in `meta` is read from JSON on every check and cannot be
@@ -15,6 +16,7 @@ use AzGuard\Sources\Database\DatabaseSource;
  *
  * @internal
  */
+#[Internal]
 final readonly class DecisionFieldsInMeta implements DoctorCheck
 {
     public function __construct(private DatabaseSource $source) {}

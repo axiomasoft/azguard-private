@@ -8,11 +8,13 @@ use AzGuard\Changes\ChangeResult;
 use AzGuard\Laravel\Internal\Console\GrantCommandSupport;
 use AzGuard\Panels\Internal\PanelResolver;
 use Illuminate\Console\Command;
+use Packman\Attributes\Internal;
 
 /**
  * Creates a dynamic permission in one tenant of a panel that declares `dynamicPermissions()`, through the change
  * pipeline as the system actor `azguard:permissions:create`.
  */
+#[Internal]
 final class PermissionsCreateCommand extends Command
 {
     use GrantCommandSupport;

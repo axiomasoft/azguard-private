@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-use AzGuard\Exceptions\InvalidAssignmentScopeException;
-use AzGuard\Exceptions\InvalidIdentityException;
-use AzGuard\Exceptions\InvalidPermissionKeyException;
+use AzGuard\Exceptions\Identity\InvalidAssignmentScopeException;
+use AzGuard\Exceptions\Identity\InvalidIdentityException;
+use AzGuard\Exceptions\Identity\InvalidPermissionKeyException;
 use AzGuard\Kernel\Identity\AccessScope;
 use AzGuard\Kernel\Identity\ActorRef;
 use AzGuard\Kernel\Identity\AssignmentScopeRef;

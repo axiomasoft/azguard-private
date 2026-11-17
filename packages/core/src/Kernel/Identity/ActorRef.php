@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace AzGuard\Kernel\Identity;
 
-use AzGuard\Attributes\Api;
-use AzGuard\Exceptions\InvalidIdentityException;
+use AzGuard\Exceptions\Identity\InvalidIdentityException;
+use Packman\Attributes\Api;
 
 /**
  * Who initiated a change: a host identity, or the system actor without an id and with a reason.

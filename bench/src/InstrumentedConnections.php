@@ -14,12 +14,13 @@ use Throwable;
 /** Observe failed root transactions without changing their retry or lock behavior. */
 trait ObservesTransactions
 {
+    /** @param int $attempts */
     public function transaction(Closure $callback, $attempts = 1)
     {
         $root = $this->transactionLevel() === 0;
 
         try {
-            return parent::transaction($callback, $attempts);
+            return parent::transaction($callback, max(1, $attempts));
         } catch (Throwable $error) {
             if ($root) {
                 TransactionProbe::failed($error);
