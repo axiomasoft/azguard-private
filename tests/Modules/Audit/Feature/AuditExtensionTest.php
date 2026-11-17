@@ -2,22 +2,29 @@
 
 declare(strict_types=1);
 
+use AzGuard\Audit\AuditOptions;
+use AzGuard\Audit\AuditPlugin;
 use AzGuard\Audit\AuditServiceProvider;
 use AzGuard\Audit\Diagnostics\AuditHealthCheck;
 use AzGuard\Audit\Extensions\AuditExtensionPlugin;
 use AzGuard\Audit\Schema\AuditSchemaSets;
+use AzGuard\Extensions\AzGuardCorePlugin;
+use Illuminate\Container\Container;
 use Illuminate\Database\Migrations\Migrator;
 use Illuminate\Support\ServiceProvider;
+use Packman\Config\Exceptions\InvalidConfiguration;
 use Packman\Doctor\Contracts\DoctorRegistryContract;
 use Packman\Doctor\Data\DoctorContext;
 use Packman\Doctor\Enums\CheckStatus;
 use Packman\Extensions\Data\ExtensionFacetProfile;
 use Packman\Extensions\ExtensionInspector;
 use Packman\Plugins\Contracts\Registry\PluginInspector;
+use Packman\Plugins\Testing\PluginGraph;
 use Packman\Schema\Contracts\Compiler\SchemaOwnership;
 use Packman\Schema\Contracts\Migration\SchemaSets;
 use Packman\Schema\Enums\SchemaLifecycle;
 use Packman\Schema\Enums\SchemaScope;
+use Packman\Schema\Laravel\PackmanMigration;
 
 it('declares AuditServiceProvider as final without auto-loading migrations', function (): void {
     $reflection = new ReflectionClass(AuditServiceProvider::class);
@@ -40,8 +47,6 @@ it('declares AuditServiceProvider as final without auto-loading migrations', fun
 });
 
 it('registers AzGuard Audit Packman plugin facets, schema ownership, schema sets, and diagnostics', function (): void {
-    config()->set('packman.plugins', [AuditExtensionPlugin::class]);
-
     $plugin = new AuditExtensionPlugin;
     $profile = ExtensionInspector::inspect($plugin);
 
@@ -74,4 +79,16 @@ it('registers AzGuard Audit Packman plugin facets, schema ownership, schema sets
     expect($findings)->toHaveCount(1)
         ->and($findings[0]->status)->toBe(CheckStatus::Ok)
         ->and($findings[0]->code)->toBe('azguard.audit.health');
+
+    $migration = require dirname(__DIR__, 4).'/packages/audit/database/migrations/2026_10_20_000000_create_azguard_audit_log.php';
+    $compiled = PluginGraph::compile(new Container, [AzGuardCorePlugin::class, AuditExtensionPlugin::class]);
+    $options = AuditOptions::fromArray(['retention_days' => 30], 'azguard-audit');
+
+    expect($migration)->toBeInstanceOf(PackmanMigration::class)
+        ->and(AuditPlugin::make()->extension())->toBeInstanceOf(AuditExtensionPlugin::class)
+        ->and(array_map(static fn ($d): string => $d->id, $compiled->describe()))->toContain('axiomasoft.azguard', 'axiomasoft.azguard-audit')
+        ->and($options->retentionDays)->toBe(30)
+        ->and(static fn () => AuditOptions::fromArray(['unknown' => 1], 'azguard-audit'))->toThrow(InvalidConfiguration::class)
+        ->and(static fn () => AuditOptions::fromArray(['retention_days' => 0], 'azguard-audit'))->toThrow(InvalidConfiguration::class)
+        ->and(static fn () => AuditOptions::fromArray(['retention_days' => '30'], 'azguard-audit'))->toThrow(InvalidConfiguration::class);
 });

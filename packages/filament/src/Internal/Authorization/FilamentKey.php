@@ -5,12 +5,14 @@ declare(strict_types=1);
 namespace AzGuard\Filament\Internal\Authorization;
 
 use Illuminate\Database\Eloquent\Model;
+use Packman\Attributes\Internal;
 
 /**
  * One permission key of a Filament panel with the class that owns it.
  *
  * @internal
  */
+#[Internal]
 final readonly class FilamentKey
 {
     /**

@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace AzGuard\Panels;
 
 use AzGuard\AzGuard;
+use AzGuard\Concerns\Subjects\SubjectAccess;
 use AzGuard\Contracts\Panels\PanelRegistry;
+use AzGuard\Exceptions\Changes\UnknownPermissionException;
 use AzGuard\Exceptions\Definitions\UnknownPanelException;
 use AzGuard\Kernel\Identity\SubjectRef;
 use AzGuard\Kernel\Identity\TenantRef;
@@ -49,7 +51,7 @@ final readonly class AzGuardPanelProvider implements PackmanPanelProvider
         }
 
         if ($this->container === null || ! $this->container->bound(PanelRegistry::class) || ! $this->container->bound(AzGuard::class)) {
-            return new PanelAccess(view: true, actions: self::ACTIONS, reason: null);
+            return PanelAccess::deny('panel_access_unavailable');
         }
 
         try {
@@ -71,9 +73,12 @@ final readonly class AzGuardPanelProvider implements PackmanPanelProvider
 
             if ($tenantKey !== '' && $tenantKey !== 'global') {
                 $definition = $target->tenants()->definition();
-                $panelAccess = $panelAccess->inTenant(
-                    $definition === null ? TenantRef::global() : TenantRef::of($definition->type(), $tenantKey),
-                );
+
+                if ($definition === null) {
+                    return PanelAccess::deny('invalid_tenant');
+                }
+
+                $panelAccess = $panelAccess->inTenant(TenantRef::of($definition->type(), $tenantKey));
             }
 
             $subjectAccess = $panelAccess->for($subject);
@@ -87,12 +92,51 @@ final readonly class AzGuardPanelProvider implements PackmanPanelProvider
             if ($entry !== null && ! $subjectAccess->hasPermission($entry)) {
                 return PanelAccess::deny('entry_permission_denied');
             }
+
+            $viewPermission = $this->checkOptionalPermission($subjectAccess, 'azguard.view');
+
+            if ($viewPermission === false) {
+                return PanelAccess::deny('view_permission_denied');
+            }
+
+            $actions = $this->authorizedActions($subjectAccess, $viewPermission ?? true);
         } catch (UnknownPanelException) {
             return PanelAccess::deny('unknown_panel');
         } catch (Throwable) {
             return PanelAccess::deny('panel_access_error');
         }
 
-        return new PanelAccess(view: true, actions: self::ACTIONS, reason: null);
+        return new PanelAccess(view: true, actions: $actions, reason: null);
+    }
+
+    /** @return list<string> */
+    private function authorizedActions(SubjectAccess $subjectAccess, bool $canView): array
+    {
+        $authorized = [];
+
+        foreach (self::ACTIONS as $action) {
+            if ($action === 'view') {
+                if ($canView) {
+                    $authorized[] = $action;
+                }
+
+                continue;
+            }
+
+            if ($this->checkOptionalPermission($subjectAccess, 'azguard.'.$action) === true) {
+                $authorized[] = $action;
+            }
+        }
+
+        return $authorized;
+    }
+
+    private function checkOptionalPermission(SubjectAccess $subjectAccess, string $permission): ?bool
+    {
+        try {
+            return $subjectAccess->hasPermission($permission);
+        } catch (UnknownPermissionException) {
+            return null;
+        }
     }
 }

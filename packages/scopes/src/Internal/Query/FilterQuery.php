@@ -8,6 +8,7 @@ use Closure;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Query\Builder as QueryBuilder;
+use Packman\Attributes\Internal;
 use ReflectionObject;
 use RuntimeException;
 use UnexpectedValueException;
@@ -21,6 +22,7 @@ use UnexpectedValueException;
  *
  * @extends Builder<Model>
  */
+#[Internal]
 final class FilterQuery extends Builder
 {
     /** @param Builder<Model> $source */

@@ -7,11 +7,13 @@ namespace AzGuard\Audit\Internal;
 use AzGuard\Events\AccessEvent;
 use AzGuard\Storage\StorageDescriptor;
 use DateTimeZone;
+use Packman\Attributes\Internal;
 
 /**
  * @internal The row of the audit journal for one event: its envelope as columns and its whole serialized form as the
  * payload.
  */
+#[Internal]
 final class JournalRow
 {
     /** The columns of a journal row; every one is given, a value that has no meaning is null. */

@@ -14,6 +14,7 @@ use Filament\Facades\Filament;
 use Filament\Panel as FilamentPanel;
 use Illuminate\Console\Command;
 use Illuminate\Support\Str;
+use Packman\Attributes\Internal;
 use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Output\BufferedOutput;
 
@@ -23,6 +24,7 @@ use Symfony\Component\Console\Output\BufferedOutput;
  * `azguard:make:policy`. The keys are the ones the Filament panel checks; the authority is only what `--authority`
  * says. Each enum is marked `#[ForFilament(Class)]`, so the doctor can tell a definition whose class is gone.
  */
+#[Internal]
 final class FilamentGenerateCommand extends Command
 {
     /** @var string */

@@ -20,6 +20,7 @@ use Filament\Widgets\WidgetConfiguration;
 use Illuminate\Contracts\Support\Htmlable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
+use Packman\Attributes\Internal;
 use ReflectionProperty;
 use UnitEnum;
 
@@ -33,6 +34,7 @@ use UnitEnum;
  *
  * @internal
  */
+#[Internal]
 final class FilamentKeys
 {
     /** @var list<FilamentKey>|null */

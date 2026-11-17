@@ -34,7 +34,6 @@ use Filament\Actions\Contracts\HasActions;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\ForceDeleteBulkAction;
 use Filament\Actions\RestoreBulkAction;
-use Filament\Contracts\Plugin;
 use Filament\Facades\Filament;
 use Filament\Panel as FilamentPanel;
 use Filament\Resources\RelationManagers\RelationGroup;
@@ -46,6 +45,8 @@ use Illuminate\Contracts\Config\Repository;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Packman\Attributes\Api;
+use Packman\Attributes\Internal;
+use Packman\Filament\Contracts\FilamentPanelPlugin;
 
 /**
  * Connects a Filament panel to a panel of AzGuard.
@@ -62,7 +63,7 @@ use Packman\Attributes\Api;
  * itself; `boot()` checks that it did and says what is missing.
  */
 #[Api(since: '1.0')]
-final class AzGuardPlugin implements Plugin
+final class AzGuardPlugin implements FilamentPanelPlugin
 {
     public const string ID = 'azguard';
 
@@ -367,8 +368,11 @@ final class AzGuardPlugin implements Plugin
      * Permission keys of the resources, pages and widgets of a Filament panel under the settings of this plugin.
      *
      * @internal read by the package; the generator and the doctor are the supported views of the keys
+     *
+     * @return FilamentKeys
      */
-    public function keys(FilamentPanel $panel): FilamentKeys
+    #[Internal('Internal Filament permission key map for panel resources, pages, and widgets.')]
+    public function keys(FilamentPanel $panel): object
     {
         return new FilamentKeys($panel, $this->abilities, $this->exclude);
     }

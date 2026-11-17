@@ -10,7 +10,7 @@ use AzGuard\Filament\Laravel\Registrars\AzGuardFilamentExtensionRegistrar;
 use AzGuard\Filament\Laravel\Registrars\AzGuardFilamentSecurityRegistrar;
 use Illuminate\Support\ServiceProvider;
 use Packman\Attributes\Api;
-use Packman\Filament\PackmanFilamentServiceProvider;
+use Packman\Filament\Laravel\FilamentBindingsRegistrar;
 use Packman\Foundation\Concerns\RegistersPackageRegistrars;
 use Packman\Foundation\Contracts\PackageRegistrar;
 use Packman\PackmanServiceProvider;
@@ -23,6 +23,7 @@ final class AzGuardFilamentServiceProvider extends ServiceProvider
 
     /** @var list<class-string<PackageRegistrar>> */
     protected const array REGISTRARS = [
+        FilamentBindingsRegistrar::class,
         AzGuardFilamentExtensionRegistrar::class,
         AzGuardFilamentConfigurationRegistrar::class,
         AzGuardFilamentSecurityRegistrar::class,
@@ -32,7 +33,6 @@ final class AzGuardFilamentServiceProvider extends ServiceProvider
     {
         $this->app->register(PackmanServiceProvider::class);
         $this->app->register(PluginsServiceProvider::class);
-        $this->app->register(PackmanFilamentServiceProvider::class);
         $this->registerPackageRegistrars();
     }
 

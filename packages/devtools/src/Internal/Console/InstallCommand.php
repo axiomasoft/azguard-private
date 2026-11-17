@@ -13,6 +13,7 @@ use AzGuard\Laravel\Console\InvalidCommandInput;
 use Illuminate\Console\Command;
 use Illuminate\Filesystem\Filesystem;
 use Illuminate\Support\Facades\App;
+use Packman\Attributes\Internal;
 use ReflectionClass;
 use Symfony\Component\Process\Process;
 
@@ -28,6 +29,7 @@ use Symfony\Component\Process\Process;
  *   after a successful `migrate` the exit code is the one of `azguard:doctor`. Without `--migrate` the checks are
  *   printed, but the exit code reports the installation steps only: the tables do not exist yet.
  */
+#[Internal]
 final class InstallCommand extends Command
 {
     use CommandSupport;

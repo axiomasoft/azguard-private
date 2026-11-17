@@ -7,6 +7,7 @@ namespace AzGuard\Testing;
 use AzGuard\Testing\Internal\FakeSubjectBuilder;
 use Illuminate\Auth\Authenticatable;
 use Illuminate\Contracts\Auth\Authenticatable as AuthenticatableContract;
+use Illuminate\Database\Eloquent\Builder as EloquentBuilder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Query\Builder;
 use Packman\Attributes\Api;
@@ -44,9 +45,10 @@ final class FakeSubject extends Model implements AuthenticatableContract
 
     /**
      * @param  Builder  $query
+     * @return FakeSubjectBuilder
      */
     #[Internal('Eloquent hook')]
-    public function newEloquentBuilder($query): FakeSubjectBuilder
+    public function newEloquentBuilder($query): EloquentBuilder
     {
         return new FakeSubjectBuilder($query);
     }

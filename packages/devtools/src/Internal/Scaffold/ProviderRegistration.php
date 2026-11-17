@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace AzGuard\DevTools\Internal\Scaffold;
 
 use Illuminate\Filesystem\Filesystem;
+use Packman\Attributes\Internal;
 
 /**
  * @internal Adds a panel provider to `azguard.panels.providers` of the published configuration file.
@@ -12,6 +13,7 @@ use Illuminate\Filesystem\Filesystem;
  * The file is edited as text, so the rest of it stays as the application wrote it. A file that is not published is not
  * created, and one whose `providers` list cannot be found is left alone: the caller tells the owner what to add.
  */
+#[Internal]
 final readonly class ProviderRegistration
 {
     public const string ADDED = 'added';

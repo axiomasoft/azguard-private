@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace AzGuard\Filament\Concerns;
 
-use AzGuard\Filament\Authorization\FilamentGate;
 use Filament\Widgets\Widget;
 use Packman\Attributes\Api;
+use Packman\Filament\Concerns\Authorization\AuthorizesWidget as PackmanAuthorizesWidget;
 
 /**
  * Shows a widget with its permission `widgets.{name}` in the guard panel.
@@ -16,8 +16,5 @@ use Packman\Attributes\Api;
 #[Api(since: '1.0')]
 trait AuthorizesWidget
 {
-    public static function canView(): bool
-    {
-        return FilamentGate::widget(static::class)->allowed();
-    }
+    use PackmanAuthorizesWidget;
 }

@@ -1,0 +1,100 @@
+{
+    "package": "axiomasoft/azguard-devtools",
+    "roots": {
+        "AzGuard\\DevTools\\": "src/"
+    },
+    "classes": [
+        {
+            "name": "AzGuard\\DevTools\\DevToolsServiceProvider",
+            "publication": "api",
+            "since": "1.0",
+            "kind": "class",
+            "final": true,
+            "abstract": false,
+            "readonly": false,
+            "parent": "Illuminate\\Support\\ServiceProvider",
+            "interfaces": [],
+            "namedArguments": true,
+            "contracts": [],
+            "constants": [],
+            "properties": [],
+            "methods": [
+                {
+                    "name": "boot",
+                    "visibility": "public",
+                    "static": false,
+                    "abstract": false,
+                    "final": false,
+                    "parameters": [],
+                    "return": "void",
+                    "returnsReference": false,
+                    "namedArguments": true,
+                    "contracts": []
+                },
+                {
+                    "name": "register",
+                    "visibility": "public",
+                    "static": false,
+                    "abstract": false,
+                    "final": false,
+                    "parameters": [],
+                    "return": "void",
+                    "returnsReference": false,
+                    "namedArguments": true,
+                    "contracts": []
+                }
+            ]
+        },
+        {
+            "name": "AzGuard\\DevTools\\Extensions\\DevToolsExtensionPlugin",
+            "publication": "api",
+            "since": "1.0",
+            "kind": "class",
+            "final": true,
+            "abstract": false,
+            "readonly": false,
+            "parent": null,
+            "interfaces": [
+                "Packman\\Plugins\\Contracts\\Registry\\ExtensionPlugin"
+            ],
+            "namedArguments": true,
+            "contracts": [],
+            "constants": [],
+            "properties": [],
+            "methods": [
+                {
+                    "name": "manifest",
+                    "visibility": "public",
+                    "static": false,
+                    "abstract": false,
+                    "final": false,
+                    "parameters": [],
+                    "return": "Packman\\Plugins\\Data\\Plugin\\PluginManifest",
+                    "returnsReference": false,
+                    "namedArguments": true,
+                    "contracts": []
+                },
+                {
+                    "name": "register",
+                    "visibility": "public",
+                    "static": false,
+                    "abstract": false,
+                    "final": false,
+                    "parameters": [
+                        {
+                            "name": "registrar",
+                            "type": "Packman\\Plugins\\Laravel\\PluginRegistrar",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "void",
+                    "returnsReference": false,
+                    "namedArguments": true,
+                    "contracts": []
+                }
+            ]
+        }
+    ]
+}

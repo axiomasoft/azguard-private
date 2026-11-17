@@ -610,7 +610,7 @@
             "abstract": false,
             "extends": [],
             "implements": [
-                "Filament\\Contracts\\Plugin"
+                "Packman\\Filament\\Contracts\\FilamentPanelPlugin"
             ],
             "uses": [],
             "doc": [],
@@ -960,7 +960,7 @@
                             "flags": 0
                         }
                     ],
-                    "return": "AzGuard\\Filament\\Internal\\Authorization\\FilamentKeys",
+                    "return": "object",
                     "doc": []
                 },
                 "make": {
@@ -1110,30 +1110,11 @@
             "abstract": false,
             "extends": [],
             "implements": [],
-            "uses": [],
+            "uses": [
+                "Packman\\Filament\\Concerns\\Authorization\\AuthorizesPage"
+            ],
             "doc": [],
-            "methods": {
-                "bootAuthorizesPage": {
-                    "visibility": "public",
-                    "static": false,
-                    "final": false,
-                    "abstract": false,
-                    "by_reference": false,
-                    "parameters": [],
-                    "return": "void",
-                    "doc": []
-                },
-                "canAccess": {
-                    "visibility": "public",
-                    "static": true,
-                    "final": false,
-                    "abstract": false,
-                    "by_reference": false,
-                    "parameters": [],
-                    "return": "bool",
-                    "doc": []
-                }
-            },
+            "methods": {},
             "properties": {},
             "constants": [],
             "enum_backing": null,
@@ -1234,69 +1215,11 @@
             "abstract": false,
             "extends": [],
             "implements": [],
-            "uses": [],
+            "uses": [
+                "Packman\\Filament\\Concerns\\Authorization\\AuthorizesResource"
+            ],
             "doc": [],
-            "methods": {
-                "getAuthorizationResponse": {
-                    "visibility": "public",
-                    "static": true,
-                    "final": false,
-                    "abstract": false,
-                    "by_reference": false,
-                    "parameters": [
-                        {
-                            "name": "action",
-                            "type": "string|UnitEnum",
-                            "by_reference": false,
-                            "variadic": false,
-                            "optional": false,
-                            "default": null,
-                            "flags": 0
-                        },
-                        {
-                            "name": "record",
-                            "type": "?Illuminate\\Database\\Eloquent\\Model",
-                            "by_reference": false,
-                            "variadic": false,
-                            "optional": true,
-                            "default": "null",
-                            "flags": 0
-                        }
-                    ],
-                    "return": "Illuminate\\Auth\\Access\\Response",
-                    "doc": []
-                },
-                "getEloquentQuery": {
-                    "visibility": "public",
-                    "static": true,
-                    "final": false,
-                    "abstract": false,
-                    "by_reference": false,
-                    "parameters": [],
-                    "return": "Illuminate\\Database\\Eloquent\\Builder",
-                    "doc": []
-                },
-                "modifyEloquentQuery": {
-                    "visibility": "protected",
-                    "static": true,
-                    "final": false,
-                    "abstract": false,
-                    "by_reference": false,
-                    "parameters": [
-                        {
-                            "name": "query",
-                            "type": "Illuminate\\Database\\Eloquent\\Builder",
-                            "by_reference": false,
-                            "variadic": false,
-                            "optional": false,
-                            "default": null,
-                            "flags": 0
-                        }
-                    ],
-                    "return": "Illuminate\\Database\\Eloquent\\Builder",
-                    "doc": []
-                }
-            },
+            "methods": {},
             "properties": {},
             "constants": [],
             "enum_backing": null,
@@ -1311,20 +1234,11 @@
             "abstract": false,
             "extends": [],
             "implements": [],
-            "uses": [],
+            "uses": [
+                "Packman\\Filament\\Concerns\\Authorization\\AuthorizesWidget"
+            ],
             "doc": [],
-            "methods": {
-                "canView": {
-                    "visibility": "public",
-                    "static": true,
-                    "final": false,
-                    "abstract": false,
-                    "by_reference": false,
-                    "parameters": [],
-                    "return": "bool",
-                    "doc": []
-                }
-            },
+            "methods": {},
             "properties": {},
             "constants": [],
             "enum_backing": null,

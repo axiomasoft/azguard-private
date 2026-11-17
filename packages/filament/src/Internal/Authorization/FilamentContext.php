@@ -24,6 +24,7 @@ use Filament\Resources\Resource as FilamentResource;
 use Filament\Widgets\Widget;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
+use Packman\Attributes\Internal;
 use ReflectionProperty;
 use UnitEnum;
 
@@ -32,6 +33,7 @@ use UnitEnum;
  *
  * @internal
  */
+#[Internal]
 final readonly class FilamentContext
 {
     private function __construct(public FilamentPanel $panel, public AzGuardPlugin $plugin) {}

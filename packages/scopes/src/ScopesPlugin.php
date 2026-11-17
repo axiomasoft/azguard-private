@@ -15,11 +15,11 @@ use AzGuard\Panels\PanelBuilder;
 use AzGuard\Plugins\PluginContext;
 use AzGuard\Scopes\Contracts\AssignmentScopeAccessAdapter;
 use AzGuard\Scopes\Contracts\AssignmentScopeMembership;
+use AzGuard\Scopes\Extensions\ScopesExtensionPlugin;
 use AzGuard\Scopes\Internal\Checks\ScopeMembershipConfigured;
 use AzGuard\Scopes\Internal\QueryScopeDirectory;
 use AzGuard\Scopes\Internal\ScopeEvaluator;
 use AzGuard\Scopes\Internal\ScopeMembershipRestriction;
-use AzGuard\Scopes\Internal\ScopesOptions;
 use Illuminate\Database\Eloquent\Model;
 use Packman\Attributes\Api;
 use ReflectionClass;
@@ -60,6 +60,11 @@ final class ScopesPlugin implements Plugin
     public static function required(AssignmentScopeDefinition|string ...$definitions): self
     {
         return new self(mode: AssignmentScopeMode::Required, definitions: array_values($definitions));
+    }
+
+    public function extension(): ScopesExtensionPlugin
+    {
+        return new ScopesExtensionPlugin;
     }
 
     /** @param AssignmentScopeMembership|class-string<AssignmentScopeMembership> $membership */

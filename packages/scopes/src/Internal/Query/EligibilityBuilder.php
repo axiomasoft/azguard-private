@@ -15,6 +15,7 @@ use Closure;
 use Illuminate\Contracts\Container\Container;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use Packman\Attributes\Internal;
 use RuntimeException;
 use Throwable;
 use UnexpectedValueException;
@@ -25,6 +26,7 @@ use UnexpectedValueException;
  *
  * @internal
  */
+#[Internal]
 final class EligibilityBuilder
 {
     /**

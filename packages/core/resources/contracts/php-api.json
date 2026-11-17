@@ -28927,7 +28927,7 @@
                             "flags": 0
                         }
                     ],
-                    "return": "AzGuard\\Testing\\Internal\\FakeSubjectBuilder",
+                    "return": "Illuminate\\Database\\Eloquent\\Builder",
                     "doc": []
                 },
                 "of": {

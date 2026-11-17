@@ -600,7 +600,8 @@
             "readonly": false,
             "parent": null,
             "interfaces": [
-                "Filament\\Contracts\\Plugin"
+                "Filament\\Contracts\\Plugin",
+                "Packman\\Filament\\Contracts\\FilamentPanelPlugin"
             ],
             "namedArguments": true,
             "contracts": [],

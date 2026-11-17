@@ -13,11 +13,13 @@ use AzGuard\Exceptions\Definitions\DefinitionException;
 use AzGuard\Scopes\Internal\Query\ScopeVisibility;
 use Illuminate\Contracts\Container\Container;
 use Illuminate\Database\Eloquent\Builder;
+use Packman\Attributes\Internal;
 
 /**
  * The evaluator `ScopesPlugin` declares: build-time validation of filters and role bindings, the eligibility of
  * `ScopeEligibility` for decisions, decision sets and writes, and its SQL form of `ScopeVisibility` for lists.
  */
+#[Internal]
 final readonly class ScopeEvaluator implements QueryableAssignmentScopeEvaluator
 {
     public function __construct(private Container $container) {}

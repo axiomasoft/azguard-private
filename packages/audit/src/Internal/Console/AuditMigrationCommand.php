@@ -10,11 +10,13 @@ use AzGuard\Laravel\Console\CommandSupport;
 use AzGuard\Laravel\Console\InvalidCommandInput;
 use Illuminate\Console\Command;
 use Illuminate\Filesystem\Filesystem;
+use Packman\Attributes\Internal;
 
 /**
  * @internal `azguard:audit:migration {storage}`: the migration that creates the audit journal table of a configured
  * named storage. The default storage takes the published migration (`azguard-audit-migrations`).
  */
+#[Internal]
 final class AuditMigrationCommand extends Command
 {
     use CommandSupport;

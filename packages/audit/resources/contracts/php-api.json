@@ -10,7 +10,9 @@
             "readonly": true,
             "abstract": false,
             "extends": [],
-            "implements": [],
+            "implements": [
+                "Packman\\Config\\Contracts\\OptionsFactory"
+            ],
             "uses": [],
             "doc": [],
             "methods": {
@@ -26,17 +28,53 @@
                             "type": "int",
                             "by_reference": false,
                             "variadic": false,
-                            "optional": false,
-                            "default": null,
+                            "optional": true,
+                            "default": "self::DEFAULT_RETENTION_DAYS",
                             "flags": 1
                         }
                     ],
                     "return": null,
                     "doc": []
+                },
+                "fromArray": {
+                    "visibility": "public",
+                    "static": true,
+                    "final": false,
+                    "abstract": false,
+                    "by_reference": false,
+                    "parameters": [
+                        {
+                            "name": "config",
+                            "type": "array",
+                            "by_reference": false,
+                            "variadic": false,
+                            "optional": false,
+                            "default": null,
+                            "flags": 0
+                        },
+                        {
+                            "name": "path",
+                            "type": "string",
+                            "by_reference": false,
+                            "variadic": false,
+                            "optional": true,
+                            "default": "'azguard-audit'",
+                            "flags": 0
+                        }
+                    ],
+                    "return": "self",
+                    "doc": []
                 }
             },
             "properties": {},
-            "constants": [],
+            "constants": [
+                {
+                    "name": "DEFAULT_RETENTION_DAYS",
+                    "type": "int",
+                    "visibility": "public",
+                    "final": false
+                }
+            ],
             "enum_backing": null,
             "enum_cases": []
         },
@@ -54,6 +92,16 @@
             "uses": [],
             "doc": [],
             "methods": {
+                "extension": {
+                    "visibility": "public",
+                    "static": false,
+                    "final": false,
+                    "abstract": false,
+                    "by_reference": false,
+                    "parameters": [],
+                    "return": "AzGuard\\Audit\\Extensions\\AuditExtensionPlugin",
+                    "doc": []
+                },
                 "id": {
                     "visibility": "public",
                     "static": false,
@@ -77,7 +125,7 @@
                             "by_reference": false,
                             "variadic": false,
                             "optional": true,
-                            "default": "90",
+                            "default": "\\AzGuard\\Audit\\AuditOptions::DEFAULT_RETENTION_DAYS",
                             "flags": 0
                         }
                     ],
@@ -288,15 +336,37 @@
             "extends": [],
             "implements": [
                 "Packman\\Plugins\\Contracts\\Registry\\ExtensionPlugin",
+                "Packman\\Extensions\\Contracts\\Configuration\\WithConfiguration",
                 "Packman\\Extensions\\Contracts\\Runtime\\WithDiagnostics",
                 "Packman\\Extensions\\Contracts\\Persistence\\WithSchema"
             ],
             "uses": [
+                "Packman\\Extensions\\Concerns\\Configuration\\Configurable",
                 "Packman\\Extensions\\Concerns\\Persistence\\OwnsSchema",
                 "Packman\\Extensions\\Concerns\\Runtime\\ProvidesDiagnostics"
             ],
             "doc": [],
             "methods": {
+                "configRoot": {
+                    "visibility": "public",
+                    "static": false,
+                    "final": false,
+                    "abstract": false,
+                    "by_reference": false,
+                    "parameters": [],
+                    "return": "string",
+                    "doc": []
+                },
+                "defaultConfigPath": {
+                    "visibility": "public",
+                    "static": false,
+                    "final": false,
+                    "abstract": false,
+                    "by_reference": false,
+                    "parameters": [],
+                    "return": "string",
+                    "doc": []
+                },
                 "healthChecks": {
                     "visibility": "public",
                     "static": false,
@@ -318,6 +388,16 @@
                     "doc": []
                 },
                 "migrationPath": {
+                    "visibility": "public",
+                    "static": false,
+                    "final": false,
+                    "abstract": false,
+                    "by_reference": false,
+                    "parameters": [],
+                    "return": "string",
+                    "doc": []
+                },
+                "optionsClass": {
                     "visibility": "public",
                     "static": false,
                     "final": false,

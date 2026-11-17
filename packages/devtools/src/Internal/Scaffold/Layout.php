@@ -8,11 +8,13 @@ use AzGuard\DevTools\Internal\ScaffoldConfig;
 use AzGuard\Kernel\Grammar\PermissionGrammar;
 use AzGuard\Laravel\Console\InvalidCommandInput;
 use Illuminate\Support\Str;
+use Packman\Attributes\Internal;
 
 /**
  * @internal Where the generators put the structure of a panel: `scaffold.path` and `scaffold.namespace` for the roots,
  * `discovery.*` for the folder names discovery looks for, and validated names for everything under them.
  */
+#[Internal]
 final readonly class Layout
 {
     private const string SEGMENT = '/\A[A-Z][A-Za-z0-9]*\z/';

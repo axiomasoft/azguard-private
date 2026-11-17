@@ -9,6 +9,8 @@ use Illuminate\Contracts\Foundation\Application;
 use Packman\Attributes\Internal;
 use Packman\Extensions\Laravel\ExtensionFacetRegistrar;
 use Packman\Foundation\Contracts\PackageRegistrar;
+use Packman\Plugins\Contracts\Registry\PluginInspector;
+use Packman\Plugins\Laravel\ExtensionRegistrar;
 use Packman\Schema\Laravel\SchemaExtensions;
 
 #[Internal('Registers AzGuard Audit Packman extension facets, schema sets, and diagnostics.')]
@@ -24,6 +26,10 @@ final class AuditExtensionRegistrar implements PackageRegistrar
             dirname(__DIR__, 3).'/composer.json',
         );
         SchemaExtensions::register($app, $plugin, $plugin->manifest()->id);
+
+        if (! $app->resolved(PluginInspector::class)) {
+            ExtensionRegistrar::builtIn(AuditExtensionPlugin::class);
+        }
     }
 
     public function boot(Application $app): void {}

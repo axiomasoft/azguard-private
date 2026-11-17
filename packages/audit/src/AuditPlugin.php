@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace AzGuard\Audit;
 
+use AzGuard\Audit\Extensions\AuditExtensionPlugin;
 use AzGuard\Audit\Internal\Checks\AuditTableExists;
 use AzGuard\Audit\Internal\JournalParticipant;
 use AzGuard\Contracts\Plugins\Plugin;
@@ -28,9 +29,14 @@ final class AuditPlugin implements Plugin
         self::assertRetention($retentionDays);
     }
 
-    public static function make(int $retentionDays = 90): self
+    public static function make(int $retentionDays = AuditOptions::DEFAULT_RETENTION_DAYS): self
     {
         return new self($retentionDays);
+    }
+
+    public function extension(): AuditExtensionPlugin
+    {
+        return new AuditExtensionPlugin;
     }
 
     public function retention(int $days): static

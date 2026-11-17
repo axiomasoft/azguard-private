@@ -11,10 +11,12 @@ use AzGuard\DevTools\Internal\Scaffold\GeneratedFile;
 use AzGuard\DevTools\Internal\Scaffold\Layout;
 use AzGuard\DevTools\Internal\Scaffold\StubStore;
 use Closure;
+use Packman\Attributes\Internal;
 
 /**
  * A pipe every change of grants passes through, in `{Panel}/Changes/` or `Shared/Changes/`.
  */
+#[Internal]
 final class MakePipeCommand extends MakeCommand
 {
     /** @var string */

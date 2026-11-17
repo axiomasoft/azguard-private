@@ -3,28 +3,32 @@
 declare(strict_types=1);
 
 use AzGuard\Exceptions\Configuration\InvalidConfigurationException;
+use AzGuard\Extensions\AzGuardCorePlugin;
 use AzGuard\Filament\Authorization\AzGuardFilamentSurfaceGate;
 use AzGuard\Filament\AzGuardFilamentServiceProvider;
+use AzGuard\Filament\AzGuardPlugin;
 use AzGuard\Filament\Configuration\AzGuardFilamentOptions;
 use AzGuard\Filament\Contracts\FilamentFormExtension;
 use AzGuard\Filament\Diagnostics\AzGuardFilamentHealthCheck;
 use AzGuard\Filament\Extensions\AzGuardFilamentPlugin;
 use AzGuard\Filament\FilamentDefinitions;
 use AzGuard\Kernel\Decision\PermissionAuthority;
+use Illuminate\Container\Container;
 use Illuminate\Support\ServiceProvider;
+use Packman\Config\Exceptions\InvalidConfiguration;
 use Packman\Doctor\Contracts\DoctorRegistryContract;
 use Packman\Doctor\Data\DoctorContext;
 use Packman\Doctor\Enums\CheckStatus;
 use Packman\Extensions\Data\ExtensionFacetProfile;
 use Packman\Extensions\ExtensionInspector;
+use Packman\Filament\Contracts\FilamentPanelPlugin;
 use Packman\Filament\Contracts\FilamentSurfaceGate;
 use Packman\Plugins\Contracts\Contributions\Capabilities;
 use Packman\Plugins\Contracts\Registry\PluginInspector;
 use Packman\Plugins\Enums\Contributions\Cardinality;
+use Packman\Plugins\Testing\PluginGraph;
 
 it('registers AzGuardFilamentPlugin facets, surface gate binding, and health diagnostics', function (): void {
-    config()->set('packman.plugins', [AzGuardFilamentPlugin::class]);
-
     $reflection = new ReflectionClass(AzGuardFilamentServiceProvider::class);
 
     expect($reflection->isFinal())->toBeTrue()
@@ -99,4 +103,25 @@ it('parses and validates AzGuardFilamentOptions cleanly', function (): void {
 
     expect(static fn () => AzGuardFilamentOptions::fromArray(['abilities' => ['NotSnakeCase']], 'azguard-filament'))
         ->toThrow(InvalidConfigurationException::class);
+
+    expect(static fn () => AzGuardFilamentOptions::fromArray(['unknown_key' => true], 'azguard-filament'))
+        ->toThrow(InvalidConfiguration::class);
+
+    expect(static fn () => AzGuardFilamentOptions::fromArray(['exclude' => ['unknown' => []]], 'azguard-filament'))
+        ->toThrow(InvalidConfiguration::class);
+
+    expect(static fn () => AzGuardFilamentOptions::fromArray(['enforce' => []], 'azguard-filament'))
+        ->toThrow(InvalidConfiguration::class);
+
+    expect(static fn () => AzGuardFilamentOptions::fromArray(['enforce' => 'true'], 'azguard-filament'))
+        ->toThrow(InvalidConfiguration::class);
+
+    expect(static fn () => AzGuardFilamentOptions::fromArray(['enforce' => null], 'azguard-filament'))
+        ->toThrow(InvalidConfiguration::class);
+
+    expect(AzGuardPlugin::make())->toBeInstanceOf(FilamentPanelPlugin::class);
+
+    $compiled = PluginGraph::compile(new Container, [AzGuardCorePlugin::class, AzGuardFilamentPlugin::class]);
+    expect(array_map(static fn ($d): string => $d->id, $compiled->describe()))
+        ->toContain('axiomasoft.azguard', 'axiomasoft.azguard-filament');
 });

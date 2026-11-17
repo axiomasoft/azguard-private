@@ -12,10 +12,12 @@ use AzGuard\DevTools\Internal\Scaffold\StubStore;
 use AzGuard\Kernel\Decision\AccessRequest;
 use AzGuard\Kernel\Decision\RestrictionResult;
 use Illuminate\Support\Str;
+use Packman\Attributes\Internal;
 
 /**
  * A restriction in `{Panel}/Restrictions/` or `Shared/Restrictions/`; it only forbids.
  */
+#[Internal]
 final class MakeRestrictionCommand extends MakeCommand
 {
     /** @var string */

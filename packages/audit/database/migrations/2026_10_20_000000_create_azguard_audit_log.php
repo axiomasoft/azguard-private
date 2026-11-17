@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 use AzGuard\Audit\Internal\AuditSchema;
 use AzGuard\AzGuard;
-use Illuminate\Database\Migrations\Migration;
+use Packman\Schema\Laravel\PackmanMigration;
 
-return new class extends Migration
+return new class extends PackmanMigration
 {
     public function up(): void
     {

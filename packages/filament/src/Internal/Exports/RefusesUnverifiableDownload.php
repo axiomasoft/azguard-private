@@ -7,9 +7,11 @@ namespace AzGuard\Filament\Internal\Exports;
 use Filament\Actions\Exports\Http\Controllers\DownloadExport;
 use Filament\Actions\Exports\Models\Export;
 use Illuminate\Http\Request;
+use Packman\Attributes\Internal;
 use Symfony\Component\HttpFoundation\Response;
 
 /** @internal */
+#[Internal]
 final class RefusesUnverifiableDownload extends DownloadExport
 {
     public function __invoke(Request $request, Export $export): Response

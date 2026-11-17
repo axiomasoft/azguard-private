@@ -52,7 +52,7 @@
             "namespace": "AzGuard\\Scopes\\",
             "profile": "laravel-package",
             "layer": "L2",
-            "type": "addon",
+            "type": "capability",
             "owns": [
                 "Extensions"
             ]
@@ -63,7 +63,7 @@
             "namespace": "AzGuard\\Audit\\",
             "profile": "laravel-package",
             "layer": "L2",
-            "type": "addon",
+            "type": "capability",
             "owns": [
                 "Extensions"
             ]
@@ -74,7 +74,7 @@
             "namespace": "AzGuard\\DevTools\\",
             "profile": "laravel-package",
             "layer": "L3",
-            "type": "dev",
+            "type": "tooling",
             "dev_only": true,
             "owns": [
                 "Extensions"

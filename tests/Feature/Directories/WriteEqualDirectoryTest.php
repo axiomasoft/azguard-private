@@ -11,7 +11,7 @@ use AzGuard\Exceptions\Changes\TenantMismatchException;
 use AzGuard\Kernel\Identity\AssignmentScopeRef;
 use AzGuard\Panels\Panel;
 use AzGuard\Panels\PanelBuilder;
-use AzGuard\Scopes\Internal\ScopesOptions;
+use AzGuard\Scopes\ScopesOptions;
 use AzGuard\Tests\Feature\Directories\Support\Lookups;
 use AzGuard\Tests\Fixtures\Changes\ChangeWorld as W;
 use AzGuard\Tests\Fixtures\Crm\CrmWorld;

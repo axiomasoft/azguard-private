@@ -21,6 +21,7 @@ use Closure;
 use DateTimeImmutable;
 use Filament\Facades\Filament;
 use Illuminate\Database\Eloquent\Model;
+use Packman\Attributes\Internal;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 
 /**
@@ -33,6 +34,7 @@ use Symfony\Component\HttpKernel\Exception\HttpException;
  *
  * @internal
  */
+#[Internal]
 final readonly class TargetSelector
 {
     /** How many tenants a search offers. */

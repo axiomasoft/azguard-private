@@ -12,12 +12,14 @@ use AzGuard\Laravel\Console\InvalidCommandInput;
 use AzGuard\Roles\Attributes\Role;
 use AzGuard\Roles\BaseRole;
 use Illuminate\Support\Str;
+use Packman\Attributes\Internal;
 use UnitEnum;
 
 /**
  * A role of a panel, `Roles/{Name}Role.php`, with its key in `#[Role]`: the key is stored with every grant of the
  * role, so it is written down and never taken from the class name.
  */
+#[Internal]
 final class MakeRoleCommand extends MakeCommand
 {
     /** @var string */

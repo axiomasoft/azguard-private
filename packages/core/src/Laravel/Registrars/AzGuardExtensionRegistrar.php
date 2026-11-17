@@ -13,6 +13,9 @@ use Packman\Foundation\Contracts\PackageRegistrar;
 use Packman\Panels\Contracts\Registry\PanelRegistry as PackmanPanelRegistry;
 use Packman\Panels\Laravel\PanelExtensionBridge;
 use Packman\Panels\Laravel\PanelsBindingsRegistrar;
+use Packman\Plugins\Contracts\Registry\PluginInspector;
+use Packman\Plugins\Laravel\ExtensionRegistrar;
+use Packman\Plugins\Laravel\PluginsServiceProvider;
 use Packman\Schema\Laravel\SchemaExtensions;
 use Packman\Schema\Laravel\SchemaServiceProvider;
 
@@ -21,6 +24,7 @@ final class AzGuardExtensionRegistrar implements PackageRegistrar
 {
     public function register(Application $app): void
     {
+        $app->register(PluginsServiceProvider::class);
         $app->register(SchemaServiceProvider::class);
 
         $plugin = new AzGuardCorePlugin;
@@ -31,8 +35,12 @@ final class AzGuardExtensionRegistrar implements PackageRegistrar
         }
 
         ExtensionFacetRegistrar::register($app, $plugin, $manifest);
-        SchemaExtensions::register($app, $plugin, 'azguard');
+        SchemaExtensions::register($app, $plugin, $plugin->manifest()->id);
         PanelExtensionBridge::registerExtension($app, $plugin);
+
+        if (! $app->resolved(PluginInspector::class)) {
+            ExtensionRegistrar::builtIn(AzGuardCorePlugin::class);
+        }
     }
 
     public function boot(Application $app): void

@@ -17,6 +17,7 @@ use AzGuard\Diagnostics\AzGuardHealthCheck;
 use AzGuard\Diagnostics\Doctor;
 use AzGuard\Errors\AzGuardProblemDefinitions;
 use AzGuard\Panels\AzGuardPanelProvider;
+use AzGuard\Panels\Internal\PanelRegistry as InternalPanelRegistry;
 use AzGuard\Schema\AzGuardSchemaSets;
 use Packman\Attributes\Api;
 use Packman\Extensions\Concerns\Composition\ContributesToSlots;
@@ -122,6 +123,7 @@ final class AzGuardCorePlugin implements ExtensionPlugin, WithCapabilities, With
     {
         return [
             AzGuard::class => AzGuard::class,
+            PanelRegistry::class => InternalPanelRegistry::class,
             Doctor::class => Doctor::class,
         ];
     }

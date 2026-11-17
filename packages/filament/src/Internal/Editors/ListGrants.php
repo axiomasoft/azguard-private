@@ -47,6 +47,7 @@ use Illuminate\Support\Collection;
 use Illuminate\Validation\ValidationException;
 use InvalidArgumentException;
 use Livewire\Attributes\Locked;
+use Packman\Attributes\Internal;
 use Throwable;
 
 /**
@@ -59,6 +60,7 @@ use Throwable;
  *
  * @internal
  */
+#[Internal]
 abstract class ListGrants extends Page implements HasTable
 {
     use InteractsWithTable;

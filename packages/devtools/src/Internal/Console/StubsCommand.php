@@ -8,11 +8,13 @@ use AzGuard\DevTools\Internal\Scaffold\StubStore;
 use AzGuard\Laravel\Console\CommandSupport;
 use Illuminate\Console\Command;
 use Illuminate\Filesystem\Filesystem;
+use Packman\Attributes\Internal;
 
 /**
  * Publishes the stubs of the generators to `stubs/azguard/`, where the generators take them from first. A stub that is
  * already there stays unless `--force` is given.
  */
+#[Internal]
 final class StubsCommand extends Command
 {
     use CommandSupport;

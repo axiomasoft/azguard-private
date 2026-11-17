@@ -10,6 +10,7 @@ use AzGuard\Kernel\Decision\PermissionAuthority;
 use Illuminate\Contracts\Config\Repository;
 use Packman\Attributes\Api;
 use Packman\Config\Contracts\OptionsFactory;
+use Packman\Config\Laravel\ConfigurationValidator;
 
 /**
  * Validated configuration options for `azguard-filament`.
@@ -17,6 +18,20 @@ use Packman\Config\Contracts\OptionsFactory;
 #[Api(since: '1.0')]
 final readonly class AzGuardFilamentOptions implements OptionsFactory
 {
+    /** @var list<string> */
+    private const array ROOT_KEYS = [
+        'guard_panel',
+        'manages',
+        'enforce',
+        'definitions',
+        'authority',
+        'abilities',
+        'exclude',
+    ];
+
+    /** @var list<string> */
+    private const array EXCLUDE_KEYS = ['resources', 'pages', 'widgets'];
+
     /**
      * @param  list<string>|null  $manages
      * @param  list<string>  $abilities
@@ -47,9 +62,31 @@ final readonly class AzGuardFilamentOptions implements OptionsFactory
      */
     public static function fromArray(array $config, string $path = 'azguard-filament'): self
     {
+        $validator = new ConfigurationValidator;
+        $validator->rejectUnknownKeys($config, self::ROOT_KEYS, $path);
+
+        $rawEnforce = array_key_exists('enforce', $config) ? $config['enforce'] : true;
+
+        if (! is_bool($rawEnforce)) {
+            $validator->add("{$path}.enforce", 'must be a boolean, got '.get_debug_type($rawEnforce));
+        }
+
+        $rawExclude = $config['exclude'] ?? [];
+
+        if (! is_array($rawExclude)) {
+            $validator->add("{$path}.exclude", 'must be an array, got '.get_debug_type($rawExclude));
+            $validator->failIfAny();
+
+            throw self::invalid('exclude must be an array.');
+        }
+
+        $validator->rejectUnknownKeys($rawExclude, self::EXCLUDE_KEYS, "{$path}.exclude");
+        $validator->failIfAny();
+
+        /** @var bool $enforce */
+        $enforce = $rawEnforce;
         $guardPanel = self::optionalString($config['guard_panel'] ?? null, 'guard_panel');
         $manages = isset($config['manages']) ? self::strings($config['manages'], 'manages') : null;
-        $enforce = (bool) ($config['enforce'] ?? true);
 
         $rawDefinitions = self::optionalString($config['definitions'] ?? null, 'definitions') ?? 'enums';
         $definitions = FilamentDefinitions::tryFrom($rawDefinitions)
@@ -61,7 +98,6 @@ final readonly class AzGuardFilamentOptions implements OptionsFactory
 
         $abilities = self::abilityNames($config['abilities'] ?? []);
 
-        $rawExclude = (array) ($config['exclude'] ?? []);
         $exclude = [
             'resources' => self::strings($rawExclude['resources'] ?? [], 'exclude.resources'),
             'pages' => self::strings($rawExclude['pages'] ?? [], 'exclude.pages'),

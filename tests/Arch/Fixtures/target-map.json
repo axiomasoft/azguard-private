@@ -6763,6 +6763,27 @@
             }
         },
         {
+            "current": null,
+            "current_path": null,
+            "kind": "class",
+            "lines": 92,
+            "current_marker": null,
+            "owner": "devtools",
+            "target": "AzGuard\\DevTools\\Internal\\Scaffold\\AtomicFileWriter",
+            "target_path": "packages/devtools/src/Internal/Scaffold/AtomicFileWriter.php",
+            "marker": "internal",
+            "enum": null,
+            "action": "new",
+            "phase": "P3",
+            "reason": "atomic batch scaffold file writer",
+            "used_by": {
+                "core": 0,
+                "filament": 0,
+                "tests": 0,
+                "stubs_config_migrations": []
+            }
+        },
+        {
             "current": "AzGuard\\Laravel\\Console\\Scaffold\\GeneratedFile",
             "current_path": "packages/core/src/Laravel/Console/Scaffold/GeneratedFile.php",
             "kind": "class",
@@ -10371,9 +10392,9 @@
             "lines": 25,
             "current_marker": null,
             "owner": "scopes",
-            "target": "AzGuard\\Scopes\\Internal\\ScopesOptions",
-            "target_path": "packages/scopes/src/Internal/ScopesOptions.php",
-            "marker": "internal",
+            "target": "AzGuard\\Scopes\\ScopesOptions",
+            "target_path": "packages/scopes/src/ScopesOptions.php",
+            "marker": "Api",
             "enum": null,
             "action": "new",
             "phase": "P2",

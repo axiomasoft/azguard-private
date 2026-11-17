@@ -13,12 +13,14 @@ use Filament\Resources\Pages\Page as ResourcePage;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Widgets\Widget;
 use Livewire\ComponentHook;
+use Packman\Attributes\Internal;
 
 /**
  * Runs before Livewire's own lifecycle hook, so a refused component does not execute its boot().
  *
  * @internal
  */
+#[Internal]
 final class RefusesSurfaceBoot extends ComponentHook
 {
     public function mount(): void

@@ -4,13 +4,9 @@ declare(strict_types=1);
 
 namespace AzGuard\Filament\Concerns;
 
-use AzGuard\Filament\Authorization\FilamentGate;
 use Filament\Resources\Resource as FilamentResource;
-use Illuminate\Auth\Access\Response;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Model;
 use Packman\Attributes\Api;
-use UnitEnum;
+use Packman\Filament\Concerns\Authorization\AuthorizesResource as PackmanAuthorizesResource;
 
 /**
  * Decides a resource by its own permissions in the guard panel: every `can*()`, `authorize*()` and
@@ -29,27 +25,5 @@ use UnitEnum;
 #[Api(since: '1.0')]
 trait AuthorizesResource
 {
-    public static function getAuthorizationResponse(string|UnitEnum $action, ?Model $record = null): Response
-    {
-        return FilamentGate::resource(static::class, $action, $record);
-    }
-
-    /**
-     * @return Builder<Model>
-     */
-    public static function getEloquentQuery(): Builder
-    {
-        return FilamentGate::visible(static::class, static::modifyEloquentQuery(parent::getEloquentQuery()));
-    }
-
-    /**
-     * The query of the resource before AzGuard keeps the visible records of it.
-     *
-     * @param  Builder<Model>  $query
-     * @return Builder<Model>
-     */
-    protected static function modifyEloquentQuery(Builder $query): Builder
-    {
-        return $query;
-    }
+    use PackmanAuthorizesResource;
 }

@@ -11,6 +11,8 @@ use Illuminate\Contracts\Foundation\Application;
 use Packman\Attributes\Internal;
 use Packman\Extensions\Laravel\ExtensionFacetRegistrar;
 use Packman\Foundation\Contracts\PackageRegistrar;
+use Packman\Plugins\Contracts\Registry\PluginInspector;
+use Packman\Plugins\Laravel\ExtensionRegistrar;
 
 #[Internal('Registers AzGuard DevTools scaffold configuration section and Packman extension metadata.')]
 final class DevToolsExtensionRegistrar implements PackageRegistrar
@@ -28,6 +30,10 @@ final class DevToolsExtensionRegistrar implements PackageRegistrar
             new DevToolsExtensionPlugin,
             dirname(__DIR__, 3).'/composer.json',
         );
+
+        if (! $app->resolved(PluginInspector::class)) {
+            ExtensionRegistrar::builtIn(DevToolsExtensionPlugin::class);
+        }
     }
 
     public function boot(Application $app): void {}

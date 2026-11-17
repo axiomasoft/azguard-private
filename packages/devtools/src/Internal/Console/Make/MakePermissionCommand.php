@@ -19,11 +19,13 @@ use AzGuard\Permissions\RequiresGrant;
 use AzGuard\Permissions\Resource;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
+use Packman\Attributes\Internal;
 
 /**
  * The permission enum of a group, `Permissions/{Group}/{Name}Permission.php`, and with `--policy` and `--abilities` the
  * parallel `Policies/{Group}/{Name}Policy.php` and `Abilities/{Group}/{Name}Abilities.php`.
  */
+#[Internal]
 final class MakePermissionCommand extends MakeCommand
 {
     /** @var string */

@@ -5,12 +5,15 @@ declare(strict_types=1);
 use AzGuard\DevTools\DevToolsServiceProvider;
 use AzGuard\DevTools\Extensions\DevToolsExtensionPlugin;
 use AzGuard\Exceptions\Configuration\InvalidConfigurationException;
+use AzGuard\Extensions\AzGuardCorePlugin;
+use Illuminate\Container\Container;
 use Illuminate\Support\ServiceProvider;
 use Packman\Config\Exceptions\InvalidConfiguration;
 use Packman\Config\Laravel\ConfigSectionRegistration;
 use Packman\Extensions\Data\ExtensionFacetProfile;
 use Packman\Extensions\ExtensionInspector;
 use Packman\Plugins\Contracts\Registry\PluginInspector;
+use Packman\Plugins\Testing\PluginGraph;
 
 it('declares DevToolsServiceProvider as a final registered Laravel service provider', function (): void {
     $reflection = new ReflectionClass(DevToolsServiceProvider::class);
@@ -21,8 +24,6 @@ it('declares DevToolsServiceProvider as a final registered Laravel service provi
 });
 
 it('registers AzGuard DevTools Packman facets and owns the scaffold config section', function (): void {
-    config()->set('packman.plugins', [DevToolsExtensionPlugin::class]);
-
     $plugin = new DevToolsExtensionPlugin;
     $profile = ExtensionInspector::inspect($plugin);
 
@@ -43,4 +44,8 @@ it('registers AzGuard DevTools Packman facets and owns the scaffold config secti
 
     expect(static fn () => ConfigSectionRegistration::assertKnownKeys(app(), ['scaffold' => ['unexpected' => true]]))
         ->toThrow(InvalidConfigurationException::class);
+
+    $compiled = PluginGraph::compile(new Container, [AzGuardCorePlugin::class, DevToolsExtensionPlugin::class]);
+    expect(array_map(static fn ($d): string => $d->id, $compiled->describe()))
+        ->toContain('axiomasoft.azguard', 'axiomasoft.azguard-devtools');
 });

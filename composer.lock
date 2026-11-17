@@ -189,7 +189,7 @@
             "dist": {
                 "type": "path",
                 "url": "packages/audit",
-                "reference": "698e3c2164606e36ddf13f9bb6e795a204a3c828"
+                "reference": "d851909ab8d0cb996e979a5412052ba2a025ea75"
             },
             "require": {
                 "axiomasoft/azguard": "^2.0",
@@ -215,7 +215,7 @@
                 },
                 "packman": {
                     "schema-version": 1,
-                    "package-type": "addon",
+                    "package-type": "capability",
                     "stability": "stable",
                     "owns": [
                         "Extensions"
@@ -338,7 +338,7 @@
             "dist": {
                 "type": "path",
                 "url": "packages/scopes",
-                "reference": "1bcce697e38686b69672648ac02b06e37afe7974"
+                "reference": "7165cbb92088ec5de9b8cf2bb102bf36853195a0"
             },
             "require": {
                 "axiomasoft/azguard": "^2.0",
@@ -360,7 +360,7 @@
                 },
                 "packman": {
                     "schema-version": 1,
-                    "package-type": "addon",
+                    "package-type": "capability",
                     "stability": "stable",
                     "owns": [
                         "Extensions"
@@ -8846,11 +8846,12 @@
             "dist": {
                 "type": "path",
                 "url": "packages/devtools",
-                "reference": "1f660cb55bff54e5f1569aa9a075655362b5eb5c"
+                "reference": "bfcf066530e7314b330ffb3198ab36060ccbdbae"
             },
             "require": {
                 "axiomasoft/azguard": "^2.0",
                 "axiomasoft/packman": "^0.1",
+                "axiomasoft/packman-devtools": "^0.1",
                 "axiomasoft/packman-plugins": "^0.1",
                 "illuminate/console": "^13.0",
                 "illuminate/contracts": "^13.0",
@@ -8871,7 +8872,7 @@
                 },
                 "packman": {
                     "schema-version": 1,
-                    "package-type": "dev",
+                    "package-type": "tooling",
                     "stability": "stable",
                     "dev-only": true,
                     "owns": [

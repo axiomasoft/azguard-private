@@ -13,10 +13,12 @@ use AzGuard\Panels\PanelBuilder;
 use AzGuard\Panels\PanelProvider;
 use AzGuard\Sources\Database\DatabaseSource;
 use Illuminate\Filesystem\Filesystem;
+use Packman\Attributes\Internal;
 
 /**
  * The directory of a panel with its provider, listed in `azguard.panels.providers` of the published configuration.
  */
+#[Internal]
 final class MakePanelCommand extends MakeCommand
 {
     /** @var string */

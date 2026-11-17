@@ -25,6 +25,7 @@ use Illuminate\Contracts\Container\Container;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Query\Expression;
+use Packman\Attributes\Internal;
 use ReflectionMethod;
 
 /**
@@ -46,6 +47,7 @@ use ReflectionMethod;
  *
  * @phpstan-import-type Filter from \AzGuard\Scopes\AssignmentScopeSettings
  */
+#[Internal]
 final readonly class QueryScopeDirectory implements AssignmentScopeDirectory
 {
     public const int CHUNK = 200;

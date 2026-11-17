@@ -24,10 +24,12 @@ use AzGuard\Panels\Panel;
 use AzGuard\Policies\PolicyBinding;
 use AzGuard\Roles\BaseRole;
 use Illuminate\Support\Str;
+use Packman\Attributes\Internal;
 
 /**
  * A source in `{Panel}/Sources/` or `Shared/Sources/`, with `#[AsSource]` and the capabilities asked for.
  */
+#[Internal]
 final class MakeSourceCommand extends MakeCommand
 {
     /** @var string */

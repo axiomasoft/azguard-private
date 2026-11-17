@@ -19,6 +19,21 @@
             "kind": "api"
         },
         {
+            "id": "api.scopes",
+            "path": "packages/scopes/api-manifest.json",
+            "kind": "api"
+        },
+        {
+            "id": "api.audit",
+            "path": "packages/audit/api-manifest.json",
+            "kind": "api"
+        },
+        {
+            "id": "api.devtools",
+            "path": "packages/devtools/api-manifest.json",
+            "kind": "api"
+        },
+        {
             "id": "api.filament",
             "path": "packages/filament/api-manifest.json",
             "kind": "api"

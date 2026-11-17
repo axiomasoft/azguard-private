@@ -673,14 +673,36 @@
             "implements": [
                 "Packman\\Plugins\\Contracts\\Registry\\ExtensionPlugin",
                 "Packman\\Extensions\\Contracts\\Composition\\WithCapabilities",
+                "Packman\\Extensions\\Contracts\\Configuration\\WithConfiguration",
                 "Packman\\Extensions\\Contracts\\Runtime\\WithDiagnostics"
             ],
             "uses": [
+                "Packman\\Extensions\\Concerns\\Configuration\\Configurable",
                 "Packman\\Extensions\\Concerns\\Composition\\ProvidesCapabilities",
                 "Packman\\Extensions\\Concerns\\Runtime\\ProvidesDiagnostics"
             ],
             "doc": [],
             "methods": {
+                "configRoot": {
+                    "visibility": "public",
+                    "static": false,
+                    "final": false,
+                    "abstract": false,
+                    "by_reference": false,
+                    "parameters": [],
+                    "return": "string",
+                    "doc": []
+                },
+                "defaultConfigPath": {
+                    "visibility": "public",
+                    "static": false,
+                    "final": false,
+                    "abstract": false,
+                    "by_reference": false,
+                    "parameters": [],
+                    "return": "string",
+                    "doc": []
+                },
                 "definedCapabilities": {
                     "visibility": "public",
                     "static": false,
@@ -709,6 +731,16 @@
                     "by_reference": false,
                     "parameters": [],
                     "return": "Packman\\Plugins\\Data\\Plugin\\PluginManifest",
+                    "doc": []
+                },
+                "optionsClass": {
+                    "visibility": "public",
+                    "static": false,
+                    "final": false,
+                    "abstract": false,
+                    "by_reference": false,
+                    "parameters": [],
+                    "return": "string",
                     "doc": []
                 },
                 "providedCapabilities": {
@@ -913,6 +945,84 @@
             "enum_backing": null,
             "enum_cases": []
         },
+        "AzGuard\\Scopes\\ScopesOptions": {
+            "kind": "class",
+            "layer": "api",
+            "since": "2.0",
+            "final": true,
+            "readonly": true,
+            "abstract": false,
+            "extends": [],
+            "implements": [
+                "Packman\\Config\\Contracts\\OptionsFactory"
+            ],
+            "uses": [],
+            "doc": [],
+            "methods": {
+                "__construct": {
+                    "visibility": "public",
+                    "static": false,
+                    "final": false,
+                    "abstract": false,
+                    "by_reference": false,
+                    "parameters": [
+                        {
+                            "name": "membership",
+                            "type": "AzGuard\\Scopes\\Contracts\\AssignmentScopeMembership|string|null",
+                            "by_reference": false,
+                            "variadic": false,
+                            "optional": true,
+                            "default": "null",
+                            "flags": 1
+                        },
+                        {
+                            "name": "adapters",
+                            "type": "array",
+                            "by_reference": false,
+                            "variadic": false,
+                            "optional": true,
+                            "default": "[]",
+                            "flags": 1
+                        }
+                    ],
+                    "return": null,
+                    "doc": []
+                },
+                "fromArray": {
+                    "visibility": "public",
+                    "static": true,
+                    "final": false,
+                    "abstract": false,
+                    "by_reference": false,
+                    "parameters": [
+                        {
+                            "name": "config",
+                            "type": "array",
+                            "by_reference": false,
+                            "variadic": false,
+                            "optional": false,
+                            "default": null,
+                            "flags": 0
+                        },
+                        {
+                            "name": "path",
+                            "type": "string",
+                            "by_reference": false,
+                            "variadic": false,
+                            "optional": true,
+                            "default": "'azguard-scopes'",
+                            "flags": 0
+                        }
+                    ],
+                    "return": "self",
+                    "doc": []
+                }
+            },
+            "properties": {},
+            "constants": [],
+            "enum_backing": null,
+            "enum_cases": []
+        },
         "AzGuard\\Scopes\\ScopesPlugin": {
             "kind": "class",
             "layer": "api",
@@ -954,6 +1064,16 @@
                         }
                     ],
                     "return": "self",
+                    "doc": []
+                },
+                "extension": {
+                    "visibility": "public",
+                    "static": false,
+                    "final": false,
+                    "abstract": false,
+                    "by_reference": false,
+                    "parameters": [],
+                    "return": "AzGuard\\Scopes\\Extensions\\ScopesExtensionPlugin",
                     "doc": []
                 },
                 "id": {

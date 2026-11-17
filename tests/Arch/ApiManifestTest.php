@@ -2,11 +2,14 @@
 
 declare(strict_types=1);
 
+use AzGuard\Filament\AzGuardPlugin;
 use AzGuard\Testing\AzGuardFake;
+use AzGuard\Testing\FakeSubject;
 use AzGuard\Tests\Arch\ApiUsage;
 use AzGuard\Tests\Arch\Ownership;
 use AzGuard\Tests\Arch\SourceScan;
 use Packman\Attributes\Api;
+use Packman\Attributes\Internal;
 use Packman\Attributes\Spi;
 
 /*
@@ -134,7 +137,7 @@ function apiOracleRow(string $fqcn, string $marker, array $overrides = []): arra
         'enum' => null, 'action' => 'keep', 'phase' => '—', ...$overrides];
 }
 
-it('keeps both api manifests current', function (): void {
+it('keeps all package api manifests current', function (): void {
     $process = proc_open(
         [PHP_BINARY, apiManifestRoot().'/bin/api-manifest.php', '--check'],
         [1 => ['pipe', 'w'], 2 => ['pipe', 'w']],
@@ -447,7 +450,13 @@ function apiInternalLeaks(array $types, array $allowed = []): array
 it('closes the supported surface: no supported member or type names an unsupported class', function (): void {
     $leaks = [];
 
-    foreach (['packages/core/api-manifest.json', 'packages/filament/api-manifest.json'] as $path) {
+    foreach ([
+        'packages/core/api-manifest.json',
+        'packages/scopes/api-manifest.json',
+        'packages/audit/api-manifest.json',
+        'packages/devtools/api-manifest.json',
+        'packages/filament/api-manifest.json',
+    ] as $path) {
         $manifest = json_decode((string) file_get_contents(apiManifestRoot().'/'.$path), true, flags: JSON_THROW_ON_ERROR);
         array_push($leaks, ...apiInternalLeaks($manifest['classes']));
     }
@@ -484,4 +493,27 @@ it('reports a native type, a parent and a PHPDoc contract that leak an unsupport
         @unlink($file);
         @rmdir($dir);
     }
+});
+
+it('marks every Internal namespace type with #[Internal] and exposes zero Internal native signatures on public APIs', function (): void {
+    $missingAttribute = [];
+
+    foreach (SourceScan::files() as $file) {
+        $fqcn = Ownership::declaredType((string) file_get_contents($file));
+
+        if ($fqcn === null || ! str_contains($fqcn, '\\Internal\\')) {
+            continue;
+        }
+
+        if ((new ReflectionClass($fqcn))->getAttributes(Internal::class, ReflectionAttribute::IS_INSTANCEOF) === []) {
+            $missingAttribute[] = $fqcn;
+        }
+    }
+
+    $fakeReturn = (new ReflectionMethod(FakeSubject::class, 'newEloquentBuilder'))->getReturnType();
+    $keysReturn = (new ReflectionMethod(AzGuardPlugin::class, 'keys'))->getReturnType();
+
+    expect($missingAttribute)->toBe([])
+        ->and((string) $fakeReturn)->not->toContain('\\Internal\\')
+        ->and((string) $keysReturn)->not->toContain('\\Internal\\');
 });

@@ -17,12 +17,14 @@ use Closure;
 use Illuminate\Contracts\Container\Container;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use Packman\Attributes\Internal;
 
 /**
  * The exact SQL form of `ScopeEligibility` for lists: definition filters for the common runtime, role-binding filters
  * for a role contribution, and the access adapter for either runtime, each in its own guarded group. A runtime without
  * a concrete context whose filters or adapter would inspect it is refused, so core specializes it per context.
  */
+#[Internal]
 final readonly class ScopeVisibility
 {
     public function __construct(private Container $container) {}

@@ -17,12 +17,14 @@ use AzGuard\Kernel\Decision\RestrictionResult;
 use AzGuard\Kernel\Decision\RoleContribution;
 use AzGuard\Scopes\Contracts\AssignmentScopeMembership;
 use Illuminate\Contracts\Container\Container;
+use Packman\Attributes\Internal;
 
 /**
  * Scope membership `ScopesPlugin` contributes when the panel requires it: a request inside an assignment scope needs a
  * subject that belongs to that scope, grants or not, super-administrators included. Lists use the membership's own
  * exact predicate.
  */
+#[Internal]
 final readonly class ScopeMembershipRestriction implements FiltersAccessQueries, Restriction
 {
     public function __construct(private Container $container) {}

@@ -31,6 +31,7 @@ use Filament\Widgets\Widget;
 use Illuminate\Auth\Access\Response;
 use Illuminate\Database\Eloquent\Model;
 use Livewire\ImplicitlyBoundMethod;
+use Packman\Attributes\Internal;
 use ReflectionFunction;
 use ReflectionProperty;
 use Throwable;
@@ -40,6 +41,7 @@ use Throwable;
  *
  * @internal
  */
+#[Internal]
 final class AuthorizesActions
 {
     private const array EARLY_BULK_HOOKS = ['beforeFormFilled', 'afterFormFilled', 'beforeFormValidated', 'afterFormValidated', 'mountUsing'];

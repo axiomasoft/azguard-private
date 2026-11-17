@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace AzGuard\DevTools\Internal\Console\Make;
 
+use AzGuard\DevTools\Internal\Scaffold\AtomicFileWriter;
 use AzGuard\DevTools\Internal\Scaffold\GeneratedFile;
 use AzGuard\DevTools\Internal\Scaffold\Layout;
 use AzGuard\DevTools\Internal\Scaffold\Place;
@@ -12,6 +13,7 @@ use AzGuard\DevTools\Internal\ScaffoldConfig;
 use AzGuard\Laravel\Console\CommandSupport;
 use AzGuard\Laravel\Console\InvalidCommandInput;
 use Illuminate\Console\GeneratorCommand;
+use Packman\Attributes\Internal;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
@@ -23,6 +25,7 @@ use Symfony\Component\Console\Output\OutputInterface;
  * the stubs: `stubs/azguard/` of the application first, the ones of the package after. Exit codes are those of the
  * other commands: 0 done, 1 a file exists or the work failed, 2 invalid input.
  */
+#[Internal]
 abstract class MakeCommand extends GeneratorCommand
 {
     use CommandSupport;
@@ -67,17 +70,24 @@ abstract class MakeCommand extends GeneratorCommand
                 }
             }
 
-            if ($existing !== [] && $this->option('force') !== true) {
+            $force = $this->option('force') === true;
+
+            if ($existing !== [] && ! $force) {
                 $this->components->error(implode(', ', $existing).(count($existing) === 1 ? ' already exists' : ' already exist').'; nothing was written. Pass --force to overwrite.');
 
                 return self::FAILURE;
             }
 
-            foreach ($files as $file) {
-                $overwritten = is_file($file->path);
-                $this->makeDirectory($file->path);
-                $this->files->put($file->path, $file->contents);
-                $this->components->info(($overwritten ? 'Overwritten ' : 'Created ').$layout->relative($file->path));
+            $planned = array_map(
+                static fn (GeneratedFile $file): array => [
+                    'target' => $file->path,
+                    'file' => $file->toPackman($layout->relative($file->path), $force),
+                ],
+                $files,
+            );
+
+            foreach ((new AtomicFileWriter)->write($planned) as $written) {
+                $this->components->info(($written['overwritten'] ? 'Overwritten ' : 'Created ').$layout->relative($written['path']));
             }
             $this->written($layout);
 

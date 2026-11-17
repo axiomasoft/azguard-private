@@ -28,6 +28,13 @@ final readonly class AzGuardOptions implements OptionsFactory
     /** Default of `decision_sets.max_subjects`. */
     public const int DEFAULT_MAX_SET_SUBJECTS = 500;
 
+    /**
+     * Optional tooling section tolerated in config when DevTools (`--no-dev`) is absent.
+     *
+     * @var list<string>
+     */
+    private const array OPTIONAL_SECTIONS = ['scaffold'];
+
     /** @var list<string> */
     public const array ROOT_KEYS = [
         'panels',
@@ -142,10 +149,16 @@ final readonly class AzGuardOptions implements OptionsFactory
             ? Container::getInstance()->make(ConfigSections::class)
             : null;
         $owned = $sections instanceof ConfigSections ? $sections->peekOwned() : [];
-        $allowedRoots = [...self::ROOT_KEYS, ...array_keys($owned)];
+        $allowedRoots = [...self::ROOT_KEYS, ...self::OPTIONAL_SECTIONS, ...array_keys($owned)];
 
         $validator->rejectUnknownKeys($config, $allowedRoots, $path);
         $validator->failIfAny();
+
+        foreach (self::OPTIONAL_SECTIONS as $optionalRoot) {
+            if (array_key_exists($optionalRoot, $config) && ! array_key_exists($optionalRoot, $owned)) {
+                self::validateOptionalSection($optionalRoot, $config[$optionalRoot], $path, $validator);
+            }
+        }
 
         foreach ($owned as $root => $validate) {
             if (! array_key_exists($root, $config)) {
@@ -190,7 +203,13 @@ final readonly class AzGuardOptions implements OptionsFactory
         }
 
         $raw = self::section('', $config->get('azguard', []));
-        self::assertKnownKeys('', $raw, [...self::ROOT_KEYS, ...array_keys($owned)]);
+        self::assertKnownKeys('', $raw, [...self::ROOT_KEYS, ...self::OPTIONAL_SECTIONS, ...array_keys($owned)]);
+
+        foreach (self::OPTIONAL_SECTIONS as $optionalRoot) {
+            if (array_key_exists($optionalRoot, $raw) && ! array_key_exists($optionalRoot, $owned)) {
+                self::validateOptionalSection($optionalRoot, self::rawKey($raw, $optionalRoot));
+            }
+        }
 
         foreach ($owned as $root => $validate) {
             $section = self::section($root, self::rawKey($raw, $root));
@@ -788,6 +807,58 @@ final readonly class AzGuardOptions implements OptionsFactory
                 'Unknown key'.(count($unknown) === 1 ? '' : 's').' in '.rtrim('azguard.'.$name, '.').': '.implode(', ', $unknown)
                 .'. Known keys: '.implode(', ', $known).'.',
             );
+        }
+    }
+
+    private static function validateOptionalSection(
+        string $root,
+        mixed $section,
+        ?string $path = null,
+        ?ConfigurationValidator $validator = null,
+    ): void {
+        $prefix = $path ?? 'azguard';
+
+        if (! is_array($section)) {
+            if ($validator !== null) {
+                $validator->add("{$prefix}.{$root}", 'must be an array');
+                $validator->failIfAny();
+            }
+
+            throw new InvalidConfigurationException("azguard.{$root} must be an array, got ".get_debug_type($section).'.');
+        }
+
+        if ($section !== [] && array_is_list($section)) {
+            throw new InvalidConfigurationException("azguard.{$root} must be a map of named keys.");
+        }
+
+        if ($root !== 'scaffold') {
+            return;
+        }
+
+        $known = ['namespace', 'path'];
+
+        if ($validator !== null) {
+            $validator->rejectUnknownKeys($section, $known, "{$prefix}.scaffold");
+            $validator->failIfAny();
+        } else {
+            self::assertKnownKeys('scaffold', $section, $known);
+        }
+
+        if (array_key_exists('namespace', $section)) {
+            $ns = is_string($section['namespace']) ? trim($section['namespace'], '\\') : null;
+
+            if ($ns === null || preg_match('/\A[A-Za-z_][A-Za-z0-9_]*(?:\\\\[A-Za-z_][A-Za-z0-9_]*)*\z/', $ns) !== 1) {
+                throw new InvalidConfigurationException('azguard.scaffold.namespace must be a PHP namespace, got '.get_debug_type($section['namespace']).'.');
+            }
+        }
+
+        if (array_key_exists('path', $section)) {
+            $rel = is_string($section['path']) ? rtrim(str_replace('\\', '/', $section['path']), '/') : null;
+
+            if ($rel === null || $rel === '' || str_contains($rel, "\0") || str_starts_with($rel, '/')
+                || preg_match('/\A[a-z][a-z0-9+.-]*:/i', $rel) === 1 || in_array('..', explode('/', $rel), true)) {
+                throw new InvalidConfigurationException('azguard.scaffold.path must be a directory relative to the application, got '.get_debug_type($section['path']).'.');
+            }
         }
     }
 }

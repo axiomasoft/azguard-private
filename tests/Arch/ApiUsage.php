@@ -30,7 +30,7 @@ final class ApiUsage
     private static ?array $manifests = null;
 
     /**
-     * Every supported type of both manifests, by lower-case FQCN.
+     * Every supported type across all package manifests, by lower-case FQCN.
      *
      * @return array<string, array<string, mixed>>
      */
@@ -39,7 +39,7 @@ final class ApiUsage
         if (self::$manifests === null) {
             self::$manifests = [];
 
-            foreach (['core', 'filament'] as $package) {
+            foreach (['core', 'scopes', 'audit', 'devtools', 'filament'] as $package) {
                 $file = dirname(__DIR__, 2).'/packages/'.$package.'/api-manifest.json';
                 $manifest = json_decode((string) file_get_contents($file), true, flags: JSON_THROW_ON_ERROR);
 

@@ -179,3 +179,12 @@ it('does not write outside the scaffold path for a hostile name', function (stri
     ['azguard:make:role', ['panel' => 'Admin', 'name' => '../Evil']],
     ['azguard:make:pipe', ['name' => 'a/b', '--panel' => 'Admin']],
 ]);
+
+it('leaves no staged temp files and aborts cleanly when AtomicFileWriter encounters an existing non-overwritable file', function (): void {
+    Artisan::call('azguard:make:panel', ['panel' => 'Admin']);
+    $before = $this->generated->read('app/Guards/Admin/AdminGuardPanelProvider.php');
+
+    expect(Artisan::call('azguard:make:panel', ['panel' => 'Admin']))->toBe(1)
+        ->and($this->generated->read('app/Guards/Admin/AdminGuardPanelProvider.php'))->toBe($before)
+        ->and(glob($this->generated->path('app/Guards/Admin/.azguard-scaffold-*')) ?: [])->toBe([]);
+});

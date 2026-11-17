@@ -7,11 +7,13 @@ namespace AzGuard\DevTools\Internal\Scaffold;
 use AzGuard\Policies\Decides;
 use AzGuard\Policies\PolicyFor;
 use Illuminate\Database\Eloquent\Model;
+use Packman\Attributes\Internal;
 
 /**
  * @internal The policy of a permission enum: one method with `#[Decides]` for each case. The method name is free; the
  * attribute is what binds the method to the case.
  */
+#[Internal]
 final class PolicyFile
 {
     /**

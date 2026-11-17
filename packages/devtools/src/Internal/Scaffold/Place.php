@@ -4,9 +4,12 @@ declare(strict_types=1);
 
 namespace AzGuard\DevTools\Internal\Scaffold;
 
+use Packman\Attributes\Internal;
+
 /**
  * @internal A directory of the generated structure together with the namespace of its classes.
  */
+#[Internal]
 final readonly class Place
 {
     public function __construct(public string $directory, public string $namespace) {}

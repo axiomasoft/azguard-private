@@ -11,6 +11,7 @@ use AzGuard\DevTools\Internal\Scaffold\PolicyFile;
 use AzGuard\DevTools\Internal\Scaffold\StubStore;
 use AzGuard\Laravel\Console\InvalidCommandInput;
 use AzGuard\Permissions\PolicyOnly;
+use Packman\Attributes\Internal;
 use ReflectionEnum;
 use ReflectionEnumUnitCase;
 
@@ -19,6 +20,7 @@ use ReflectionEnumUnitCase;
  * of `--enum` with `#[PolicyFor]`. More than one candidate is an error that names the way out: discovery would refuse
  * the pair the same way.
  */
+#[Internal]
 final class MakePolicyCommand extends MakeCommand
 {
     /** @var string */

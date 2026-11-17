@@ -11,10 +11,12 @@ use AzGuard\DevTools\Internal\Scaffold\StubStore;
 use AzGuard\Panels\PanelBuilder;
 use AzGuard\Plugins\PluginContext;
 use Illuminate\Support\Str;
+use Packman\Attributes\Internal;
 
 /**
  * A plugin in `{Panel}/Plugins/` or `Shared/Plugins/`: its own typed named factory, no options array.
  */
+#[Internal]
 final class MakePluginCommand extends MakeCommand
 {
     /** @var string */

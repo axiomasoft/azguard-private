@@ -10,6 +10,7 @@ use DateTimeZone;
 use Illuminate\Database\Connection;
 use Illuminate\Database\DatabaseManager;
 use Illuminate\Database\QueryException;
+use Packman\Attributes\Internal;
 
 /**
  * @internal Journal retention: deletes the `audit_log` rows of one panel that occurred before a cut-off.
@@ -21,6 +22,7 @@ use Illuminate\Database\QueryException;
  * is never selected, also while new rows are journaled. A deadlock or serialization failure retries only its batch,
  * up to `RETRIES` times.
  */
+#[Internal]
 final class JournalPruner
 {
     public const int BATCH = 1000;

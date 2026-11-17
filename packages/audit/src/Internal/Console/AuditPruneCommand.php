@@ -12,6 +12,7 @@ use AzGuard\Laravel\Console\CommandSupport;
 use AzGuard\Panels\Panel;
 use Carbon\CarbonImmutable;
 use Illuminate\Console\Command;
+use Packman\Attributes\Internal;
 
 /**
  * @internal Deletes the rows of the change journal older than the retention of the audit plugin of each panel
@@ -19,6 +20,7 @@ use Illuminate\Console\Command;
  * without `AuditOptions` keep no journal and are skipped. Irreversible: production needs `--force`. Pruning runs in
  * short transactions of its own and never takes the authority lock of a panel (`JournalPruner`).
  */
+#[Internal]
 final class AuditPruneCommand extends Command
 {
     use CommandSupport;

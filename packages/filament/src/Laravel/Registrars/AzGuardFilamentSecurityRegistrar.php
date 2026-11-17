@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace AzGuard\Filament\Laravel\Registrars;
 
-use AzGuard\Filament\Authorization\FilamentGate;
 use AzGuard\Filament\Internal\Authorization\AuthorizesActions;
 use AzGuard\Filament\Internal\Authorization\FilamentContext;
 use AzGuard\Filament\Internal\Authorization\RefusesEditableColumns;
@@ -25,10 +24,11 @@ use Illuminate\Routing\Router;
 use Livewire\ComponentHookRegistry;
 use Livewire\LivewireManager;
 use Packman\Attributes\Internal;
+use Packman\Filament\Security\Authorization\FilamentGate as PackmanFilamentGate;
 use Packman\Foundation\Contracts\PackageRegistrar;
 use WeakMap;
 
-#[Internal('Registers Filament action, table, Livewire, export, and Gate::before security hooks.')]
+#[Internal('Registers Filament action, table, Livewire, export, and Gate::before security hooks on Packman Filament.')]
 final class AzGuardFilamentSecurityRegistrar implements PackageRegistrar
 {
     private const string PANEL_MIDDLEWARE = 'azguard.panel';
@@ -51,11 +51,12 @@ final class AzGuardFilamentSecurityRegistrar implements PackageRegistrar
             $table->modifyQueryUsing(static function (Builder $query) use ($table): Builder {
                 $resource = FilamentContext::resourceOf($table->getLivewire());
 
-                return $resource === null ? $query : FilamentGate::visible($resource, $query);
+                return $resource === null ? $query : PackmanFilamentGate::visible($resource, $query);
             });
         });
 
         $events = $app->make(Dispatcher::class);
+        $events->forget(ActionCalling::class);
         $events->listen(ActionCalling::class, AuthorizesActions::class);
         $events->listen(ActionCalling::class, AuthorizesExports::class);
         $events->listen(ServingFilament::class, static function (): void {
@@ -85,8 +86,8 @@ final class AzGuardFilamentSecurityRegistrar implements PackageRegistrar
                 self::attachLivewireHooks($app->make(LivewireManager::class));
             }
             self::repeatPanelEntryOnLivewireUpdates($app);
-            // The hook comes after the Gate adapter of the core, which answers first for the permissions it owns.
-            $app->make(Gate::class)->before(static fn (?object $user, string $ability, array $arguments = []): ?bool => FilamentGate::before($user, $ability, $arguments));
+            // Delegates through Packman FilamentGate -> FilamentSurfaceGate -> AzGuardFilamentSurfaceGate.
+            $app->make(Gate::class)->before(PackmanFilamentGate::before(...));
         });
     }
 

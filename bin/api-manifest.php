@@ -5,7 +5,7 @@ declare(strict_types=1);
 /*
  * Machine manifest of the supported surface of each package (api-manifest.json).
  *
- *   php bin/api-manifest.php --write   regenerate both manifests
+ *   php bin/api-manifest.php --write   regenerate all package manifests
  *   php bin/api-manifest.php --check   exit 1 with a short diff when a manifest is stale
  *
  * Publication is the attribute only: a type with #[Api] or #[Spi] is supported, any other type is internal wherever
@@ -24,7 +24,7 @@ use Packman\Attributes\Spi;
 $root = dirname(__DIR__);
 require $root.'/vendor/autoload.php';
 
-const API_PACKAGES = ['packages/core', 'packages/filament'];
+const API_PACKAGES = ['packages/core', 'packages/scopes', 'packages/audit', 'packages/devtools', 'packages/filament'];
 
 /** The entry class whose public methods the facade forwards. */
 const API_ENTRY = 'AzGuard\\AzGuard';

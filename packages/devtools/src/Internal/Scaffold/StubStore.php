@@ -6,6 +6,9 @@ namespace AzGuard\DevTools\Internal\Scaffold;
 
 use AzGuard\Laravel\Console\InvalidCommandInput;
 use Illuminate\Filesystem\Filesystem;
+use Packman\Attributes\Internal;
+use Packman\DevTools\Scaffold\StubStore as PackmanStubStore;
+use RuntimeException;
 
 /**
  * @internal The stubs of the generators: the ones published to `stubs/azguard/` win over the ones of the package.
@@ -13,6 +16,7 @@ use Illuminate\Filesystem\Filesystem;
  * A stub holds `{{ name }}` placeholders and is plain PHP otherwise. A placeholder nothing fills is an error: a
  * published stub from an older release would otherwise reach the application with the placeholder in its code.
  */
+#[Internal]
 final readonly class StubStore
 {
     public const string PUBLISHED = 'stubs/azguard';
@@ -48,12 +52,15 @@ final readonly class StubStore
             throw new InvalidCommandInput('The stub '.$name.' does not exist: '.$path.'.');
         }
 
-        return (string) preg_replace_callback(
-            '/\{\{\s*([A-Za-z]\w*)\s*\}\}/',
-            static fn (array $match): string => $values[$match[1]]
-                ?? throw new InvalidCommandInput('The stub '.$path.' has the placeholder {{ '.$match[1].' }}, which this release does not fill: publish the stubs again with azguard:stubs --force.'),
-            $this->files->get($path),
-        );
+        try {
+            return new PackmanStubStore(dirname($path))->render(basename($path), $values);
+        } catch (RuntimeException $error) {
+            if (preg_match('/\{\{\s*([A-Za-z]\w*)\s*\}\}/', $error->getMessage(), $match) === 1) {
+                throw new InvalidCommandInput('The stub '.$path.' has the placeholder {{ '.$match[1].' }}, which this release does not fill: publish the stubs again with azguard:stubs --force.', previous: $error);
+            }
+
+            throw new InvalidCommandInput($error->getMessage(), previous: $error);
+        }
     }
 
     /**

@@ -211,5 +211,5 @@ it('passes the unchanged writer result through observing pipes', function (): vo
 
     expect($result->status)->toBe(ChangeStatus::Unchanged)
         ->and($observed[0]->records)->toBe($result->records)
-        ->and(SellerProjects::$observed)->not->toBe([]);
+        ->and(SellerProjects::$observed)->not->toBeEmpty();
 });

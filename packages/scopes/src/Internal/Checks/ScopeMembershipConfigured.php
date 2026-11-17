@@ -15,6 +15,7 @@ use AzGuard\Scopes\Internal\ScopeConfiguration;
 use AzGuard\Scopes\ModelAssignmentScopeDefinition;
 use AzGuard\Tenancy\TenantMode;
 use Illuminate\Contracts\Container\Container;
+use Packman\Attributes\Internal;
 use ReflectionClass;
 
 /**
@@ -22,6 +23,7 @@ use ReflectionClass;
  * adapter given as a class can be created (error), a required tenant owns every model-backed assignment scope (error),
  * and an inheriting assignment scope without a membership is reported (warning).
  */
+#[Internal]
 final readonly class ScopeMembershipConfigured implements DoctorCheck
 {
     public function __construct(private Container $container) {}

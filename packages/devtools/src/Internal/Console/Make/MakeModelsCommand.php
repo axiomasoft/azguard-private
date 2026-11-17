@@ -14,11 +14,13 @@ use AzGuard\Storage\Models\PermissionGrant;
 use AzGuard\Storage\Models\RoleGrant;
 use AzGuard\Storage\StorageDescriptor;
 use Illuminate\Support\Str;
+use Packman\Attributes\Internal;
 
 /**
  * The grant models of a panel, `{Panel}/Models/`, as subclasses of the base ones that declare the host fields, and the
  * migration that adds their columns. The panel takes them with `DatabaseSource::make()->models(...)`.
  */
+#[Internal]
 final class MakeModelsCommand extends MakeCommand
 {
     /** @var string */

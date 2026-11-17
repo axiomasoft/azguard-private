@@ -9,12 +9,14 @@ use AzGuard\Storage\StorageDescriptor;
 use Illuminate\Database\Connection;
 use Illuminate\Database\DatabaseManager;
 use Illuminate\Database\Schema\Blueprint;
+use Packman\Attributes\Internal;
 
 /**
  * @internal The audit journal table `{prefix}audit_log` of a storage: its columns, indexes and the tenant pair
  * constraint, with the identity columns of the core tables (`IdentityColumns`) so its rows compare with the stored
  * identities. The audit migrations create and drop it; the doctor compares an existing table with it.
  */
+#[Internal]
 final class AuditSchema
 {
     public const string TABLE = 'audit_log';

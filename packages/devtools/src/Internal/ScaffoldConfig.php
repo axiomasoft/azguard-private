@@ -6,12 +6,14 @@ namespace AzGuard\DevTools\Internal;
 
 use AzGuard\Exceptions\Configuration\InvalidConfigurationException;
 use Illuminate\Contracts\Config\Repository;
+use Packman\Attributes\Internal;
 
 /**
  * @internal What the generators read from `config/azguard.php`: the `scaffold` section DevTools owns (the namespace
  * and the path of the panel directories) and the folder names of `discovery.*`, which core owns and validates when it
  * reads the configuration; a folder name core would refuse is refused here too.
  */
+#[Internal]
 final readonly class ScaffoldConfig
 {
     /** Keys of the `scaffold` section. */

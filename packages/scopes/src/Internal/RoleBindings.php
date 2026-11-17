@@ -7,6 +7,7 @@ namespace AzGuard\Scopes\Internal;
 use AzGuard\Contracts\Scopes\AssignmentScopeDefinition;
 use AzGuard\Roles\BaseRole;
 use Illuminate\Contracts\Container\Container;
+use Packman\Attributes\Internal;
 use RuntimeException;
 
 /**
@@ -14,6 +15,7 @@ use RuntimeException;
  *
  * @internal
  */
+#[Internal]
 final class RoleBindings
 {
     /**

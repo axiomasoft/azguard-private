@@ -52,7 +52,7 @@
         },
         "packman": {
             "schema-version": 1,
-            "package-type": "addon",
+            "package-type": "capability",
             "stability": "stable",
             "owns": [
                 "Extensions"

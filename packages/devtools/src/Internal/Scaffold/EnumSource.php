@@ -4,10 +4,13 @@ declare(strict_types=1);
 
 namespace AzGuard\DevTools\Internal\Scaffold;
 
+use Packman\Attributes\Internal;
+
 /**
  * @internal The string-backed enum a PHP source declares, read as text: the generators look at files that are not
  * loaded and may not be loadable yet.
  */
+#[Internal]
 final readonly class EnumSource
 {
     /**

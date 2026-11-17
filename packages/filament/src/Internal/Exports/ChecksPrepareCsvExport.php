@@ -16,6 +16,7 @@ use AzGuard\Kernel\Identity\TenantRef;
 use AzGuard\Panels\Reads;
 use AzGuard\Support\ModelKey;
 use Illuminate\Database\Eloquent\Model;
+use Packman\Attributes\Internal;
 use Throwable;
 
 /**
@@ -23,6 +24,7 @@ use Throwable;
  *
  * @internal
  */
+#[Internal]
 final class ChecksPrepareCsvExport extends AuthorizedPrepareCsvExport
 {
     public function handle(): void

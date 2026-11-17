@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace AzGuard\Scopes\Internal\Query;
 
+use Packman\Attributes\Internal;
 use RuntimeException;
 
 /**
@@ -12,6 +13,7 @@ use RuntimeException;
  *
  * @internal
  */
+#[Internal]
 final class FilterGuard
 {
     private bool $rejected = false;

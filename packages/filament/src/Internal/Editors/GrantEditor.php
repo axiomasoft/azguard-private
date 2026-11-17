@@ -35,6 +35,7 @@ use DateTimeImmutable;
 use Filament\Facades\Filament;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Validation\ValidationException;
+use Packman\Attributes\Internal;
 use Throwable;
 use UnexpectedValueException;
 
@@ -51,6 +52,7 @@ use UnexpectedValueException;
  *
  * @internal
  */
+#[Internal]
 final readonly class GrantEditor
 {
     /** How many subjects or contexts a search offers. */

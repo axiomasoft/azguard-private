@@ -21,6 +21,7 @@ use Closure;
 use Illuminate\Contracts\Container\Container;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use Packman\Attributes\Internal;
 use RuntimeException;
 use Throwable;
 
@@ -30,6 +31,7 @@ use Throwable;
  * scope type; in the Assignment phase scope membership first, then both. Settings come from the scope options of the
  * runtime's panel. Live predicates only: nothing is cached and no runtime is kept.
  */
+#[Internal]
 final readonly class ScopeEligibility
 {
     public function __construct(private Container $container) {}

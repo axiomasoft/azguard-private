@@ -4,12 +4,14 @@ declare(strict_types=1);
 
 namespace AzGuard\Filament\Internal\Console;
 
+use Packman\Attributes\Internal;
 use ParseError;
 
 /**
  * @internal Puts attributes on the permission enum the core generator wrote, as text: the file is not loaded and its
  * `use` lines stay in the order Pint keeps.
  */
+#[Internal]
 final class EnumMarks
 {
     /**

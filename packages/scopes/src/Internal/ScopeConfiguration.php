@@ -15,10 +15,12 @@ use AzGuard\Scopes\Contracts\AssignmentScopeAccessAdapter;
 use AzGuard\Scopes\Contracts\AssignmentScopeFilter;
 use AzGuard\Scopes\Contracts\AssignmentScopeMembership;
 use AzGuard\Scopes\Contracts\ConfigurableAssignmentScopeDefinition;
+use AzGuard\Scopes\ScopesOptions;
 use Closure;
 use Illuminate\Contracts\Container\Container;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use Packman\Attributes\Internal;
 use ReflectionClass;
 use ReflectionFunction;
 use ReflectionIntersectionType;
@@ -32,6 +34,7 @@ use UnexpectedValueException;
  * Build-time validation of filters, access adapters and role bindings, and the reader of the scope options; user
  * components are never instantiated here. Core reads definitions only through their description.
  */
+#[Internal]
 final class ScopeConfiguration
 {
     /** @return AssignmentScopeMembership|class-string<AssignmentScopeMembership>|null */

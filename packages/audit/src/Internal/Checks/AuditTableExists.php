@@ -9,6 +9,7 @@ use AzGuard\AzGuard;
 use AzGuard\Contracts\Diagnostics\DoctorCheck;
 use AzGuard\Diagnostics\DoctorContext;
 use AzGuard\Diagnostics\DoctorFinding;
+use Packman\Attributes\Internal;
 
 /**
  * `audit.table`: the panel with the audit plugin stores grants in a writer whose storage has the journal table in the
@@ -16,6 +17,7 @@ use AzGuard\Diagnostics\DoctorFinding;
  *
  * @internal
  */
+#[Internal]
 final readonly class AuditTableExists implements DoctorCheck
 {
     public function __construct(private AzGuard $azguard) {}

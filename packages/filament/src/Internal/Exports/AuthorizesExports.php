@@ -16,6 +16,7 @@ use Filament\Facades\Filament;
 use Filament\Tables\Contracts\HasTable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Log;
+use Packman\Attributes\Internal;
 use Throwable;
 
 /**
@@ -27,6 +28,7 @@ use Throwable;
  *
  * @internal
  */
+#[Internal]
 final class AuthorizesExports
 {
     public function __invoke(object $action): void

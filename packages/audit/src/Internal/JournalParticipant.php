@@ -7,12 +7,14 @@ namespace AzGuard\Audit\Internal;
 use AzGuard\Changes\ChangeRecord;
 use AzGuard\Contracts\Changes\ChangeParticipant;
 use AzGuard\Contracts\Changes\OwnedRowsWriter;
+use Packman\Attributes\Internal;
 
 /**
  * @internal The participant of the audit plugin: one journal row per effect, with the id and payload of the event the
  * root commit publishes, in the transaction of the change. An operation that changed nothing calls no participant,
  * so a repeat leaves no row.
  */
+#[Internal]
 final readonly class JournalParticipant implements ChangeParticipant
 {
     /** Rows per insert statement: far below the bound parameters every supported driver accepts. */
