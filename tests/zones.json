@@ -42,17 +42,17 @@
             "uses": ["kernel", "storage", "sources", "changes", "authorization"]
         },
         "scopes": {
-            "src": ["packages/core/modules/scopes"],
+            "src": ["packages/scopes"],
             "tests": ["Modules/Scopes"],
             "uses": ["kernel", "catalog", "storage", "sources", "authorization"]
         },
         "audit": {
-            "src": ["packages/core/modules/audit"],
+            "src": ["packages/audit"],
             "tests": ["Modules/Audit"],
             "uses": ["kernel", "catalog", "storage", "sources", "changes"]
         },
         "devtools": {
-            "src": ["packages/core/modules/devtools"],
+            "src": ["packages/devtools"],
             "tests": ["Modules/DevTools"],
             "uses": ["kernel", "catalog", "storage", "sources", "changes", "testing-kit"]
         },
@@ -100,5 +100,5 @@
         "Feature/Storage", "Feature/Sources/Database", "Feature/Changes", "Feature/Visibility", "Feature/Directories",
         "Feature/Parity", "Feature/Activation", "Contracts", "Modules/Scopes/Contracts", "Modules/Audit/Contracts", "Engines"
     ],
-    "global": ["composer.json", "composer.lock", "phpunit.xml", "tests/Pest.php", "tests/TestCase.php", "tests/zones.json", "bin/test-changed.php", "tests/Support", "tests/Fixtures", "packages/core/composer.json", "packages/filament/composer.json"]
+    "global": ["composer.json", "composer.lock", "phpunit.xml", "tests/Pest.php", "tests/TestCase.php", "tests/zones.json", "bin/test-changed.php", "tests/Support", "tests/Fixtures", "packages/core/composer.json", "packages/scopes/composer.json", "packages/audit/composer.json", "packages/devtools/composer.json", "packages/filament/composer.json"]
 }

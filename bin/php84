@@ -1,57 +1,60 @@
 #!/usr/bin/env bash
+# Runs a command with PHP 8.4 as `php` on PATH, so Composer scripts and
+# `#!/usr/bin/env php` binaries use 8.4 even when the host default is older.
+# Usage: bin/php84 --check | bin/php84 <command> [args...]
 set -euo pipefail
 
-ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-PHP84_BIN="${PHP84_BIN:-$(command -v php8.4 || true)}"
+root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+bin="${PHP84_BIN:-$(command -v php8.4 || true)}"
 
-if [[ -z "${PHP84_BIN}" || ! -x "${PHP84_BIN}" ]]; then
-    echo "php8.4 executable not found (set PHP84_BIN to override)." >&2
+if [[ -z "$bin" || ! -x "$bin" ]]; then
+    echo "php84: php8.4 binary not found (set PHP84_BIN)" >&2
     exit 1
 fi
 
-SHIM_DIR="${ROOT_DIR}/build/php84/bin"
-mkdir -p "${SHIM_DIR}"
+shim="$root/build/php84/bin"
+resolved_bin="$(readlink -f "$bin" 2>/dev/null || printf '%s' "$bin")"
+resolved_shim="$(readlink -f "$shim/php" 2>/dev/null || true)"
 
-if [[ ! -L "${SHIM_DIR}/php" || "$(readlink "${SHIM_DIR}/php" 2>/dev/null || true)" != "${PHP84_BIN}" ]]; then
-    ln -sf "${PHP84_BIN}" "${SHIM_DIR}/php"
+if [[ -x "$shim/php" && "$resolved_shim" == "$resolved_bin" ]]; then
+    export PATH="$shim:$PATH"
+else
+    if [[ ! -w "$root" ]] || { [[ -e "$root/build" ]] && [[ ! -w "$root/build" ]]; }; then
+        shim="${TMPDIR:-/tmp}/packman-php84-shim-$(id -u)/bin"
+    fi
+
+    mkdir -p "$shim"
+    ln -sf "$bin" "$shim/php"
+    export PATH="$shim:$PATH"
 fi
 
-export PATH="${SHIM_DIR}:${PATH}"
-
 if [[ "${1:-}" == "--check" ]]; then
-    "${PHP84_BIN}" -r '
-        if (version_compare(PHP_VERSION, "8.4.0", "<") || version_compare(PHP_VERSION, "8.5.0", ">=")) {
-            fwrite(STDERR, "Expected PHP 8.4.x, got " . PHP_VERSION . "\n");
-            exit(1);
-        }
-        $required = ["bcmath", "ctype", "dom", "fileinfo", "json", "mbstring", "openssl", "pdo", "pdo_pgsql", "pdo_sqlite", "pgsql", "tokenizer", "xml"];
-        $missing = array_values(array_filter($required, static fn (string $ext): bool => ! extension_loaded($ext)));
-        if ($missing !== []) {
-            fwrite(STDERR, "Missing PHP 8.4 extensions: " . implode(", ", $missing) . "\n");
-            exit(1);
-        }
-        echo "php84 OK: " . PHP_VERSION . ", extensions complete\n";
-    '
+    version="$(php -r 'echo PHP_VERSION;')"
+    if [[ "$version" != 8.4.* ]]; then
+        echo "php84: expected PHP 8.4.x, got $version" >&2
+        exit 1
+    fi
+    required=(ctype curl dom fileinfo gd gmp intl bcmath mbstring openssl pcntl pcov pdo_pgsql pdo_sqlite sqlite3 tokenizer xml zip)
+    missing=()
+    for ext in "${required[@]}"; do
+        php -r "exit(extension_loaded('$ext') ? 0 : 1);" || missing+=("$ext")
+    done
+    if (( ${#missing[@]} )); then
+        echo "php84: MISSING: ${missing[*]}" >&2
+        declare -A packages=()
+        for ext in "${missing[@]}"; do
+            case "$ext" in
+                dom) packages[xml]=1 ;;
+                pdo_pgsql) packages[pgsql]=1 ;;
+                pdo_sqlite) packages[sqlite3]=1 ;;
+                *) packages[$ext]=1 ;;
+            esac
+        done
+        echo "php84: owner action: sudo apt install $(printf 'php8.4-%s ' $(printf '%s\n' "${!packages[@]}" | sort))" >&2
+        exit 1
+    fi
+    echo "php84 OK: $version, extensions complete"
     exit 0
 fi
 
-if [[ $# -eq 0 ]]; then
-    exec "${PHP84_BIN}" -v
-fi
-
-case "$1" in
-    composer)
-        COMPOSER_BIN="$(command -v composer)"
-        shift
-        exec "${PHP84_BIN}" "${COMPOSER_BIN}" "$@"
-        ;;
-    -*)
-        exec "${PHP84_BIN}" "$@"
-        ;;
-    *)
-        if [[ -f "$1" ]] && [[ "$1" == *.php || "$(head -n 1 "$1" 2>/dev/null || true)" == *php* ]]; then
-            exec "${PHP84_BIN}" "$@"
-        fi
-        exec "$@"
-        ;;
-esac
+exec "$@"

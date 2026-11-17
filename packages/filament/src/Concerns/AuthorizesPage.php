@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace AzGuard\Filament\Concerns;
 
-use AzGuard\Attributes\Api;
 use AzGuard\Filament\Authorization\FilamentGate;
 use Filament\Pages\Page;
+use Packman\Attributes\Api;
 
 /**
  * Opens a page with its permission `pages.{slug}` in the guard panel.

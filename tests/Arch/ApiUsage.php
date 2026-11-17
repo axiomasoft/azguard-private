@@ -136,7 +136,7 @@ final class ApiUsage
             SourceScan::files(),
             static fn (string $file): bool => in_array($ownership->fileOwner(str_replace($root, '', $file)), [...Ownership::MODULES, 'filament'], true),
         ));
-        $stubs = [...glob($root.'packages/core/stubs/*.stub') ?: [], ...glob($root.'packages/core/modules/*/stubs/*.stub') ?: []];
+        $stubs = array_values(array_unique([...glob($root.'packages/core/stubs/*.stub') ?: [], ...glob($root.'packages/*/stubs/*.stub') ?: []]));
         sort($stubs);
 
         return [...$files, ...$stubs];

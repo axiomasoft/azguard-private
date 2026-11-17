@@ -246,14 +246,14 @@ it('resolves a class-string and an alias in the namespace block they stand in, a
 it('lets the explicit row of a split part win over the split row, whichever comes first', function (): void {
     $split = ownershipRow('split', 'AzGuard\Authorization\Query\VisibilityScope', 'packages/core/src/Authorization/Query/VisibilityScope.php');
     $split['target'] = 'AzGuard\Authorization\Internal\Query\ResourceContextMapping + AzGuard\Scopes\Internal\Query\ScopeVisibility';
-    $split['target_path'] = 'packages/core/src/Authorization/Internal/Query/ResourceContextMapping.php + packages/core/modules/scopes/src/Internal/Query/ScopeVisibility.php';
-    $part = ownershipRow('scopes', 'AzGuard\Scopes\Internal\Query\ScopeVisibility', 'packages/core/modules/scopes/src/Internal/Query/ScopeVisibility.php');
+    $split['target_path'] = 'packages/core/src/Authorization/Internal/Query/ResourceContextMapping.php + packages/scopes/src/Internal/Query/ScopeVisibility.php';
+    $part = ownershipRow('scopes', 'AzGuard\Scopes\Internal\Query\ScopeVisibility', 'packages/scopes/src/Internal/Query/ScopeVisibility.php');
     $part['current'] = $part['current_path'] = null;
 
     foreach ([[$split, $part], [$part, $split]] as $rows) {
         $ownership = Ownership::of($rows);
 
-        expect($ownership->fileOwner('packages/core/modules/scopes/src/Internal/Query/ScopeVisibility.php'))->toBe('scopes')
+        expect($ownership->fileOwner('packages/scopes/src/Internal/Query/ScopeVisibility.php'))->toBe('scopes')
             ->and($ownership->referenceOwner('import', 'AzGuard\Scopes\Internal\Query\ScopeVisibility'))->toBe('scopes')
             ->and($ownership->fileOwner('packages/core/src/Authorization/Query/VisibilityScope.php'))->toBe('split')
             ->and($ownership->referenceOwner('import', 'AzGuard\Authorization\Internal\Query\ResourceContextMapping'))->toBe('core')
@@ -264,20 +264,20 @@ it('lets the explicit row of a split part win over the split row, whichever come
 it('owns a split part without a row of its own by the root of its target path, so the boundary rules see it', function (): void {
     $split = ownershipRow('split', 'AzGuard\Scopes\ScopeConfiguration', 'packages/core/src/Scopes/ScopeConfiguration.php');
     $split['target'] = 'AzGuard\Panels\Internal\CanonicalMetadata + AzGuard\Scopes\Internal\ScopeConfiguration';
-    $split['target_path'] = 'packages/core/src/Panels/Internal/CanonicalMetadata.php + packages/core/modules/scopes/src/Internal/ScopeConfiguration.php';
+    $split['target_path'] = 'packages/core/src/Panels/Internal/CanonicalMetadata.php + packages/scopes/src/Internal/ScopeConfiguration.php';
     $rows = [$split, ownershipRow('core', 'AzGuard\Panels\Internal\CanonicalMetadata', 'packages/core/src/Panels/Internal/CanonicalMetadata.php'),
-        ownershipRow('audit', 'AzGuard\Audit\AuditPlugin', 'packages/core/modules/audit/src/AuditPlugin.php')];
+        ownershipRow('audit', 'AzGuard\Audit\AuditPlugin', 'packages/audit/src/AuditPlugin.php')];
 
     $violations = ownershipScanOf([
-        'packages/core/modules/scopes/src/Internal/ScopeConfiguration.php' => "<?php\nnamespace AzGuard\\Scopes\\Internal;\nuse AzGuard\\Audit\\AuditPlugin;\nfinal class ScopeConfiguration {}\n",
+        'packages/scopes/src/Internal/ScopeConfiguration.php' => "<?php\nnamespace AzGuard\\Scopes\\Internal;\nuse AzGuard\\Audit\\AuditPlugin;\nfinal class ScopeConfiguration {}\n",
         'packages/core/src/Panels/Internal/CanonicalMetadata.php' => "<?php\nnamespace AzGuard\\Panels\\Internal;\nuse AzGuard\\Scopes\\Internal\\ScopeConfiguration;\nfinal class CanonicalMetadata {}\n",
     ], $rows);
 
-    expect(Ownership::of($rows)->fileOwner('packages/core/modules/scopes/src/Internal/ScopeConfiguration.php'))->toBe('scopes')
+    expect(Ownership::of($rows)->fileOwner('packages/scopes/src/Internal/ScopeConfiguration.php'))->toBe('scopes')
         ->and(Ownership::of($rows)->referenceOwner('import', 'AzGuard\Scopes\Internal\ScopeConfiguration'))->toBe('scopes')
         ->and(array_map(static fn (array $v): string => implode(' ', [$v['invariant'], $v['file'], $v['kind'], $v['reference']]), $violations))->toBe([
             'core-module packages/core/src/Panels/Internal/CanonicalMetadata.php import AzGuard\Scopes\Internal\ScopeConfiguration',
-            'module-isolation packages/core/modules/scopes/src/Internal/ScopeConfiguration.php import AzGuard\Audit\AuditPlugin',
+            'module-isolation packages/scopes/src/Internal/ScopeConfiguration.php import AzGuard\Audit\AuditPlugin',
         ]);
 });
 
@@ -328,13 +328,13 @@ it('a core file may not name a module by import, class name, constant, class-str
 
 it('a module names no other module and no Filament code, and Filament names no module', function (): void {
     $rows = [
-        ownershipRow('scopes', 'AzGuard\Scopes\ScopesPlugin', 'packages/core/modules/scopes/src/ScopesPlugin.php'),
-        ownershipRow('audit', 'AzGuard\Audit\AuditPlugin', 'packages/core/modules/audit/src/AuditPlugin.php'),
+        ownershipRow('scopes', 'AzGuard\Scopes\ScopesPlugin', 'packages/scopes/src/ScopesPlugin.php'),
+        ownershipRow('audit', 'AzGuard\Audit\AuditPlugin', 'packages/audit/src/AuditPlugin.php'),
         ownershipRow('core', 'AzGuard\Panels\Panel', 'packages/core/src/Panels/Panel.php'),
         ownershipRow('filament', 'AzGuard\Filament\Page', 'packages/filament/src/Page.php'),
     ];
     $violations = ownershipScanOf([
-        'packages/core/modules/scopes/src/ScopesPlugin.php' => <<<'PHP'
+        'packages/scopes/src/ScopesPlugin.php' => <<<'PHP'
             <?php
             namespace AzGuard\Scopes;
             use AzGuard\Audit\AuditPlugin;
@@ -343,17 +343,17 @@ it('a module names no other module and no Filament code, and Filament names no m
             use Filament\Tables\Table;
             final class ScopesPlugin { public const AUDIT = 'azguard/audit'; }
             PHP,
-        'packages/core/modules/audit/src/AuditPlugin.php' => "<?php\nnamespace AzGuard\\Audit;\nuse AzGuard\\Panels\\Panel;\nfinal class AuditPlugin {}\n",
+        'packages/audit/src/AuditPlugin.php' => "<?php\nnamespace AzGuard\\Audit;\nuse AzGuard\\Panels\\Panel;\nfinal class AuditPlugin {}\n",
         'packages/core/src/Panels/Panel.php' => "<?php\nnamespace AzGuard\\Panels;\nfinal class Panel {}\n",
         'packages/filament/src/Page.php' => "<?php\nnamespace AzGuard\\Filament;\nuse AzGuard\\Audit\\AuditPlugin;\nuse AzGuard\\Panels\\Panel;\nuse Filament\\Tables\\Table;\nfinal class Page {}\n",
     ], $rows);
 
     expect(array_map(static fn (array $v): string => implode(' ', [$v['invariant'], $v['file'], $v['kind'], $v['reference']]), $violations))->toBe([
-        'module-isolation packages/core/modules/scopes/src/ScopesPlugin.php import AzGuard\Audit\AuditPlugin',
-        'module-isolation packages/core/modules/scopes/src/ScopesPlugin.php import AzGuard\Filament\Page',
-        'module-isolation packages/core/modules/scopes/src/ScopesPlugin.php import Filament\Tables\Table',
-        'module-isolation packages/core/modules/scopes/src/ScopesPlugin.php plugin-id azguard/audit',
         'module-isolation packages/filament/src/Page.php import AzGuard\Audit\AuditPlugin',
+        'module-isolation packages/scopes/src/ScopesPlugin.php import AzGuard\Audit\AuditPlugin',
+        'module-isolation packages/scopes/src/ScopesPlugin.php import AzGuard\Filament\Page',
+        'module-isolation packages/scopes/src/ScopesPlugin.php import Filament\Tables\Table',
+        'module-isolation packages/scopes/src/ScopesPlugin.php plugin-id azguard/audit',
     ]);
 });
 
@@ -378,12 +378,12 @@ it('ignores a split or retired owner, a type the oracle does not know and a modu
 it('resolves a moved file and a renamed type through the target path and the target name', function (): void {
     $ownership = Ownership::of([[
         'current' => 'AzGuard\Authorization\ScopeEligibility', 'current_path' => 'packages/core/src/Authorization/ScopeEligibility.php',
-        'target' => 'AzGuard\Scopes\Internal\ScopeEligibility', 'target_path' => 'packages/core/modules/scopes/src/Internal/ScopeEligibility.php',
+        'target' => 'AzGuard\Scopes\Internal\ScopeEligibility', 'target_path' => 'packages/scopes/src/Internal/ScopeEligibility.php',
         'owner' => 'scopes', 'action' => 'relocate', 'phase' => 'P3',
     ]]);
 
     expect($ownership->fileOwner('packages/core/src/Authorization/ScopeEligibility.php'))->toBe('scopes')
-        ->and($ownership->fileOwner('packages/core/modules/scopes/src/Internal/ScopeEligibility.php'))->toBe('scopes')
+        ->and($ownership->fileOwner('packages/scopes/src/Internal/ScopeEligibility.php'))->toBe('scopes')
         ->and($ownership->referenceOwner('import', 'AzGuard\Authorization\ScopeEligibility'))->toBe('scopes')
         ->and($ownership->referenceOwner('import', 'azguard\scopes\internal\scopeeligibility'))->toBe('scopes')
         ->and($ownership->referenceOwner('import', 'AzGuard\Scopes\Internal\Other'))->toBeNull();
@@ -397,7 +397,7 @@ it('resolves a file at an interim path by the FQCN it declares, and nothing for 
     ];
     $ownership = Ownership::of([[
         'current' => null, 'current_path' => null,
-        'target' => 'AzGuard\Scopes\Internal\ScopeEvaluator', 'target_path' => 'packages/core/modules/scopes/src/Internal/ScopeEvaluator.php',
+        'target' => 'AzGuard\Scopes\Internal\ScopeEvaluator', 'target_path' => 'packages/scopes/src/Internal/ScopeEvaluator.php',
         'owner' => 'scopes', 'action' => 'new', 'phase' => 'P2',
     ]]);
 

@@ -4,11 +4,10 @@ declare(strict_types=1);
 
 namespace AzGuard\Filament\Diagnostics;
 
-use AzGuard\Attributes\Api;
 use AzGuard\Contracts\Diagnostics\DoctorCheck;
 use AzGuard\Diagnostics\DoctorContext;
 use AzGuard\Diagnostics\DoctorFinding;
-use AzGuard\Exceptions\InvalidConfigurationException;
+use AzGuard\Exceptions\Configuration\InvalidConfigurationException;
 use AzGuard\Facades\AzGuard;
 use AzGuard\Filament\Attributes\ForFilament;
 use AzGuard\Filament\AzGuardPlugin;
@@ -16,6 +15,7 @@ use AzGuard\Filament\FilamentDefinitions;
 use AzGuard\Kernel\Identity\TenantRef;
 use Filament\Facades\Filament;
 use Filament\Panel as FilamentPanel;
+use Packman\Attributes\Api;
 use ReflectionEnum;
 
 /**
@@ -71,7 +71,7 @@ final readonly class FilamentDefinitionsCheck implements DoctorCheck
         }
 
         foreach (array_keys($marked) as $enum) {
-            foreach ((new ReflectionEnum($enum))->getAttributes(ForFilament::class) as $attribute) {
+            foreach (new ReflectionEnum($enum)->getAttributes(ForFilament::class) as $attribute) {
                 $target = $attribute->newInstance()->class;
 
                 if (! isset($classes[$target])) {

@@ -14,12 +14,15 @@ use Packman\Panels\Contracts\Registry\PanelRegistry as PackmanPanelRegistry;
 use Packman\Panels\Laravel\PanelExtensionBridge;
 use Packman\Panels\Laravel\PanelsBindingsRegistrar;
 use Packman\Schema\Laravel\SchemaExtensions;
+use Packman\Schema\Laravel\SchemaServiceProvider;
 
 #[Internal('Packman extension, schema, diagnostics, and panel facets registrar.')]
 final class AzGuardExtensionRegistrar implements PackageRegistrar
 {
     public function register(Application $app): void
     {
+        $app->register(SchemaServiceProvider::class);
+
         $plugin = new AzGuardCorePlugin;
         $manifest = dirname(__DIR__, 3).'/composer.json';
 

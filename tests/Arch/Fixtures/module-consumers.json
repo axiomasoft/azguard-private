@@ -122,7 +122,7 @@
         "Regression/NonePanelContextIsolationTest.php": ["Scopes"],
         "Regression/UnsupportedContextTest.php": ["Scopes"],
         "Support/AuditTable.php": ["Audit"],
-        "TestCase.php": ["Audit", "DevTools"],
+        "TestCase.php": ["Audit", "DevTools", "Scopes"],
         "Unit/Catalog/RoleCompilerTest.php": ["Scopes"],
         "Unit/Contracts/ScopeContractsTest.php": ["Scopes"],
         "Unit/Panels/PanelRegistryTest.php": ["Scopes"],

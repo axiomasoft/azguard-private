@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace AzGuard\Filament\Pages;
 
-use AzGuard\Attributes\Api;
 use AzGuard\Diagnostics\Doctor;
 use AzGuard\Diagnostics\DoctorFinding;
 use AzGuard\Diagnostics\Severity;
@@ -13,6 +12,7 @@ use Filament\Actions\Action;
 use Filament\Pages\Page;
 use Illuminate\Contracts\Foundation\Application;
 use Livewire\Attributes\Locked;
+use Packman\Attributes\Api;
 use Throwable;
 use UnitEnum;
 

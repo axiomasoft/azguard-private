@@ -4,10 +4,9 @@ declare(strict_types=1);
 
 namespace AzGuard\Filament\Authorization;
 
-use AzGuard\Attributes\Api;
-use AzGuard\Exceptions\InvalidConfigurationException;
-use AzGuard\Exceptions\UnknownPermissionException;
-use AzGuard\Exceptions\VisibilityNotSupportedException;
+use AzGuard\Exceptions\Authorization\VisibilityNotSupportedException;
+use AzGuard\Exceptions\Changes\UnknownPermissionException;
+use AzGuard\Exceptions\Configuration\InvalidConfigurationException;
 use AzGuard\Filament\Internal\Authorization\FilamentContext;
 use AzGuard\Filament\Internal\Reflection\ClassTraits;
 use AzGuard\Kernel\Decision\AccessRequest;
@@ -28,6 +27,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
+use Packman\Attributes\Api;
 use Throwable;
 use UnitEnum;
 
@@ -88,7 +88,8 @@ final class FilamentGate
                 if (! is_a($record, $resource::getModel(), true) || $record->getKey() === null) {
                     return self::refused('azguard.filament.resource');
                 }
-                $query = $record->newQuery()->useWritePdo();
+                $query = $record->newQuery();
+                $query->getQuery()->useWritePdo();
 
                 if (ClassTraits::has($record, SoftDeletes::class)
                     && in_array(FilamentContext::ability($action), ['restore', 'force_delete'], true)) {
@@ -124,7 +125,7 @@ final class FilamentGate
         }
         $context = FilamentContext::current();
 
-        return $context?->enforced() ? self::refused('azguard.filament.resource') : ($otherwise ?? Response::allow(...))();
+        return $context?->enforced() === true ? self::refused('azguard.filament.resource') : ($otherwise ?? Response::allow(...))();
     }
 
     /**

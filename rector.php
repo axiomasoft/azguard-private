@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 use Packman\DevTools\Rector\PackmanRectorSet;
 use Packman\DevTools\Rector\Rules\Boundaries\BoundarySafeStringClassRector;
-use Packman\DevTools\Rector\Rules\Laravel\ServerVariableToRequestFacadeRector;
 use Rector\CodeQuality\Rector\Catch_\ThrowWithPreviousExceptionRector;
 use Rector\CodeQuality\Rector\ClassMethod\LocallyCalledStaticMethodToNonStaticRector;
 use Rector\CodeQuality\Rector\FuncCall\SimplifyRegexPatternRector;
@@ -17,7 +16,6 @@ use Rector\DeadCode\Rector\ClassMethod\RemoveUselessParamTagRector;
 use Rector\DeadCode\Rector\Node\RemoveNonExistingVarAnnotationRector;
 use Rector\DeadCode\Rector\Return_\RemoveDeadConditionAboveReturnRector;
 use Rector\Instanceof_\Rector\Ternary\FlipNegatedTernaryInstanceofRector;
-use Rector\Php55\Rector\String_\StringClassNameToClassConstantRector;
 use Rector\Php80\Rector\Ternary\TernaryToNullsafeCoalesceRector;
 use Rector\Php81\Rector\Property\ReadOnlyPropertyRector;
 use Rector\Php82\Rector\Class_\ReadOnlyClassRector;
@@ -32,11 +30,10 @@ return static function (RectorConfig $rectorConfig): void {
 
     $rectorConfig->paths([
         __DIR__.'/packages/core/src',
-        // Deferred to Slice B:
-        // __DIR__.'/packages/core/modules/scopes/src',
-        // __DIR__.'/packages/core/modules/audit/src',
-        // __DIR__.'/packages/core/modules/devtools/src',
-        // __DIR__.'/packages/filament/src',
+        __DIR__.'/packages/scopes/src',
+        __DIR__.'/packages/audit/src',
+        __DIR__.'/packages/devtools/src',
+        __DIR__.'/packages/filament/src',
         __DIR__.'/bench/src',
     ]);
     $rectorConfig->importNames(importDocBlockNames: false);
@@ -45,7 +42,6 @@ return static function (RectorConfig $rectorConfig): void {
         ...$skipped,
         RemoveEmptyClassMethodRector::class => [
             __DIR__.'/packages/core/src/AzGuardServiceProvider.php',
-            __DIR__.'/packages/filament/src/AzGuardFilamentServiceProvider.php',
         ],
         SimplifyRegexPatternRector::class,
         ThrowWithPreviousExceptionRector::class,
@@ -63,15 +59,7 @@ return static function (RectorConfig $rectorConfig): void {
             __DIR__.'/packages/core/src/Storage/Internal/Concerns/GuardsDirectWrites.php',
             __DIR__.'/packages/core/src/Storage/Internal/WriteGuardedBuilder.php',
         ],
-        ServerVariableToRequestFacadeRector::class => [
-            __DIR__.'/bench/src/Stand.php',
-        ],
         BoundarySafeStringClassRector::class => [
-            __DIR__.'/packages/core/src/Configuration/AzGuardOptions.php',
-            __DIR__.'/packages/core/src/Configuration/Internal/AzGuardConfig.php',
-            __DIR__.'/packages/core/src/aliases.php',
-        ],
-        StringClassNameToClassConstantRector::class => [
             __DIR__.'/packages/core/src/Configuration/AzGuardOptions.php',
             __DIR__.'/packages/core/src/Configuration/Internal/AzGuardConfig.php',
             __DIR__.'/packages/core/src/aliases.php',

@@ -5,8 +5,7 @@ declare(strict_types=1);
 namespace AzGuard\Filament\Exports;
 
 use AnourValar\EloquentSerialize\Facades\EloquentSerializeFacade;
-use AzGuard\Attributes\Api;
-use AzGuard\Contracts\AzGuardSubject;
+use AzGuard\Contracts\Subjects\AzGuardSubject;
 use AzGuard\Facades\AzGuard;
 use AzGuard\Kernel\Decision\AccessRequest;
 use AzGuard\Kernel\Identity\PermissionKey;
@@ -17,6 +16,7 @@ use AzGuard\Support\ModelKey;
 use Filament\Actions\Exports\Jobs\ExportCsv;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Log;
+use Packman\Attributes\Api;
 
 /**
  * Writes a chunk of an export with only the rows the user of the export may still view.
@@ -40,7 +40,8 @@ class AuthorizedExportCsv extends ExportCsv
             return;
         }
 
-        $query = EloquentSerializeFacade::unserialize($this->query)->useWritePdo();
+        $query = EloquentSerializeFacade::unserialize($this->query);
+        $query->getQuery()->useWritePdo();
 
         $authority = $this->options[self::OPTION] ?? null;
 
@@ -58,7 +59,9 @@ class AuthorizedExportCsv extends ExportCsv
     {
         $authority = $this->options[self::OPTION] ?? null;
         $panel = AzGuard::currentPanel();
-        $user = $this->export->user()->useWritePdo()->first();
+        $userQuery = $this->export->user();
+        $userQuery->getBaseQuery()->useWritePdo();
+        $user = $userQuery->getResults();
 
         if (! is_array($authority) || ! is_string($authority['panel'] ?? null) || ! is_string($authority['permission'] ?? null)
             || ! is_string($authority['model'] ?? null) || ! is_subclass_of($authority['model'], Model::class)
@@ -100,7 +103,9 @@ class AuthorizedExportCsv extends ExportCsv
         if ($keys === []) {
             return [];
         }
-        $query = $access->visibility()->visibleTo($access->definition(), $model->newQuery()->useWritePdo(), $subject,
+        $modelQuery = $model->newQuery();
+        $modelQuery->getQuery()->useWritePdo();
+        $query = $access->visibility()->visibleTo($access->definition(), $modelQuery, $subject,
             $authority['permission'], $access->scope());
         $visible = [];
         foreach (ModelKey::where($query, $keys)->get() as $record) {

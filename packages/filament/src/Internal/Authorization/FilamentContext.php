@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace AzGuard\Filament\Internal\Authorization;
 
-use AzGuard\Contracts\AzGuardSubject;
-use AzGuard\Contracts\PanelAccess;
-use AzGuard\Exceptions\InvalidConfigurationException;
+use AzGuard\Contracts\Panels\PanelAccess;
+use AzGuard\Contracts\Subjects\AzGuardSubject;
+use AzGuard\Exceptions\Configuration\InvalidConfigurationException;
 use AzGuard\Facades\AzGuard;
 use AzGuard\Filament\AzGuardPlugin;
 use AzGuard\Filament\Concerns\AuthorizesResource;
@@ -177,7 +177,7 @@ final readonly class FilamentContext
         $resource = $relationManager::getRelatedResource();
 
         if ($resource === null && property_exists($relationManager, 'azguardResource')) {
-            $resource = (new ReflectionProperty($relationManager, 'azguardResource'))->getValue();
+            $resource = new ReflectionProperty($relationManager, 'azguardResource')->getValue();
         }
 
         return is_string($resource) && self::authorizes($resource) ? $resource : null;
@@ -224,7 +224,7 @@ final readonly class FilamentContext
         if (! property_exists($manager, 'azguardRelationAbility')) {
             return null;
         }
-        $ability = (new ReflectionProperty($manager, 'azguardRelationAbility'))->getValue();
+        $ability = new ReflectionProperty($manager, 'azguardRelationAbility')->getValue();
 
         if ($ability === null) {
             return null;

@@ -54,7 +54,8 @@ it('keeps every migration of the compatibility baseline byte for byte', function
 
     foreach ($paths as $path) {
         $then[$path] = (string) compatGit($root, ['show', $baseline['sha'].':'.$path]);
-        $now[$path] = is_file($root.'/'.$path) ? (string) file_get_contents($root.'/'.$path) : null;
+        $currentPath = preg_replace('#^packages/core/modules/([^/]+)/#', 'packages/$1/', $path) ?? $path;
+        $now[$path] = is_file($root.'/'.$currentPath) ? (string) file_get_contents($root.'/'.$currentPath) : null;
     }
 
     expect(migrationDrift($then, $now))->toBe([], 'a published migration changed since '.$baseline['ref'].': add a new migration instead');
@@ -69,15 +70,15 @@ it('reports a changed or removed migration and allows a new one', function (): v
         ->and(migrationDrift($baseline, ['packages/core/database/migrations/2026_01_01_000000_a.php' => 'A']))->toBe(['removed: packages/core/database/migrations/2026_01_02_000000_b.php']);
 });
 
-it('finds migrations in the package folders and in the module folders only', function (): void {
+it('finds migrations in the package folders only', function (): void {
     expect(migrationPaths([
         'packages/core/database/migrations/2026_10_01_000000_x.php',
-        'packages/core/modules/audit/database/migrations/2026_10_20_000000_y.php',
+        'packages/audit/database/migrations/2026_10_20_000000_y.php',
         'packages/core/database/migrations/README.md',
         'packages/core/src/database/migrations.php',
         'tests/database/migrations/z.php',
     ]))->toBe([
+        'packages/audit/database/migrations/2026_10_20_000000_y.php',
         'packages/core/database/migrations/2026_10_01_000000_x.php',
-        'packages/core/modules/audit/database/migrations/2026_10_20_000000_y.php',
     ]);
 });

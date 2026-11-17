@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace AzGuard\Filament\Internal\Console;
 
-use AzGuard\Exceptions\InvalidConfigurationException;
+use AzGuard\Exceptions\Configuration\InvalidConfigurationException;
 use AzGuard\Filament\Attributes\ForFilament;
 use AzGuard\Filament\AzGuardPlugin;
 use AzGuard\Filament\FilamentDefinitions;
@@ -40,7 +40,8 @@ final class FilamentGenerateCommand extends Command
 
     public function handle(): int
     {
-        $authority = (string) $this->option('authority');
+        $authorityOption = $this->option('authority');
+        $authority = is_string($authorityOption) ? $authorityOption : '';
 
         if (! in_array($authority, ['grants', 'policy'], true)) {
             $this->components->error('--authority is grants or policy.');
@@ -63,7 +64,8 @@ final class FilamentGenerateCommand extends Command
 
             return self::INVALID;
         }
-        $panel = (string) ($this->option('panel') ?: Str::studly($plugin->getGuardPanel()));
+        $panelOption = $this->option('panel');
+        $panel = is_string($panelOption) && $panelOption !== '' ? $panelOption : Str::studly($plugin->getGuardPanel());
         $groups = array_values(array_filter($groups, $this->selected(...)));
 
         if ($groups === []) {
@@ -147,14 +149,8 @@ final class FilamentGenerateCommand extends Command
             FilamentSurface::Widget => 'widgets',
         };
 
-        foreach ($only as $want) {
-            if ($want === $kind || in_array(ltrim($want, '\\'), $group['classes'], true)
-                || array_filter($group['classes'], static fn (string $class): bool => class_basename($class) === $want) !== []) {
-                return true;
-            }
-        }
-
-        return false;
+        return array_any($only, fn ($want): bool => $want === $kind || in_array(ltrim($want, '\\'), $group['classes'], true)
+            || array_filter($group['classes'], static fn (string $class): bool => class_basename($class) === $want) !== []);
     }
 
     /**

@@ -13,6 +13,7 @@ use Filament\Resources\Pages\Page;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 use Livewire\Attributes\Locked;
+use Packman\Attributes\Internal;
 
 /**
  * One code role, read-only: the panel and the role come from the route and cannot be changed by the client, and the
@@ -22,6 +23,7 @@ use Livewire\Attributes\Locked;
  *
  * @phpstan-import-type Row from RoleResource
  */
+#[Internal('Filament read-only detail page for a role.')]
 final class ViewRole extends Page
 {
     protected static string $resource = RoleResource::class;

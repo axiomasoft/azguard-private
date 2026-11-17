@@ -12,13 +12,17 @@
     "require": {
         "php": ">=8.4 <8.6",
         "axiomasoft/azguard": "^2.0",
+        "axiomasoft/azguard-audit": "^2.0",
         "axiomasoft/azguard-filament": "^2.0",
+        "axiomasoft/azguard-scopes": "^2.0",
         "axiomasoft/packman": "^0.1",
+        "axiomasoft/packman-filament": "^0.1",
         "axiomasoft/packman-panels": "^0.1",
         "axiomasoft/packman-plugins": "^0.1",
         "axiomasoft/packman-schema": "^0.1"
     },
     "require-dev": {
+        "axiomasoft/azguard-devtools": "^2.0",
         "axiomasoft/packman-devtools": "^0.1",
         "axiomasoft/packman-testkit": "^0.1",
         "brianium/paratest": "^7.20",
@@ -48,7 +52,10 @@
                 "symlink": true,
                 "versions": {
                     "axiomasoft/azguard": "2.0.0",
-                    "axiomasoft/azguard-filament": "2.0.0"
+                    "axiomasoft/azguard-audit": "2.0.0",
+                    "axiomasoft/azguard-devtools": "2.0.0",
+                    "axiomasoft/azguard-filament": "2.0.0",
+                    "axiomasoft/azguard-scopes": "2.0.0"
                 }
             }
         },

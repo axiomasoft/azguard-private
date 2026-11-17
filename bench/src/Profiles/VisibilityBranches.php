@@ -6,7 +6,7 @@ namespace AzGuardBench\Load\Profiles;
 
 use AzGuard\Authorization\Internal\Authorizer;
 use AzGuard\Authorization\Visibility;
-use AzGuard\Exceptions\VisibilityNotSupportedException;
+use AzGuard\Exceptions\Authorization\VisibilityNotSupportedException;
 use AzGuard\Kernel\Decision\Grant;
 use AzGuard\Panels\Internal\PanelRegistry;
 use AzGuard\Panels\Panel;

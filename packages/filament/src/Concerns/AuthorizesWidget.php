@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace AzGuard\Filament\Concerns;
 
-use AzGuard\Attributes\Api;
 use AzGuard\Filament\Authorization\FilamentGate;
 use Filament\Widgets\Widget;
+use Packman\Attributes\Api;
 
 /**
  * Shows a widget with its permission `widgets.{name}` in the guard panel.

@@ -149,7 +149,7 @@ it('publishes the stubs, keeps the published ones and replaces them with --force
 
     Artisan::call('azguard:stubs', ['--force' => true]);
 
-    expect($this->generated->read('stubs/azguard/role.stub'))->toBe(file_get_contents(__DIR__.'/../../../../../packages/core/modules/devtools/stubs/role.stub'));
+    expect($this->generated->read('stubs/azguard/role.stub'))->toBe(file_get_contents(__DIR__.'/../../../../../packages/devtools/stubs/role.stub'));
 });
 
 it('prefers a published stub to the stub of the package', function (): void {

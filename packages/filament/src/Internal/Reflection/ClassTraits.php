@@ -41,7 +41,7 @@ final class ClassTraits
         $name = is_object($class) ? $class::class : $class;
 
         foreach ($methods as $method) {
-            if (! (self::$methods[$name][$trait][$method] ??= (new ReflectionMethod($name, $method))->getFileName() === (new ReflectionClass($trait))->getFileName())) {
+            if (! (self::$methods[$name][$trait][$method] ??= new ReflectionMethod($name, $method)->getFileName() === new ReflectionClass($trait)->getFileName())) {
                 return false;
             }
         }

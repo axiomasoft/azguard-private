@@ -4,14 +4,15 @@ declare(strict_types=1);
 
 namespace AzGuard\Filament;
 
-use AzGuard\Attributes\Api;
 use AzGuard\Contracts\Panels\PanelRegistry;
-use AzGuard\Exceptions\InvalidConfigurationException;
+use AzGuard\Contracts\Sources\SourceDescription;
+use AzGuard\Exceptions\Configuration\InvalidConfigurationException;
 use AzGuard\Filament\Authorization\FilamentGate;
 use AzGuard\Filament\Concerns\AuthorizesPage;
 use AzGuard\Filament\Concerns\AuthorizesRelationManager;
 use AzGuard\Filament\Concerns\AuthorizesResource;
 use AzGuard\Filament\Concerns\AuthorizesWidget;
+use AzGuard\Filament\Configuration\AzGuardFilamentOptions;
 use AzGuard\Filament\Contracts\FilamentFormExtension;
 use AzGuard\Filament\Internal\Authorization\FilamentContext;
 use AzGuard\Filament\Internal\Authorization\FilamentKeys;
@@ -44,6 +45,7 @@ use Illuminate\Auth\Access\Response;
 use Illuminate\Contracts\Config\Repository;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use Packman\Attributes\Api;
 
 /**
  * Connects a Filament panel to a panel of AzGuard.
@@ -102,24 +104,15 @@ final class AzGuardPlugin implements Plugin
      */
     public function __construct(Repository $config)
     {
-        /** @var array<string, mixed> $values */
-        $values = (array) $config->get('azguard-filament', []);
+        $options = AzGuardFilamentOptions::fromRepository($config);
 
-        $this->guardPanel = self::optionalString($values['guard_panel'] ?? null, 'guard_panel');
-        $this->manages = isset($values['manages']) ? self::strings($values['manages'], 'manages') : null;
-        $this->enforce = (bool) ($values['enforce'] ?? true);
-        $this->definitions = FilamentDefinitions::tryFrom(self::optionalString($values['definitions'] ?? null, 'definitions') ?? 'enums')
-            ?? throw self::invalid('definitions must be "enums" or "resources".');
-        $this->authority = PermissionAuthority::tryFrom(self::optionalString($values['authority'] ?? null, 'authority') ?? 'grants')
-            ?? throw self::invalid('authority must be "grants" or "policy".');
-        $this->abilities = self::abilityNames($values['abilities'] ?? []);
-
-        $exclude = (array) ($values['exclude'] ?? []);
-        $this->exclude = [
-            'resources' => self::strings($exclude['resources'] ?? [], 'exclude.resources'),
-            'pages' => self::strings($exclude['pages'] ?? [], 'exclude.pages'),
-            'widgets' => self::strings($exclude['widgets'] ?? [], 'exclude.widgets'),
-        ];
+        $this->guardPanel = $options->guardPanel;
+        $this->manages = $options->manages;
+        $this->enforce = $options->enforce;
+        $this->definitions = $options->definitions;
+        $this->authority = $options->authority;
+        $this->abilities = $options->abilities;
+        $this->exclude = $options->exclude;
         $this->editors = array_fill_keys(self::RESOURCES, true);
     }
 
@@ -168,7 +161,7 @@ final class AzGuardPlugin implements Plugin
      */
     public function manages(?array $panels): static
     {
-        $this->manages = $panels === null ? null : self::strings($panels, 'manages');
+        $this->manages = $panels === null ? null : AzGuardFilamentOptions::strings($panels, 'manages');
 
         return $this;
     }
@@ -209,7 +202,7 @@ final class AzGuardPlugin implements Plugin
      */
     public function abilities(array $abilities): static
     {
-        $this->abilities = self::abilityNames($abilities);
+        $this->abilities = AzGuardFilamentOptions::abilityNames($abilities);
 
         return $this;
     }
@@ -224,9 +217,9 @@ final class AzGuardPlugin implements Plugin
     public function exclude(array $resources = [], array $pages = [], array $widgets = []): static
     {
         $this->exclude = [
-            'resources' => self::strings($resources, 'exclude.resources'),
-            'pages' => self::strings($pages, 'exclude.pages'),
-            'widgets' => self::strings($widgets, 'exclude.widgets'),
+            'resources' => AzGuardFilamentOptions::strings($resources, 'exclude.resources'),
+            'pages' => AzGuardFilamentOptions::strings($pages, 'exclude.pages'),
+            'widgets' => AzGuardFilamentOptions::strings($widgets, 'exclude.widgets'),
         ];
 
         return $this;
@@ -574,59 +567,7 @@ final class AzGuardPlugin implements Plugin
 
     private function hasFilamentSource(Panel $guard): bool
     {
-        foreach ($guard->sources() as $source) {
-            if ($source->class === FilamentSource::class) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    /**
-     * @return list<string>
-     */
-    private static function abilityNames(mixed $abilities): array
-    {
-        $names = self::strings($abilities, 'abilities');
-
-        foreach ($names as $name) {
-            if (preg_match('/\A[a-z][a-z0-9]*(?:_[a-z0-9]+)*\z/', $name) !== 1) {
-                throw self::invalid('The ability "'.$name.'" is not snake_case.');
-            }
-        }
-
-        return $names;
-    }
-
-    /**
-     * @return list<string>
-     */
-    private static function strings(mixed $values, string $name): array
-    {
-        if (! is_array($values)) {
-            throw self::invalid($name.' must be a list of strings.');
-        }
-
-        $strings = [];
-
-        foreach ($values as $value) {
-            if (! is_string($value) || $value === '') {
-                throw self::invalid($name.' must be a list of non-empty strings.');
-            }
-            $strings[] = $value;
-        }
-
-        return array_values(array_unique($strings));
-    }
-
-    private static function optionalString(mixed $value, string $name): ?string
-    {
-        return match (true) {
-            $value === null => null,
-            is_string($value) && $value !== '' => $value,
-            default => throw self::invalid($name.' must be a non-empty string or null.'),
-        };
+        return array_any($guard->sources(), fn (SourceDescription $source): bool => $source->class === FilamentSource::class);
     }
 
     private static function invalid(string $message): InvalidConfigurationException

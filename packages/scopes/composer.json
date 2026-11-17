@@ -1,0 +1,50 @@
+{
+    "name": "axiomasoft/azguard-scopes",
+    "description": "Scoped role and permission assignment filtering for AzGuard panels",
+    "type": "library",
+    "license": "MIT",
+    "keywords": [
+        "laravel",
+        "authorization",
+        "azguard",
+        "scopes",
+        "abac",
+        "rbac"
+    ],
+    "homepage": "https://github.com/axiomasoft/azguard",
+    "authors": [
+        {
+            "name": "Dmitry Vostrikov",
+            "email": "dv.vostrikov@gmail.com"
+        }
+    ],
+    "support": {
+        "email": "dv.vostrikov@gmail.com",
+        "issues": "https://github.com/axiomasoft/azguard/issues",
+        "security": "https://github.com/axiomasoft/azguard-private/blob/main/SECURITY.md",
+        "source": "https://github.com/axiomasoft/azguard"
+    },
+    "require": {
+        "php": "^8.4",
+        "axiomasoft/azguard": "^2.0",
+        "axiomasoft/packman": "^0.1",
+        "axiomasoft/packman-plugins": "^0.1",
+        "illuminate/contracts": "^13.0",
+        "illuminate/database": "^13.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "AzGuard\\Scopes\\": "src/"
+        }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-main": "2.0.x-dev"
+        },
+        "laravel": {
+            "providers": [
+                "AzGuard\\Scopes\\ScopesServiceProvider"
+            ]
+        }
+    }
+}

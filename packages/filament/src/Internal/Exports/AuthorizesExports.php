@@ -58,12 +58,18 @@ final class AuthorizesExports
                 abort(403);
             }
             $user = Filament::auth()->user();
-            $fresh = $user instanceof Model ? $user->newQuery()->useWritePdo()->find($user->getKey()) : null;
+            $fresh = null;
+
+            if ($user instanceof Model) {
+                $userQuery = $user->newQuery();
+                $userQuery->getQuery()->useWritePdo();
+                $fresh = $userQuery->find($user->getKey());
+            }
 
             if ($fresh instanceof Model && $livewire instanceof HasTable) {
                 Filament::auth()->setUser($fresh);
                 $query = $action instanceof ExportBulkAction ? $livewire->getSelectedTableRecordsQuery() : $livewire->getTableQueryForExport();
-                $query->useWritePdo();
+                $query->getQuery()->useWritePdo();
 
                 if ($query->getModel()::class === $resource::getModel()) {
                     // Do not hold an unbuffered cursor while the gate reloads and authorizes a record.

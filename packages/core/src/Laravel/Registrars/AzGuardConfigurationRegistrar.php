@@ -13,12 +13,15 @@ use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Database\DatabaseManager;
 use Packman\Attributes\Internal;
 use Packman\Foundation\Contracts\PackageRegistrar;
+use Packman\PackmanServiceProvider;
 
 #[Internal('Package configuration, storage registry, and catalog cache registrar.')]
 final class AzGuardConfigurationRegistrar implements PackageRegistrar
 {
     public function register(Application $app): void
     {
+        $app->register(PackmanServiceProvider::class);
+
         $app->singletonIf(
             ConfigSections::class,
             static fn (Application $app): ConfigSections => new ConfigSections($app),

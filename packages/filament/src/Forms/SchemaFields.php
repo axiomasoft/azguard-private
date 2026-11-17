@@ -4,8 +4,7 @@ declare(strict_types=1);
 
 namespace AzGuard\Filament\Forms;
 
-use AzGuard\Attributes\Api;
-use AzGuard\Exceptions\InvalidConfigurationException;
+use AzGuard\Exceptions\Configuration\InvalidConfigurationException;
 use AzGuard\Filament\Contracts\FilamentFormExtension;
 use AzGuard\Schema\FieldSchema;
 use AzGuard\Schema\FieldTarget;
@@ -19,6 +18,7 @@ use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Schemas\Components\Component;
 use Filament\Schemas\Components\Group;
+use Packman\Attributes\Api;
 use Throwable;
 
 /**
@@ -150,7 +150,6 @@ final class SchemaFields
             }
 
             foreach ($extension->components($schema, $target) as $name => $component) {
-                $name = (string) $name;
                 $where = ' of the form extension '.$extension::class.' for the '.$target->value.' fields of panel '.$schema->panel;
 
                 if (! in_array($name, $declared, true)) {
@@ -183,7 +182,7 @@ final class SchemaFields
     private static function date(string $value): string
     {
         try {
-            return (new DateTimeImmutable($value))->format('Y-m-d');
+            return new DateTimeImmutable($value)->format('Y-m-d');
         } catch (Throwable) {
             return $value;
         }

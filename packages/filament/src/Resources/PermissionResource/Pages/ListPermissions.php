@@ -6,7 +6,7 @@ namespace AzGuard\Filament\Resources\PermissionResource\Pages;
 
 use AzGuard\Changes\ChangeResult;
 use AzGuard\Changes\PermissionDetails;
-use AzGuard\Contracts\PanelAccess;
+use AzGuard\Contracts\Panels\PanelAccess;
 use AzGuard\Exceptions\AzGuardException;
 use AzGuard\Facades\AzGuard;
 use AzGuard\Filament\Internal\Editors\TargetSelector;
@@ -30,6 +30,7 @@ use Filament\Tables\Contracts\HasTable;
 use Filament\Tables\Filters\Filter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Model;
+use Packman\Attributes\Internal;
 
 /**
  * The permissions of one managed panel with dynamic permissions and, where the editor chooses it, one tenant. The panel
@@ -37,6 +38,7 @@ use Illuminate\Database\Eloquent\Model;
  *
  * @internal
  */
+#[Internal('Filament list page for panel permissions.')]
 final class ListPermissions extends Page implements HasTable
 {
     use InteractsWithTable;
@@ -98,7 +100,7 @@ final class ListPermissions extends Page implements HasTable
             ])
             ->recordActions([
                 Action::make('edit')->label('Edit')
-                    ->visible(static fn (array $record): bool => $record['dynamic'] && PermissionResource::can('update'))
+                    ->visible(static fn (array $record): bool => $record['dynamic'] === true && PermissionResource::can('update'))
                     ->fillForm(static fn (array $record): array => ['label' => $record['label'], 'group' => $record['group']])
                     ->schema([
                         TextInput::make('label')->label('Label'),
@@ -110,7 +112,7 @@ final class ListPermissions extends Page implements HasTable
                     ))),
                 Action::make('delete')->label('Delete')->color('danger')->requiresConfirmation()
                     ->modalDescription('The permission is deleted with every grant of it in this tenant.')
-                    ->visible(static fn (array $record): bool => $record['dynamic'] && PermissionResource::can('delete'))
+                    ->visible(static fn (array $record): bool => $record['dynamic'] === true && PermissionResource::can('delete'))
                     ->action(fn (array $record) => $this->write('delete', static fn (PanelAccess $access): ChangeResult => $access->permissions()->delete(RecordValue::string($record['name'] ?? null, 'permission name')))),
             ])
             ->paginated(false);

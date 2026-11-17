@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace AzGuard\Filament\Attributes;
 
 use Attribute;
-use AzGuard\Attributes\Api;
+use Packman\Attributes\Api;
 
 /**
  * Marks a permission enum as the definitions of a resource, page or widget of Filament. `azguard:filament:generate`

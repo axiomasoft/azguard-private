@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "372c99913b8f21c9f9f012fb620cf124",
+    "content-hash": "057c042bd029a3091f2b841e1bbd0515",
     "packages": [
         {
             "name": "anourvalar/eloquent-serialize",
@@ -77,7 +77,7 @@
             "dist": {
                 "type": "path",
                 "url": "packages/core",
-                "reference": "a23cf41bf67720f84c07e4ce2c79c470d275640b"
+                "reference": "32eec9cfa69cb23731be4b5ec5417e92f3e4fec8"
             },
             "require": {
                 "axiomasoft/packman": "^0.1",
@@ -106,9 +106,7 @@
                 },
                 "laravel": {
                     "providers": [
-                        "AzGuard\\AzGuardServiceProvider",
-                        "AzGuard\\Audit\\AuditServiceProvider",
-                        "AzGuard\\DevTools\\DevToolsServiceProvider"
+                        "AzGuard\\AzGuardServiceProvider"
                     ]
                 },
                 "packman": {
@@ -120,10 +118,7 @@
                     "src/aliases.php"
                 ],
                 "psr-4": {
-                    "AzGuard\\": "src/",
-                    "AzGuard\\Scopes\\": "modules/scopes/src/",
-                    "AzGuard\\Audit\\": "modules/audit/src/",
-                    "AzGuard\\DevTools\\": "modules/devtools/src/"
+                    "AzGuard\\": "src/"
                 }
             },
             "license": [
@@ -158,17 +153,86 @@
             }
         },
         {
+            "name": "axiomasoft/azguard-audit",
+            "version": "2.0.0",
+            "dist": {
+                "type": "path",
+                "url": "packages/audit",
+                "reference": "6102688d4da1ffd964266f7106ae835f719b3c77"
+            },
+            "require": {
+                "axiomasoft/azguard": "^2.0",
+                "axiomasoft/packman": "^0.1",
+                "axiomasoft/packman-plugins": "^0.1",
+                "axiomasoft/packman-schema": "^0.1",
+                "illuminate/console": "^13.0",
+                "illuminate/contracts": "^13.0",
+                "illuminate/database": "^13.0",
+                "illuminate/filesystem": "^13.0",
+                "illuminate/support": "^13.0",
+                "php": "^8.4"
+            },
+            "type": "library",
+            "extra": {
+                "branch-alias": {
+                    "dev-main": "2.0.x-dev"
+                },
+                "laravel": {
+                    "providers": [
+                        "AzGuard\\Audit\\AuditServiceProvider"
+                    ]
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "AzGuard\\Audit\\": "src/"
+                }
+            },
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Dmitry Vostrikov",
+                    "email": "dv.vostrikov@gmail.com"
+                }
+            ],
+            "description": "Transactional change journal and retention pruning for AzGuard panels",
+            "homepage": "https://github.com/axiomasoft/azguard",
+            "keywords": [
+                "audit",
+                "authorization",
+                "azguard",
+                "journal",
+                "laravel",
+                "rbac"
+            ],
+            "support": {
+                "email": "dv.vostrikov@gmail.com",
+                "issues": "https://github.com/axiomasoft/azguard/issues",
+                "security": "https://github.com/axiomasoft/azguard-private/blob/main/SECURITY.md",
+                "source": "https://github.com/axiomasoft/azguard"
+            },
+            "transport-options": {
+                "symlink": true,
+                "relative": true
+            }
+        },
+        {
             "name": "axiomasoft/azguard-filament",
             "version": "2.0.0",
             "dist": {
                 "type": "path",
                 "url": "packages/filament",
-                "reference": "f692aa4b72484f737d750651dcb3f2df9c7d16e5"
+                "reference": "9d903e052b930fb665a0af7de143aaf7d6b6ef87"
             },
             "require": {
-                "axiomasoft/azguard": "self.version",
+                "axiomasoft/azguard": "^2.0",
+                "axiomasoft/packman": "^0.1",
+                "axiomasoft/packman-filament": "^0.1",
+                "axiomasoft/packman-plugins": "^0.1",
                 "filament/filament": "^5.8.4",
-                "php": "^8.3"
+                "php": "^8.4"
             },
             "type": "library",
             "extra": {
@@ -195,7 +259,7 @@
                     "email": "dv.vostrikov@gmail.com"
                 }
             ],
-            "description": "Filament 5 editors for AzGuard panels, built from the panel schema",
+            "description": "Filament 5 editors and authorization enforcement for AzGuard panels, built on Packman Filament",
             "homepage": "https://github.com/axiomasoft/azguard",
             "keywords": [
                 "admin",
@@ -204,6 +268,68 @@
                 "laravel",
                 "permissions",
                 "roles"
+            ],
+            "support": {
+                "email": "dv.vostrikov@gmail.com",
+                "issues": "https://github.com/axiomasoft/azguard/issues",
+                "security": "https://github.com/axiomasoft/azguard-private/blob/main/SECURITY.md",
+                "source": "https://github.com/axiomasoft/azguard"
+            },
+            "transport-options": {
+                "symlink": true,
+                "relative": true
+            }
+        },
+        {
+            "name": "axiomasoft/azguard-scopes",
+            "version": "2.0.0",
+            "dist": {
+                "type": "path",
+                "url": "packages/scopes",
+                "reference": "fc3f79b8e8a556025e95e68740f24f39c68c4d13"
+            },
+            "require": {
+                "axiomasoft/azguard": "^2.0",
+                "axiomasoft/packman": "^0.1",
+                "axiomasoft/packman-plugins": "^0.1",
+                "illuminate/contracts": "^13.0",
+                "illuminate/database": "^13.0",
+                "php": "^8.4"
+            },
+            "type": "library",
+            "extra": {
+                "branch-alias": {
+                    "dev-main": "2.0.x-dev"
+                },
+                "laravel": {
+                    "providers": [
+                        "AzGuard\\Scopes\\ScopesServiceProvider"
+                    ]
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "AzGuard\\Scopes\\": "src/"
+                }
+            },
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Dmitry Vostrikov",
+                    "email": "dv.vostrikov@gmail.com"
+                }
+            ],
+            "description": "Scoped role and permission assignment filtering for AzGuard panels",
+            "homepage": "https://github.com/axiomasoft/azguard",
+            "keywords": [
+                "abac",
+                "authorization",
+                "azguard",
+                "laravel",
+                "rbac",
+                "scopes"
             ],
             "support": {
                 "email": "dv.vostrikov@gmail.com",
@@ -293,6 +419,57 @@
                 "packman",
                 "php"
             ],
+            "transport-options": {
+                "symlink": true,
+                "relative": true
+            }
+        },
+        {
+            "name": "axiomasoft/packman-filament",
+            "version": "0.1.x-dev",
+            "dist": {
+                "type": "path",
+                "url": "../packman/packages/filament",
+                "reference": "17ee5376c8b562b8df028e02ec9c6710f78e87e1"
+            },
+            "require": {
+                "axiomasoft/packman": "^0.1|^1.0@dev",
+                "axiomasoft/packman-panels": "^0.1|^1.0@dev",
+                "filament/filament": "^5.0",
+                "illuminate/contracts": "^12.0|^13.0",
+                "illuminate/database": "^12.0|^13.0",
+                "illuminate/support": "^12.0|^13.0",
+                "livewire/livewire": "^4.0",
+                "php": "^8.4"
+            },
+            "type": "library",
+            "extra": {
+                "packman": {
+                    "error-prefix": "filament"
+                },
+                "laravel": {
+                    "providers": [
+                        "Packman\\Filament\\PackmanFilamentServiceProvider"
+                    ]
+                },
+                "branch-alias": {
+                    "dev-main": "0.1.x-dev"
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Packman\\Filament\\": "src/"
+                }
+            },
+            "autoload-dev": {
+                "psr-4": {
+                    "Packman\\Filament\\Tests\\": "tests/"
+                }
+            },
+            "license": [
+                "MIT"
+            ],
+            "description": "Universal Packman Filament 5 plugin wiring, Livewire/Filament security hooks, and stateless encrypted BindingEditor helpers.",
             "transport-options": {
                 "symlink": true,
                 "relative": true
@@ -8603,6 +8780,74 @@
         }
     ],
     "packages-dev": [
+        {
+            "name": "axiomasoft/azguard-devtools",
+            "version": "2.0.0",
+            "dist": {
+                "type": "path",
+                "url": "packages/devtools",
+                "reference": "c9f87e01cd978f76aaff3fdf19590563e6e15fd8"
+            },
+            "require": {
+                "axiomasoft/azguard": "^2.0",
+                "axiomasoft/packman": "^0.1",
+                "axiomasoft/packman-plugins": "^0.1",
+                "illuminate/console": "^13.0",
+                "illuminate/contracts": "^13.0",
+                "illuminate/filesystem": "^13.0",
+                "illuminate/support": "^13.0",
+                "php": "^8.4",
+                "symfony/process": "^7.0|^8.0"
+            },
+            "type": "library",
+            "extra": {
+                "branch-alias": {
+                    "dev-main": "2.0.x-dev"
+                },
+                "laravel": {
+                    "providers": [
+                        "AzGuard\\DevTools\\DevToolsServiceProvider"
+                    ]
+                },
+                "packman": {
+                    "dev-only": true
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "AzGuard\\DevTools\\": "src/"
+                }
+            },
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Dmitry Vostrikov",
+                    "email": "dv.vostrikov@gmail.com"
+                }
+            ],
+            "description": "Scaffolding, installation, and stub generators for AzGuard panels (dev-only)",
+            "homepage": "https://github.com/axiomasoft/azguard",
+            "keywords": [
+                "authorization",
+                "azguard",
+                "devtools",
+                "generators",
+                "laravel",
+                "scaffolding"
+            ],
+            "support": {
+                "email": "dv.vostrikov@gmail.com",
+                "issues": "https://github.com/axiomasoft/azguard/issues",
+                "security": "https://github.com/axiomasoft/azguard-private/blob/main/SECURITY.md",
+                "source": "https://github.com/axiomasoft/azguard"
+            },
+            "transport-options": {
+                "symlink": true,
+                "relative": true
+            }
+        },
         {
             "name": "axiomasoft/packman-devtools",
             "version": "0.1.x-dev",

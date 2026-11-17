@@ -45,6 +45,56 @@
                 "Tenancy",
                 "Testing"
             ]
+        },
+        {
+            "name": "axiomasoft/azguard-scopes",
+            "path": "packages/scopes",
+            "namespace": "AzGuard\\Scopes\\",
+            "profile": "laravel-package",
+            "layer": "L2",
+            "type": "addon",
+            "owns": [
+                "Extensions"
+            ]
+        },
+        {
+            "name": "axiomasoft/azguard-audit",
+            "path": "packages/audit",
+            "namespace": "AzGuard\\Audit\\",
+            "profile": "laravel-package",
+            "layer": "L2",
+            "type": "addon",
+            "owns": [
+                "Extensions"
+            ]
+        },
+        {
+            "name": "axiomasoft/azguard-devtools",
+            "path": "packages/devtools",
+            "namespace": "AzGuard\\DevTools\\",
+            "profile": "laravel-package",
+            "layer": "L3",
+            "type": "dev",
+            "dev_only": true,
+            "owns": [
+                "Extensions"
+            ]
+        },
+        {
+            "name": "axiomasoft/azguard-filament",
+            "path": "packages/filament",
+            "namespace": "AzGuard\\Filament\\",
+            "profile": "laravel-package",
+            "layer": "L2",
+            "type": "integration",
+            "owns": [
+                "Attributes",
+                "Authorization",
+                "Exports",
+                "Extensions",
+                "Pages",
+                "Sources"
+            ]
         }
     ]
 }

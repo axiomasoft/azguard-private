@@ -164,7 +164,9 @@ final class AuthorizesActions
         // Require the complete explicit selection to resolve before allowing any effect.
         $resolved = [];
         // Finish each bounded SELECT before authorization opens another query on the same PDO.
-        $livewire->getSelectedTableRecordsQuery()->useWritePdo()->each(function (Model $record) use ($action, $livewire, &$resolved): void {
+        $selectionQuery = $livewire->getSelectedTableRecordsQuery();
+        $selectionQuery->getQuery()->useWritePdo();
+        $selectionQuery->each(function (Model $record) use ($action, $livewire, &$resolved): void {
             abort_unless($action->getIndividualRecordAuthorizationResponse($record)->allowed(), 403);
             $resolved[] = $livewire->getTableRecordKey($record);
         }, 100);
@@ -242,7 +244,7 @@ final class AuthorizesActions
         if (! $callback instanceof Closure) {
             return false;
         }
-        $scope = (new ReflectionFunction($callback))->getClosureScopeClass()?->getName();
+        $scope = new ReflectionFunction($callback)->getClosureScopeClass()?->getName();
 
         if (! in_array($scope, [
             DeleteBulkAction::class,
@@ -258,13 +260,7 @@ final class AuthorizesActions
     /** @param list<string> $hooks */
     private static function hasHooks(Action $action, array $hooks): bool
     {
-        foreach ($hooks as $hook) {
-            if ((new ReflectionProperty($action, $hook))->getValue($action) !== null) {
-                return true;
-            }
-        }
-
-        return false;
+        return array_any($hooks, fn (string $hook): bool => new ReflectionProperty($action, $hook)->getValue($action) !== null);
     }
 
     /** Create and replicate save through the owner relationship, so they are an update of that owner. */
@@ -295,7 +291,9 @@ final class AuthorizesActions
         if ($owner === null || ! is_object($livewire)) {
             return Response::deny();
         }
-        $record = $owner[1]->newQuery()->useWritePdo()->find($owner[1]->getKey());
+        $ownerQuery = $owner[1]->newQuery();
+        $ownerQuery->getQuery()->useWritePdo();
+        $record = $ownerQuery->find($owner[1]->getKey());
 
         if (! $record instanceof Model || $record::class !== $owner[0]::getModel()) {
             return Response::deny();

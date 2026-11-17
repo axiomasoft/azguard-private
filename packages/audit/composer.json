@@ -1,0 +1,54 @@
+{
+    "name": "axiomasoft/azguard-audit",
+    "description": "Transactional change journal and retention pruning for AzGuard panels",
+    "type": "library",
+    "license": "MIT",
+    "keywords": [
+        "laravel",
+        "authorization",
+        "azguard",
+        "audit",
+        "journal",
+        "rbac"
+    ],
+    "homepage": "https://github.com/axiomasoft/azguard",
+    "authors": [
+        {
+            "name": "Dmitry Vostrikov",
+            "email": "dv.vostrikov@gmail.com"
+        }
+    ],
+    "support": {
+        "email": "dv.vostrikov@gmail.com",
+        "issues": "https://github.com/axiomasoft/azguard/issues",
+        "security": "https://github.com/axiomasoft/azguard-private/blob/main/SECURITY.md",
+        "source": "https://github.com/axiomasoft/azguard"
+    },
+    "require": {
+        "php": "^8.4",
+        "axiomasoft/azguard": "^2.0",
+        "axiomasoft/packman": "^0.1",
+        "axiomasoft/packman-plugins": "^0.1",
+        "axiomasoft/packman-schema": "^0.1",
+        "illuminate/console": "^13.0",
+        "illuminate/contracts": "^13.0",
+        "illuminate/database": "^13.0",
+        "illuminate/filesystem": "^13.0",
+        "illuminate/support": "^13.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "AzGuard\\Audit\\": "src/"
+        }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-main": "2.0.x-dev"
+        },
+        "laravel": {
+            "providers": [
+                "AzGuard\\Audit\\AuditServiceProvider"
+            ]
+        }
+    }
+}

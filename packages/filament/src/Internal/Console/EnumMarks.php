@@ -63,7 +63,11 @@ final class EnumMarks
     private static function import(string $class, array &$taken, array &$uses): string
     {
         if (isset($uses[$class])) {
-            return str_contains($uses[$class], ' as ') ? substr($uses[$class], strrpos($uses[$class], ' ') + 1) : class_basename($class);
+            $pos = strrpos($uses[$class], ' ');
+
+            return str_contains($uses[$class], ' as ') && $pos !== false
+                ? substr($uses[$class], $pos + 1)
+                : class_basename($class);
         }
         $short = class_basename($class);
         $segments = explode('\\', $class);

@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace AzGuard\Filament\Concerns;
 
-use AzGuard\Attributes\Api;
 use AzGuard\Filament\Authorization\FilamentGate;
 use AzGuard\Filament\Internal\Authorization\FilamentContext;
 use Filament\Resources\RelationManagers\RelationManager;
@@ -12,6 +11,7 @@ use Filament\Tables\Table;
 use Illuminate\Auth\Access\Response;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use Packman\Attributes\Api;
 
 /**
  * Decides a relation manager by the permissions of the resource of its records: the related resource, or the resource

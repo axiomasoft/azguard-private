@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace AzGuard\Filament\Resources;
 
-use AzGuard\Attributes\Api;
 use AzGuard\Filament\Concerns\AuthorizesResource;
 use AzGuard\Filament\Resources\PermissionResource\Pages\ListPermissions;
 use AzGuard\Panels\Panel;
 use AzGuard\Schema\PermissionSchema;
 use Filament\Resources\Resource;
+use Packman\Attributes\Api;
 use UnitEnum;
 
 /**

@@ -255,8 +255,8 @@ it('lets modules, Filament and stubs use only supported core types and members',
     $ownership = Ownership::fromOracle();
     $found = ApiUsage::surfaceViolations($ownership, ApiUsage::surfaceFiles($ownership), ApiUsage::supported());
 
-    expect(ApiUsage::surfaceFiles($ownership))->toContain(apiManifestRoot().'/packages/core/modules/devtools/stubs/policy.stub', apiManifestRoot().'/packages/core/modules/audit/stubs/audit-migration.stub',
-        apiManifestRoot().'/packages/core/modules/scopes/src/Internal/ScopeConfiguration.php')
+    expect(ApiUsage::surfaceFiles($ownership))->toContain(apiManifestRoot().'/packages/devtools/stubs/policy.stub', apiManifestRoot().'/packages/audit/stubs/audit-migration.stub',
+        apiManifestRoot().'/packages/scopes/src/Internal/ScopeConfiguration.php')
         ->and($found)->toBe([], 'use a supported type or member; there is no allowlist');
 });
 

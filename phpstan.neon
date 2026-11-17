@@ -9,16 +9,15 @@ parameters:
     - packages/core/src/aliases.php
   paths:
     - packages/core/src
-    # Deferred to Slice B (module extraction & filament migration):
-    # - packages/core/modules/scopes/src
-    # - packages/core/modules/audit/src
-    # - packages/core/modules/devtools/src
-    # - packages/filament/src
-    # - tests/Modules/Scopes/Fixtures/FilterProbe.php
-    # - tests/Fixtures/Filament/Resources/OrderResource.php
-    # - tests/Fixtures/Filament/RelationManagers/ProductsRelationManager.php
-    # - tests/Fixtures/Filament/Pages/ReportsPage.php
-    # - tests/Fixtures/Filament/Widgets/OrderCountWidget.php
+    - packages/scopes/src
+    - packages/audit/src
+    - packages/devtools/src
+    - packages/filament/src
+    - tests/Modules/Scopes/Fixtures/FilterProbe.php
+    - tests/Fixtures/Filament/Resources/OrderResource.php
+    - tests/Fixtures/Filament/RelationManagers/ProductsRelationManager.php
+    - tests/Fixtures/Filament/Pages/ReportsPage.php
+    - tests/Fixtures/Filament/Widgets/OrderCountWidget.php
     - bench/src
     - bench/bin
     - tests/Fixtures/Visibility/VisibilityProject.php

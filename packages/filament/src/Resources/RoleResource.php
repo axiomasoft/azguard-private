@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace AzGuard\Filament\Resources;
 
-use AzGuard\Attributes\Api;
 use AzGuard\Filament\Concerns\AuthorizesResource;
 use AzGuard\Filament\Resources\RoleResource\Pages\ListRoles;
 use AzGuard\Filament\Resources\RoleResource\Pages\ViewRole;
@@ -14,6 +13,7 @@ use AzGuard\Schema\PanelSchema;
 use AzGuard\Schema\PermissionSchema;
 use AzGuard\Schema\RoleSchema;
 use Filament\Resources\Resource;
+use Packman\Attributes\Api;
 use UnitEnum;
 
 /**
