@@ -172,8 +172,21 @@ it('requires an owner, a reason and a future expiry within 180 days on every ziz
         ->and(zizmorAllowlistViolations("rules:\n  template-injection:\n    ignore:\n      # owner: @academici; reason: x; expires: 2026-12-01\n      - \"tests.yml\"\n", $today))->toBe(['allowlist-wholesale line 5']);
 });
 
-it('rejects a modified privileged dependabot workflow', function (): void {
-    $raw = (string) file_get_contents(dirname(__DIR__, 2).'/.github/workflows/dependabot-auto-merge.yml');
-    $unsafe = str_replace('Disable Dependabot auto-merge', 'Disable Dependabot auto-merge changed', $raw);
-    expect(workflowRuleIds(workflowHardeningViolations('dependabot-auto-merge.yml', $unsafe, Yaml::parse($unsafe))))->toContain('dangerous-trigger');
+it('rejects pull_request_target as a dangerous trigger', function (): void {
+    $raw = <<<'YAML'
+name: Unsafe
+on:
+  pull_request_target:
+permissions:
+  contents: read
+defaults:
+  run:
+    shell: bash
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo safe
+YAML;
+    expect(workflowRuleIds(workflowHardeningViolations('unsafe.yml', $raw, Yaml::parse($raw))))->toContain('dangerous-trigger');
 });
