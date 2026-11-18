@@ -145,8 +145,7 @@ jobs:
             self.check_bad(text)
 
     def test_reviewed_scripts_stay_accepted_and_changes_require_review(self):
-        for filename in ('compatibility.yml', 'release.yml', 'bench.yml', 'workers.yml',
-                         'dependabot-auto-merge.yml'):
+        for filename in ('compatibility.yml', 'release.yml', 'bench.yml', 'workers.yml'):
             with self.subTest(filename=filename):
                 text = (pins.ROOT / '.github/workflows' / filename).read_text()
                 self.assertEqual([], pins.check_workflow(text, filename))
@@ -250,25 +249,10 @@ jobs:
             with self.subTest(value=value):
                 self.assertEqual([], pins.check_workflow(template.replace('VALUE', value), 'new.yml'))
 
-    def test_dependabot_target_only_with_fixed_safe_job(self):
-        text = (pins.ROOT / '.github/workflows/dependabot-auto-merge.yml').read_text()
-        self.assertEqual([], pins.check_workflow(text, 'dependabot-auto-merge.yml'))
-        for unsafe in (
-            text.replace('dependabot/fetch-metadata@', 'actions/checkout@'),
-            text.replace('gh pr merge --disable-auto "$PR_URL"', 'gh pr merge --auto --squash "$PR_URL"'),
-            text.replace('gh pr merge --disable-auto "$PR_URL"', 'echo ignored'),
-            text.replace('cancel-in-progress: false', 'cancel-in-progress: true'),
-            text.replace(', auto_merge_enabled', ''),
-            text.replace("cron: '*/15 * * * *'", "cron: '0 0 * * *'"),
-            text.replace('gh pr merge --disable-auto "$number" --repo "$REPOSITORY"', 'echo ignored'),
-            text.replace('      pull-requests: write', '      contents: write\n      pull-requests: write', 1),
-            text.replace('if: always()', "if: steps.meta.outcome == 'success'"),
-            text.replace('    steps:', '    env: {BASH_ENV: /tmp/attacker}\n    steps:'),
-            text.replace('permissions:\n  contents: read', 'env: {BASH_ENV: /tmp/attacker}\npermissions:\n  contents: read'),
-        ):
-            with self.subTest(unsafe=unsafe):
-                self.assertTrue(pins.check_workflow(unsafe, 'dependabot-auto-merge.yml'))
-        self.assertTrue(pins.check_workflow(text, 'other.yml'))
+    def test_pull_request_target_is_not_permitted(self):
+        text = BASE.replace('pull_request', 'pull_request_target')
+        errors = pins.check_workflow(text, 'test.yml')
+        self.assertIn('pull_request_target is not permitted', errors)
 
     def test_directory_argument_is_used(self):
         with tempfile.TemporaryDirectory() as directory:
