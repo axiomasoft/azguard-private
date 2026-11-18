@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace AzGuard\Filament\Authorization;
 
+use AzGuard\Filament\Internal\Authorization\FilamentContext;
+use AzGuard\Panels\Reads;
 use Closure;
 use Filament\Pages\Page;
 use Filament\Resources\RelationManagers\RelationManager;
@@ -15,6 +17,7 @@ use Illuminate\Database\Eloquent\Model;
 use Packman\Attributes\Api;
 use Packman\Filament\Contracts\FilamentPanelPlugin;
 use Packman\Filament\Contracts\FilamentSurfaceGate;
+use Throwable;
 use UnitEnum;
 
 /**
@@ -98,5 +101,30 @@ final readonly class AzGuardFilamentSurfaceGate implements FilamentSurfaceGate
         FilamentPanelPlugin $plugin,
     ): ?bool {
         return FilamentGate::before($user, $ability, $arguments);
+    }
+
+    /**
+     * @param  class-string  $relationManager
+     */
+    public function resolveRelationAbility(
+        string $relationManager,
+        FilamentPanelPlugin $plugin,
+    ): ?string {
+        return FilamentContext::declaredRelationAbility($relationManager);
+    }
+
+    public function canExport(FilamentPanelPlugin $plugin): bool
+    {
+        $context = FilamentContext::serving() ?? FilamentContext::current();
+
+        if ($context === null || ! $context->enforced()) {
+            return true;
+        }
+
+        try {
+            return $context->access()->definition()->settings()->reads() === Reads::Primary;
+        } catch (Throwable) {
+            return false;
+        }
     }
 }

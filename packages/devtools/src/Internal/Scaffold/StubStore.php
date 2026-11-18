@@ -97,9 +97,6 @@ final readonly class StubStore
      */
     public static function imports(array $classes): string
     {
-        $classes = array_values(array_unique(array_map(static fn (string $class): string => ltrim($class, '\\'), $classes)));
-        usort($classes, static fn (string $a, string $b): int => strcasecmp(str_replace('\\', ' ', $a), str_replace('\\', ' ', $b)));
-
-        return implode("\n", array_map(static fn (string $class): string => 'use '.$class.';', $classes));
+        return PackmanStubStore::imports($classes);
     }
 }

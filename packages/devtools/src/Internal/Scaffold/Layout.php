@@ -8,7 +8,10 @@ use AzGuard\DevTools\Internal\ScaffoldConfig;
 use AzGuard\Kernel\Grammar\PermissionGrammar;
 use AzGuard\Laravel\Console\InvalidCommandInput;
 use Illuminate\Support\Str;
+use InvalidArgumentException;
 use Packman\Attributes\Internal;
+use Packman\DevTools\Scaffold\Layout as PackmanLayout;
+use Packman\DevTools\Scaffold\Place;
 
 /**
  * @internal Where the generators put the structure of a panel: `scaffold.path` and `scaffold.namespace` for the roots,
@@ -56,33 +59,21 @@ final readonly class Layout
      */
     public function group(string $input): array
     {
-        $segments = [];
-        foreach (explode('/', str_replace('\\', '/', trim($input, '/\\'))) as $segment) {
-            $name = Str::studly($segment);
-
-            if (preg_match(self::SEGMENT, $name) !== 1) {
-                throw new InvalidCommandInput('"'.$input.'" is not a group: use names of letters and digits separated by "/", such as Orders or Sales/Orders.');
-            }
-            $segments[] = $name;
+        try {
+            return PackmanLayout::segments($input);
+        } catch (InvalidArgumentException) {
+            throw new InvalidCommandInput('"'.$input.'" is not a group: use names of letters and digits separated by "/", such as Orders or Sales/Orders.');
         }
-
-        return $segments;
     }
 
     /** A class name from a name argument, ending with the suffix of its kind (`Ldap` to `LdapSource`). */
     public function className(string $input, string $suffix = ''): string
     {
-        $name = Str::studly($input);
-
-        if ($suffix !== '' && str_ends_with($name, $suffix) && $name !== $suffix) {
-            $name = substr($name, 0, -strlen($suffix));
-        }
-
-        if (preg_match(self::SEGMENT, $name) !== 1) {
+        try {
+            return PackmanLayout::className($input, $suffix);
+        } catch (InvalidArgumentException) {
             throw new InvalidCommandInput('"'.$input.'" is not a class name: use letters and digits, such as Ldap.');
         }
-
-        return $name.$suffix;
     }
 
     /** The folder name of discovery such as `Permissions`. */
@@ -104,7 +95,7 @@ final readonly class Layout
 
     public function root(): Place
     {
-        return new Place(rtrim($this->basePath, '/').'/'.$this->config->path, $this->config->namespace);
+        return Place::fromDirectory(PackmanLayout::absolute($this->basePath, $this->config->path), $this->config->namespace);
     }
 
     /** The place of a panel that already has its directory; a generator never creates a panel by the way. */
@@ -112,8 +103,8 @@ final readonly class Layout
     {
         $place = $this->panel($panel);
 
-        if (! is_dir($place->directory)) {
-            throw new InvalidCommandInput('Panel '.$panel.' has no directory '.$this->relative($place->directory).': run azguard:make:panel '.$panel.' first.');
+        if (! is_dir($place->directory())) {
+            throw new InvalidCommandInput('Panel '.$panel.' has no directory '.$this->relative($place->directory()).': run azguard:make:panel '.$panel.' first.');
         }
 
         return $place;
@@ -122,15 +113,13 @@ final readonly class Layout
     /** The path relative to the application. */
     public function relative(string $path): string
     {
-        $base = rtrim($this->basePath, '/').'/';
-
-        return str_starts_with($path, $base) ? substr($path, strlen($base)) : $path;
+        return PackmanLayout::relative($this->basePath, $path);
     }
 
     /** Resolve a planned path, preserving a host's custom absolute migration directory. */
     public function absolute(string $path): string
     {
-        return str_starts_with($path, '/') ? $path : rtrim($this->basePath, '/').'/'.$path;
+        return PackmanLayout::absolute($this->basePath, $path);
     }
 
     /** `Orders` is `Order`: the name a group gives its enum, policy and abilities. */

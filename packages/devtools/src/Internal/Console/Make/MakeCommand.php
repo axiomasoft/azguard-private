@@ -4,9 +4,7 @@ declare(strict_types=1);
 
 namespace AzGuard\DevTools\Internal\Console\Make;
 
-use AzGuard\DevTools\Internal\Scaffold\AtomicFileWriter;
 use AzGuard\DevTools\Internal\Scaffold\Layout;
-use AzGuard\DevTools\Internal\Scaffold\Place;
 use AzGuard\DevTools\Internal\Scaffold\StubStore;
 use AzGuard\DevTools\Internal\ScaffoldConfig;
 use AzGuard\Laravel\Console\CommandSupport;
@@ -15,6 +13,9 @@ use Illuminate\Console\Command;
 use Illuminate\Filesystem\Filesystem;
 use Packman\Attributes\Internal;
 use Packman\DevTools\Scaffold\GeneratedFile;
+use Packman\DevTools\Scaffold\Place;
+use Packman\DevTools\Scaffold\ScaffoldCollisionException;
+use Packman\DevTools\Scaffold\ScaffoldRunner;
 
 /**
  * @internal The generators of the structure of a panel: the files a generator makes are planned first, and none is
@@ -29,8 +30,10 @@ abstract class MakeCommand extends Command
 {
     use CommandSupport;
 
-    public function __construct(protected Filesystem $files)
-    {
+    public function __construct(
+        protected Filesystem $files,
+        private readonly ScaffoldRunner $runner = new ScaffoldRunner,
+    ) {
         parent::__construct();
     }
 
@@ -48,38 +51,29 @@ abstract class MakeCommand extends Command
     {
         return $this->attempt(function (): int {
             $layout = new Layout(ScaffoldConfig::fromRepository($this->laravel->make('config')), $this->laravel->basePath());
-            $files = $this->plan($layout, $this->stubs());
 
-            $existing = [];
-            foreach ($files as $file) {
-                $path = $layout->absolute($file->relativePath);
-                $this->assertWritable($path);
+            try {
+                $this->runner->run(
+                    basePath: $this->laravel->basePath(),
+                    plan: fn (): array => $this->plan($layout, $this->stubs()),
+                    afterWrite: function (array $written) use ($layout): void {
+                        foreach ($written as $entry) {
+                            $this->components->info(($entry['overwritten'] ? 'Overwritten ' : 'Created ').$layout->relative($entry['path']));
+                        }
 
-                if (is_file($path)) {
-                    $existing[] = $file->relativePath;
+                        $this->written($layout);
+                    },
+                );
+            } catch (ScaffoldCollisionException $collision) {
+                if ($collision->isDirectoryCollision) {
+                    throw new InvalidCommandInput($collision->getMessage());
                 }
-            }
 
-            $force = $this->option('force') === true;
-
-            if ($existing !== [] && ! $force) {
+                $existing = $collision->existingPaths;
                 $this->components->error(implode(', ', $existing).(count($existing) === 1 ? ' already exists' : ' already exist').'; nothing was written. Pass --force to overwrite.');
 
                 return self::FAILURE;
             }
-
-            $planned = array_map(
-                static fn (GeneratedFile $file): array => [
-                    'target' => $layout->absolute($file->relativePath),
-                    'file' => $file,
-                ],
-                $files,
-            );
-
-            foreach ((new AtomicFileWriter)->write($planned) as $written) {
-                $this->components->info(($written['overwritten'] ? 'Overwritten ' : 'Created ').$layout->relative($written['path']));
-            }
-            $this->written($layout);
 
             return self::SUCCESS;
         });
@@ -107,12 +101,5 @@ abstract class MakeCommand extends Command
         $place = $panel === null ? $layout->shared() : $layout->existingPanel($layout->panelName($panel));
 
         return $place->in($folder);
-    }
-
-    private function assertWritable(string $path): void
-    {
-        if (is_dir($path)) {
-            throw new InvalidCommandInput($path.' is a directory.');
-        }
     }
 }

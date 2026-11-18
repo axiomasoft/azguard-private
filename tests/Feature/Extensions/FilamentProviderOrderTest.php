@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 use AzGuard\Filament\Authorization\AzGuardFilamentSurfaceGate;
 use AzGuard\Filament\AzGuardFilamentServiceProvider;
+use AzGuard\Filament\AzGuardPlugin;
+use AzGuard\Tests\Fixtures\Filament\RelationManagers\ManagedProductsRelationManager;
 use AzGuard\Tests\TestCase;
 use Illuminate\Container\Container;
 use Illuminate\Support\Facades\Facade;
@@ -44,7 +46,10 @@ it('keeps the AzGuard surface gate in both discovery orders after compiling all 
         // Also cover a late registration after the singleton and plugin graph have already resolved.
         $gate = $app->make(FilamentSurfaceGate::class);
         $app->register(PackmanFilamentServiceProvider::class, force: true);
-        expect($app->make(FilamentSurfaceGate::class))->toBe($gate);
+        $plugin = $app->make(AzGuardPlugin::class);
+        expect($app->make(FilamentSurfaceGate::class))->toBe($gate)
+            ->and($gate->resolveRelationAbility(ManagedProductsRelationManager::class, $plugin))->toBe('manage_products')
+            ->and($gate->canExport($plugin))->toBeTrue();
     } finally {
         Facade::clearResolvedInstances();
         Facade::setFacadeApplication($original);

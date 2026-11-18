@@ -5,14 +5,13 @@ declare(strict_types=1);
 namespace AzGuard\DevTools\Internal\Console\Make;
 
 use AzGuard\DevTools\Internal\Scaffold\Layout;
-use AzGuard\DevTools\Internal\Scaffold\ProviderRegistration;
 use AzGuard\DevTools\Internal\Scaffold\StubStore;
 use AzGuard\Laravel\Console\InvalidCommandInput;
 use AzGuard\Panels\PanelBuilder;
 use AzGuard\Panels\PanelProvider;
 use AzGuard\Sources\Database\DatabaseSource;
-use Illuminate\Filesystem\Filesystem;
 use Packman\Attributes\Internal;
+use Packman\DevTools\Scaffold\ProviderRegistration;
 
 /**
  * The directory of a panel with its provider, listed in `azguard.panels.providers` of the published configuration.
@@ -53,17 +52,34 @@ final class MakePanelCommand extends MakeCommand
         $file = $this->laravel->configPath('azguard.php');
         $provider = $this->provider ?? '';
 
-        match (new ProviderRegistration(new Filesystem)->register($file, $provider)) {
-            ProviderRegistration::ADDED => $this->components->info('Listed '.$provider.' in '.$layout->relative($file)),
-            ProviderRegistration::LISTED => $this->components->info($provider.' is already listed in '.$layout->relative($file)),
-            ProviderRegistration::UNPUBLISHED => $this->components->warn(
+        if (! $this->files->isFile($file)) {
+            $this->components->warn(
                 'config/azguard.php is not published, so it was not changed: publish it with `php artisan vendor:publish --tag=azguard-config` and list '
                 .$provider.' in azguard.panels.providers.',
-            ),
-            default => $this->components->warn(
+            );
+
+            return;
+        }
+
+        $source = $this->files->get($file);
+        $edited = ProviderRegistration::registerInPhpArray($source, ['panels', 'providers'], $provider);
+
+        if ($edited === null) {
+            $this->components->warn(
                 $layout->relative($file).' has no azguard.panels.providers list that could be read: list '.$provider.' in it.',
-            ),
-        };
+            );
+
+            return;
+        }
+
+        if ($edited === $source) {
+            $this->components->info($provider.' is already listed in '.$layout->relative($file));
+
+            return;
+        }
+
+        $this->files->put($file, $edited);
+        $this->components->info('Listed '.$provider.' in '.$layout->relative($file));
     }
 
     private function subjectModel(): string

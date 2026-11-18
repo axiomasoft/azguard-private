@@ -47,8 +47,8 @@ final class MakePolicyCommand extends MakeCommand
 
             return [$this->generated($layout, $place->file($class), PolicyFile::render($stubs, $place, $class, $enumClass, $cases, true, ! $this->isPolicyOnly($enumClass)))];
         }
-        [$enumClass, $cases, $policyOnly] = $this->enumOfGroup($layout, $panel->in($layout->folder('permissions').'/'.$relative)->directory, $relative);
-        $matched = glob($place->directory.'/*.php');
+        [$enumClass, $cases, $policyOnly] = $this->enumOfGroup($layout, $panel->in($layout->folder('permissions').'/'.$relative)->directory(), $relative);
+        $matched = glob($place->directory().'/*.php');
         $others = array_values(array_filter(
             is_array($matched) ? $matched : [],
             static fn (string $file): bool => basename($file) !== $class.'.php' && ! str_contains((string) file_get_contents($file), '#[PolicyFor('),

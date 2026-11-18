@@ -281,6 +281,55 @@
                     ]
                 },
                 {
+                    "name": "canExport",
+                    "visibility": "public",
+                    "static": false,
+                    "abstract": false,
+                    "final": false,
+                    "parameters": [
+                        {
+                            "name": "plugin",
+                            "type": "Packman\\Filament\\Contracts\\FilamentPanelPlugin",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "bool",
+                    "returnsReference": false,
+                    "namedArguments": true,
+                    "contracts": []
+                },
+                {
+                    "name": "resolveRelationAbility",
+                    "visibility": "public",
+                    "static": false,
+                    "abstract": false,
+                    "final": false,
+                    "parameters": [
+                        {
+                            "name": "relationManager",
+                            "type": "string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "plugin",
+                            "type": "Packman\\Filament\\Contracts\\FilamentPanelPlugin",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "?string",
+                    "returnsReference": false,
+                    "namedArguments": true,
+                    "contracts": [
+                        "@param class-string $relationManager"
+                    ]
+                },
+                {
                     "name": "scopeVisibleQuery",
                     "visibility": "public",
                     "static": false,

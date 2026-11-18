@@ -8,6 +8,7 @@ use AzGuard\Policies\Decides;
 use AzGuard\Policies\PolicyFor;
 use Illuminate\Database\Eloquent\Model;
 use Packman\Attributes\Internal;
+use Packman\DevTools\Scaffold\Place;
 
 /**
  * @internal The policy of a permission enum: one method with `#[Decides]` for each case. The method name is free; the

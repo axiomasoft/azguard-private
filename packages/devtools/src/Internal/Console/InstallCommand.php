@@ -6,7 +6,6 @@ namespace AzGuard\DevTools\Internal\Console;
 
 use AzGuard\AzGuardServiceProvider;
 use AzGuard\DevTools\Internal\Scaffold\Layout;
-use AzGuard\DevTools\Internal\Scaffold\ProviderRegistration;
 use AzGuard\DevTools\Internal\ScaffoldConfig;
 use AzGuard\Laravel\Console\CommandSupport;
 use AzGuard\Laravel\Console\InvalidCommandInput;
@@ -14,6 +13,7 @@ use Illuminate\Console\Command;
 use Illuminate\Filesystem\Filesystem;
 use Illuminate\Support\Facades\App;
 use Packman\Attributes\Internal;
+use Packman\DevTools\Scaffold\ProviderRegistration;
 use ReflectionClass;
 use Symfony\Component\Process\Process;
 
@@ -189,7 +189,16 @@ final class InstallCommand extends Command
         if (! is_file($place->file($name.'GuardPanelProvider'))) {
             return false;
         }
-        new ProviderRegistration($this->files)->register($this->laravel->configPath('azguard.php'), $place->fqcn($name.'GuardPanelProvider'));
+        $configFile = $this->laravel->configPath('azguard.php');
+
+        if ($this->files->isFile($configFile)) {
+            $source = $this->files->get($configFile);
+            $edited = ProviderRegistration::registerInPhpArray($source, ['panels', 'providers'], $place->fqcn($name.'GuardPanelProvider'));
+
+            if ($edited !== null && $edited !== $source) {
+                $this->files->put($configFile, $edited);
+            }
+        }
         $this->components->info($layout->relative($place->file($name.'GuardPanelProvider')).' exists and was kept.');
 
         return true;

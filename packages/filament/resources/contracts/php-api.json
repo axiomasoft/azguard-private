@@ -280,6 +280,55 @@
                     "return": "?bool",
                     "doc": []
                 },
+                "canExport": {
+                    "visibility": "public",
+                    "static": false,
+                    "final": false,
+                    "abstract": false,
+                    "by_reference": false,
+                    "parameters": [
+                        {
+                            "name": "plugin",
+                            "type": "Packman\\Filament\\Contracts\\FilamentPanelPlugin",
+                            "by_reference": false,
+                            "variadic": false,
+                            "optional": false,
+                            "default": null,
+                            "flags": 0
+                        }
+                    ],
+                    "return": "bool",
+                    "doc": []
+                },
+                "resolveRelationAbility": {
+                    "visibility": "public",
+                    "static": false,
+                    "final": false,
+                    "abstract": false,
+                    "by_reference": false,
+                    "parameters": [
+                        {
+                            "name": "relationManager",
+                            "type": "string",
+                            "by_reference": false,
+                            "variadic": false,
+                            "optional": false,
+                            "default": null,
+                            "flags": 0
+                        },
+                        {
+                            "name": "plugin",
+                            "type": "Packman\\Filament\\Contracts\\FilamentPanelPlugin",
+                            "by_reference": false,
+                            "variadic": false,
+                            "optional": false,
+                            "default": null,
+                            "flags": 0
+                        }
+                    ],
+                    "return": "?string",
+                    "doc": []
+                },
                 "scopeVisibleQuery": {
                     "visibility": "public",
                     "static": false,
