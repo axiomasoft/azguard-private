@@ -173,9 +173,16 @@ final class PanelRegistry implements PanelRegistryContract
      *
      * @throws DefinitionException
      */
-    public function freeze(): void
+    public function freeze(bool $enabled = true): void
     {
         if ($this->frozen) {
+            return;
+        }
+
+        if (! $enabled) {
+            $this->panels = [];
+            $this->frozen = true;
+
             return;
         }
 

@@ -726,7 +726,7 @@ final class ReadAttempt
         $authority ??= $source instanceof DatabaseSource ? $this->sessions[$source->id()]->authorityIdentity() : $source::class;
 
         return PermissionSetCache::key($state, $request->subject(), $frame->scope()->tenant, $frame->sourceScopes(),
-            $source::class.':'.$source->id(), $frame->reads()->value, $authority, $frame->panel()->settings()->cacheGeneration());
+            $source::class.':'.$source->id(), $frame->reads()->value, $authority, $frame->panel()->settings()->cacheGeneration(), $frame->panel()->sourceContainer()->make('config'));
     }
 
     /**

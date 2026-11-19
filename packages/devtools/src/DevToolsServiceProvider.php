@@ -16,11 +16,14 @@ use AzGuard\DevTools\Internal\Console\Make\MakeRoleCommand;
 use AzGuard\DevTools\Internal\Console\Make\MakeSourceCommand;
 use AzGuard\DevTools\Internal\Console\StubsCommand;
 use AzGuard\DevTools\Laravel\Registrars\DevToolsExtensionRegistrar;
+use Illuminate\Console\Events\ArtisanStarting;
+use Illuminate\Contracts\Events\Dispatcher;
 use Illuminate\Support\ServiceProvider;
 use Packman\Attributes\Api;
 use Packman\Foundation\Concerns\RegistersPackageRegistrars;
 use Packman\Foundation\Contracts\PackageRegistrar;
 use Packman\PackmanServiceProvider;
+use Packman\Plugins\Contracts\Registry\PluginInspector;
 use Packman\Plugins\Laravel\PluginsServiceProvider;
 
 /**
@@ -47,14 +50,20 @@ final class DevToolsServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        if ($this->app->make(PluginInspector::class)->facetsOf('axiomasoft.azguard-devtools') === null) {
+            return;
+        }
+
         $this->bootPackageRegistrars();
 
         if ($this->app->runningInConsole()) {
-            $this->commands([
-                InstallCommand::class, StubsCommand::class, MakePanelCommand::class, MakePermissionCommand::class, MakeRoleCommand::class,
-                MakePolicyCommand::class, MakeSourceCommand::class, MakePluginCommand::class, MakeRestrictionCommand::class, MakePipeCommand::class,
-                MakeModelsCommand::class,
-            ]);
+            $this->app->make(Dispatcher::class)->listen(ArtisanStarting::class, static function (ArtisanStarting $event): void {
+                $event->artisan->resolveCommands([
+                    InstallCommand::class, StubsCommand::class, MakePanelCommand::class, MakePermissionCommand::class, MakeRoleCommand::class,
+                    MakePolicyCommand::class, MakeSourceCommand::class, MakePluginCommand::class, MakeRestrictionCommand::class, MakePipeCommand::class,
+                    MakeModelsCommand::class,
+                ]);
+            });
         }
     }
 }

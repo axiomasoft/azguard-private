@@ -7,11 +7,14 @@ namespace AzGuard\Audit;
 use AzGuard\Audit\Internal\Console\AuditMigrationCommand;
 use AzGuard\Audit\Internal\Console\AuditPruneCommand;
 use AzGuard\Audit\Laravel\Registrars\AuditExtensionRegistrar;
+use Illuminate\Console\Events\ArtisanStarting;
+use Illuminate\Contracts\Events\Dispatcher;
 use Illuminate\Support\ServiceProvider;
 use Packman\Attributes\Api;
 use Packman\Foundation\Concerns\RegistersPackageRegistrars;
 use Packman\Foundation\Contracts\PackageRegistrar;
 use Packman\PackmanServiceProvider;
+use Packman\Plugins\Contracts\Registry\PluginInspector;
 use Packman\Plugins\Laravel\PluginsServiceProvider;
 use Packman\Schema\Laravel\SchemaServiceProvider;
 
@@ -41,11 +44,17 @@ final class AuditServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        if ($this->app->make(PluginInspector::class)->facetsOf('axiomasoft.azguard-audit') === null) {
+            return;
+        }
+
         $this->bootPackageRegistrars();
         $this->publishes([__DIR__.'/../database/migrations' => database_path('migrations')], 'azguard-audit-migrations');
 
         if ($this->app->runningInConsole()) {
-            $this->commands([AuditMigrationCommand::class, AuditPruneCommand::class]);
+            $this->app->make(Dispatcher::class)->listen(ArtisanStarting::class, static function (ArtisanStarting $event): void {
+                $event->artisan->resolveCommands([AuditMigrationCommand::class, AuditPruneCommand::class]);
+            });
         }
     }
 }

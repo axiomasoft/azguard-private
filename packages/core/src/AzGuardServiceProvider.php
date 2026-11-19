@@ -28,11 +28,15 @@ use AzGuard\Laravel\Registrars\AzGuardConfigurationRegistrar;
 use AzGuard\Laravel\Registrars\AzGuardExtensionRegistrar;
 use AzGuard\Laravel\Registrars\AzGuardLaravelRegistrar;
 use AzGuard\Laravel\Registrars\AzGuardRuntimeRegistrar;
+use AzGuard\Panels\Internal\PanelRegistry;
 use AzGuard\Schema\AzGuardSchemaSets;
+use Illuminate\Console\Events\ArtisanStarting;
+use Illuminate\Contracts\Events\Dispatcher;
 use Illuminate\Support\ServiceProvider;
 use Packman\Attributes\Api;
 use Packman\Foundation\Concerns\RegistersPackageRegistrars;
 use Packman\Foundation\Contracts\PackageRegistrar;
+use Packman\Plugins\Contracts\Registry\PluginInspector;
 use Packman\Schema\Enums\SchemaScope;
 
 #[Api(since: '1.0')]
@@ -51,6 +55,12 @@ final class AzGuardServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        if ($this->app->make(PluginInspector::class)->facetsOf('axiomasoft.azguard') === null) {
+            $this->app->make(PanelRegistry::class)->freeze(enabled: false);
+
+            return;
+        }
+
         $this->bootPackageRegistrars();
 
         if ($this->app->make('config')->get('packman.schema.auto_load_migrations', true) === true) {
@@ -66,14 +76,16 @@ final class AzGuardServiceProvider extends ServiceProvider
         $this->optimizes(optimize: 'azguard:catalog:cache', clear: 'azguard:catalog:clear', key: 'azguard');
 
         if ($this->app->runningInConsole()) {
-            $this->commands([
-                CatalogCacheCommand::class, CatalogClearCommand::class, StorageMigrationCommand::class, ExplainCommand::class,
-                DoctorCommand::class, PanelsListCommand::class, SourcesListCommand::class, CatalogListCommand::class,
-                RolesListCommand::class, GrantsListCommand::class, PermissionsShowCommand::class, RolesGrantCommand::class,
-                RolesRevokeCommand::class, PermissionsGrantCommand::class, PermissionsRevokeCommand::class,
-                PermissionsCreateCommand::class, PermissionsDeleteCommand::class, RolesRenameKeyCommand::class,
-                GrantsPruneCommand::class, StateResetCommand::class,
-            ]);
+            $this->app->make(Dispatcher::class)->listen(ArtisanStarting::class, static function (ArtisanStarting $event): void {
+                $event->artisan->resolveCommands([
+                    CatalogCacheCommand::class, CatalogClearCommand::class, StorageMigrationCommand::class, ExplainCommand::class,
+                    DoctorCommand::class, PanelsListCommand::class, SourcesListCommand::class, CatalogListCommand::class,
+                    RolesListCommand::class, GrantsListCommand::class, PermissionsShowCommand::class, RolesGrantCommand::class,
+                    RolesRevokeCommand::class, PermissionsGrantCommand::class, PermissionsRevokeCommand::class,
+                    PermissionsCreateCommand::class, PermissionsDeleteCommand::class, RolesRenameKeyCommand::class,
+                    GrantsPruneCommand::class, StateResetCommand::class,
+                ]);
+            });
         }
     }
 }

@@ -19,7 +19,7 @@ final class RequiredTenant
     /** @throws TenantRequiredException */
     public static function of(Panel $panel, ?TenantRef $explicit): TenantRef
     {
-        $tenant = $explicit ?? app(CurrentContext::class)->get($panel)?->tenant;
+        $tenant = $explicit ?? $panel->sourceContainer()->make(CurrentContext::class)->get($panel)?->tenant;
 
         if ($tenant !== null) {
             return $tenant;

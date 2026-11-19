@@ -38,7 +38,7 @@ final readonly class PanelManagers
                 .', not "'.$tenant->type().'".');
         }
 
-        return new self($container ?? app(), $panel, $tenant, $origin);
+        return new self($container ?? $panel->sourceContainer(), $panel, $tenant, $origin);
     }
 
     public function panel(): Panel

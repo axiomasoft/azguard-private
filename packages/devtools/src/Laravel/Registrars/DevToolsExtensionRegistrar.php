@@ -9,7 +9,6 @@ use AzGuard\DevTools\Extensions\DevToolsExtensionPlugin;
 use AzGuard\DevTools\Internal\ScaffoldConfig;
 use Illuminate\Contracts\Foundation\Application;
 use Packman\Attributes\Internal;
-use Packman\Extensions\Laravel\ExtensionFacetRegistrar;
 use Packman\Foundation\Contracts\PackageRegistrar;
 use Packman\Plugins\Contracts\Registry\PluginInspector;
 use Packman\Plugins\Laravel\ExtensionRegistrar;
@@ -24,12 +23,6 @@ final class DevToolsExtensionRegistrar implements PackageRegistrar
             static fn (Application $app): ConfigSections => new ConfigSections($app),
         );
         $app->make(ConfigSections::class)->own('scaffold', ScaffoldConfig::validate(...));
-
-        ExtensionFacetRegistrar::register(
-            $app,
-            new DevToolsExtensionPlugin,
-            dirname(__DIR__, 3).'/composer.json',
-        );
 
         if (! $app->resolved(PluginInspector::class)) {
             ExtensionRegistrar::builtInFor($app, DevToolsExtensionPlugin::class);
