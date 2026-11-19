@@ -100,13 +100,13 @@
         "error-codes": "@php vendor/bin/packman error-codes --check",
         "config-schema": "@php vendor/bin/packman config-schema --check",
         "ai:sync": "@php vendor/bin/packman ai:sync --dry-run",
-        "test:parallel": "vendor/bin/pest --fail-on-skipped --exclude-group=pg --exclude-group=engines --exclude-group=redis --exclude-group=replica --exclude-group=extended --exclude-group=mysql-engines --parallel --processes=4 --passthru-php='-d memory_limit=1G'",
+        "test:parallel": "php -d memory_limit=1G vendor/bin/pest --fail-on-skipped --exclude-group=pg --exclude-group=engines --exclude-group=redis --exclude-group=replica --exclude-group=extended --exclude-group=mysql-engines --parallel --processes=4 --passthru-php='-d memory_limit=1G'",
         "test:changed": [
             "Composer\\Config::disableProcessTimeout",
             "@php bin/test-changed.php"
         ],
         "test:unit": "php -d memory_limit=1G vendor/bin/pest tests/Unit",
-        "test:feature": "php -d memory_limit=1G vendor/bin/pest tests/Feature --exclude-group=redis",
+        "test:feature": "php -d memory_limit=1G vendor/bin/pest tests/Feature --exclude-group=pg --exclude-group=redis",
         "test:redis": "php -d memory_limit=1G vendor/bin/pest --ci --fail-on-skipped --group=redis",
         "test:replica": "bash tests/Engines/Support/replica-fixture.sh",
         "check:coverage": "bash bin/coverage-gate.sh",

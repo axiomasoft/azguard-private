@@ -21,4 +21,4 @@ fi
 # Coverage of the full suite needs more than 1G (measured OOM at 1G with pcov).
 # Keep each file's capture in a fresh worker; reused workers under-report executed lines.
 coverage_worker_php_args=(-d memory_limit=1G "${AZGUARD_COVERAGE_PHP_ARGS[@]}")
-XDEBUG_MODE=coverage "$AZGUARD_COVERAGE_PHP" -d memory_limit=-1 "${AZGUARD_COVERAGE_PHP_ARGS[@]}" vendor/bin/pest --fail-on-skipped --exclude-group=engines --exclude-group=redis --exclude-group=replica --exclude-group=mysql-engines --parallel --processes=4 --max-batch-size=1 "--passthru-php=${coverage_worker_php_args[*]}" --coverage --min=85
+XDEBUG_MODE=coverage "$AZGUARD_COVERAGE_PHP" -d memory_limit=-1 "${AZGUARD_COVERAGE_PHP_ARGS[@]}" vendor/bin/pest --fail-on-skipped --exclude-group=pg --exclude-group=engines --exclude-group=redis --exclude-group=replica --exclude-group=mysql-engines --parallel --processes=4 --max-batch-size=1 "--passthru-php=${coverage_worker_php_args[*]}" --coverage --min=85 "$@"

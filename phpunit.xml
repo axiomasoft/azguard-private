@@ -48,7 +48,6 @@
     </source>
 
     <php>
-        <ini name="memory_limit" value="1G"/>
         <env name="APP_ENV" value="testing"/>
         <env name="CACHE_STORE" value="array"/>
         <env name="CACHE_DRIVER" value="array"/>
