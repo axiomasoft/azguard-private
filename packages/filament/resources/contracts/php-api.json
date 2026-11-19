@@ -992,26 +992,6 @@
                     "return": "bool",
                     "doc": []
                 },
-                "keys": {
-                    "visibility": "public",
-                    "static": false,
-                    "final": false,
-                    "abstract": false,
-                    "by_reference": false,
-                    "parameters": [
-                        {
-                            "name": "panel",
-                            "type": "Filament\\Panel",
-                            "by_reference": false,
-                            "variadic": false,
-                            "optional": false,
-                            "default": null,
-                            "flags": 0
-                        }
-                    ],
-                    "return": "object",
-                    "doc": []
-                },
                 "make": {
                     "visibility": "public",
                     "static": true,
