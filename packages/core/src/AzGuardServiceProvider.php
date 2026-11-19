@@ -29,6 +29,7 @@ use AzGuard\Laravel\Registrars\AzGuardExtensionRegistrar;
 use AzGuard\Laravel\Registrars\AzGuardLaravelRegistrar;
 use AzGuard\Laravel\Registrars\AzGuardRuntimeRegistrar;
 use AzGuard\Schema\AzGuardSchemaSets;
+use AzGuard\Storage\Internal\StorageRegistrar;
 use Illuminate\Support\ServiceProvider;
 use Packman\Attributes\Api;
 use Packman\Foundation\Concerns\RegistersPackageRegistrars;
@@ -44,6 +45,7 @@ final class AzGuardServiceProvider extends ServiceProvider
     protected const array REGISTRARS = [
         AzGuardConfigurationRegistrar::class,
         AzGuardRuntimeRegistrar::class,
+        StorageRegistrar::class,
         AzGuardExtensionRegistrar::class,
         AzGuardLaravelRegistrar::class,
     ];

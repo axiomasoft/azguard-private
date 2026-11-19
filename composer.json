@@ -26,7 +26,6 @@
         "axiomasoft/packman-devtools": "^0.1",
         "axiomasoft/packman-testkit": "^0.1",
         "brianium/paratest": "^7.20",
-        "driftingly/rector-laravel": "^2.7",
         "larastan/larastan": "^3.12",
         "laravel/pao": "^1.1.5",
         "laravel/pint": "^1.32",
