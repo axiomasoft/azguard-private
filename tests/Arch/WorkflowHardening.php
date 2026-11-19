@@ -16,7 +16,6 @@ const WORKFLOW_WRITE_PERMISSIONS = [
     'release.yml' => ['release' => ['contents'], 'codeql' => ['security-events']],
     'docs-deploy.yml' => ['deploy' => ['pages', 'id-token']],
     'codeql.yml' => ['analyze' => ['security-events']],
-    'dependabot-auto-merge.yml' => ['auto-merge' => ['pull-requests'], 'sweep' => ['pull-requests']],
     'pr-check.yml' => ['size' => ['pull-requests']],
     'packages/core/.github/workflows/provenance.yml' => ['provenance' => ['id-token', 'attestations'], 'relay-final-artifacts' => ['id-token', 'attestations']],
     'packages/core/.github/workflows/attestation-setup.yml' => ['probe' => ['id-token', 'attestations']],
@@ -70,8 +69,7 @@ function workflowHardeningViolations(string $file, string $raw, array $parsed): 
     }
 
     foreach (workflowTriggerNames($parsed) as $trigger) {
-        if (in_array($trigger, ['pull_request_target', 'workflow_run'], true)
-            && ! ($trigger === 'pull_request_target' && $name === 'dependabot-auto-merge.yml' && workflowReviewedDependabot($raw))) {
+        if (in_array($trigger, ['pull_request_target', 'workflow_run'], true)) {
             $violations[] = 'dangerous-trigger '.$name.':on.'.$trigger;
         }
     }
@@ -122,25 +120,6 @@ function workflowHardeningViolations(string $file, string $raw, array $parsed): 
     }
 
     return $violations;
-}
-
-/** Delegate the privileged trigger to the existing complete-workflow policy. */
-function workflowReviewedDependabot(string $raw): bool
-{
-    $code = 'import importlib.util,sys; p=importlib.util.spec_from_file_location("pins",sys.argv[1]); m=importlib.util.module_from_spec(p); p.loader.exec_module(m); sys.exit(bool(m.check_workflow(sys.stdin.read(),"dependabot-auto-merge.yml")))';
-    $process = proc_open(['python3', '-B', '-c', $code, dirname(__DIR__, 2).'/bin/check-workflow-pins.py'], [0 => ['pipe', 'r'], 1 => ['pipe', 'w'], 2 => ['pipe', 'w']], $pipes);
-
-    if (! is_resource($process)) {
-        return false;
-    }
-    fwrite($pipes[0], $raw);
-    fclose($pipes[0]);
-    stream_get_contents($pipes[1]);
-    fclose($pipes[1]);
-    stream_get_contents($pipes[2]);
-    fclose($pipes[2]);
-
-    return proc_close($process) === 0;
 }
 
 /**

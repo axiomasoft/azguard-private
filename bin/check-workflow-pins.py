@@ -23,8 +23,6 @@ WRITE_PERMISSIONS = {
     ('release.yml', 'codeql'): {'security-events'},
     ('docs-deploy.yml', 'deploy'): {'pages', 'id-token'},
     ('release.yml', 'release'): {'contents'},
-    ('dependabot-auto-merge.yml', 'auto-merge'): {'pull-requests'},
-    ('dependabot-auto-merge.yml', 'sweep'): {'pull-requests'},
     ('pr-check.yml', 'size'): {'pull-requests'},
 }
 EXTERNAL = re.compile(r'^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+(?:/[A-Za-z0-9_.-]+)*@[0-9a-f]{40}$')
@@ -38,14 +36,13 @@ REVIEWED_WORKFLOWS = {
     'code-style.yml': '160805e973fa68615fc313f2ffefbd1abceb806b0f6ccd0915ed7c659ecba5d8',
     'codeql.yml': 'b7881b273900bb77a2ff8408e289fa56d91db55fd6d4f6bd7d9636eba1ced119',
     'compatibility.yml': 'aa72b324defbc1aac21f72a4d79ca1c504be93092b3f1878db532f091b7be7dc',
-    'dependabot-auto-merge.yml': '37976e5af8911e7ba507395c74cf5d453f9ddbafc3b627ba87118e6eab8f0a54',
     'docs-deploy.yml': '15efe0198116c95ea5205fc336f8eef90139efc68e157b00d1259c1dece6d5bf',
     'docs.yml': '4ae6826bdb0d02c9df13a82b4865c85bc21811b0f296412c8f02018422ba22d6',
     'pr-check.yml': '23625feba2ba1d75d5f2babd9fde39ca0d275f126ce68ada9ce26ad2d6c5c463',
     'release.yml': '364468e55cb421da6ad718a0f4be19ffe96e73edeec6358897fa6697ffb5bccc',
     'release-setup-probe.yml': '8786c2fc34a1e241e6f053e65361dfb5d4019d9769aa795d3adb8216dad6b6c2',
     'secret-scan.yml': '405d61d500751cb018bdb433d19fda6ef804ebce4f01e4052c1975646fd0c2b3',
-    'security.yml': '9e08a93af21e23b6c11e04331eb9aeb7d41965e20bc5cf932ab9ad8a68fa77d4',
+    'security.yml': '9b929a937328e64519a91febbdff8296462a56e6a36dd3aa4e43234d9627fb11',
     'split.yml': '726b6360ba6304b23b31c15cd0267288ee3ec4cee02de4a7f91cccc29ff55ea5',
     'static-analysis.yml': 'aed9428756877d03a3714b46449458590a3e7b2b77108af9bb783135c49ac7ee',
     'tests-nightly.yml': '66f1f5dbf806c983ba034b72bfea3e3197d79b8e62cbb3075e88779cfedb9a7a',
@@ -86,8 +83,6 @@ REVIEWED_RUNS = {
     ('release.yml', 'validate', '8a1d28ddd692ad261b03e0fdb00075b5526914d38c5d9af448b5d9d2e214eaaf'): {'TAG', 'TAGGED_SHA'},
     ('bench.yml', 'bench', '836383ae1fbf4b725d9c7b0375601884902fff4f1a9510872b199caf77a795e9'): {'TIER'},
     ('workers.yml', 'worker', '78051647250c4c30636dfc866d1c0eec6ce72adc9879cac59d60df1acab4dd95'): {'WORKER_EVENT', 'WORKER_MEMORY'},
-    ('dependabot-auto-merge.yml', 'auto-merge', 'ed305084cd8b31a50d22da4295e95763771a6146013ddb30f2bee050fa36b167'): {'PR_URL'},
-    ('dependabot-auto-merge.yml', 'sweep', 'dde5b3086abe897f595e157606e8b1583c12877e935c6b1211eda3ae722e3027'): {'REPOSITORY'},
 }
 
 
@@ -131,47 +126,6 @@ def safe_env_use(run, names, filename, job_id):
     if not re.fullmatch(r'(?:echo|git diff) (?:[A-Za-z0-9_./:! -]|"[A-Za-z0-9_./:!-]+"|"\$(?:[A-Za-z_][A-Za-z0-9_]*|\{[A-Za-z_][A-Za-z0-9_]*\})")+', run):
         return False
     return not any(unquoted_env_reference(run, name) for name in used)
-
-# This privileged trigger must never check out or execute PR-controlled code.
-# Deliberately require the complete job: changes to this seam require policy review.
-DEPENDABOT_JOB = {
-    'name': 'Disable auto-merge on Dependabot PR', 'runs-on': 'ubuntu-latest',
-    'concurrency': {'group': 'dependabot-auto-merge-${{ github.event.pull_request.number }}', 'cancel-in-progress': False},
-    'if': "github.event_name == 'pull_request_target' && github.event.pull_request.user.login == 'dependabot[bot]' && github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.base.repo.full_name == github.repository\n",
-    'permissions': {'pull-requests': 'write'},
-    'steps': [
-        {'name': 'Fetch Dependabot metadata', 'id': 'meta', 'uses': 'dependabot/fetch-metadata@25dd0e34f4fe68f24cc83900b1fe3fe149efef98'},
-        {'name': 'Disable Dependabot auto-merge', 'if': 'always()',
-         'run': '''set -Eeuo pipefail
-enabled=$(gh pr view "$PR_URL" --json autoMergeRequest --jq '.autoMergeRequest != null')
-if [[ "$enabled" == true ]]; then
-  gh pr merge --disable-auto "$PR_URL"
-fi
-[[ "$META_RESULT" == success ]]
-''',
-         'env': {'PR_URL': '${{ github.event.pull_request.html_url }}', 'GH_TOKEN': '${{ secrets.GITHUB_TOKEN }}',
-                 'META_RESULT': '${{ steps.meta.outcome }}'}},
-    ],
-}
-DEPENDABOT_SWEEP = {
-    'name': 'Disable existing Dependabot auto-merge requests',
-    'if': "github.event_name != 'pull_request_target'",
-    'runs-on': 'ubuntu-latest',
-    'permissions': {'pull-requests': 'write'},
-    'steps': [{'name': 'Reconcile open Dependabot PRs',
-               'run': '''set -Eeuo pipefail
-numbers=$(gh api --paginate "repos/$REPOSITORY/pulls?state=open&per_page=100" --jq '.[] | select(.user.login == "dependabot[bot]") | .number')
-for number in $numbers; do
-  [[ "$number" =~ ^[0-9]+$ ]]
-  enabled=$(gh pr view "$number" --repo "$REPOSITORY" --json autoMergeRequest --jq '.autoMergeRequest != null')
-  if [[ "$enabled" == true ]]; then
-    gh pr merge --disable-auto "$number" --repo "$REPOSITORY"
-  fi
-done
-''',
-               'env': {'REPOSITORY': '${{ github.repository }}', 'GH_TOKEN': '${{ secrets.GITHUB_TOKEN }}'}}],
-}
-
 
 class Loader(yaml.SafeLoader):
     pass
@@ -251,12 +205,7 @@ def check_workflow(text, filename, *, package=False):
         check_shell_defaults(workflow.get('defaults'), errors, 'workflow')
         workflow_env = check_env(workflow.get('env'), errors, 'workflow')
         if events == 'pull_request_target' or isinstance(events, (dict, list)) and 'pull_request_target' in events:
-            if not (filename == 'dependabot-auto-merge.yml'
-                    and events == {'pull_request_target': {'types': ['opened', 'synchronize', 'reopened', 'auto_merge_enabled']}, 'workflow_dispatch': None, 'schedule': [{'cron': '*/15 * * * *'}]}
-                    and jobs == {'auto-merge': DEPENDABOT_JOB, 'sweep': DEPENDABOT_SWEEP}
-                    and set(workflow) <= {'name', 'on', True, 'permissions', 'defaults', 'jobs'}
-                    and workflow.get('defaults') == {'run': {'shell': 'bash'}}):
-                errors.append('pull_request_target is only permitted for the fixed Dependabot job')
+            errors.append('pull_request_target is not permitted')
         for job_id, job in jobs.items():
             if not isinstance(job, dict):
                 raise ValueError(f'{job_id}: job must be a mapping')

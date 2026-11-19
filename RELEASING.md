@@ -204,22 +204,11 @@ The core-only report uses the `azguard.package-evidence.offline-fixture.v2` sche
 - A high or critical security update (Composer, npm, OSV) is prioritized for triage under the best-effort
   [Security Policy](SECURITY.md), with no separate guaranteed deadline; an update forced by an
   advisory is its own commit touching only `composer.lock` / `package-lock.json`.
-- An ordinary Dependabot update is reviewed within a week; superseded Dependabot PRs are closed.
-- Dependabot auto-merge is disabled until a required eligibility check on the updated PR has been proven. All
-  Dependabot updates require normal review and manual merge. The workflow disables an existing auto-merge request
-  when it handles a same-repository Dependabot PR, including an auto-merge-enabled event. A scheduled and manually dispatched sweep also attempts to disable
-  existing requests on open Dependabot PRs, including forks. Neither establishes branch protection. Scheduled runs can
-  be delayed, fail, or never run before an already armed PR merges; the event-driven job can also lose that race, and API failure leaves requests armed. Before deployment
-  and release, inspect all open Dependabot PRs and have an authorized owner disable any existing requests immediately.
-  Monitor both reconciliation jobs and resolve failures; a green run does not prove that a concurrent request is absent.
+- Ordinary dependency updates are made manually, reviewed, and merged through a normal pull request.
 - Before release, run `php bin/repository-settings-audit.php --live` and verify the active ruleset for the target
-  branch requires the intended tests and security checks, applies to Dependabot and has no bypass for it. Before
-  enabling auto-merge in the future, prove on an updated PR that a required eligibility check runs on its current
-  head and blocks merging until auto-merge has been reconciled. The `pull_request_target` workflow runs against the
-  base branch, so do not assume its job provides that head check. Inspect the
-  live required check names and their producing workflows; a successful auto-merge job is not evidence that tests passed.
-  Missing, inactive, bypassable or incomplete rules block release until the owner resolves them. This read-only audit
-  only reads; changing remote settings is an owner act.
+  branch requires the intended tests and security checks and has no unintended bypass. Inspect the live required
+  check names and their producing workflows. Missing, inactive, bypassable or incomplete rules block release until
+  the owner resolves them. This read-only audit only reads; changing remote settings is an owner act.
 - An OSV ignore needs `ignoreUntil` and a reason in `.github/osv-scanner.toml`.
 
 ## Release procedure
