@@ -23,6 +23,7 @@ use DateTimeImmutable;
 use Illuminate\Cache\ArrayStore;
 use Illuminate\Cache\RedisStore;
 use Illuminate\Contracts\Cache\Factory;
+use Illuminate\Contracts\Config\Repository;
 use Illuminate\Redis\Connections\PhpRedisConnection;
 use Illuminate\Redis\Connections\PredisConnection;
 use Illuminate\Support\Carbon;
@@ -49,10 +50,13 @@ final class PermissionSetCache
 
     private readonly int $maxStateEntries;
 
-    public function __construct(private readonly Factory $stores)
+    private readonly Repository $config;
+
+    public function __construct(private readonly Factory $stores, ?Repository $config = null)
     {
-        $this->maxMemoEntries = AzGuardConfig::cacheMemoLimit(app('config'), 'max_memo_entries');
-        $this->maxStateEntries = AzGuardConfig::cacheMemoLimit(app('config'), 'max_state_entries');
+        $this->config = $config ?? app('config');
+        $this->maxMemoEntries = AzGuardConfig::cacheMemoLimit($this->config, 'max_memo_entries');
+        $this->maxStateEntries = AzGuardConfig::cacheMemoLimit($this->config, 'max_state_entries');
     }
 
     public function forgetPanel(string $panel): void
@@ -70,7 +74,7 @@ final class PermissionSetCache
     }
 
     /** @param list<AccessScope> $scopes */
-    public static function key(StateToken|CodeStateToken $state, SubjectRef $subject, TenantRef $tenant, array $scopes, string $source, string $readMode, string $authority, int $generation): string
+    public static function key(StateToken|CodeStateToken $state, SubjectRef $subject, TenantRef $tenant, array $scopes, string $source, string $readMode, string $authority, int $generation, ?Repository $config = null): string
     {
         $contexts = array_map(static fn (AccessScope $scope): string => IdentityCodec::compose([$scope]), $scopes);
         sort($contexts, SORT_STRING);
@@ -85,7 +89,7 @@ final class PermissionSetCache
             default => ['code', $state->panel(), $state->buildId(), $state->fingerprint()],
         };
 
-        return 'azguard:sets:v2:'.IdentityCodec::digest([AzGuardConfig::cacheNamespace(app('config')), $revision, $generation, $subject, $tenant, array_values(array_unique($contexts)), $source, $readMode, $authority]);
+        return 'azguard:sets:v2:'.IdentityCodec::digest([AzGuardConfig::cacheNamespace($config ?? app('config')), $revision, $generation, $subject, $tenant, array_values(array_unique($contexts)), $source, $readMode, $authority]);
     }
 
     /** @return list<Grant|RoleContribution>|null */
@@ -97,7 +101,7 @@ final class PermissionSetCache
         $entry = $this->sets[$key] ?? null;
         $store = $panel->settings()->cacheStore();
 
-        $signer = SignedEnvelope::fromConfig(app('config'));
+        $signer = SignedEnvelope::fromConfig($this->config);
 
         if ($entry === null && $volatility === Volatility::Stable && $fenced && $store !== null && $signer !== null) {
             $raw = null;
@@ -183,7 +187,7 @@ final class PermissionSetCache
         $this->rememberSet($key, $entry, $panel->id());
         $store = $panel->settings()->cacheStore();
 
-        $signer = SignedEnvelope::fromConfig(app('config'));
+        $signer = SignedEnvelope::fromConfig($this->config);
 
         if ($volatility === Volatility::Stable && $fenced && $store !== null && $signer !== null) {
             $sharedEntry = ['items' => $items, 'validUntil' => $validUntil];

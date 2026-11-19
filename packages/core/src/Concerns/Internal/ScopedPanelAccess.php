@@ -113,12 +113,12 @@ final readonly class ScopedPanelAccess implements PanelAccess
 
     public function schema(): PanelSchema
     {
-        return app(SchemaBuilder::class)->for($this->panel, $this->requiredTenant());
+        return $this->panel->sourceContainer()->make(SchemaBuilder::class)->for($this->panel, $this->requiredTenant());
     }
 
     public function decide(AccessRequest $request): Decision
     {
-        return app(Authorizer::class)->decide($this->panel, $this->own($request));
+        return $this->panel->sourceContainer()->make(Authorizer::class)->decide($this->panel, $this->own($request));
     }
 
     public function decideMany(iterable $requests): DecisionSet
@@ -128,27 +128,27 @@ final readonly class ScopedPanelAccess implements PanelAccess
             $own[] = $this->own($request);
         }
 
-        return app(Authorizer::class)->decideMany($own);
+        return $this->panel->sourceContainer()->make(Authorizer::class)->decideMany($own);
     }
 
     public function explain(AccessRequest $request): Explanation
     {
-        return app(Authorizer::class)->explain($this->panel, $this->own($request));
+        return $this->panel->sourceContainer()->make(Authorizer::class)->explain($this->panel, $this->own($request));
     }
 
     public function catalog(): PermissionCatalog
     {
-        return app(PanelRegistry::class)->catalog($this->panel->id());
+        return $this->panel->sourceContainer()->make(PanelRegistry::class)->catalog($this->panel->id());
     }
 
     public function visibility(): Visibility
     {
-        return app(Visibility::class);
+        return $this->panel->sourceContainer()->make(Visibility::class);
     }
 
     public function directories(): PanelDirectories
     {
-        return new PanelDirectories($this->panel, app());
+        return new PanelDirectories($this->panel, $this->panel->sourceContainer());
     }
 
     public function state(): StateToken
@@ -164,7 +164,7 @@ final readonly class ScopedPanelAccess implements PanelAccess
 
     public function touch(): StateToken
     {
-        return app(ChangePipeline::class)->touch($this->panel, 'manual');
+        return $this->panel->sourceContainer()->make(ChangePipeline::class)->touch($this->panel, 'manual');
     }
 
     /**
@@ -179,7 +179,7 @@ final readonly class ScopedPanelAccess implements PanelAccess
             throw new ConflictingPanelException('The access is for panel "'.$this->panel->id().'", the request is for "'.$request->permission()->panel().'".');
         }
 
-        $tenant = $this->tenant ?? app(CurrentContext::class)->get($this->panel)?->tenant;
+        $tenant = $this->tenant ?? $this->panel->sourceContainer()->make(CurrentContext::class)->get($this->panel)?->tenant;
 
         if ($tenant === null) {
             return $request;

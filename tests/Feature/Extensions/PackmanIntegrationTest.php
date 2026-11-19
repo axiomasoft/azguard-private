@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use AzGuard\AzGuard;
+use AzGuard\AzGuardServiceProvider;
 use AzGuard\Configuration\AzGuardOptions;
 use AzGuard\Contracts\Authorization\BeforeHook;
 use AzGuard\Contracts\Panels\PanelRegistry as AzGuardPanelRegistry;
@@ -29,8 +30,11 @@ use AzGuard\Tests\Fixtures\Sources\Database\DatabasePermission;
 use AzGuard\Tests\Fixtures\Sources\Database\DatabasePolicy;
 use AzGuard\Tests\Fixtures\Sources\Database\DatabaseWorld;
 use AzGuard\Tests\Fixtures\Sources\Database\EditorRole;
+use AzGuard\Tests\TestCase;
 use Illuminate\Container\Container;
+use Illuminate\Contracts\Console\Kernel;
 use Illuminate\Database\Eloquent\Relations\Relation;
+use Illuminate\Support\Facades\Facade;
 use Packman\Attributes\Describe;
 use Packman\Config\Data\SecretRef;
 use Packman\Config\Exceptions\InvalidConfiguration;
@@ -50,6 +54,7 @@ use Packman\Plugins\Contracts\Registry\PluginInspector;
 use Packman\Plugins\Testing\PluginGraph;
 use Packman\Schema\Contracts\Compiler\SchemaOwnership;
 use Packman\Schema\Contracts\Migration\SchemaSetProvider;
+use Packman\Schema\Contracts\Migration\SchemaSets;
 use Packman\Schema\Enums\SchemaLifecycle;
 use Packman\Schema\Enums\SchemaScope;
 use Packman\Schema\Laravel\SchemaServiceProvider;
@@ -275,3 +280,41 @@ enum HeadlessPanelPermission: string
     #[Describe('Diagnose panel')]
     case Diagnose = 'azguard.diagnose';
 }
+
+it('keeps a retained panel on its host when another application disables AzGuard', function (): void {
+    $first = app();
+    [, , $panels] = PanelWorld::compile([
+        AdminPanel::class => static fn (PanelBuilder $panel): PanelBuilder => $panel->for(User::class),
+    ]);
+    $first->instance(PanelRegistry::class, $panels);
+    $access = $first->make(AzGuard::class)->panel('admin');
+    $catalog = $access->catalog();
+
+    $case = new class('disabled-azguard') extends TestCase
+    {
+        protected function getPackageProviders($app): array
+        {
+            return [AzGuardServiceProvider::class];
+        }
+
+        protected function defineEnvironment($app): void
+        {
+            $app['config']->set('packman.disabled_plugins', ['axiomasoft.azguard']);
+            $app['config']->set('azguard.panels.providers', ['MissingHostPanel']);
+        }
+    };
+
+    try {
+        $second = $case->createApplication();
+        expect($second->make(PluginInspector::class)->disabledIds())->toContain('axiomasoft.azguard')
+            ->and($second->make(AzGuard::class)->panels())->toBe([])
+            ->and(array_column($second->make(SchemaSets::class)->all(), 'name'))->not->toContain('azguard-storage')
+            ->and($second->make('migrator')->paths())->not->toContain(dirname(__DIR__, 3).'/packages/core/database/migrations')
+            ->and($second->make(Kernel::class)->all())->not->toHaveKey('azguard:doctor')
+            ->and($access->fromOrigin('host')->catalog())->toBe($catalog);
+    } finally {
+        Facade::clearResolvedInstances();
+        Facade::setFacadeApplication($first);
+        Container::setInstance($first);
+    }
+});

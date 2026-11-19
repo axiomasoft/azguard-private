@@ -415,7 +415,7 @@ final readonly class SubjectAccess
     private function heldRoles(array $roles, Model|AssignmentScopeRef|null $on, ?string $guard): array
     {
         $this->select([], $roles, $guard);
-        $catalog = app(PanelRegistry::class)->catalog($this->panel->id())->roles();
+        $catalog = $this->panel->sourceContainer()->make(PanelRegistry::class)->catalog($this->panel->id())->roles();
         $wanted = [];
         foreach ($roles as $role) {
             $key = $this->roleKey($role);
@@ -466,7 +466,7 @@ final readonly class SubjectAccess
         if ($context !== null) {
             return AccessScope::in($tenant, $context);
         }
-        $placed = app(BoundaryStage::class)->resourceScope($on, $this->panel, AccessScope::in($tenant));
+        $placed = $this->panel->sourceContainer()->make(BoundaryStage::class)->resourceScope($on, $this->panel, AccessScope::in($tenant));
 
         if ($placed === null) {
             throw new AssignmentScopeNotAcceptedException('Panel '.$this->panel->id().' cannot place '.$on::class.': pass an assignment scope or a resource the panel resolves.');
@@ -551,16 +551,16 @@ final readonly class SubjectAccess
 
     private function authorizer(): Authorizer
     {
-        return app(Authorizer::class);
+        return $this->panel->sourceContainer()->make(Authorizer::class);
     }
 
     private function resolver(): PanelResolver
     {
-        return app(PanelResolver::class);
+        return $this->panel->sourceContainer()->make(PanelResolver::class);
     }
 
     private function pipeline(): ChangePipeline
     {
-        return app(ChangePipeline::class);
+        return $this->panel->sourceContainer()->make(ChangePipeline::class);
     }
 }

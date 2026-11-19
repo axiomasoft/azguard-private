@@ -347,7 +347,7 @@ final class Authorizer
      */
     public function visibleTo(Panel $panel, Builder $query, Model|SubjectRef|null $subject, UnitEnum|string $permission, ?AccessScope $scope = null): Builder
     {
-        return app(Visibility::class)->visibleTo($panel, $query, $subject, $permission, $scope);
+        return $panel->sourceContainer()->make(Visibility::class)->visibleTo($panel, $query, $subject, $permission, $scope);
     }
 
     /** @internal Fixed clock for one bounded evaluation. */
@@ -399,7 +399,7 @@ final class Authorizer
      */
     private function trace(Panel $panel, AccessRequest $request, Decision $decision, ?ActorRef $actor, DateTimeImmutable $now): void
     {
-        $observers = app(EventObservers::class);
+        $observers = $panel->sourceContainer()->make(EventObservers::class);
         $traced = $panel->settings()->traceDecisions();
 
         if (! $traced && ! $observers->active()) {
@@ -410,7 +410,7 @@ final class Authorizer
             correlationId: strtolower((string) Str::ulid()), state: $decision->state, subject: $request->subject(), permission: $request->permission(),
             context: $decision->scope->context, effect: $decision->effect, reason: $decision->reason, component: $decision->component,
         );
-        $deliver = static function () use ($event, $observers, $traced): void {
+        $deliver = static function () use ($event, $observers, $traced, $panel): void {
             $observers->observe($event);
 
             if (! $traced) {
@@ -418,7 +418,7 @@ final class Authorizer
             }
 
             try {
-                app(Dispatcher::class)->dispatch($event);
+                $panel->sourceContainer()->make(Dispatcher::class)->dispatch($event);
             } catch (Throwable $error) {
                 report($error);
             }
