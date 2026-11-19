@@ -781,7 +781,11 @@ it('reports a broken release graph', function (Closure $break, string $violation
         return $w;
     }, 'tests.yml: job test-db-matrix continues on error'],
     'a check step that continues on error' => [static function (array $w): array {
-        $w['compatibility.yml']['jobs']['compare']['steps'][4]['continue-on-error'] = true;
+        foreach ($w['compatibility.yml']['jobs']['compare']['steps'] as $i => $step) {
+            if (($step['name'] ?? null) === 'Compatible with the baseline') {
+                $w['compatibility.yml']['jobs']['compare']['steps'][$i]['continue-on-error'] = true;
+            }
+        }
 
         return $w;
     }, "compatibility.yml: step '".'Compatible with the baseline'."' of compare continues on error"],
