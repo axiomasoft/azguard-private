@@ -72,6 +72,8 @@ composer archive --format=zip --dir="$work/dist" --working-dir="$work/package" -
 sha256sum "$work/dist/"*.zip
 composer create-project 'laravel/laravel:^13.0' "$work/app" --no-interaction --prefer-dist --no-progress
 cd "$work/app"
+bash "$root/bin/packman-consumer-archives.sh" "$work/packman-dist"
+composer config repositories.packman artifact "$work/packman-dist"
 composer config repositories.azguard artifact "$work/dist"
 composer require axiomasoft/azguard:2.0.0 --no-interaction --no-progress
 composer require --dev laravel/octane:2.24.0 spiral/roadrunner-cli:2.7.1 spiral/roadrunner-http:3.6.0 \

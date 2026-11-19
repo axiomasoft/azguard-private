@@ -3,7 +3,7 @@
 # application, the way a consumer receives them (no path repositories, no symlinks),
 # then install its schema and test real HTTP requests and RefreshDatabase grants/cache.
 #
-#   bash bin/consumer-fixture.sh [core-only|relocated-audit] [--laravel=13] [--version=1.0.0] [--with-filament] [--keep]
+#   bash bin/consumer-fixture.sh [core-only|relocated-audit] [--laravel=13] [--version=2.0.0] [--with-filament] [--keep]
 #                                [--report=FILE] [--source=archive|packagist]
 #
 # `--source=packagist --version=V` installs the published packages from Packagist instead of the archives built from this
@@ -11,25 +11,23 @@
 # It needs `--version`, does not build or consume build/dist, and does not combine with core-only or relocated-audit,
 # which repackage the archive.
 #
-# `core-only` builds the core archive WITHOUT its modules/ directory (providers and PSR-4 reduced to core), installs it
-# and proves that the application boots, migrates, passes the doctor, grants a role and answers a check with no module.
+# `core-only` installs the unmodified core archive alone and exercises the schema, doctor, grants and HTTP checks.
 #
-# `relocated-audit` rehearses a future extraction of the Audit module into its own package: an application with an audited panel and
-# journal rows, installed from the full core archive, switches to a core archive without modules/audit plus a synthetic
-# `axiomasoft/azguard-audit` archive with the same PSR-4 prefix and provider, and keeps FQCNs, commands, publish tag,
-# migration basename, doctor result and journal rows with one autoload owner. `--report=FILE` writes the record.
+# `relocated-audit` recreates the former embedded Audit layout in the starting archive, seeds its journal,
+# then upgrades to the real standalone Audit package. It verifies the same migration, provider, commands and rows.
 #
 # Exit codes: 0 success, 1 failure, 3 Packagist unreachable (result is `unavailable`, never green).
 # Writes only to build/ in the repository and to a temporary directory.
 set -euo pipefail
 
-root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+checkout="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+root="$checkout"
 dist="${root}/build/dist"
 policy="latest"
 evidence_dir=""
 
 laravel="13"
-version="1.0.0"
+version="2.0.0"
 with_filament=0
 keep=0
 mode="full"
@@ -114,33 +112,41 @@ check_network() {
     fi
 }
 
+set_archive_version() {
+    php -r '
+        $file = $argv[1];
+        $manifest = json_decode(file_get_contents($file), true, flags: JSON_THROW_ON_ERROR);
+        $manifest["version"] = $argv[2];
+        file_put_contents($file, json_encode($manifest, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR)."\n");
+    ' "$1" "$2"
+}
+
 # Archives are built from COPIES: the version is set only in the copy, never in the source composer.json.
 build_archives() {
     mkdir -p "${dist}"
     find "${dist}" -maxdepth 1 -type f -name 'axiomasoft-*.zip' -delete
 
-    local package copy packages=(core)
-    if ((with_filament)); then
-        packages+=(filament)
-    fi
-    for package in "${packages[@]}"; do
+    local package copy
+    for package in "${archive_packages[@]}"; do
         copy="${work}/pkg-${package}"
         cp -a "${root}/packages/${package}" "${copy}"
         rm -rf "${copy}/.github"
-        # The core-only archive has no module roots: the directory is gone, the providers and PSR-4 roots of the modules too.
-        if [[ "${mode}" == "core-only" ]]; then
-            rm -rf "${copy}/modules"
+        if [[ "${mode}" == relocated-audit && "${package}" == core ]]; then
+            # Recreate the former embedded layout from the standalone sources only for the initial install.
+            mkdir -p "${copy}/modules"
+            cp -a "${root}/packages/audit" "${copy}/modules/audit"
+            php -r '
+                $file = $argv[1];
+                $core = json_decode(file_get_contents($file), true, flags: JSON_THROW_ON_ERROR);
+                $audit = json_decode(file_get_contents(dirname($file)."/modules/audit/composer.json"), true, flags: JSON_THROW_ON_ERROR);
+                foreach ($audit["autoload"]["psr-4"] as $prefix => $path) {
+                    $core["autoload"]["psr-4"][$prefix] = "modules/audit/".$path;
+                }
+                array_push($core["extra"]["laravel"]["providers"], ...$audit["extra"]["laravel"]["providers"]);
+                file_put_contents($file, json_encode($core, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR)."\n");
+            ' "${copy}/composer.json"
         fi
-        php -r '
-            $file = $argv[1];
-            $json = json_decode(file_get_contents($file), true, 512, JSON_THROW_ON_ERROR);
-            $json["version"] = $argv[2];
-            if ($argv[3] === "core-only") {
-                $json["autoload"]["psr-4"] = ["AzGuard\\" => "src/"];
-                $json["extra"]["laravel"]["providers"] = ["AzGuard\\AzGuardServiceProvider"];
-            }
-            file_put_contents($file, json_encode($json, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE)."\n");
-        ' "${copy}/composer.json" "${version}" "${mode}"
+        set_archive_version "${copy}/composer.json" "${version}"
         composer archive --format=zip --dir="${dist}" --working-dir="${copy}" --no-interaction >/dev/null
     done
 
@@ -189,10 +195,7 @@ create_app() {
 }
 
 install_archives() {
-    local packages=("axiomasoft/azguard:${version}")
-    if ((with_filament)); then
-        packages+=("axiomasoft/azguard-filament:${version}")
-    fi
+    local package packages=("axiomasoft/azguard:${version}")
 
     cd "${work}/app"
     if [[ "${source}" == "packagist" ]]; then
@@ -207,7 +210,12 @@ install_archives() {
     fi
     composer config minimum-stability dev
     composer config prefer-stable true
+    bash "$checkout/bin/packman-consumer-archives.sh" "$work/packman-dist"
+    composer config repositories.packman artifact "$work/packman-dist"
     composer config repositories.azguard artifact "${dist}"
+    for package in "${archive_packages[@]}"; do
+        [[ "$package" == core ]] || packages+=("axiomasoft/azguard-$package:${version}")
+    done
 
     log "requiring from the artifact repository: ${packages[*]}"
     composer require "${packages[@]}" --no-update --no-interaction
@@ -357,7 +365,7 @@ http_step() {
 
     log "Install: bigint host keys, sqlite connection and pre-existing config cache on Laravel ${laravel}"
     php artisan config:cache --no-interaction
-    if [[ "${mode}" == core-only ]]; then
+    if [[ "${mode}" == core-only || "${source}" == packagist ]]; then
         # DevTools supplies azguard:install and is deliberately absent here.
         php -r '$s=file_get_contents("vendor/axiomasoft/azguard/config/azguard.php"); $s=str_replace("\x27ids\x27 => [\x27host_keys\x27 => \x27string\x27]", "\x27ids\x27 => [\x27host_keys\x27 => \x27bigint\x27]", $s, $count); if ($count !== 1) exit(1); file_put_contents("config/azguard.php",$s);'
         php artisan config:clear --no-interaction
@@ -402,53 +410,27 @@ core_only_step() {
     log "core-only OK"
 }
 
-# The relocated archives: the core archive without modules/audit (its PSR-4 root and provider removed, as core-only does
-# for every module) and a synthetic axiomasoft/azguard-audit archive whose root is modules/audit with the same prefix and
-# provider. They carry the next patch version: a relocation is a release, and Composer replaces a package only for
-# another version.
+# Upgrade to the current standalone package manifests and sources at the next fixture version.
 build_relocated_archives() {
     local relocated="$1" target="$2"
     mkdir -p "${target}"
     find "${target}" -maxdepth 1 -type f -name 'axiomasoft-*.zip' -delete
 
-    local core="${work}/relocated-core" audit="${work}/relocated-audit"
-    cp -a "${root}/packages/core" "${core}"
-    rm -rf "${core}/.github"
-    rm -rf "${core}/modules/audit"
-    mkdir -p "${audit}"
-    cp -a "${root}/packages/audit/." "${audit}/"
-    cp "${root}/packages/core/LICENSE" "${audit}/LICENSE"
-
-    php -r '
-        $core = $argv[1];
-        $json = json_decode(file_get_contents($core), true, 512, JSON_THROW_ON_ERROR);
-        $json["version"] = $argv[3];
-        unset($json["autoload"]["psr-4"]["AzGuard\\Audit\\"]);
-        $json["extra"]["laravel"]["providers"] = array_values(array_diff($json["extra"]["laravel"]["providers"], ["AzGuard\\Audit\\AuditServiceProvider"]));
-        file_put_contents($core, json_encode($json, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE)."\n");
-
-        $audit = [
-            "name" => "axiomasoft/azguard-audit",
-            "description" => "Relocation rehearsal of the AzGuard Audit module (never published)",
-            "type" => "library",
-            "license" => "MIT",
-            "version" => $argv[3],
-            "require" => ["axiomasoft/azguard" => $argv[3]],
-            "autoload" => ["psr-4" => ["AzGuard\\Audit\\" => "src/"]],
-            "extra" => ["laravel" => ["providers" => ["AzGuard\\Audit\\AuditServiceProvider"]]],
-        ];
-        file_put_contents($argv[2], json_encode($audit, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE)."\n");
-    ' "${core}/composer.json" "${audit}/composer.json" "${relocated}"
-
-    composer archive --format=zip --dir="${target}" --working-dir="${core}" --no-interaction >/dev/null
-    composer archive --format=zip --dir="${target}" --working-dir="${audit}" --no-interaction >/dev/null
+    local package copy
+    for package in core audit; do
+        copy="${work}/relocated-${package}"
+        cp -a "${root}/packages/${package}" "${copy}"
+        rm -rf "${copy}/.github"
+        set_archive_version "${copy}/composer.json" "${relocated}"
+        composer archive --format=zip --dir="${target}" --working-dir="${copy}" --no-interaction >/dev/null
+    done
     validate_archives "${target}"
     if [[ -n "${evidence_dir}" ]]; then
         cp "${target}"/*.zip "${evidence_dir}/"
         (cd "${evidence_dir}" && sha256sum ./*.zip >archives.sha256)
-        for core in "${target}"/*.zip; do
-            unzip -Z1 "${core}" >"${evidence_dir}/$(basename "${core}").list"
-            unzip -p "${core}" composer.json >"${evidence_dir}/$(basename "${core}").manifest.json"
+        for copy in "${target}"/*.zip; do
+            unzip -Z1 "${copy}" >"${evidence_dir}/$(basename "${copy}").list"
+            unzip -p "${copy}" composer.json >"${evidence_dir}/$(basename "${copy}").manifest.json"
         done
     fi
     log "relocated archives in ${target}:"
@@ -512,7 +494,6 @@ relocated_audit_step() {
 
     log "relocated-audit: relocate — core ${relocated} without modules/audit + axiomasoft/azguard-audit ${relocated}"
     build_relocated_archives "${relocated}" "${work}/dist-relocated"
-    composer config --unset repositories.azguard
     composer config repositories.azguard-relocated artifact "${work}/dist-relocated"
     local flags=(--prefer-stable)
     [[ "${policy}" == lowest ]] && flags+=(--prefer-lowest)
@@ -652,6 +633,12 @@ filament_step() {
 
 check_network
 if [[ "${source}" == "archive" ]]; then
+    archive_packages=(core)
+    if [[ "${mode}" != core-only ]]; then
+        archive_packages+=(devtools scopes)
+        [[ "${mode}" == relocated-audit ]] || archive_packages+=(audit)
+    fi
+    if ((with_filament)); then archive_packages+=(filament); fi
     build_archives
 fi
 create_app
