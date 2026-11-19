@@ -7,10 +7,10 @@ use AzGuard\Tests\Arch\Ownership;
 use AzGuard\Tests\Arch\SourceScan;
 
 /*
- * Every production FQCN under packages/<name>/src and
- * packages/core/modules/<module>/src has exactly one PSR-4 owner among the `autoload` entries of packages/<name>/composer.json,
- * the authoritative classmap built from the sources has no type declared in two files, and `src/Scopes`, `src/Audit`,
- * `src/DevTools` and `src/Plugins/Audit` are reported. Any violation fails. The optimized-autoload run is the consumer job of CI.
+ * Every production FQCN under `packages/<name>/src` has exactly one PSR-4 owner among the `autoload` entries of
+ * `packages/<name>/composer.json`, the authoritative classmap built from the sources has no type declared in two files,
+ * and `src/Scopes`, `src/Audit`, `src/DevTools` and `src/Plugins/Audit` are reported. Any violation fails. The
+ * optimized-autoload run is the consumer job of CI.
  */
 
 /**
@@ -82,10 +82,11 @@ it('reports a type whose declared namespace is not the one of its file', functio
 
 it('accepts a type that exactly one PSR-4 entry loads, in core, in a module root and in a sibling package', function (): void {
     expect(autoloadScanOf([
-        'packages/core/composer.json' => autoloadComposer(['AzGuard\\' => 'src/', 'AzGuard\\Audit\\' => 'modules/audit/src/']),
+        'packages/core/composer.json' => autoloadComposer(['AzGuard\\' => 'src/']),
+        'packages/audit/composer.json' => autoloadComposer(['AzGuard\\Audit\\' => 'src/']),
         'packages/filament/composer.json' => autoloadComposer(['AzGuard\\Filament\\' => 'src/']),
         'packages/core/src/Panels/Panel.php' => autoloadClass('AzGuard\Panels', 'Panel'),
-        'packages/core/modules/audit/src/AuditPlugin.php' => autoloadClass('AzGuard\Audit', 'AuditPlugin'),
+        'packages/audit/src/AuditPlugin.php' => autoloadClass('AzGuard\Audit', 'AuditPlugin'),
         'packages/filament/src/Page.php' => autoloadClass('AzGuard\Filament', 'Page'),
     ]))->toBe([]);
 });
@@ -93,10 +94,10 @@ it('accepts a type that exactly one PSR-4 entry loads, in core, in a module root
 it('reports a type no entry loads: a module root nobody declared and a file in the wrong directory', function (): void {
     expect(autoloadScanOf([
         'packages/core/composer.json' => autoloadComposer(['AzGuard\\' => 'src/']),
-        'packages/core/modules/audit/src/AuditPlugin.php' => autoloadClass('AzGuard\Audit', 'AuditPlugin'),
+        'packages/audit/src/AuditPlugin.php' => autoloadClass('AzGuard\Audit', 'AuditPlugin'),
         'packages/core/src/Panels/Elsewhere.php' => autoloadClass('AzGuard\Catalog', 'Elsewhere'),
     ]))->toBe([
-        'no-owner packages/core/modules/audit/src/AuditPlugin.php AzGuard\Audit\AuditPlugin',
+        'no-owner packages/audit/src/AuditPlugin.php AzGuard\Audit\AuditPlugin',
         'no-owner packages/core/src/Panels/Elsewhere.php AzGuard\Catalog\Elsewhere',
     ]);
 });
@@ -112,13 +113,14 @@ it('reports a type that two entries load', function (): void {
 
 it('reports a type declared in two files, once, and not a conditional declaration in one file', function (): void {
     expect(autoloadScanOf([
-        'packages/core/composer.json' => autoloadComposer(['AzGuard\\' => 'src/', 'AzGuard\\Audit\\' => 'modules/audit/src/']),
+        'packages/core/composer.json' => autoloadComposer(['AzGuard\\' => 'src/']),
+        'packages/audit/composer.json' => autoloadComposer(['AzGuard\\Audit\\' => 'src/']),
         'packages/core/src/Audit/AuditPlugin.php' => autoloadClass('AzGuard\Audit', 'AuditPlugin'),
-        'packages/core/modules/audit/src/AuditPlugin.php' => autoloadClass('AzGuard\Audit', 'AuditPlugin'),
+        'packages/audit/src/AuditPlugin.php' => autoloadClass('AzGuard\Audit', 'AuditPlugin'),
         'packages/core/src/Panels/Twin.php' => "<?php\nnamespace AzGuard\\Panels;\nif (true) { final class Twin {} } else { final class Twin {} }\n",
     ]))->toBe([
         'directory packages/core/src/Audit Audit',
-        'duplicate-class packages/core/modules/audit/src/AuditPlugin.php AzGuard\Audit\AuditPlugin',
+        'duplicate-class packages/audit/src/AuditPlugin.php AzGuard\Audit\AuditPlugin',
     ]);
 });
 

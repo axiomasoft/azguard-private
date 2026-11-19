@@ -1,0 +1,67 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "title": "axiomasoft/azguard-filament configuration",
+    "type": "object",
+    "properties": {
+        "azguard-filament": {
+            "type": "object",
+            "properties": {
+                "abilities": {
+                    "type": "array"
+                },
+                "authority": {
+                    "type": "string",
+                    "default": "grants"
+                },
+                "definitions": {
+                    "type": "string",
+                    "default": "enums"
+                },
+                "enforce": {
+                    "type": "boolean",
+                    "default": true
+                },
+                "exclude": {
+                    "type": "object",
+                    "properties": {
+                        "pages": {
+                            "type": [
+                                "array",
+                                "object"
+                            ]
+                        },
+                        "resources": {
+                            "type": [
+                                "array",
+                                "object"
+                            ]
+                        },
+                        "widgets": {
+                            "type": [
+                                "array",
+                                "object"
+                            ]
+                        }
+                    },
+                    "additionalProperties": false
+                },
+                "guard_panel": {
+                    "type": [
+                        "string",
+                        "null"
+                    ],
+                    "default": null
+                },
+                "manages": {
+                    "type": [
+                        "array",
+                        "null"
+                    ],
+                    "default": null
+                }
+            },
+            "additionalProperties": false
+        }
+    },
+    "additionalProperties": false
+}

@@ -24,9 +24,9 @@ final class HookProbe
     use RunsAsAProbe;
 
     /**
-     * @param  Closure(): (BeforeHook|class-string<BeforeHook>|Closure|null)  $hook
-     * @param  Closure(): (ChangePipe|class-string<ChangePipe>|Closure|null)  $pipe
-     * @param  Closure(): (AfterHook|class-string<AfterHook>|Closure|null)|null  $after
+     * @param  Closure(): (BeforeHook|class-string<BeforeHook>|Closure(AccessRequest, EvaluationContext): BeforeResult|null)  $hook
+     * @param  Closure(): (ChangePipe|class-string<ChangePipe>|Closure(Change, Closure(Change): ChangeResult): ChangeResult|null)  $pipe
+     * @param  Closure(): (AfterHook|class-string<AfterHook>|Closure(AccessRequest, EvaluationContext, Decision): void|null)|null  $after
      */
     public function __construct(private readonly Closure $hook, private readonly Closure $pipe, private readonly ?Closure $after = null) {}
 

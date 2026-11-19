@@ -7,10 +7,12 @@ namespace AzGuard\Laravel\Internal\Console\Commands;
 use AzGuard\Changes\ChangeResult;
 use AzGuard\Laravel\Internal\Console\GrantCommandSupport;
 use Illuminate\Console\Command;
+use Packman\Attributes\Internal;
 
 /**
  * Grants a role to a subject through the change pipeline, as the system actor `azguard:roles:grant`.
  */
+#[Internal]
 final class RolesGrantCommand extends Command
 {
     use GrantCommandSupport;

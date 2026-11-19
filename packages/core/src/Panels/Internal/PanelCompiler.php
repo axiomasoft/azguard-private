@@ -22,11 +22,11 @@ use AzGuard\Contracts\Scopes\AssignmentScopeEvaluator;
 use AzGuard\Contracts\Scopes\AssignmentScopeResolver;
 use AzGuard\Contracts\Scopes\ResourceScopeResolver;
 use AzGuard\Contracts\Tenancy\TenantResolver;
-use AzGuard\Exceptions\DefaultPanelConflictException;
-use AzGuard\Exceptions\DefinitionException;
-use AzGuard\Exceptions\InvalidConfigurationException;
-use AzGuard\Exceptions\PluginConflictException;
-use AzGuard\Exceptions\PrefixConflictException;
+use AzGuard\Exceptions\Configuration\InvalidConfigurationException;
+use AzGuard\Exceptions\Definitions\DefaultPanelConflictException;
+use AzGuard\Exceptions\Definitions\DefinitionException;
+use AzGuard\Exceptions\Definitions\PrefixConflictException;
+use AzGuard\Exceptions\Plugins\PluginConflictException;
 use AzGuard\Kernel\Identity\IdentityCodec;
 use AzGuard\Panels\Panel;
 use AzGuard\Panels\PanelBuilder;
@@ -44,6 +44,7 @@ use BackedEnum;
 use Closure;
 use Illuminate\Contracts\Container\Container;
 use Illuminate\Database\Eloquent\Model;
+use Packman\Attributes\Internal;
 use ReflectionClass;
 use ReflectionFunction;
 use ReflectionIntersectionType;
@@ -68,6 +69,7 @@ use UnitEnum;
  *
  * @phpstan-type Resolved array{value: mixed, origin: string}
  */
+#[Internal]
 final class PanelCompiler
 {
     private const string PLUGIN_ID = '/\A[a-z0-9][a-z0-9_.-]*(\/[a-z0-9][a-z0-9_.-]*)?\z/';
@@ -343,6 +345,8 @@ final class PanelCompiler
     }
 
     /**
+     * @return (Closure(mixed...): mixed)|string|null
+     *
      * @throws PluginConflictException
      */
     private function deniedResponse(PanelRecipe $recipe): Closure|string|null
@@ -607,7 +611,7 @@ final class PanelCompiler
     /** @param object|class-string|null $adapter */
     private function membership(object|string|null $adapter, ?Container $container, string $check, string $kind): void
     {
-        if (is_string($adapter) && ! ($container?->bound($adapter) ?? false) && ! (new ReflectionClass($adapter))->isInstantiable()) {
+        if (is_string($adapter) && ! ($container?->bound($adapter) ?? false) && ! new ReflectionClass($adapter)->isInstantiable()) {
             throw InvalidConfigurationException::failing($check, $kind.' membership adapter '.$adapter.' has no container binding: bind it or name a class that can be created.');
         }
     }
@@ -628,7 +632,7 @@ final class PanelCompiler
                 throw new DefinitionException('Panel '.$recipe->panelId().' requires resource models and authoritative resource scope resolvers.');
             }
 
-            if (isset($compiled[$resource]) && $compiled[$resource] != $resolver) {
+            if (isset($compiled[$resource]) && ! self::sameValue($compiled[$resource], $resolver)) {
                 throw new DefinitionException('Panel '.$recipe->panelId().' declares conflicting resource scope resolvers for '.$resource.'.');
             }
             $compiled[$resource] = $resolver;
@@ -645,7 +649,7 @@ final class PanelCompiler
      *
      * @param  class-string<T>  $contract
      * @param  non-empty-string  $method  the one method of the contract a closure stands for
-     * @return list<T|class-string<T>|Closure>
+     * @return list<T|class-string<T>|Closure(mixed...): mixed>
      *
      * @throws DefinitionException
      */
@@ -920,7 +924,8 @@ final class PanelCompiler
 
         foreach ($catalogs as $catalog) {
             foreach ($prefixes as $prefix => $owner) {
-                $name = $catalog->nameWithFirstSegment((string) $prefix);
+                $prefix = strval($prefix);
+                $name = $catalog->nameWithFirstSegment($prefix);
 
                 if ($name !== null) {
                     throw new PrefixConflictException(
@@ -987,7 +992,7 @@ final class PanelCompiler
             return;
         }
 
-        if ((new ReflectionClass($plugin))->isAnonymous() || ! str_starts_with($plugin::class, 'AzGuard\\')) {
+        if (new ReflectionClass($plugin)->isAnonymous() || ! str_starts_with($plugin::class, 'AzGuard\\')) {
             throw new PluginConflictException(
                 'Panel "'.$panel.'": '.$plugin::class.' has the plugin id "'.$id.'", but the prefix "azguard/" is reserved for plugins of the package; use your own vendor name.',
             );
@@ -1040,7 +1045,7 @@ final class PanelCompiler
 
         foreach ($byPlugin as $plugin => $value) {
             $same = ($value instanceof TenantPolicy || (is_object($value) && ! $value instanceof Closure))
-                ? $value == $byPlugin[$first]
+                ? self::sameValue($value, $byPlugin[$first])
                 : $value === $byPlugin[$first];
 
             if (! $same) {
@@ -1092,6 +1097,7 @@ final class PanelCompiler
      * parameters, each declared with a type that accepts what the contract passes, and a declared return type that the
      * contract accepts. A closure that passes is called positionally, never by parameter name.
      *
+     * @param  Closure(mixed...): mixed  $closure
      * @param  class-string  $contract
      * @return string|null what does not match, or null when the closure fits the method
      */
@@ -1153,22 +1159,10 @@ final class PanelCompiler
     private static function slotAccepts(ReflectionType $declared, string $passed): bool
     {
         if ($declared instanceof ReflectionIntersectionType) {
-            foreach ($declared->getTypes() as $member) {
-                if (! self::slotAccepts($member, $passed)) {
-                    return false;
-                }
-            }
-
-            return true;
+            return array_all($declared->getTypes(), fn (ReflectionType $member): bool => self::slotAccepts($member, $passed));
         }
 
-        foreach (self::slotMembers($declared) as $member) {
-            if (self::slotSubtype($passed, $member)) {
-                return true;
-            }
-        }
-
-        return false;
+        return array_any(self::slotMembers($declared), fn (string $member): bool => self::slotSubtype($passed, $member));
     }
 
     /** @return list<string> */
@@ -1226,5 +1220,43 @@ final class PanelCompiler
         }
 
         return null;
+    }
+
+    private static function sameValue(mixed $left, mixed $right): bool
+    {
+        if ($left === $right) {
+            return true;
+        }
+
+        if (is_array($left) && is_array($right)) {
+            if (array_keys($left) !== array_keys($right)) {
+                return false;
+            }
+
+            return array_all($left, fn ($value, $key): bool => self::sameValue($value, $right[$key]));
+        }
+
+        if (! is_object($left) || ! is_object($right) || $left::class !== $right::class || $left instanceof Closure) {
+            return false;
+        }
+
+        $reflection = new ReflectionClass($left);
+        while ($reflection !== false) {
+            foreach ($reflection->getProperties() as $property) {
+                $leftInit = $property->isInitialized($left);
+                $rightInit = $property->isInitialized($right);
+
+                if ($leftInit !== $rightInit) {
+                    return false;
+                }
+
+                if ($leftInit && ! self::sameValue($property->getValue($left), $property->getValue($right))) {
+                    return false;
+                }
+            }
+            $reflection = $reflection->getParentClass();
+        }
+
+        return true;
     }
 }

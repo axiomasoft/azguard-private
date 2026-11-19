@@ -4,14 +4,16 @@ declare(strict_types=1);
 
 namespace AzGuard\Storage\Internal;
 
-use AzGuard\Exceptions\UnknownPanelException;
-use AzGuard\Exceptions\UnsupportedDirectWriteException;
+use AzGuard\Exceptions\Definitions\UnknownPanelException;
+use AzGuard\Exceptions\Storage\UnsupportedDirectWriteException;
 use AzGuard\Kernel\Identity\IdentityCodec;
 use AzGuard\Kernel\Identity\SubjectRef;
 use AzGuard\Storage\Internal\Schema\HostKeyColumns;
 use Closure;
 use Illuminate\Database\Query\Builder;
+use Packman\Attributes\Internal;
 
+#[Internal]
 final class StorageMutation
 {
     private bool $active = true;

@@ -7,11 +7,13 @@ namespace AzGuard\Laravel\Internal\Console\Commands;
 use AzGuard\Changes\ChangeResult;
 use AzGuard\Laravel\Internal\Console\GrantCommandSupport;
 use Illuminate\Console\Command;
+use Packman\Attributes\Internal;
 
 /**
  * Revokes the stored grants of a permission or pattern of a subject in one scope and origin through the change
  * pipeline, as the system actor `azguard:permissions:revoke`.
  */
+#[Internal]
 final class PermissionsRevokeCommand extends Command
 {
     use GrantCommandSupport;

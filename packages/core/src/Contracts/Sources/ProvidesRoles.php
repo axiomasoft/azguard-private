@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace AzGuard\Contracts\Sources;
 
-use AzGuard\Attributes\Spi;
-use AzGuard\Attributes\SpiKind;
 use AzGuard\Panels\Panel;
 use AzGuard\Roles\BaseRole;
+use Packman\Attributes\Spi;
+use Packman\Attributes\SpiKind;
 
 /**
  * A source of code roles of a panel; it describes roles and never assigns them.

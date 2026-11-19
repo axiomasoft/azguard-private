@@ -4,9 +4,10 @@ declare(strict_types=1);
 
 namespace AzGuard\Schema;
 
-use AzGuard\Attributes\Api;
 use AzGuard\Kernel\Identity\TenantRef;
 use JsonSerializable;
+use Packman\Attributes\Api;
+use Packman\Attributes\Internal;
 
 /**
  * What a panel offers to an interface for one tenant: permissions with the dynamic ones of that tenant, code roles,
@@ -19,8 +20,6 @@ use JsonSerializable;
 final readonly class PanelSchema implements JsonSerializable
 {
     /**
-     * @internal built by the schema builder
-     *
      * @param  list<PermissionSchema>  $permissions  sorted by full name
      * @param  list<RoleSchema>  $roles  sorted by key
      * @param  array<string, list<FieldSchema>>  $fields  by `FieldTarget` value, each sorted by name
@@ -28,6 +27,7 @@ final readonly class PanelSchema implements JsonSerializable
      * @param  list<AssignmentScopeTypeSchema>  $scopes  sorted by type
      * @param  list<SubjectTypeSchema>  $subjects  in declaration order
      */
+    #[Internal('built by the schema builder')]
     public function __construct(
         public string $panel,
         public string $label,

@@ -6,7 +6,7 @@ namespace AzGuardBench\Load\Profiles;
 
 use AzGuard\Authorization\Internal\Authorizer;
 use AzGuard\Authorization\Visibility;
-use AzGuard\Exceptions\VisibilityNotSupportedException;
+use AzGuard\Exceptions\Authorization\VisibilityNotSupportedException;
 use AzGuard\Kernel\Decision\Grant;
 use AzGuard\Panels\Internal\PanelRegistry;
 use AzGuard\Panels\Panel;
@@ -85,8 +85,9 @@ final class VisibilityBranches extends BaseProfile
         if ($this->visibility === null || $this->panel === null) {
             throw new RuntimeException('Visibility benchmark was not prepared.');
         }
-        $query = VisibilityProject::query()->whereIn('id', [1, 4]);
-        $original = $query->toSql();
+        $query = VisibilityProject::query();
+        $query->getQuery()->whereIn('id', [1, 4]);
+        $original = $query->toBase()->toSql();
 
         try {
             $visible = $this->visibility->visibleTo($this->panel, $query, VisibilityWorld::subject(), 'orders.view');
@@ -94,13 +95,17 @@ final class VisibilityBranches extends BaseProfile
             if ($stage->name === 'branches-10000') {
                 throw new RuntimeException('Over-budget visibility was accepted.');
             }
-            $ids = $visible->orderBy('id')->pluck('id')->all();
+            $visible->getQuery()->orderBy('id');
+            $ids = $visible->pluck('id')->all();
 
             if ($ids !== [1, 4]) {
                 throw new RuntimeException('Visibility returned incorrect rows.');
             }
-            $page = $this->visibility->visibleTo($this->panel, VisibilityProject::query()->whereIn('id', [1, 4]), VisibilityWorld::subject(), 'orders.view')
-                ->orderBy('id')->paginate(1, ['*'], 'page', 1);
+            $second = VisibilityProject::query();
+            $second->getQuery()->whereIn('id', [1, 4]);
+            $paged = $this->visibility->visibleTo($this->panel, $second, VisibilityWorld::subject(), 'orders.view');
+            $paged->getQuery()->orderBy('id');
+            $page = $paged->paginate(1, ['*'], 'page', 1);
 
             $first = $page->items()[0] ?? null;
 
@@ -110,7 +115,7 @@ final class VisibilityBranches extends BaseProfile
 
             return 'visible';
         } catch (VisibilityNotSupportedException $exception) {
-            if ($stage->name !== 'branches-10000' || ! str_contains($exception->getMessage(), 'selection_budget') || $query->toSql() !== $original) {
+            if ($stage->name !== 'branches-10000' || ! str_contains($exception->getMessage(), 'selection_budget') || $query->toBase()->toSql() !== $original) {
                 throw $exception;
             }
 

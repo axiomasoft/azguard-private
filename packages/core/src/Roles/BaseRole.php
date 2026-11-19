@@ -4,15 +4,15 @@ declare(strict_types=1);
 
 namespace AzGuard\Roles;
 
-use AzGuard\Attributes\Spi;
-use AzGuard\Attributes\SpiKind;
 use AzGuard\Contracts\Scopes\AssignmentScopeDefinition;
-use AzGuard\Exceptions\InvalidRoleKeyException;
+use AzGuard\Exceptions\Identity\InvalidRoleKeyException;
 use AzGuard\Kernel\Grammar\PermissionGrammar;
 use AzGuard\Roles\Attributes\FormerKeys;
 use AzGuard\Roles\Attributes\NotGrantable;
 use AzGuard\Roles\Attributes\Role;
 use AzGuard\Roles\Attributes\SuperAdmin;
+use Packman\Attributes\Spi;
+use Packman\Attributes\SpiKind;
 use ReflectionClass;
 use UnitEnum;
 

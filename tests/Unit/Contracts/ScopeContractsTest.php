@@ -13,7 +13,7 @@ use AzGuard\Contracts\Scopes\ResourceScopeResolver;
 use AzGuard\Contracts\Subjects\SubjectResolver;
 use AzGuard\Contracts\Tenancy\TenantMembership;
 use AzGuard\Contracts\Tenancy\TenantResolver;
-use AzGuard\Exceptions\InvalidIdentityException;
+use AzGuard\Exceptions\Identity\InvalidIdentityException;
 use AzGuard\Kernel\Identity\AssignmentScopeRef;
 use AzGuard\Kernel\Identity\IdentityCodec;
 use AzGuard\Kernel\Identity\TenantRef;
@@ -24,6 +24,7 @@ use AzGuard\Tests\Fixtures\Roles\AnalystRole;
 use AzGuard\Tests\Fixtures\Roles\SellerRole;
 use AzGuard\Tests\Modules\Scopes\Fixtures\Project;
 use AzGuard\Tests\Modules\Scopes\Fixtures\ProjectScope;
+use Packman\Attributes\Spi;
 
 /**
  * @return list<string> declared public methods as `name(Type $param = default): Return`
@@ -56,9 +57,18 @@ function scopeDefinition(AssignmentScopeDefinition|string $scope): AssignmentSco
 
 it('keeps the documented scope and subject contracts', function (string $contract, array $signatures): void {
     $reflection = new ReflectionClass($contract);
+    $publication = ApiUsage::publication($contract);
+
+    if ($publication === null && str_starts_with($contract, 'AzGuard\\Scopes\\')) {
+        $api = json_decode((string) file_get_contents(dirname(__DIR__, 3).'/packages/scopes/resources/contracts/php-api.json'), true, flags: JSON_THROW_ON_ERROR);
+        $spi = $reflection->getAttributes(Spi::class)[0] ?? null;
+        $publication = ($api['symbols'][$contract]['layer'] ?? null) === 'spi' && $spi !== null
+            ? 'spi-'.$spi->newInstance()->kind->value
+            : null;
+    }
 
     expect($reflection->isInterface())->toBeTrue()
-        ->and(ApiUsage::publication($contract))->toBe('spi-implement')
+        ->and($publication)->toBe('spi-implement')
         ->and(contractSignatures($contract))->toBe($signatures);
 })->with([
     'definition' => [AssignmentScopeDefinition::class, [

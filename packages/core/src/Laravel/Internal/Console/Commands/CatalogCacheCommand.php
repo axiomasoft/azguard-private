@@ -8,10 +8,12 @@ use AzGuard\Catalog\Internal\CatalogCache;
 use AzGuard\Laravel\Console\CommandSupport;
 use AzGuard\Panels\Internal\PanelRegistry;
 use Illuminate\Console\Command;
+use Packman\Attributes\Internal;
 
 /**
  * Builds the static catalogs of all panels from their sources and writes them to the catalog cache.
  */
+#[Internal]
 final class CatalogCacheCommand extends Command
 {
     use CommandSupport;

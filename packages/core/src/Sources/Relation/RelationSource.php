@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace AzGuard\Sources\Relation;
 
-use AzGuard\Attributes\Api;
 use AzGuard\Catalog\Internal\PanelCatalog;
 use AzGuard\Contracts\Authorization\EvaluationContext;
 use AzGuard\Contracts\Scopes\AssignmentScopeDefinition;
@@ -16,9 +15,9 @@ use AzGuard\Contracts\Sources\FiltersQueries;
 use AzGuard\Contracts\Sources\ProvidesRoleGrants;
 use AzGuard\Contracts\Sources\SourceDescription;
 use AzGuard\Contracts\Sources\Volatility;
-use AzGuard\Exceptions\DefinitionException;
-use AzGuard\Exceptions\InvalidSourceContributionException;
-use AzGuard\Exceptions\UnknownRoleException;
+use AzGuard\Exceptions\Authorization\InvalidSourceContributionException;
+use AzGuard\Exceptions\Changes\UnknownRoleException;
+use AzGuard\Exceptions\Definitions\DefinitionException;
 use AzGuard\Kernel\Decision\RoleContribution;
 use AzGuard\Kernel\Identity\AccessScope;
 use AzGuard\Kernel\Identity\AssignmentScopeRef;
@@ -37,6 +36,9 @@ use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\Relation;
+use InvalidArgumentException;
+use Packman\Attributes\Api;
+use Packman\Attributes\Internal;
 use Throwable;
 
 /**
@@ -49,6 +51,11 @@ final class RelationSource implements DescribesSchema, FiltersQueries, ProvidesR
 
     private ?string $panelId = null;
 
+    /**
+     * @param  class-string<Model>|AssignmentScopeDefinition  $model
+     * @param  string|Closure(Model): ?string  $role
+     * @param  (Closure(Builder<Model>): mixed)|null  $scope
+     */
     private function __construct(
         private readonly string|AssignmentScopeDefinition $model,
         private readonly string $via,
@@ -57,7 +64,7 @@ final class RelationSource implements DescribesSchema, FiltersQueries, ProvidesR
         private readonly ?string $name = null,
     ) {}
 
-    /** @param string|AssignmentScopeDefinition $model a model class registered by a panel scope, or its descriptor
+    /** @param class-string<Model>|AssignmentScopeDefinition $model a model class registered by a panel scope, or its descriptor
      * @param  string|Closure(Model): ?string  $role  static role, pivot.role or callback receiving the pivot/related model
      * @param  (Closure(Builder<Model>): mixed)|null  $scope  grouped narrowing of the related-root query
      * @param  string|null  $name  tells apart two sources of one scope type on a panel (`members` and `lead` of a project): the
@@ -68,9 +75,10 @@ final class RelationSource implements DescribesSchema, FiltersQueries, ProvidesR
         return new self($model, $via, $role, $scope, $name);
     }
 
-    /** @internal Binds the source to a queryable scope type the panel declares; the model-class shortcut picks it.
+    /**
      * @param  list<AssignmentScopeDefinition>  $definitions  the declared queryable definitions of the panel
      */
+    #[Internal('Binds the source to a queryable scope type the panel declares; the model-class shortcut picks it.')]
     public function bind(string $panel, array $definitions = []): void
     {
         if ($this->panelId !== null && $this->panelId !== $panel) {
@@ -109,9 +117,13 @@ final class RelationSource implements DescribesSchema, FiltersQueries, ProvidesR
         $this->panelId = $panel;
     }
 
-    /** @internal Validates against the final catalog, including a restored catalog cache. */
-    public function validateCatalog(PanelCatalog $catalog): void
+    #[Internal('Validates against the final catalog, including a restored catalog cache.')]
+    public function validateCatalog(object $catalog): void
     {
+        if (! $catalog instanceof PanelCatalog) {
+            throw new InvalidArgumentException('RelationSource catalog validation requires an internal PanelCatalog instance.');
+        }
+
         if (! is_string($this->role) || $this->role === 'pivot.role') {
             return;
         }
@@ -276,7 +288,7 @@ final class RelationSource implements DescribesSchema, FiltersQueries, ProvidesR
         // Bound roots before hydration/eager loading, including foreign-tenant and null-role rows.
         // A descriptor may narrow this further; exceeding the budget refuses the whole selection.
         $limit = $query->getQuery()->limit;
-        $query->limit($limit === null ? 10001 : min($limit, 10001));
+        $query->getQuery()->limit($limit === null ? 10001 : min($limit, 10001));
         $query->setEagerLoads([]);
         $records = $query->get();
 
@@ -286,7 +298,7 @@ final class RelationSource implements DescribesSchema, FiltersQueries, ProvidesR
         $records->load([$binding->via => function (Relation $membership) use ($subject): void {
             ModelKey::where($membership->getQuery(), $subject->id());
             $membership->getQuery()->setEagerLoads([]);
-            $membership->getQuery()->limit(10001);
+            $membership->getQuery()->getQuery()->limit(10001);
 
             if ($membership instanceof BelongsToMany && $this->role === 'pivot.role') {
                 $membership->withPivot('role');

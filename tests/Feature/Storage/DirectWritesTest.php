@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use AzGuard\Exceptions\UnsupportedDirectWriteException;
+use AzGuard\Exceptions\Storage\UnsupportedDirectWriteException;
 use AzGuard\Storage\Internal\ModelBinding;
 use AzGuard\Storage\Internal\Storage;
 use AzGuard\Storage\Internal\StorageMutation;

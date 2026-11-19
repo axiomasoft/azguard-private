@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-use AzGuard\Exceptions\ConfigurationException;
-use AzGuard\Exceptions\DuplicatePermissionException;
-use AzGuard\Exceptions\InvalidPolicyStructureException;
+use AzGuard\Exceptions\Configuration\ConfigurationException;
+use AzGuard\Exceptions\Definitions\DuplicatePermissionException;
+use AzGuard\Exceptions\Definitions\InvalidPolicyStructureException;
 use AzGuard\Facades\AzGuard;
 use AzGuard\Filament\AzGuardPlugin;
 use AzGuard\Filament\FilamentDefinitions;

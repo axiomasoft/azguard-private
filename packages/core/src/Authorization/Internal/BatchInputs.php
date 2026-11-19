@@ -22,12 +22,14 @@ use AzGuard\Sources\Internal\PanelSources;
 use AzGuard\Support\ModelKey;
 use Illuminate\Database\Eloquent\Model;
 use LogicException;
+use Packman\Attributes\Internal;
 use RuntimeException;
 use Throwable;
 
 /** @internal Fresh host inputs and eligibility witnesses of one batch attempt; never request memo.
  * @phpstan-import-type Attached from PanelSources
  */
+#[Internal]
 final class BatchInputs
 {
     /** @var array<string, Model|null|Throwable> */

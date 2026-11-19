@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace AzGuard\Filament\Resources;
 
-use AzGuard\Attributes\Api;
 use AzGuard\Filament\Concerns\AuthorizesResource;
 use AzGuard\Filament\Resources\RoleGrantResource\Pages\ListRoleGrants;
 use Filament\Resources\Resource;
+use Packman\Attributes\Api;
 use UnitEnum;
 
 /**

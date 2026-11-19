@@ -52,7 +52,7 @@
     "events": {
         "permission.created": {
             "case": "PermissionCreated",
-            "class": "AzGuard\\Events\\PermissionCreated",
+            "class": "AzGuard\\Events\\Permissions\\PermissionCreated",
             "envelope": [
                 "event_id",
                 "type",
@@ -92,7 +92,7 @@
         },
         "permission.updated": {
             "case": "PermissionUpdated",
-            "class": "AzGuard\\Events\\PermissionUpdated",
+            "class": "AzGuard\\Events\\Permissions\\PermissionUpdated",
             "envelope": [
                 "event_id",
                 "type",
@@ -132,7 +132,7 @@
         },
         "permission.deleted": {
             "case": "PermissionDeleted",
-            "class": "AzGuard\\Events\\PermissionDeleted",
+            "class": "AzGuard\\Events\\Permissions\\PermissionDeleted",
             "envelope": [
                 "event_id",
                 "type",
@@ -173,7 +173,7 @@
         },
         "role.granted": {
             "case": "RoleGranted",
-            "class": "AzGuard\\Events\\RoleGranted",
+            "class": "AzGuard\\Events\\Changes\\RoleGranted",
             "envelope": [
                 "event_id",
                 "type",
@@ -214,7 +214,7 @@
         },
         "role.revoked": {
             "case": "RoleRevoked",
-            "class": "AzGuard\\Events\\RoleRevoked",
+            "class": "AzGuard\\Events\\Changes\\RoleRevoked",
             "envelope": [
                 "event_id",
                 "type",
@@ -255,7 +255,7 @@
         },
         "role.grant_updated": {
             "case": "RoleGrantUpdated",
-            "class": "AzGuard\\Events\\RoleGrantUpdated",
+            "class": "AzGuard\\Events\\Changes\\RoleGrantUpdated",
             "envelope": [
                 "event_id",
                 "type",
@@ -297,7 +297,7 @@
         },
         "permission.granted": {
             "case": "PermissionGranted",
-            "class": "AzGuard\\Events\\PermissionGranted",
+            "class": "AzGuard\\Events\\Changes\\PermissionGranted",
             "envelope": [
                 "event_id",
                 "type",
@@ -338,7 +338,7 @@
         },
         "permission.revoked": {
             "case": "PermissionRevoked",
-            "class": "AzGuard\\Events\\PermissionRevoked",
+            "class": "AzGuard\\Events\\Changes\\PermissionRevoked",
             "envelope": [
                 "event_id",
                 "type",
@@ -379,7 +379,7 @@
         },
         "permission.grant_updated": {
             "case": "PermissionGrantUpdated",
-            "class": "AzGuard\\Events\\PermissionGrantUpdated",
+            "class": "AzGuard\\Events\\Changes\\PermissionGrantUpdated",
             "envelope": [
                 "event_id",
                 "type",
@@ -420,7 +420,7 @@
         },
         "grant.expired": {
             "case": "GrantExpired",
-            "class": "AzGuard\\Events\\GrantExpired",
+            "class": "AzGuard\\Events\\Changes\\GrantExpired",
             "envelope": [
                 "event_id",
                 "type",
@@ -462,7 +462,7 @@
         },
         "panel.touched": {
             "case": "PanelTouched",
-            "class": "AzGuard\\Events\\PanelStateTouched",
+            "class": "AzGuard\\Events\\Access\\PanelStateTouched",
             "envelope": [
                 "event_id",
                 "type",
@@ -499,7 +499,7 @@
         },
         "access.decided": {
             "case": "AccessDecided",
-            "class": "AzGuard\\Events\\AccessDecided",
+            "class": "AzGuard\\Events\\Access\\AccessDecided",
             "envelope": [
                 "event_id",
                 "type",

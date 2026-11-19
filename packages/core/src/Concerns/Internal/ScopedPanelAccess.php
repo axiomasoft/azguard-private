@@ -8,21 +8,21 @@ use AzGuard\Authorization\Internal\Authorizer;
 use AzGuard\Authorization\Visibility;
 use AzGuard\Changes\Internal\ChangePipeline;
 use AzGuard\Changes\Internal\PanelManagers;
-use AzGuard\Concerns\SubjectAccess;
+use AzGuard\Concerns\Subjects\SubjectAccess;
 use AzGuard\Context\Internal\CurrentContext;
 use AzGuard\Context\Internal\RequiredTenant;
 use AzGuard\Contracts\Catalog\PermissionCatalog;
 use AzGuard\Contracts\Changes\GrantManager;
 use AzGuard\Contracts\Changes\PermissionManager;
-use AzGuard\Contracts\PanelAccess;
+use AzGuard\Contracts\Panels\PanelAccess;
 use AzGuard\Contracts\Roles\RoleCatalog;
 use AzGuard\Contracts\Sources\FencesReads;
 use AzGuard\Directories\PanelDirectories;
-use AzGuard\Exceptions\ConflictingPanelException;
-use AzGuard\Exceptions\PanelNotWritableException;
-use AzGuard\Exceptions\SubjectNotAcceptedException;
-use AzGuard\Exceptions\TenantMismatchException;
-use AzGuard\Exceptions\TenantRequiredException;
+use AzGuard\Exceptions\Changes\PanelNotWritableException;
+use AzGuard\Exceptions\Changes\TenantMismatchException;
+use AzGuard\Exceptions\Changes\TenantRequiredException;
+use AzGuard\Exceptions\Definitions\ConflictingPanelException;
+use AzGuard\Exceptions\Definitions\SubjectNotAcceptedException;
 use AzGuard\Kernel\Decision\AccessRequest;
 use AzGuard\Kernel\Decision\Decision;
 use AzGuard\Kernel\Decision\DecisionSet;
@@ -39,6 +39,7 @@ use AzGuard\Schema\PanelSchema;
 use AzGuard\Tenancy\Internal\TenantIdentity;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Database\Eloquent\Model;
+use Packman\Attributes\Internal;
 
 /**
  * The panel access of `AzGuard::panel()`: the panel, the tenant and the origin are fixed in the constructor and
@@ -48,6 +49,7 @@ use Illuminate\Database\Eloquent\Model;
  * The tenant is the one given to `inTenant()`, otherwise the current tenant of the panel, otherwise the global tenant
  * of a panel without tenants; it is resolved at the call that needs it, never stored from the request.
  */
+#[Internal]
 final readonly class ScopedPanelAccess implements PanelAccess
 {
     /**

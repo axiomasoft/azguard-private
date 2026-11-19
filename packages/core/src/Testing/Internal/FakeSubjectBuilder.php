@@ -7,12 +7,14 @@ namespace AzGuard\Testing\Internal;
 use AzGuard\Testing\FakeSubject;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use Packman\Attributes\Internal;
 
 /**
  * @internal The query of {@see FakeSubject}: it finds the subject of the key it was asked for and reads no table.
  *
  * @extends Builder<FakeSubject>
  */
+#[Internal]
 final class FakeSubjectBuilder extends Builder
 {
     private int|string|null $key = null;
@@ -25,7 +27,7 @@ final class FakeSubjectBuilder extends Builder
         return $this;
     }
 
-    /** @param  array<int, string>|string  $columns */
+    /** @param  mixed  $columns */
     public function first($columns = ['*']): ?Model
     {
         return $this->key === null ? null : FakeSubject::of($this->key);

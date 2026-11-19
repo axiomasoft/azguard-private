@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace AzGuard\Filament\Internal\Exports;
 
 use AnourValar\EloquentSerialize\Facades\EloquentSerializeFacade;
-use AzGuard\Contracts\AzGuardSubject;
+use AzGuard\Contracts\Subjects\AzGuardSubject;
 use AzGuard\Facades\AzGuard;
 use AzGuard\Filament\Exports\AuthorizedExportCsv;
 use AzGuard\Filament\Exports\AuthorizedPrepareCsvExport;
@@ -16,6 +16,7 @@ use AzGuard\Kernel\Identity\TenantRef;
 use AzGuard\Panels\Reads;
 use AzGuard\Support\ModelKey;
 use Illuminate\Database\Eloquent\Model;
+use Packman\Attributes\Internal;
 use Throwable;
 
 /**
@@ -23,6 +24,7 @@ use Throwable;
  *
  * @internal
  */
+#[Internal]
 final class ChecksPrepareCsvExport extends AuthorizedPrepareCsvExport
 {
     public function handle(): void
@@ -39,7 +41,9 @@ final class ChecksPrepareCsvExport extends AuthorizedPrepareCsvExport
         try {
             $authority = $this->options[AuthorizedExportCsv::OPTION] ?? null;
             $panel = AzGuard::currentPanel();
-            $user = $this->export->user()->useWritePdo()->first();
+            $userQuery = $this->export->user();
+            $userQuery->getBaseQuery()->useWritePdo();
+            $user = $userQuery->getResults();
 
             if (! is_array($authority) || ! is_string($authority['panel'] ?? null) || $panel?->id() !== $authority['panel']
                 || ! is_string($authority['permission'] ?? null) || ! is_string($authority['model'] ?? null)
@@ -64,7 +68,8 @@ final class ChecksPrepareCsvExport extends AuthorizedPrepareCsvExport
             if (! $access->definition()->accepts($subject)) {
                 return false;
             }
-            $query = EloquentSerializeFacade::unserialize($this->query)->useWritePdo();
+            $query = EloquentSerializeFacade::unserialize($this->query);
+            $query->getQuery()->useWritePdo();
             $model = $query->getModel();
 
             if ($model::class !== $authority['model']) {

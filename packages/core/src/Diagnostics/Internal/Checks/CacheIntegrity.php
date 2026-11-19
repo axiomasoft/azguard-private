@@ -13,9 +13,11 @@ use AzGuard\Diagnostics\DoctorFinding;
 use AzGuard\Kernel\Internal\Narrow;
 use Illuminate\Contracts\Config\Repository;
 use Illuminate\Support\ConfigurationUrlParser;
+use Packman\Attributes\Internal;
 use Throwable;
 
 /** @internal Inspects configuration only; it never opens or writes to a cache. */
+#[Internal]
 final readonly class CacheIntegrity implements DoctorCheck
 {
     public function __construct(private Repository $config) {}
@@ -65,7 +67,8 @@ final readonly class CacheIntegrity implements DoctorCheck
                     : DoctorFinding::warning('cache.signing', $message, $scope);
             }
 
-            $connection = Narrow::string($this->config->get('cache.stores.'.$store.'.connection') ?: 'default', 'Redis cache connection');
+            $rawConnection = $this->config->get('cache.stores.'.$store.'.connection');
+            $connection = Narrow::string(is_string($rawConnection) && $rawConnection !== '' ? $rawConnection : 'default', 'Redis cache connection');
             $connectionConfig = $this->config->get('database.redis.'.$connection);
             $options = (array) $this->config->get('database.redis.options', []);
 
@@ -83,7 +86,8 @@ final readonly class CacheIntegrity implements DoctorCheck
             }
 
             if ($this->config->get('database.redis.client', 'phpredis') === 'phpredis'
-                && (($options['serializer'] ?? 0) != 0 || ($options['compression'] ?? 0) != 0)) {
+                && (! in_array($options['serializer'] ?? 0, [0, '0', false, null], true)
+                    || ! in_array($options['compression'] ?? 0, [0, '0', false, null], true))) {
                 yield DoctorFinding::warning('cache.transport', 'Configured Redis client serialization or compression disables shared permission sets; use a dedicated connection with both options disabled.', $scope);
             }
 

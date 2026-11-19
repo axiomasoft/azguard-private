@@ -10,7 +10,7 @@ use AzGuard\Changes\GrantFilter;
 use AzGuard\Changes\GrantPage;
 use AzGuard\Changes\GrantRecord;
 use AzGuard\Contracts\Changes\GrantManager;
-use AzGuard\Exceptions\PanelNotWritableException;
+use AzGuard\Exceptions\Changes\PanelNotWritableException;
 use AzGuard\Kernel\Identity\IdentityCodec;
 use AzGuard\Kernel\Identity\TenantRef;
 use AzGuard\Panels\Internal\PanelRegistry;
@@ -19,6 +19,7 @@ use AzGuard\Sources\Database\DatabaseSource;
 use Carbon\CarbonImmutable;
 use Illuminate\Contracts\Container\Container;
 use InvalidArgumentException;
+use Packman\Attributes\Internal;
 
 /**
  * The grants of one panel, tenant and origin. Reads go to the database writer of the panel, changes to the change
@@ -29,6 +30,7 @@ use InvalidArgumentException;
  *
  * @internal made by the panel managers
  */
+#[Internal]
 final readonly class ScopedGrantManager implements GrantManager
 {
     public function __construct(

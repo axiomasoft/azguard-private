@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 use AzGuard\Changes\Change;
-use AzGuard\Exceptions\UnsupportedDirectWriteException;
+use AzGuard\Exceptions\Storage\UnsupportedDirectWriteException;
 use AzGuard\Kernel\Identity\AccessScope;
 use AzGuard\Kernel\Identity\ActorRef;
 use AzGuard\Kernel\Identity\IdentityCodec;

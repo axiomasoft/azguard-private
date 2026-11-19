@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 use AzGuard\Authorization\Internal\Authorizer;
-use AzGuard\Events\AccessDecided;
+use AzGuard\Events\Access\AccessDecided;
 use AzGuard\Kernel\Decision\AccessRequest;
 use AzGuard\Kernel\Identity\ActorRef;
 use AzGuard\Kernel\Identity\PermissionKey;

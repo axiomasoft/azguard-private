@@ -4,7 +4,8 @@ declare(strict_types=1);
 
 namespace AzGuard\Changes;
 
-use AzGuard\Attributes\Api;
+use Packman\Attributes\Api;
+use Packman\Attributes\Internal;
 
 /**
  * What the writer did to one stored grant or dynamic permission, with the record before and after. `eventId`
@@ -14,7 +15,9 @@ use AzGuard\Attributes\Api;
 #[Api(since: '1.0')]
 final readonly class ChangeEffect
 {
-    /** @internal built by the writer */
+    /*
+ */
+    #[Internal('built by the writer')]
     public function __construct(
         public EffectKind $kind,
         public ChangeType $type,

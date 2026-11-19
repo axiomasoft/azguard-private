@@ -1,12 +1,6 @@
 {
     "types": [
         {
-            "fqcn": "AzGuard\\Attributes\\SpiKind",
-            "kinds": [
-                "enum"
-            ]
-        },
-        {
             "fqcn": "AzGuard\\Catalog\\Internal\\CacheState",
             "kinds": [
                 "enum"
@@ -55,13 +49,67 @@
             ]
         },
         {
-            "fqcn": "AzGuard\\Events\\AccessDecided",
+            "fqcn": "AzGuard\\Errors\\AzGuardErrorCode",
+            "kinds": [
+                "enum"
+            ]
+        },
+        {
+            "fqcn": "AzGuard\\Events\\AccessEvent",
             "kinds": [
                 "event"
             ]
         },
         {
-            "fqcn": "AzGuard\\Events\\AccessEvent",
+            "fqcn": "AzGuard\\Events\\Access\\AccessDecided",
+            "kinds": [
+                "event"
+            ]
+        },
+        {
+            "fqcn": "AzGuard\\Events\\Access\\PanelStateTouched",
+            "kinds": [
+                "event"
+            ]
+        },
+        {
+            "fqcn": "AzGuard\\Events\\Changes\\GrantExpired",
+            "kinds": [
+                "event"
+            ]
+        },
+        {
+            "fqcn": "AzGuard\\Events\\Changes\\PermissionGrantUpdated",
+            "kinds": [
+                "event"
+            ]
+        },
+        {
+            "fqcn": "AzGuard\\Events\\Changes\\PermissionGranted",
+            "kinds": [
+                "event"
+            ]
+        },
+        {
+            "fqcn": "AzGuard\\Events\\Changes\\PermissionRevoked",
+            "kinds": [
+                "event"
+            ]
+        },
+        {
+            "fqcn": "AzGuard\\Events\\Changes\\RoleGrantUpdated",
+            "kinds": [
+                "event"
+            ]
+        },
+        {
+            "fqcn": "AzGuard\\Events\\Changes\\RoleGranted",
+            "kinds": [
+                "event"
+            ]
+        },
+        {
+            "fqcn": "AzGuard\\Events\\Changes\\RoleRevoked",
             "kinds": [
                 "event"
             ]
@@ -73,97 +121,61 @@
             ]
         },
         {
-            "fqcn": "AzGuard\\Events\\GrantExpired",
-            "kinds": [
-                "event"
-            ]
-        },
-        {
             "fqcn": "AzGuard\\Events\\Internal\\EventObservers",
             "kinds": [
                 "event"
             ]
         },
         {
-            "fqcn": "AzGuard\\Events\\PanelStateTouched",
+            "fqcn": "AzGuard\\Events\\Permissions\\PermissionCreated",
             "kinds": [
                 "event"
             ]
         },
         {
-            "fqcn": "AzGuard\\Events\\PermissionCreated",
+            "fqcn": "AzGuard\\Events\\Permissions\\PermissionDeleted",
             "kinds": [
                 "event"
             ]
         },
         {
-            "fqcn": "AzGuard\\Events\\PermissionDeleted",
+            "fqcn": "AzGuard\\Events\\Permissions\\PermissionUpdated",
             "kinds": [
                 "event"
             ]
         },
         {
-            "fqcn": "AzGuard\\Events\\PermissionGrantUpdated",
-            "kinds": [
-                "event"
-            ]
-        },
-        {
-            "fqcn": "AzGuard\\Events\\PermissionGranted",
-            "kinds": [
-                "event"
-            ]
-        },
-        {
-            "fqcn": "AzGuard\\Events\\PermissionRevoked",
-            "kinds": [
-                "event"
-            ]
-        },
-        {
-            "fqcn": "AzGuard\\Events\\PermissionUpdated",
-            "kinds": [
-                "event"
-            ]
-        },
-        {
-            "fqcn": "AzGuard\\Events\\RoleGrantUpdated",
-            "kinds": [
-                "event"
-            ]
-        },
-        {
-            "fqcn": "AzGuard\\Events\\RoleGranted",
-            "kinds": [
-                "event"
-            ]
-        },
-        {
-            "fqcn": "AzGuard\\Events\\RoleRevoked",
-            "kinds": [
-                "event"
-            ]
-        },
-        {
-            "fqcn": "AzGuard\\Exceptions\\AmbiguousPanelException",
+            "fqcn": "AzGuard\\Exceptions\\Authorization\\AuthorizationEngineException",
             "kinds": [
                 "exception"
             ]
         },
         {
-            "fqcn": "AzGuard\\Exceptions\\AssignmentScopeNotAcceptedException",
+            "fqcn": "AzGuard\\Exceptions\\Authorization\\ConsistencyException",
             "kinds": [
                 "exception"
             ]
         },
         {
-            "fqcn": "AzGuard\\Exceptions\\AssignmentScopeRequiredException",
+            "fqcn": "AzGuard\\Exceptions\\Authorization\\DecisionSetTooLargeException",
             "kinds": [
                 "exception"
             ]
         },
         {
-            "fqcn": "AzGuard\\Exceptions\\AuthorizationEngineException",
+            "fqcn": "AzGuard\\Exceptions\\Authorization\\InvalidSourceContributionException",
+            "kinds": [
+                "exception"
+            ]
+        },
+        {
+            "fqcn": "AzGuard\\Exceptions\\Authorization\\RecursionDetectedException",
+            "kinds": [
+                "exception"
+            ]
+        },
+        {
+            "fqcn": "AzGuard\\Exceptions\\Authorization\\VisibilityNotSupportedException",
             "kinds": [
                 "exception"
             ]
@@ -175,271 +187,259 @@
             ]
         },
         {
-            "fqcn": "AzGuard\\Exceptions\\ChangeCancelledException",
+            "fqcn": "AzGuard\\Exceptions\\Changes\\AssignmentScopeNotAcceptedException",
             "kinds": [
                 "exception"
             ]
         },
         {
-            "fqcn": "AzGuard\\Exceptions\\ChangeException",
+            "fqcn": "AzGuard\\Exceptions\\Changes\\AssignmentScopeRequiredException",
             "kinds": [
                 "exception"
             ]
         },
         {
-            "fqcn": "AzGuard\\Exceptions\\ConfigurationException",
+            "fqcn": "AzGuard\\Exceptions\\Changes\\ChangeCancelledException",
             "kinds": [
                 "exception"
             ]
         },
         {
-            "fqcn": "AzGuard\\Exceptions\\ConflictingPanelException",
+            "fqcn": "AzGuard\\Exceptions\\Changes\\ChangeException",
             "kinds": [
                 "exception"
             ]
         },
         {
-            "fqcn": "AzGuard\\Exceptions\\ConsistencyException",
+            "fqcn": "AzGuard\\Exceptions\\Changes\\InvalidChangeFieldsException",
             "kinds": [
                 "exception"
             ]
         },
         {
-            "fqcn": "AzGuard\\Exceptions\\DecisionSetTooLargeException",
+            "fqcn": "AzGuard\\Exceptions\\Changes\\PanelNotWritableException",
             "kinds": [
                 "exception"
             ]
         },
         {
-            "fqcn": "AzGuard\\Exceptions\\DefaultPanelConflictException",
+            "fqcn": "AzGuard\\Exceptions\\Changes\\PermissionNotGrantableException",
             "kinds": [
                 "exception"
             ]
         },
         {
-            "fqcn": "AzGuard\\Exceptions\\DefinitionException",
+            "fqcn": "AzGuard\\Exceptions\\Changes\\RoleNotGrantableException",
             "kinds": [
                 "exception"
             ]
         },
         {
-            "fqcn": "AzGuard\\Exceptions\\DirectoryScanLimitException",
+            "fqcn": "AzGuard\\Exceptions\\Changes\\StaleSelectionException",
             "kinds": [
                 "exception"
             ]
         },
         {
-            "fqcn": "AzGuard\\Exceptions\\DuplicatePanelException",
+            "fqcn": "AzGuard\\Exceptions\\Changes\\TenantMismatchException",
             "kinds": [
                 "exception"
             ]
         },
         {
-            "fqcn": "AzGuard\\Exceptions\\DuplicatePermissionException",
+            "fqcn": "AzGuard\\Exceptions\\Changes\\TenantRequiredException",
             "kinds": [
                 "exception"
             ]
         },
         {
-            "fqcn": "AzGuard\\Exceptions\\DuplicatePolicyBindingException",
+            "fqcn": "AzGuard\\Exceptions\\Changes\\UnknownPermissionException",
             "kinds": [
                 "exception"
             ]
         },
         {
-            "fqcn": "AzGuard\\Exceptions\\DuplicateRoleException",
+            "fqcn": "AzGuard\\Exceptions\\Changes\\UnknownRoleException",
             "kinds": [
                 "exception"
             ]
         },
         {
-            "fqcn": "AzGuard\\Exceptions\\InvalidAssignmentScopeException",
+            "fqcn": "AzGuard\\Exceptions\\Configuration\\ConfigurationException",
             "kinds": [
                 "exception"
             ]
         },
         {
-            "fqcn": "AzGuard\\Exceptions\\InvalidChangeFieldsException",
+            "fqcn": "AzGuard\\Exceptions\\Configuration\\InvalidConfigurationException",
             "kinds": [
                 "exception"
             ]
         },
         {
-            "fqcn": "AzGuard\\Exceptions\\InvalidConfigurationException",
+            "fqcn": "AzGuard\\Exceptions\\Configuration\\MissingPermissionCheckException",
             "kinds": [
                 "exception"
             ]
         },
         {
-            "fqcn": "AzGuard\\Exceptions\\InvalidIdentityException",
+            "fqcn": "AzGuard\\Exceptions\\Definitions\\AmbiguousPanelException",
             "kinds": [
                 "exception"
             ]
         },
         {
-            "fqcn": "AzGuard\\Exceptions\\InvalidPanelIdException",
+            "fqcn": "AzGuard\\Exceptions\\Definitions\\ConflictingPanelException",
             "kinds": [
                 "exception"
             ]
         },
         {
-            "fqcn": "AzGuard\\Exceptions\\InvalidPermissionKeyException",
+            "fqcn": "AzGuard\\Exceptions\\Definitions\\DefaultPanelConflictException",
             "kinds": [
                 "exception"
             ]
         },
         {
-            "fqcn": "AzGuard\\Exceptions\\InvalidPolicyStructureException",
+            "fqcn": "AzGuard\\Exceptions\\Definitions\\DefinitionException",
             "kinds": [
                 "exception"
             ]
         },
         {
-            "fqcn": "AzGuard\\Exceptions\\InvalidRoleKeyException",
+            "fqcn": "AzGuard\\Exceptions\\Definitions\\DirectoryScanLimitException",
             "kinds": [
                 "exception"
             ]
         },
         {
-            "fqcn": "AzGuard\\Exceptions\\InvalidSourceContributionException",
+            "fqcn": "AzGuard\\Exceptions\\Definitions\\DuplicatePanelException",
             "kinds": [
                 "exception"
             ]
         },
         {
-            "fqcn": "AzGuard\\Exceptions\\MissingPermissionCheckException",
+            "fqcn": "AzGuard\\Exceptions\\Definitions\\DuplicatePermissionException",
             "kinds": [
                 "exception"
             ]
         },
         {
-            "fqcn": "AzGuard\\Exceptions\\PanelNotResolvedException",
+            "fqcn": "AzGuard\\Exceptions\\Definitions\\DuplicatePolicyBindingException",
             "kinds": [
                 "exception"
             ]
         },
         {
-            "fqcn": "AzGuard\\Exceptions\\PanelNotWritableException",
+            "fqcn": "AzGuard\\Exceptions\\Definitions\\DuplicateRoleException",
             "kinds": [
                 "exception"
             ]
         },
         {
-            "fqcn": "AzGuard\\Exceptions\\PermissionNotGrantableException",
+            "fqcn": "AzGuard\\Exceptions\\Definitions\\InvalidPolicyStructureException",
             "kinds": [
                 "exception"
             ]
         },
         {
-            "fqcn": "AzGuard\\Exceptions\\PluginConflictException",
+            "fqcn": "AzGuard\\Exceptions\\Definitions\\PanelNotResolvedException",
             "kinds": [
                 "exception"
             ]
         },
         {
-            "fqcn": "AzGuard\\Exceptions\\PluginException",
+            "fqcn": "AzGuard\\Exceptions\\Definitions\\PrefixConflictException",
             "kinds": [
                 "exception"
             ]
         },
         {
-            "fqcn": "AzGuard\\Exceptions\\PrefixConflictException",
+            "fqcn": "AzGuard\\Exceptions\\Definitions\\RegistryFrozenException",
             "kinds": [
                 "exception"
             ]
         },
         {
-            "fqcn": "AzGuard\\Exceptions\\RecursionDetectedException",
+            "fqcn": "AzGuard\\Exceptions\\Definitions\\SubjectNotAcceptedException",
             "kinds": [
                 "exception"
             ]
         },
         {
-            "fqcn": "AzGuard\\Exceptions\\RegistryFrozenException",
+            "fqcn": "AzGuard\\Exceptions\\Definitions\\UnknownPanelException",
             "kinds": [
                 "exception"
             ]
         },
         {
-            "fqcn": "AzGuard\\Exceptions\\RoleNotGrantableException",
+            "fqcn": "AzGuard\\Exceptions\\Definitions\\UnknownSourceException",
             "kinds": [
                 "exception"
             ]
         },
         {
-            "fqcn": "AzGuard\\Exceptions\\StaleSelectionException",
+            "fqcn": "AzGuard\\Exceptions\\Definitions\\WriterConflictException",
             "kinds": [
                 "exception"
             ]
         },
         {
-            "fqcn": "AzGuard\\Exceptions\\StorageException",
+            "fqcn": "AzGuard\\Exceptions\\Identity\\InvalidAssignmentScopeException",
             "kinds": [
                 "exception"
             ]
         },
         {
-            "fqcn": "AzGuard\\Exceptions\\StorageMismatchException",
+            "fqcn": "AzGuard\\Exceptions\\Identity\\InvalidIdentityException",
             "kinds": [
                 "exception"
             ]
         },
         {
-            "fqcn": "AzGuard\\Exceptions\\SubjectNotAcceptedException",
+            "fqcn": "AzGuard\\Exceptions\\Identity\\InvalidPanelIdException",
             "kinds": [
                 "exception"
             ]
         },
         {
-            "fqcn": "AzGuard\\Exceptions\\TenantMismatchException",
+            "fqcn": "AzGuard\\Exceptions\\Identity\\InvalidPermissionKeyException",
             "kinds": [
                 "exception"
             ]
         },
         {
-            "fqcn": "AzGuard\\Exceptions\\TenantRequiredException",
+            "fqcn": "AzGuard\\Exceptions\\Identity\\InvalidRoleKeyException",
             "kinds": [
                 "exception"
             ]
         },
         {
-            "fqcn": "AzGuard\\Exceptions\\UnknownPanelException",
+            "fqcn": "AzGuard\\Exceptions\\Plugins\\PluginConflictException",
             "kinds": [
                 "exception"
             ]
         },
         {
-            "fqcn": "AzGuard\\Exceptions\\UnknownPermissionException",
+            "fqcn": "AzGuard\\Exceptions\\Plugins\\PluginException",
             "kinds": [
                 "exception"
             ]
         },
         {
-            "fqcn": "AzGuard\\Exceptions\\UnknownRoleException",
+            "fqcn": "AzGuard\\Exceptions\\Storage\\StorageException",
             "kinds": [
                 "exception"
             ]
         },
         {
-            "fqcn": "AzGuard\\Exceptions\\UnknownSourceException",
+            "fqcn": "AzGuard\\Exceptions\\Storage\\StorageMismatchException",
             "kinds": [
                 "exception"
             ]
         },
         {
-            "fqcn": "AzGuard\\Exceptions\\UnsupportedDirectWriteException",
-            "kinds": [
-                "exception"
-            ]
-        },
-        {
-            "fqcn": "AzGuard\\Exceptions\\VisibilityNotSupportedException",
-            "kinds": [
-                "exception"
-            ]
-        },
-        {
-            "fqcn": "AzGuard\\Exceptions\\WriterConflictException",
+            "fqcn": "AzGuard\\Exceptions\\Storage\\UnsupportedDirectWriteException",
             "kinds": [
                 "exception"
             ]

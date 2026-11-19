@@ -4,12 +4,13 @@ declare(strict_types=1);
 
 namespace AzGuard\Testing\Contracts;
 
-use AzGuard\Attributes\Spi;
-use AzGuard\Attributes\SpiKind;
 use AzGuard\Contracts\Scopes\AssignmentScopeResolver;
 use AzGuard\Kernel\Identity\AssignmentScopeRef;
 use AzGuard\Kernel\Identity\IdentityCodec;
 use Illuminate\Http\Request;
+use Packman\Attributes\Spi;
+use Packman\Attributes\SpiKind;
+use PHPUnit\Framework\Assert;
 use PHPUnit\Framework\Attributes\Test;
 
 /**
@@ -43,14 +44,14 @@ trait AssignmentScopeResolverContractTests
     #[Test]
     public function resolvingIsIdempotent(): void
     {
-        $this->assertNotSame([], $this->azguardScopedRequests(), 'Give the suite at least one request that names a scope.');
+        Assert::assertNotSame([], $this->azguardScopedRequests(), 'Give the suite at least one request that names a scope.');
         $resolver = $this->azguardScopeResolver();
 
         foreach ($this->azguardScopedRequests() as $request) {
             $first = $this->azguardResolved($resolver, $request);
 
-            $this->assertTrue($first->equals($this->azguardResolved($resolver, $request)), 'The same request resolves to different scopes.');
-            $this->assertTrue($first->equals($this->azguardResolved($this->azguardScopeResolver(), $request)), 'Two instances of the resolver disagree about the same request.');
+            Assert::assertTrue($first->equals($this->azguardResolved($resolver, $request)), 'The same request resolves to different scopes.');
+            Assert::assertTrue($first->equals($this->azguardResolved($this->azguardScopeResolver(), $request)), 'Two instances of the resolver disagree about the same request.');
         }
     }
 
@@ -60,25 +61,25 @@ trait AssignmentScopeResolverContractTests
         foreach ($this->azguardScopedRequests() as $request) {
             $ref = $this->azguardResolved($this->azguardScopeResolver(), $request);
 
-            $this->assertFalse($ref->isGlobal(), 'A request that names a scope resolved to the global scope.');
-            $this->assertStringNotContainsString(':', (string) $ref->type(), 'The type of a scope has no ":".');
+            Assert::assertFalse($ref->isGlobal(), 'A request that names a scope resolved to the global scope.');
+            Assert::assertStringNotContainsString(':', (string) $ref->type(), 'The type of a scope has no ":".');
             $decoded = IdentityCodec::decode(IdentityCodec::encode($ref));
 
             if (! $decoded instanceof AssignmentScopeRef) {
-                $this->fail('The scope does not come back as a scope from the codec.');
+                Assert::fail('The scope does not come back as a scope from the codec.');
             }
-            $this->assertTrue($ref->equals($decoded), 'The scope changes when it goes through the codec.');
+            Assert::assertTrue($ref->equals($decoded), 'The scope changes when it goes through the codec.');
         }
     }
 
     #[Test]
     public function requestWithoutAScopeGivesNull(): void
     {
-        $this->assertNull($this->azguardScopeResolver()->resolve($this->azguardUnscopedRequest()), 'A request that names no scope must resolve to null.');
+        Assert::assertNull($this->azguardScopeResolver()->resolve($this->azguardUnscopedRequest()), 'A request that names no scope must resolve to null.');
     }
 
     private function azguardResolved(AssignmentScopeResolver $resolver, Request $request): AssignmentScopeRef
     {
-        return $resolver->resolve($request) ?? $this->fail('A request that names a scope resolved to none.');
+        return $resolver->resolve($request) ?? Assert::fail('A request that names a scope resolved to none.');
     }
 }

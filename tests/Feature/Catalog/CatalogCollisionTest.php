@@ -3,11 +3,11 @@
 declare(strict_types=1);
 
 use AzGuard\Catalog\PermissionDefinition;
-use AzGuard\Exceptions\DefinitionException;
-use AzGuard\Exceptions\DuplicatePermissionException;
-use AzGuard\Exceptions\InvalidPolicyStructureException;
-use AzGuard\Exceptions\InvalidSourceContributionException;
-use AzGuard\Exceptions\UnknownSourceException;
+use AzGuard\Exceptions\Authorization\InvalidSourceContributionException;
+use AzGuard\Exceptions\Definitions\DefinitionException;
+use AzGuard\Exceptions\Definitions\DuplicatePermissionException;
+use AzGuard\Exceptions\Definitions\InvalidPolicyStructureException;
+use AzGuard\Exceptions\Definitions\UnknownSourceException;
 use AzGuard\Kernel\Decision\PermissionAuthority;
 use AzGuard\Panels\Internal\PanelRegistry;
 use AzGuard\Panels\PanelBuilder;

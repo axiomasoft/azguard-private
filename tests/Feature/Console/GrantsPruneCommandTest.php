@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-use AzGuard\AzGuardServiceProvider;
 use AzGuard\Configuration\Internal\AzGuardConfig;
-use AzGuard\Events\GrantExpired;
-use AzGuard\Events\RoleRevoked;
+use AzGuard\Events\Changes\GrantExpired;
+use AzGuard\Events\Changes\RoleRevoked;
+use AzGuard\Laravel\Registrars\AzGuardLaravelRegistrar;
 use AzGuard\Tests\Fixtures\Changes\ChangeWorld as W;
 use AzGuard\Tests\Fixtures\Crm\CrmWorld;
 use Illuminate\Console\Scheduling\Event as ScheduledEvent;
@@ -70,8 +70,8 @@ function pruneSchedule(array $schedule): array
     app()->forgetInstance(Schedule::class);
     // The schedule as the booted provider leaves it; the provider under test adds to the resolved schedule at once.
     $booted = count(app(Schedule::class)->events());
-    $provider = new AzGuardServiceProvider(app());
-    (fn () => $this->scheduleMaintenance())->call($provider);
+    $registrar = new AzGuardLaravelRegistrar;
+    (fn () => $this->scheduleMaintenance(app(), app(AzGuardConfig::class)))->call($registrar);
 
     return array_values(array_filter(array_slice(app(Schedule::class)->events(), $booted),
         static fn (ScheduledEvent $event): bool => str_contains((string) $event->command, 'azguard:grants:prune')));

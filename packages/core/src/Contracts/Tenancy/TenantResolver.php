@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace AzGuard\Contracts\Tenancy;
 
-use AzGuard\Attributes\Spi;
-use AzGuard\Attributes\SpiKind;
 use AzGuard\Kernel\Identity\TenantRef;
 use Illuminate\Http\Request;
+use Packman\Attributes\Spi;
+use Packman\Attributes\SpiKind;
 
 /**
  * Selects the current tenant from an HTTP request.

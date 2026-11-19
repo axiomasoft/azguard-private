@@ -3,9 +3,9 @@
 declare(strict_types=1);
 
 use AzGuard\Authorization\Internal\Authorizer;
-use AzGuard\Exceptions\AssignmentScopeNotAcceptedException;
-use AzGuard\Exceptions\TenantMismatchException;
-use AzGuard\Exceptions\UnsupportedDirectWriteException;
+use AzGuard\Exceptions\Changes\AssignmentScopeNotAcceptedException;
+use AzGuard\Exceptions\Changes\TenantMismatchException;
+use AzGuard\Exceptions\Storage\UnsupportedDirectWriteException;
 use AzGuard\Kernel\Decision\AccessRequest;
 use AzGuard\Kernel\Decision\DecisionReason;
 use AzGuard\Kernel\Identity\AnyAssignmentScope;

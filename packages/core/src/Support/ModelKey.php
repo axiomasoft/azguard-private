@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace AzGuard\Support;
 
-use AzGuard\Attributes\Api;
-use AzGuard\Exceptions\InvalidIdentityException;
+use AzGuard\Exceptions\Identity\InvalidIdentityException;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use Packman\Attributes\Api;
 
 /**
  * Looks a model up by the id of an identity reference (`SubjectRef`, `TenantRef`, `AssignmentScopeRef`), matching
@@ -83,7 +83,13 @@ final class ModelKey
             $held = array_map(static fn (string $id): int => (int) $id, $held);
         }
 
-        return $held === [] ? $query->whereRaw('0 = 1') : $query->whereKey(is_array($ids) ? $held : $held[0]);
+        if ($held === []) {
+            $query->getQuery()->whereRaw('0 = 1');
+
+            return $query;
+        }
+
+        return $query->whereKey(is_array($ids) ? $held : $held[0]);
     }
 
     /**

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace AzGuard\Tenancy;
 
-use AzGuard\Attributes\Api;
+use Packman\Attributes\Api;
 
 /**
  * Whether a panel isolates tenants: `None` accepts only global requests, `Required` requires a tenant on every request.

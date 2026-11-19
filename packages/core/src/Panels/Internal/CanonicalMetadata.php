@@ -4,13 +4,14 @@ declare(strict_types=1);
 
 namespace AzGuard\Panels\Internal;
 
-use AzGuard\Exceptions\DefinitionException;
+use AzGuard\Exceptions\Definitions\DefinitionException;
 use Closure;
 use Illuminate\Contracts\Container\Container;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Query\Builder as QueryBuilder;
 use Illuminate\Http\Request;
+use Packman\Attributes\Internal;
 use ReflectionClass;
 use ReflectionFunction;
 use UnitEnum;
@@ -19,6 +20,7 @@ use UnitEnum;
  * @internal Canonical fingerprint metadata of declarations and option objects: stable configuration only. Live models,
  * queries, requests and containers are refused; nothing is instantiated here.
  */
+#[Internal]
 final class CanonicalMetadata
 {
     /**
@@ -71,7 +73,7 @@ final class CanonicalMetadata
         $class = is_object($component) && ! $component instanceof Closure ? $component::class : $component;
 
         if (is_string($class) && (class_exists($class) || interface_exists($class))) {
-            $file = (new ReflectionClass($class))->getFileName();
+            $file = new ReflectionClass($class)->getFileName();
 
             return ['value' => $metadata, 'source' => $file === false ? null : hash_file('sha256', $file)];
         }

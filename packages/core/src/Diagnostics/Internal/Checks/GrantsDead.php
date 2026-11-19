@@ -10,6 +10,7 @@ use AzGuard\Diagnostics\DoctorFinding;
 use AzGuard\Sources\Database\DatabaseSource;
 use DateTimeImmutable;
 use DateTimeZone;
+use Packman\Attributes\Internal;
 
 /**
  * `grants.dead` of a database source: stored permission grants that give nothing — a permission outside the catalog,
@@ -18,6 +19,7 @@ use DateTimeZone;
  *
  * @internal
  */
+#[Internal]
 final readonly class GrantsDead implements DoctorCheck
 {
     public function __construct(private DatabaseSource $source) {}

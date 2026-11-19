@@ -5,7 +5,7 @@ declare(strict_types=1);
 use AzGuard\Configuration\ConfigSections;
 use AzGuard\Configuration\Internal\AzGuardConfig;
 use AzGuard\DevTools\Internal\ScaffoldConfig;
-use AzGuard\Exceptions\InvalidConfigurationException;
+use AzGuard\Exceptions\Configuration\InvalidConfigurationException;
 use Illuminate\Config\Repository;
 
 /*
@@ -74,8 +74,12 @@ it('validates the scaffold section through the owner DevTools registers', functi
         ->and(fn () => AzGuardConfig::fromRepository(new Repository(['azguard' => ['scaffold' => ['folder' => 'x']]]), $sections))
         ->toThrow(InvalidConfigurationException::class, 'Unknown key in azguard.scaffold: folder')
         ->and(fn () => AzGuardConfig::fromRepository(new Repository(['azguard' => ['scaffold' => ['path' => '/abs']]]), $sections))
-        ->toThrow(InvalidConfigurationException::class, 'azguard.scaffold.path must be')
-        ->and(fn () => sectionsConfig(['scaffold' => []], new ConfigSections))->toThrow(InvalidConfigurationException::class, 'Unknown key in azguard: scaffold');
+        ->toThrow(InvalidConfigurationException::class, 'azguard.scaffold.path must be');
+
+    $tolerated = sectionsConfig(['scaffold' => ['namespace' => 'App\\Guards', 'path' => 'app/Guards']], new ConfigSections);
+    expect($tolerated)->toBeInstanceOf(AzGuardConfig::class)
+        ->and(fn () => sectionsConfig(['scaffold' => ['folder' => 'x']], new ConfigSections))
+        ->toThrow(InvalidConfigurationException::class, 'Unknown key in azguard.scaffold: folder');
 });
 
 it('gives the generators the discovery folder names core reads, with the same defaults and the same refusal', function (): void {

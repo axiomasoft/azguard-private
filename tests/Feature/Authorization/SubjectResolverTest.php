@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 use AzGuard\Authorization\Internal\ModelSubjectResolver;
 use AzGuard\Contracts\Authorization\EvaluationContext;
-use AzGuard\Exceptions\SubjectNotAcceptedException;
-use AzGuard\Exceptions\UnknownPermissionException;
+use AzGuard\Exceptions\Changes\UnknownPermissionException;
+use AzGuard\Exceptions\Definitions\SubjectNotAcceptedException;
 use AzGuard\Kernel\Decision\AccessRequest;
 use AzGuard\Kernel\Decision\Decision;
 use AzGuard\Kernel\Decision\DecisionReason;

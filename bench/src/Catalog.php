@@ -37,7 +37,8 @@ final class Catalog
             self::write($dir);
         }
 
-        foreach (glob($dir.'/*.php') ?: [] as $file) {
+        $files = glob($dir.'/*.php');
+        foreach ($files === false ? [] : $files as $file) {
             require_once $file;
         }
     }
@@ -150,7 +151,7 @@ final class Catalog
         }
         $files['MemberRole'] = "#[\\AzGuard\\Roles\\Attributes\\Role('member')]\nfinal class MemberRole extends \\AzGuard\\Roles\\BaseRole\n{\n    public function permissions(): array\n    {\n        return [TaskPermission::View];\n    }\n}\n";
         $files['AdminRole'] = "#[\\AzGuard\\Roles\\Attributes\\Role('admin')]\nfinal class AdminRole extends \\AzGuard\\Roles\\BaseRole\n{\n    public function permissions(): array\n    {\n        return [TaskPermission::View, TaskPermission::Update];\n    }\n}\n";
-        $files['User'] = "final class User extends \\Illuminate\\Database\\Eloquent\\Model implements \\AzGuard\\Contracts\\AzGuardSubject\n{\n    use \\AzGuard\\Concerns\\HasAzGuard;\n\n    public \$timestamps = false;\n\n    protected \$guarded = [];\n}\n";
+        $files['User'] = "final class User extends \\Illuminate\\Database\\Eloquent\\Model implements \\AzGuard\\Contracts\\Subjects\\AzGuardSubject\n{\n    use \\AzGuard\\Concerns\\Subjects\\HasAzGuard;\n\n    public \$timestamps = false;\n\n    protected \$guarded = [];\n}\n";
         $files['Post'] = "final class Post extends \\Illuminate\\Database\\Eloquent\\Model\n{\n    public \$timestamps = false;\n\n    protected \$guarded = [];\n}\n";
         $files['Team'] = "final class Team extends \\Illuminate\\Database\\Eloquent\\Model\n{\n    public \$timestamps = false;\n\n    protected \$guarded = [];\n}\n";
         $files['TeamMembership'] = <<<'PHP'
@@ -199,7 +200,7 @@ PHP;
         PHP_WRAP;
         $enumList = implode(', ', $enums);
         $roleList = implode(', ', $roles);
-        $files['FilamentUser'] = "final class FilamentUser extends \\Illuminate\\Foundation\\Auth\\User implements \\AzGuard\\Contracts\\AzGuardSubject\n{\n    use \\AzGuard\\Concerns\\HasAzGuard;\n    protected \$table = 'users';\n    public \$timestamps = false;\n    protected \$guarded = [];\n}\n";
+        $files['FilamentUser'] = "final class FilamentUser extends \\Illuminate\\Foundation\\Auth\\User implements \\AzGuard\\Contracts\\Subjects\\AzGuardSubject\n{\n    use \\AzGuard\\Concerns\\Subjects\\HasAzGuard;\n    protected \$table = 'users';\n    public \$timestamps = false;\n    protected \$guarded = [];\n}\n";
         $files['HeavyPostPolicy'] = <<<'PHP'
 use AzGuard\Contracts\Authorization\EvaluationContext;
 use AzGuard\Contracts\Authorization\FiltersAccessQueries;

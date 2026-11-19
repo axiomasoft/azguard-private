@@ -14,9 +14,9 @@ use AzGuard\Contracts\Sources\ProvidesGrants;
 use AzGuard\Contracts\Sources\ProvidesPermissions;
 use AzGuard\Contracts\Sources\ProvidesRoleGrants;
 use AzGuard\Contracts\Sources\Source;
-use AzGuard\Exceptions\ConsistencyException;
-use AzGuard\Exceptions\InvalidSourceContributionException;
-use AzGuard\Exceptions\VisibilityNotSupportedException;
+use AzGuard\Exceptions\Authorization\ConsistencyException;
+use AzGuard\Exceptions\Authorization\InvalidSourceContributionException;
+use AzGuard\Exceptions\Authorization\VisibilityNotSupportedException;
 use AzGuard\Kernel\Decision\AccessRequest;
 use AzGuard\Kernel\Decision\CodeStateToken;
 use AzGuard\Kernel\Decision\Grant;
@@ -32,6 +32,7 @@ use AzGuard\Sources\Internal\PanelSources;
 use AzGuard\Storage\Internal\AuthorityTransaction;
 use AzGuard\Storage\Internal\StorageReadSession;
 use Closure;
+use Packman\Attributes\Internal;
 use Throwable;
 
 /**
@@ -44,6 +45,7 @@ use Throwable;
  *
  * @phpstan-import-type Attached from PanelSources
  */
+#[Internal]
 final class ReadAttempt
 {
     /** @var array<string, StorageReadSession> */

@@ -9,6 +9,7 @@ use AzGuard\Diagnostics\DoctorContext;
 use AzGuard\Diagnostics\DoctorFinding;
 use AzGuard\Panels\Panel;
 use Illuminate\Contracts\Container\Container;
+use Packman\Attributes\Internal;
 use ReflectionClass;
 
 /**
@@ -17,6 +18,7 @@ use ReflectionClass;
  *
  * @internal
  */
+#[Internal]
 final readonly class TenantMembershipConfigured implements DoctorCheck
 {
     public function __construct(private Container $container) {}
@@ -38,7 +40,7 @@ final readonly class TenantMembershipConfigured implements DoctorCheck
     {
         $membership = $panel->tenants()->membership();
 
-        if (is_string($membership) && ! $container->bound($membership) && (! class_exists($membership) || ! (new ReflectionClass($membership))->isInstantiable())) {
+        if (is_string($membership) && ! $container->bound($membership) && (! class_exists($membership) || ! new ReflectionClass($membership)->isInstantiable())) {
             return [DoctorFinding::error('membership.configured', 'Panel '.$panel->id().' requires a tenant membership, but '.$membership
                 .' has no container binding and cannot be created.', 'panel:'.$panel->id(), ['membership' => $membership])];
         }

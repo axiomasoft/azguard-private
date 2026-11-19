@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace AzGuard\Filament\Internal\Authorization;
 
-use AzGuard\Exceptions\InvalidConfigurationException;
+use AzGuard\Exceptions\Configuration\InvalidConfigurationException;
 use AzGuard\Kernel\Grammar\PermissionGrammar;
 use BackedEnum;
 use Filament\Clusters\Cluster;
@@ -20,6 +20,7 @@ use Filament\Widgets\WidgetConfiguration;
 use Illuminate\Contracts\Support\Htmlable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
+use Packman\Attributes\Internal;
 use ReflectionProperty;
 use UnitEnum;
 
@@ -33,6 +34,7 @@ use UnitEnum;
  *
  * @internal
  */
+#[Internal]
 final class FilamentKeys
 {
     /** @var list<FilamentKey>|null */
@@ -346,7 +348,7 @@ final class FilamentKeys
             return null;
         }
 
-        $key = (new ReflectionProperty($class, 'azguardKey'))->getValue();
+        $key = new ReflectionProperty($class, 'azguardKey')->getValue();
 
         if ($key === null) {
             return null;
@@ -361,13 +363,7 @@ final class FilamentKeys
 
     private static function isSegments(string $value): bool
     {
-        foreach (explode('.', $value) as $segment) {
-            if (! PermissionGrammar::isSegment($segment)) {
-                return false;
-            }
-        }
-
-        return true;
+        return array_all(explode('.', $value), fn ($segment): bool => PermissionGrammar::isSegment($segment));
     }
 
     private function checked(string $key, string $class): string

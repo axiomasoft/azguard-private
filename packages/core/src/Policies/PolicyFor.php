@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace AzGuard\Policies;
 
 use Attribute;
-use AzGuard\Attributes\Api;
+use Packman\Attributes\Api;
 use UnitEnum;
 
 /**

@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace AzGuard\Diagnostics;
 
-use AzGuard\Attributes\Api;
 use AzGuard\AzGuard;
+use AzGuard\Contracts\Panels\PanelRegistry as PanelRegistryContract;
 use AzGuard\Contracts\Sources\SourceDescription;
 use AzGuard\Diagnostics\Internal\Checks\PanelsSources;
 use AzGuard\Kernel\Identity\TenantRef;
@@ -14,12 +14,13 @@ use AzGuard\Panels\Internal\PanelRegistry;
 use AzGuard\Panels\Panel;
 use AzGuard\Sources\Database\DatabaseSource;
 use BackedEnum;
+use Packman\Attributes\Api;
+use Packman\Attributes\Internal;
 
 /**
  * What the registered panels are: each panel with its settings and where every value came from, its sources and
  * plugins, and the schema of its permissions and roles. It is the one place that gathers this; `azguard:panels:list`
  * and the panels page of the Filament package print it. It only reads.
- *
  *
  * @phpstan-import-type CapabilityCell from SourceDescription
  *
@@ -29,8 +30,8 @@ use BackedEnum;
 #[Api(since: '1.0')]
 final readonly class PanelOverview
 {
-    /** @internal built by the container */
-    public function __construct(private PanelRegistry $registry, private AzGuard $azguard) {}
+    #[Internal('built by the container')]
+    public function __construct(private PanelRegistryContract $registry, private AzGuard $azguard) {}
 
     /**
      * Every registered panel, in the order of registration.
@@ -64,7 +65,7 @@ final readonly class PanelOverview
             $entry['settings'] = $panel->settings()->toArray();
         }
 
-        if ($sources) {
+        if ($sources && $this->registry instanceof PanelRegistry) {
             $entry['sources'] = $this->sources($panel, $this->registry->recipe($panel->id()));
         }
 
@@ -112,7 +113,9 @@ final readonly class PanelOverview
             }
         }
 
-        $automaticRoles = PanelsSources::unqueryableAutomaticRoles($this->registry, $panel->id());
+        $automaticRoles = $this->registry instanceof PanelRegistry
+            ? PanelsSources::unqueryableAutomaticRoles($this->registry, $panel->id())
+            : [];
 
         return [
             'sources' => array_map(static fn (SourceDescription $source): array => [

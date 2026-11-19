@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 use AzGuard\Contracts\Authorization\EvaluationContext;
 use AzGuard\Contracts\Sources\Volatility;
-use AzGuard\Exceptions\RecursionDetectedException;
+use AzGuard\Exceptions\Authorization\RecursionDetectedException;
 use AzGuard\Kernel\Decision\AccessRequest;
 use AzGuard\Kernel\Decision\BeforeResult;
 use AzGuard\Kernel\Decision\CodeStateToken;

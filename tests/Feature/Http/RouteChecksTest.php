@@ -3,8 +3,8 @@
 declare(strict_types=1);
 
 use AzGuard\Attributes\CheckPermission;
-use AzGuard\Exceptions\AmbiguousPanelException;
-use AzGuard\Exceptions\MissingPermissionCheckException;
+use AzGuard\Exceptions\Configuration\MissingPermissionCheckException;
+use AzGuard\Exceptions\Definitions\AmbiguousPanelException;
 use AzGuard\Laravel\Internal\Http\Middleware\CheckPermission as CheckPermissionMiddleware;
 use AzGuard\Laravel\Internal\Http\RouteChecks;
 use AzGuard\Panels\PanelBuilder;

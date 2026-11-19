@@ -21,7 +21,7 @@ commit: 0000000000000000000000000000000000000000        # the commit the tag poi
 candidate: 0000000000000000000000000000000000000000     # the qualified candidate
 created_at: 2026-01-01T00:00:00Z
 toolchain:
-  php: [8.3.x, 8.4.x, 8.5.x]
+  php: [8.4.x, 8.5.x]
   laravel: [13.x]
   composer: <version>
   node: <version>

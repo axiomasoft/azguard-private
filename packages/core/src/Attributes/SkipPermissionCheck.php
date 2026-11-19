@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace AzGuard\Attributes;
 
 use Attribute;
+use Packman\Attributes\Api;
 
 /**
  * Marks a controller or one of its actions as deliberately checked by nothing, which strict mode of a panel accepts.

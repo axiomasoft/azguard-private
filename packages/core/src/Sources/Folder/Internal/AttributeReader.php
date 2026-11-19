@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace AzGuard\Sources\Folder\Internal;
 
 use AzGuard\Catalog\PermissionDefinition;
-use AzGuard\Exceptions\DefinitionException;
+use AzGuard\Exceptions\Definitions\DefinitionException;
 use AzGuard\Kernel\Decision\PermissionAuthority;
 use AzGuard\Permissions\Describe;
 use AzGuard\Permissions\GrantedToAll;
@@ -14,6 +14,7 @@ use AzGuard\Permissions\RequiresGrant;
 use AzGuard\Permissions\Resource;
 use BackedEnum;
 use Illuminate\Database\Eloquent\Model;
+use Packman\Attributes\Internal;
 use ReflectionAttribute;
 use ReflectionClassConstant;
 use ReflectionEnum;
@@ -24,6 +25,7 @@ use ReflectionEnum;
  * A case attribute replaces the enum attribute. Both authority attributes on one element, or none
  * that applies, is a definition error. {@see GrantedToAll} is recorded and does not grant anything here.
  */
+#[Internal]
 final class AttributeReader
 {
     /**

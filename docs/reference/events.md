@@ -9,7 +9,7 @@ AzGuard dispatches immutable events (`AzGuard\Events\*`) through Laravel's event
 - **Serialization.** `toArray()` returns scalars and arrays only. Queue it, log it or send it to an audit store.
 
 ```php
-use AzGuard\Events\RoleGranted;
+use AzGuard\Events\Changes\RoleGranted;
 use Illuminate\Support\Facades\Event;
 
 Event::listen(function (RoleGranted $event): void {

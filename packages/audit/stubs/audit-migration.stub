@@ -1,0 +1,20 @@
+<?php
+
+declare(strict_types=1);
+
+use AzGuard\Audit\Internal\AuditSchema;
+use AzGuard\AzGuard;
+use Packman\Schema\Laravel\PackmanMigration;
+
+return new class extends PackmanMigration
+{
+    public function up(): void
+    {
+        AuditSchema::create(app(AzGuard::class)->storage('{{ storage }}'));
+    }
+
+    public function down(): void
+    {
+        AuditSchema::drop(app(AzGuard::class)->storage('{{ storage }}'));
+    }
+};

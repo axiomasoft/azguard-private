@@ -7,11 +7,13 @@ namespace AzGuard\Laravel\Internal\Console\Commands;
 use AzGuard\Laravel\Internal\Console\GrantCommandSupport;
 use DateTimeZone;
 use Illuminate\Console\Command;
+use Packman\Attributes\Internal;
 
 /**
  * Shows the resulting permission set of one subject in one panel, tenant and scope: the roles it holds there, whether
  * it is a super admin and the Grants permissions. Not a decision; `azguard:explain` answers one check. Reads only.
  */
+#[Internal]
 final class PermissionsShowCommand extends Command
 {
     use GrantCommandSupport;

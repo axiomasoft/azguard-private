@@ -6,7 +6,7 @@ use AzGuard\Changes\Change;
 use AzGuard\Changes\ChangeResult;
 use AzGuard\Changes\Internal\ActingActor;
 use AzGuard\Context\AssignmentScopeRuntime;
-use AzGuard\Exceptions\AssignmentScopeNotAcceptedException;
+use AzGuard\Exceptions\Changes\AssignmentScopeNotAcceptedException;
 use AzGuard\Kernel\Identity\ActorRef;
 use AzGuard\Tests\Fixtures\Changes\ChangeWorld as W;
 use AzGuard\Tests\Fixtures\Changes\FixedGuard;

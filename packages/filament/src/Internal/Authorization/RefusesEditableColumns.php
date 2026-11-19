@@ -9,6 +9,7 @@ use Filament\Tables\Columns\Contracts\Editable;
 use Filament\Tables\Contracts\HasTable;
 use Illuminate\Database\Eloquent\Model;
 use Livewire\ImplicitlyBoundMethod;
+use Packman\Attributes\Internal;
 use Throwable;
 
 /**
@@ -16,6 +17,7 @@ use Throwable;
  *
  * @internal
  */
+#[Internal]
 final class RefusesEditableColumns
 {
     /** @param array<mixed> $params */

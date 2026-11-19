@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use AzGuard\Exceptions\InvalidIdentityException;
+use AzGuard\Exceptions\Identity\InvalidIdentityException;
 use AzGuard\Support\ModelKey;
 use AzGuard\Tests\Modules\Scopes\Fixtures\Project;
 use Illuminate\Database\Eloquent\Model;

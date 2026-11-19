@@ -12,8 +12,10 @@ use AzGuard\Kernel\Decision\DecisionReason;
 use AzGuard\Kernel\Decision\PermissionAuthority;
 use Illuminate\Auth\Access\Response;
 use Illuminate\Contracts\Container\Container;
+use Packman\Attributes\Internal;
 use RuntimeException;
 
+#[Internal]
 final readonly class PolicyDecider
 {
     public function __construct(private Container $container, private RuntimeInvoker $invoker, private NativeGateBinding $native) {}

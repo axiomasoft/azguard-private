@@ -7,7 +7,7 @@ namespace Tests\Feature;
 use App\Guards\Shop\Permissions\OrderPermission;
 use App\Http\Controllers\ShopOrderController;
 use App\Models\User;
-use AzGuard\Exceptions\MissingPermissionCheckException;
+use AzGuard\Exceptions\Configuration\MissingPermissionCheckException;
 use AzGuard\Laravel\Internal\Http\Middleware\CheckPermission;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Routing\Attributes\Controllers\Middleware;

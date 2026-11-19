@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use AzGuard\Exceptions\ConflictingPanelException;
+use AzGuard\Exceptions\Definitions\ConflictingPanelException;
 use AzGuard\Kernel\Identity\AccessScope;
 use AzGuard\Panels\Internal\PanelResolver;
 use AzGuard\Tests\Fixtures\Authorization\AuthorizationWorld;

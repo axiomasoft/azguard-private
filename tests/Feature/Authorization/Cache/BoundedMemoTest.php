@@ -5,7 +5,7 @@ declare(strict_types=1);
 use AzGuard\Authorization\Internal\Cache\PermissionSetCache;
 use AzGuard\Configuration\Internal\AzGuardConfig;
 use AzGuard\Contracts\Sources\Volatility;
-use AzGuard\Exceptions\InvalidConfigurationException;
+use AzGuard\Exceptions\Configuration\InvalidConfigurationException;
 use AzGuard\Kernel\Decision\StateToken;
 use AzGuard\Kernel\Identity\AccessScope;
 use AzGuard\Kernel\Identity\SubjectRef;

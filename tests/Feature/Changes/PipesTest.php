@@ -7,11 +7,11 @@ use AzGuard\Changes\ChangeResult;
 use AzGuard\Changes\ChangeStatus;
 use AzGuard\Changes\ChangeType;
 use AzGuard\Context\AssignmentScopePhase;
-use AzGuard\Exceptions\ChangeCancelledException;
-use AzGuard\Exceptions\DefinitionException;
-use AzGuard\Exceptions\InvalidChangeFieldsException;
-use AzGuard\Exceptions\InvalidConfigurationException;
-use AzGuard\Exceptions\RoleNotGrantableException;
+use AzGuard\Exceptions\Changes\ChangeCancelledException;
+use AzGuard\Exceptions\Changes\InvalidChangeFieldsException;
+use AzGuard\Exceptions\Changes\RoleNotGrantableException;
+use AzGuard\Exceptions\Configuration\InvalidConfigurationException;
+use AzGuard\Exceptions\Definitions\DefinitionException;
 use AzGuard\Kernel\Identity\ActorRef;
 use AzGuard\Panels\Internal\PanelRegistry;
 use AzGuard\Panels\PanelBuilder;
@@ -211,5 +211,5 @@ it('passes the unchanged writer result through observing pipes', function (): vo
 
     expect($result->status)->toBe(ChangeStatus::Unchanged)
         ->and($observed[0]->records)->toBe($result->records)
-        ->and(SellerProjects::$observed)->not->toBe([]);
+        ->and(SellerProjects::$observed)->not->toBeEmpty();
 });

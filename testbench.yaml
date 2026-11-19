@@ -1,0 +1,5 @@
+providers: []
+
+dont-discover:
+  - axiomasoft/azguard
+  - axiomasoft/azguard-filament

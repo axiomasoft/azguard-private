@@ -11,12 +11,14 @@ use AzGuard\Panels\Internal\PanelRegistry;
 use AzGuard\Sources\SourceManager;
 use BackedEnum;
 use Illuminate\Console\Command;
+use Packman\Attributes\Internal;
 
 /**
  * Lists the names of the source factory (`#[AsSource]` classes and `extend()` creators) with their class, their
  * parameters from `azguard.sources` with secret values redacted, and the panels that use each name. A configured name
  * that nothing registers is listed too. Reads only.
  */
+#[Internal]
 final class SourcesListCommand extends Command
 {
     use GrantCommandSupport;

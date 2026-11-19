@@ -2,8 +2,8 @@
 
 declare(strict_types=1);
 
-use AzGuard\Exceptions\DuplicatePermissionException;
-use AzGuard\Exceptions\UnknownPanelException;
+use AzGuard\Exceptions\Definitions\DuplicatePermissionException;
+use AzGuard\Exceptions\Definitions\UnknownPanelException;
 use AzGuard\Panels\Internal\PanelRegistry;
 use AzGuard\Panels\PanelBuilder;
 use AzGuard\Tests\Fixtures\Modules\Blog\BlogServiceProvider;

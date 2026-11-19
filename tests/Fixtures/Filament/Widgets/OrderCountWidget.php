@@ -28,6 +28,6 @@ final class OrderCountWidget extends Widget
 
     public function render(): View
     {
-        return app(Factory::class)->file(__DIR__.'/../views/count.blade.php', ['count' => OrderResource::getEloquentQuery()->count()]);
+        return app(Factory::class)->file(__DIR__.'/../views/count.blade.php', ['count' => OrderResource::getEloquentQuery()->toBase()->count()]);
     }
 }

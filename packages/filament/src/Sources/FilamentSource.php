@@ -4,17 +4,17 @@ declare(strict_types=1);
 
 namespace AzGuard\Filament\Sources;
 
-use AzGuard\Attributes\Api;
 use AzGuard\Catalog\PermissionDefinition;
 use AzGuard\Contracts\Sources\DescribesSchema;
 use AzGuard\Contracts\Sources\ProvidesPermissions;
 use AzGuard\Contracts\Sources\SourceDescription;
-use AzGuard\Exceptions\InvalidConfigurationException;
+use AzGuard\Exceptions\Configuration\InvalidConfigurationException;
 use AzGuard\Filament\AzGuardPlugin;
 use AzGuard\Filament\FilamentDefinitions;
 use AzGuard\Kernel\Identity\TenantRef;
 use AzGuard\Panels\Panel;
 use Filament\Facades\Filament;
+use Packman\Attributes\Api;
 
 /**
  * Permission definitions read from the resources, pages and widgets of a Filament panel.

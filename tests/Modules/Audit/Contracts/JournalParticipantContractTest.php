@@ -21,7 +21,7 @@ final class JournalParticipantContractTest extends TestCase
      */
     protected function defineDatabaseMigrations(): void
     {
-        $this->app->make('migrator')->path(dirname(__DIR__, 4).'/packages/core/modules/audit/database/migrations');
+        $this->app->make('migrator')->path(dirname(__DIR__, 4).'/packages/audit/database/migrations');
     }
 
     protected function azguardParticipant(): ChangeParticipant

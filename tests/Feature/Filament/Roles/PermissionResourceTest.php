@@ -2,8 +2,8 @@
 
 declare(strict_types=1);
 
-use AzGuard\Events\PermissionCreated;
-use AzGuard\Exceptions\UnknownPermissionException;
+use AzGuard\Events\Permissions\PermissionCreated;
+use AzGuard\Exceptions\Changes\UnknownPermissionException;
 use AzGuard\Facades\AzGuard;
 use AzGuard\Filament\Internal\Editors\TargetSelector;
 use AzGuard\Filament\Resources\PermissionResource;

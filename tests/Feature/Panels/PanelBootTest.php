@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 use AzGuard\Configuration\Internal\AzGuardConfig;
 use AzGuard\Contracts\Panels\PanelRegistry as PanelRegistryContract;
-use AzGuard\Exceptions\InvalidConfigurationException;
-use AzGuard\Exceptions\RegistryFrozenException;
-use AzGuard\Exceptions\UnknownPanelException;
+use AzGuard\Exceptions\Configuration\InvalidConfigurationException;
+use AzGuard\Exceptions\Definitions\RegistryFrozenException;
+use AzGuard\Exceptions\Definitions\UnknownPanelException;
 use AzGuard\Panels\Internal\CurrentPanel;
 use AzGuard\Panels\Internal\PanelRegistry;
 use AzGuard\Panels\PanelBuilder;

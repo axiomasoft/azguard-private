@@ -1,0 +1,100 @@
+{
+    "$schema": "../packman/schemas/packman.schema.json",
+    "schema_version": 1,
+    "name": "axiomasoft/azguard-monorepo",
+    "profile": "laravel-package",
+    "php": ">=8.4 <8.6",
+    "phpstan_level": "max",
+    "provider_max_lines": 80,
+    "packages": [
+        {
+            "name": "axiomasoft/azguard",
+            "path": "packages/core",
+            "namespace": "AzGuard\\",
+            "profile": "laravel-package",
+            "layer": "L2",
+            "type": "capability",
+            "owns": [
+                "Attributes",
+                "Authorization",
+                "Catalog",
+                "Changes",
+                "Concerns",
+                "Configuration",
+                "Context",
+                "Contracts",
+                "Diagnostics",
+                "Directories",
+                "Errors",
+                "Events",
+                "Exceptions",
+                "Extensions",
+                "Facades",
+                "Kernel",
+                "Laravel",
+                "Panels",
+                "Permissions",
+                "Plugins",
+                "Policies",
+                "Registrars",
+                "Roles",
+                "Schema",
+                "Sources",
+                "Storage",
+                "Support",
+                "Tenancy",
+                "Testing"
+            ]
+        },
+        {
+            "name": "axiomasoft/azguard-scopes",
+            "path": "packages/scopes",
+            "namespace": "AzGuard\\Scopes\\",
+            "profile": "laravel-package",
+            "layer": "L2",
+            "type": "capability",
+            "owns": [
+                "Extensions"
+            ]
+        },
+        {
+            "name": "axiomasoft/azguard-audit",
+            "path": "packages/audit",
+            "namespace": "AzGuard\\Audit\\",
+            "profile": "laravel-package",
+            "layer": "L2",
+            "type": "capability",
+            "owns": [
+                "Extensions"
+            ]
+        },
+        {
+            "name": "axiomasoft/azguard-devtools",
+            "path": "packages/devtools",
+            "namespace": "AzGuard\\DevTools\\",
+            "profile": "laravel-package",
+            "layer": "L3",
+            "type": "tooling",
+            "dev_only": true,
+            "owns": [
+                "Extensions"
+            ]
+        },
+        {
+            "name": "axiomasoft/azguard-filament",
+            "path": "packages/filament",
+            "namespace": "AzGuard\\Filament\\",
+            "profile": "laravel-package",
+            "layer": "L2",
+            "type": "integration",
+            "owns": [
+                "Attributes",
+                "Authorization",
+                "Exports",
+                "Extensions",
+                "Pages",
+                "Sources"
+            ]
+        }
+    ]
+}

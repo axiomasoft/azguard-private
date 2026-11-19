@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace AzGuard\Contracts\Tenancy;
 
-use AzGuard\Attributes\Spi;
-use AzGuard\Attributes\SpiKind;
 use AzGuard\Kernel\Identity\SubjectRef;
 use AzGuard\Kernel\Identity\TenantRef;
+use Packman\Attributes\Spi;
+use Packman\Attributes\SpiKind;
 
 /**
  * Tells whether a subject belongs to a tenant.

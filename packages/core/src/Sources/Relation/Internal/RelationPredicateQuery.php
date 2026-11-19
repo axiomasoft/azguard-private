@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace AzGuard\Sources\Relation\Internal;
 
-use AzGuard\Exceptions\InvalidSourceContributionException;
+use AzGuard\Exceptions\Authorization\InvalidSourceContributionException;
 use Illuminate\Database\Query\Builder;
+use Packman\Attributes\Internal;
 
 /** SQL predicates without terminal query execution; nested subqueries retain this builder. */
+#[Internal]
 final class RelationPredicateQuery extends Builder
 {
     protected function runSelect(): never

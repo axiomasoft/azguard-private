@@ -2,7 +2,7 @@
     "schema": "urn:azguard:source-capabilities:2",
     "basis": "static_declaration",
     "runtime_unsupported": {
-        "exception": "AzGuard\\Exceptions\\VisibilityNotSupportedException",
+        "exception": "AzGuard\\Exceptions\\Authorization\\VisibilityNotSupportedException",
         "semantics": "Conditional declarations never prove arbitrary closures or policies. Unsupported selections or predicates throw before the host query runs; never Allow or filter a paginated result in PHP.",
         "test_reference": "tests/Feature/Visibility/UnsupportedTest.php"
     },

@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace AzGuard\Permissions;
 
 use Attribute;
-use AzGuard\Attributes\Api;
+use Packman\Attributes\Api;
 
 /**
  * Label, group and description of one permission case.

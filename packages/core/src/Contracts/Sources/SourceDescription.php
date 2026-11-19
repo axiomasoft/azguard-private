@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace AzGuard\Contracts\Sources;
 
-use AzGuard\Attributes\Api;
 use AzGuard\Schema\Field;
+use Packman\Attributes\Api;
 
 /**
  * What a source can contribute to a panel. Parameters of the source are not part of the description.

@@ -10,8 +10,10 @@ use AzGuard\Kernel\Decision\Grant;
 use AzGuard\Kernel\Decision\RoleContribution;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Log;
+use Packman\Attributes\Internal;
 use Throwable;
 
+#[Internal]
 final class Trace
 {
     /** @var list<array<string, mixed>> */

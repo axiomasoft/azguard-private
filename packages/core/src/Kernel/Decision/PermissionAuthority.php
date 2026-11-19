@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace AzGuard\Kernel\Decision;
 
-use AzGuard\Attributes\Api;
+use Packman\Attributes\Api;
 
 /**
  * Who decides a permission: its policy alone, or assignments with an optional policy veto.

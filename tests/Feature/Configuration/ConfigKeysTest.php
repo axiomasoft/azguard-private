@@ -5,7 +5,7 @@ declare(strict_types=1);
 use AzGuard\AzGuardServiceProvider;
 use AzGuard\Configuration\Internal\AzGuardConfig;
 use AzGuard\DevTools\Internal\ScaffoldConfig;
-use AzGuard\Exceptions\InvalidConfigurationException;
+use AzGuard\Exceptions\Configuration\InvalidConfigurationException;
 use AzGuard\Panels\Internal\PanelCompiler;
 use AzGuard\Panels\Internal\PanelRecipe;
 use AzGuard\Panels\PanelBuilder;
@@ -63,12 +63,12 @@ it('publishes the file with exactly the keys of the snapshot', function (): void
 it('accepts exactly the keys of the published file', function (): void {
     $snapshot = json_decode((string) file_get_contents(dirname(__DIR__, 2).'/Fixtures/Configuration/config-keys.json'), true, flags: JSON_THROW_ON_ERROR);
 
-    // `scaffold.*` belongs to DevTools: core accepts it only where DevTools registered its owner, and its default is not in the file.
+    // Optional tooling settings are published and accepted even when DevTools is absent.
     $known = AzGuardConfig::knownKeys();
     sort($known, SORT_STRING);
 
     expect($known)->toBe($snapshot)
-        ->and(array_values(array_intersect($snapshot, array_map(static fn (string $key): string => 'scaffold.'.$key, ScaffoldConfig::KEYS))))->toBe([])
+        ->and(array_values(array_intersect($snapshot, array_map(static fn (string $key): string => 'scaffold.'.$key, ScaffoldConfig::KEYS))))->toBe(['scaffold.namespace', 'scaffold.path'])
         ->and(AzGuardConfig::fromRepository(new Repository(['azguard' => publishedConfiguration()])))->toBeInstanceOf(AzGuardConfig::class);
 });
 
@@ -126,7 +126,7 @@ it('reports a missing cron parser as a configuration error in an illuminate-only
                 'azguard' => ['schedule' => ['prune_expired' => '0 3 * * *']],
             ]));
             exit(2);
-        } catch (AzGuard\Exceptions\InvalidConfigurationException $error) {
+        } catch (AzGuard\Exceptions\Configuration\InvalidConfigurationException $error) {
             echo $error->getMessage();
         }
         PHP;

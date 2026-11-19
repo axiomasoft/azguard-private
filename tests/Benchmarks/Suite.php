@@ -224,7 +224,7 @@ function generateCatalog(): string
             $roles[] = "R{$r}Role::class";
         }
         file_put_contents("{$dir}/RolePermissions.php", $head."final class RolePermissions\n{\n    /** @return list<string> */\n    public static function of(int \$role): array\n    {\n        return ".var_export($roleMap, true)."[\$role];\n    }\n}\n");
-        file_put_contents("{$dir}/User.php", $head."final class User extends \\Illuminate\\Database\\Eloquent\\Model implements \\AzGuard\\Contracts\\AzGuardSubject\n{\n    use \\AzGuard\\Concerns\\HasAzGuard;\n\n    public \$timestamps = false;\n\n    protected \$guarded = [];\n}\n");
+        file_put_contents("{$dir}/User.php", $head."final class User extends \\Illuminate\\Database\\Eloquent\\Model implements \\AzGuard\\Contracts\\Subjects\\AzGuardSubject\n{\n    use \\AzGuard\\Concerns\\Subjects\\HasAzGuard;\n\n    public \$timestamps = false;\n\n    protected \$guarded = [];\n}\n");
         file_put_contents("{$dir}/Post.php", $head."final class Post extends \\Illuminate\\Database\\Eloquent\\Model\n{\n    public \$timestamps = false;\n\n    protected \$guarded = [];\n}\n");
         file_put_contents("{$dir}/PostPolicy.php", $head.<<<'PHP'
 use AzGuard\Contracts\Authorization\EvaluationContext;

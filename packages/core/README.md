@@ -3,7 +3,7 @@
 Code-first authorization for Laravel 13. Permissions are backed enums and roles are PHP classes. Every
 check goes through one decision pipeline that fails closed.
 
-For 2.0, supported pairs are PHP 8.3, 8.4 and 8.5 with Laravel 13.
+For 2.0, supported pairs are PHP 8.4 and 8.5 with Laravel 13.
 CI tests lowest and latest dependencies for each pair on SQLite; server lanes use MySQL 9.7,
 PostgreSQL 18 and Redis 7. The optional Filament plugin requires Filament `^5.8.4` and the exact same core version.
 

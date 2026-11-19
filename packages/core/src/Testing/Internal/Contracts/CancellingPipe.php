@@ -8,10 +8,12 @@ use AzGuard\Changes\Change;
 use AzGuard\Changes\ChangeResult;
 use AzGuard\Contracts\Changes\ChangePipe;
 use Closure;
+use Packman\Attributes\Internal;
 
 /**
  * @internal The last pipe of a suite that cancels the change after the pipe of the author has run.
  */
+#[Internal]
 final class CancellingPipe implements ChangePipe
 {
     public function handle(Change $change, Closure $next): ChangeResult

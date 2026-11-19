@@ -15,6 +15,7 @@ use Illuminate\Queue\Events\JobExceptionOccurred;
 use Illuminate\Queue\Events\JobFailed;
 use Illuminate\Queue\Events\JobProcessed;
 use Illuminate\Queue\Events\JobProcessing;
+use Packman\Attributes\Internal;
 use WeakMap;
 
 /**
@@ -32,6 +33,7 @@ use WeakMap;
  *
  * @internal
  */
+#[Internal]
 final class PanelContext
 {
     public const string KEY = 'azguard.panel';

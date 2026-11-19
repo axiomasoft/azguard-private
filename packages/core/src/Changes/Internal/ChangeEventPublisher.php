@@ -10,20 +10,20 @@ use AzGuard\Changes\ChangeResult;
 use AzGuard\Changes\EffectKind;
 use AzGuard\Changes\GrantRecord;
 use AzGuard\Changes\PermissionRecord;
+use AzGuard\Events\Access\PanelStateTouched;
 use AzGuard\Events\AccessEvent;
-use AzGuard\Events\GrantExpired;
+use AzGuard\Events\Changes\GrantExpired;
+use AzGuard\Events\Changes\PermissionGranted;
+use AzGuard\Events\Changes\PermissionGrantUpdated;
+use AzGuard\Events\Changes\PermissionRevoked;
+use AzGuard\Events\Changes\RoleGranted;
+use AzGuard\Events\Changes\RoleGrantUpdated;
+use AzGuard\Events\Changes\RoleRevoked;
 use AzGuard\Events\Internal\EventObservers;
-use AzGuard\Events\PanelStateTouched;
-use AzGuard\Events\PermissionCreated;
-use AzGuard\Events\PermissionDeleted;
-use AzGuard\Events\PermissionGranted;
-use AzGuard\Events\PermissionGrantUpdated;
-use AzGuard\Events\PermissionRevoked;
-use AzGuard\Events\PermissionUpdated;
-use AzGuard\Events\RoleGranted;
-use AzGuard\Events\RoleGrantUpdated;
-use AzGuard\Events\RoleRevoked;
-use AzGuard\Exceptions\UnsupportedDirectWriteException;
+use AzGuard\Events\Permissions\PermissionCreated;
+use AzGuard\Events\Permissions\PermissionDeleted;
+use AzGuard\Events\Permissions\PermissionUpdated;
+use AzGuard\Exceptions\Storage\UnsupportedDirectWriteException;
 use AzGuard\Kernel\Decision\StateToken;
 use AzGuard\Kernel\Identity\ActorRef;
 use AzGuard\Kernel\Identity\RoleKey;
@@ -31,6 +31,7 @@ use AzGuard\Kernel\Identity\TenantRef;
 use DateTimeImmutable;
 use Illuminate\Contracts\Container\Container;
 use Illuminate\Contracts\Events\Dispatcher;
+use Packman\Attributes\Internal;
 use Throwable;
 
 /**
@@ -40,6 +41,7 @@ use Throwable;
  * after the commit reads a closed handle or a later state. `dispatch()` runs from the commit callback: one event at a
  * time, a listener that throws is reported and the rest are still delivered.
  */
+#[Internal]
 final readonly class ChangeEventPublisher
 {
     public function __construct(private Container $container) {}

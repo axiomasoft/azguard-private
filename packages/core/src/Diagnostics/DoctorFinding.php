@@ -4,8 +4,9 @@ declare(strict_types=1);
 
 namespace AzGuard\Diagnostics;
 
-use AzGuard\Attributes\Api;
 use InvalidArgumentException;
+use Packman\Attributes\Api;
+use Packman\Attributes\Internal;
 
 /**
  * One problem `azguard:doctor` found: a stable key, its severity, what it belongs to and a message for a person.
@@ -84,10 +85,9 @@ final readonly class DoctorFinding
      * more is replaced wherever it occurs; a shorter one only where it stands alone between non-alphanumeric
      * characters, so it is removed from `user:pw@host` but not from every word that contains it.
      *
-     * @internal
-     *
      * @param  list<string>  $secrets
      */
+    #[Internal]
     public function redacted(array $secrets): self
     {
         if ($secrets === []) {

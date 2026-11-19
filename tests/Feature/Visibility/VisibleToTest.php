@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 use AzGuard\Contracts\Authorization\EvaluationContext;
-use AzGuard\Exceptions\VisibilityNotSupportedException;
+use AzGuard\Exceptions\Authorization\VisibilityNotSupportedException;
 use AzGuard\Kernel\Decision\AccessRequest;
 use AzGuard\Kernel\Decision\BeforeResult;
 use AzGuard\Kernel\Identity\PermissionKey;

@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 use AzGuard\Authorization\Internal\Authorizer;
-use AzGuard\Events\RoleGrantUpdated;
+use AzGuard\Events\Changes\RoleGrantUpdated;
 use AzGuard\Kernel\Decision\DecisionReason;
 use AzGuard\Panels\Internal\PanelRegistry;
 use AzGuard\Tests\Feature\Changes\Managers\ManagerWorld as M;

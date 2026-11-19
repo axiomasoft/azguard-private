@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-use AzGuard\Concerns\SubjectAccess;
+use AzGuard\Concerns\Subjects\SubjectAccess;
 use AzGuard\Context\Internal\CurrentContext;
 use AzGuard\Context\Internal\WithinContext;
-use AzGuard\Exceptions\AmbiguousPanelException;
-use AzGuard\Exceptions\ConflictingPanelException;
-use AzGuard\Exceptions\TenantRequiredException;
+use AzGuard\Exceptions\Changes\TenantRequiredException;
+use AzGuard\Exceptions\Definitions\AmbiguousPanelException;
+use AzGuard\Exceptions\Definitions\ConflictingPanelException;
 use AzGuard\Facades\AzGuard;
 use AzGuard\Kernel\Identity\AssignmentScopeRef;
 use AzGuard\Panels\Internal\CurrentPanel;

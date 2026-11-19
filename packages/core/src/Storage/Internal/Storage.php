@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace AzGuard\Storage\Internal;
 
 use AzGuard\Configuration\Internal\AzGuardConfig;
-use AzGuard\Exceptions\InvalidConfigurationException;
-use AzGuard\Exceptions\StorageMismatchException;
-use AzGuard\Exceptions\UnsupportedDirectWriteException;
+use AzGuard\Exceptions\Configuration\InvalidConfigurationException;
+use AzGuard\Exceptions\Storage\StorageMismatchException;
+use AzGuard\Exceptions\Storage\UnsupportedDirectWriteException;
 use AzGuard\Kernel\Grammar\PermissionGrammar;
 use AzGuard\Kernel\Identity\IdentityCodec;
 use AzGuard\Panels\Reads;
@@ -26,6 +26,7 @@ use Illuminate\Database\QueryException;
 use Illuminate\Support\Str;
 use InvalidArgumentException;
 use JsonException;
+use Packman\Attributes\Internal;
 use PDO;
 use ReflectionClass;
 use stdClass;
@@ -36,6 +37,7 @@ use function Illuminate\Support\enum_value;
 /**
  * A configured physical storage or a registry-managed private storage.
  */
+#[Internal]
 final class Storage
 {
     /** 2: subject revisions and the panel epoch (audits/2026-10-09-consistency-design.md, step 3). */
@@ -311,7 +313,7 @@ final class Storage
                 }
                 $this->pendingSubjects[$panel] = ($this->pendingSubjects[$panel] ?? []) + $mutation->touchedSubjects($panel);
 
-                if ($parent?->holds($panel)) {
+                if ($parent !== null && $parent->holds($panel)) {
                     $parent->absorb($panel, $mutation->touchesEpoch($panel), $mutation->touchedSubjects($panel));
                 }
             }

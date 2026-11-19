@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace AzGuard\Contracts\Authorization;
 
-use AzGuard\Attributes\Spi;
-use AzGuard\Attributes\SpiKind;
 use AzGuard\Kernel\Decision\AccessRequest;
 use AzGuard\Kernel\Decision\Decision;
+use Packman\Attributes\Spi;
+use Packman\Attributes\SpiKind;
 
 /**
  * A hook that observes a finished decision; it cannot replace it.

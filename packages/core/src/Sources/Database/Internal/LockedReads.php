@@ -8,7 +8,7 @@ use AzGuard\Catalog\Internal\PanelCatalog;
 use AzGuard\Catalog\PermissionDefinition;
 use AzGuard\Changes\GrantRecord;
 use AzGuard\Changes\PermissionRecord;
-use AzGuard\Exceptions\InvalidSourceContributionException;
+use AzGuard\Exceptions\Authorization\InvalidSourceContributionException;
 use AzGuard\Kernel\Decision\PermissionAuthority;
 use AzGuard\Kernel\Decision\StateToken;
 use AzGuard\Kernel\Identity\AccessScope;
@@ -29,12 +29,14 @@ use AzGuard\Storage\Models\RoleGrant;
 use DateTimeImmutable;
 use DateTimeZone;
 use Illuminate\Database\Query\Builder;
+use Packman\Attributes\Internal;
 use stdClass;
 
 /**
  * @internal Reads of the writer under the panel lock, on the write handle of the active mutation, with explicit
  * panel, tenant, context and origin predicates. Neither the public read session nor a memo is used.
  */
+#[Internal]
 final class LockedReads
 {
     private readonly GrantRows $rows;

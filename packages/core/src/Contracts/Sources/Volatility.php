@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace AzGuard\Contracts\Sources;
 
-use AzGuard\Attributes\Spi;
-use AzGuard\Attributes\SpiKind;
+use Packman\Attributes\Spi;
+use Packman\Attributes\SpiKind;
 
 /**
  * How long a source may reuse the grants it read.

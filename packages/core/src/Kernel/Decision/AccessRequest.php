@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace AzGuard\Kernel\Decision;
 
-use AzGuard\Attributes\Api;
 use AzGuard\Kernel\Identity\AccessScope;
 use AzGuard\Kernel\Identity\AssignmentScopeRef;
 use AzGuard\Kernel\Identity\PermissionKey;
 use AzGuard\Kernel\Identity\SubjectRef;
 use AzGuard\Kernel\Identity\TenantRef;
+use Packman\Attributes\Api;
 
 /**
  * "May this subject do this?": the permission plus an explicit tenant, assignment scope and resource.
@@ -68,13 +68,11 @@ final readonly class AccessRequest
     }
 
     /** Read database authority from primary for this request. */
-    #[Api(since: '2.0')]
     public function onPrimary(): self
     {
         return new self($this->subject, $this->permission, $this->tenant, $this->context, $this->resource, $this->traced, $this->subjectModel, true);
     }
 
-    #[Api(since: '2.0')]
     public function requiresPrimary(): bool
     {
         return $this->primaryRequested;

@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace AzGuard\Storage\Schema;
 
-use AzGuard\Attributes\Spi;
-use AzGuard\Attributes\SpiKind;
 use AzGuard\Storage\Internal\Schema\HostKeyColumns;
 use AzGuard\Storage\StorageDescriptor;
 use Illuminate\Database\Connection;
@@ -13,6 +11,8 @@ use Illuminate\Database\DatabaseManager;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Schema\ColumnDefinition;
 use InvalidArgumentException;
+use Packman\Attributes\Spi;
+use Packman\Attributes\SpiKind;
 
 /**
  * Identity columns of a table a module owns on an AzGuard storage, with the same types, lengths, byte semantics and

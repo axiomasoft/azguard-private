@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace AzGuard\Testing\Contracts;
 
-use AzGuard\Attributes\Spi;
-use AzGuard\Attributes\SpiKind;
 use AzGuard\Contracts\Authorization\Restriction;
 use AzGuard\Kernel\Decision\DecisionReason;
 use AzGuard\Kernel\Identity\SubjectRef;
@@ -16,6 +14,9 @@ use AzGuard\Testing\FakeSource;
 use AzGuard\Testing\Internal\Contracts\ContractPermission;
 use AzGuard\Testing\Internal\Contracts\ContractWorld;
 use Illuminate\Database\Eloquent\Model;
+use Packman\Attributes\Spi;
+use Packman\Attributes\SpiKind;
+use PHPUnit\Framework\Assert;
 use PHPUnit\Framework\Attributes\Test;
 use UnitEnum;
 
@@ -59,9 +60,9 @@ trait RestrictionContractTests
     {
         $restriction = $this->azguardRestriction();
 
-        $this->assertNotSame('', $restriction->key(), 'A restriction has a key.');
-        $this->assertSame($restriction->key(), $restriction->key(), 'The key changes between calls.');
-        $this->assertSame($restriction->key(), $this->azguardRestriction()->key(), 'Two instances of the restriction have different keys.');
+        Assert::assertNotSame('', $restriction->key(), 'A restriction has a key.');
+        Assert::assertSame($restriction->key(), $restriction->key(), 'The key changes between calls.');
+        Assert::assertSame($restriction->key(), $this->azguardRestriction()->key(), 'Two instances of the restriction have different keys.');
     }
 
     #[Test]
@@ -77,8 +78,8 @@ trait RestrictionContractTests
             $first = ContractWorld::decide($panel, $subject, $permission);
             $second = ContractWorld::decide($panel, $subject, $permission);
 
-            $this->assertSame($first->effect, $second->effect, 'The restriction decides the same request differently.');
-            $this->assertSame($first->reason, $second->reason, 'The restriction gives different reasons for the same request.');
+            Assert::assertSame($first->effect, $second->effect, 'The restriction decides the same request differently.');
+            Assert::assertSame($first->reason, $second->reason, 'The restriction gives different reasons for the same request.');
         }
     }
 
@@ -96,10 +97,10 @@ trait RestrictionContractTests
         foreach ($this->azguardPermissions() as $permission) {
             $decision = ContractWorld::decide($restricted, $subject, $permission);
 
-            $this->assertNotSame(DecisionReason::RestrictionError, $decision->reason, 'The restriction threw: the engine denied the request instead of passing it.');
+            Assert::assertNotSame(DecisionReason::RestrictionError, $decision->reason, 'The restriction threw: the engine denied the request instead of passing it.');
 
             if ($decision->reason === DecisionReason::Restricted) {
-                $this->assertSame($restriction->key(), $decision->component, 'A denial by the restriction does not name its key.');
+                Assert::assertSame($restriction->key(), $decision->component, 'A denial by the restriction does not name its key.');
             }
         }
     }
@@ -121,6 +122,6 @@ trait RestrictionContractTests
             }
         });
 
-        $this->assertSame([], $writes, 'The restriction wrote while it decided: '.implode('; ', $writes));
+        Assert::assertSame([], $writes, 'The restriction wrote while it decided: '.implode('; ', $writes));
     }
 }

@@ -7,7 +7,10 @@ namespace AzGuard\Diagnostics\Internal\Checks;
 use AzGuard\Contracts\Diagnostics\DoctorCheck;
 use AzGuard\Diagnostics\DoctorContext;
 use AzGuard\Diagnostics\DoctorFinding;
+use AzGuard\Diagnostics\Internal\DoctorStorages;
 use AzGuard\Sources\Database\Internal\StorageHealth;
+use AzGuard\Storage\Internal\StorageRegistry;
+use Packman\Attributes\Internal;
 use Throwable;
 
 /**
@@ -16,8 +19,11 @@ use Throwable;
  *
  * @internal
  */
+#[Internal]
 final readonly class StorageMigrated implements DoctorCheck
 {
+    public function __construct(private ?StorageRegistry $storages = null) {}
+
     public function key(): string
     {
         return 'storage.migrated';
@@ -25,7 +31,7 @@ final readonly class StorageMigrated implements DoctorCheck
 
     public function run(DoctorContext $context): iterable
     {
-        foreach ($context->storageObjects() as $storage) {
+        foreach (DoctorStorages::of($context, $this->storages) as $storage) {
             $scope = 'storage:'.$storage->id();
 
             try {

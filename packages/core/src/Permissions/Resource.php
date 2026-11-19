@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace AzGuard\Permissions;
 
 use Attribute;
-use AzGuard\Attributes\Api;
 use Illuminate\Database\Eloquent\Model;
+use Packman\Attributes\Api;
 
 /**
  * Label and domain model of a permission enum. The model does not by itself create permissions.

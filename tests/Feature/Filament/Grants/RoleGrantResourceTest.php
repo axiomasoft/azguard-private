@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 use AzGuard\Changes\GrantDetails;
-use AzGuard\Exceptions\StaleSelectionException;
+use AzGuard\Exceptions\Changes\StaleSelectionException;
 use AzGuard\Facades\AzGuard;
 use AzGuard\Filament\Internal\Editors\GrantEditor;
 use AzGuard\Filament\Internal\Editors\TargetSelector;

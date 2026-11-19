@@ -9,11 +9,13 @@ use AzGuard\Laravel\Internal\Console\GrantCommandSupport;
 use AzGuard\Sources\Database\DatabaseSource;
 use Carbon\CarbonImmutable;
 use Illuminate\Console\Command;
+use Packman\Attributes\Internal;
 
 /**
  * Lists every stored grant of one subject in one panel and tenant, in every origin and context, expired ones
  * included: roles and permissions, their contexts, expiry and fields. Reads only.
  */
+#[Internal]
 final class GrantsListCommand extends Command
 {
     use GrantCommandSupport;

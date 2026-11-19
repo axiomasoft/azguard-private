@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace AzGuard\Kernel\Decision;
 
-use AzGuard\Attributes\Api;
+use Packman\Attributes\Api;
 
 /**
  * Why a decision has its effect; the value is the stable machine code of the reason.

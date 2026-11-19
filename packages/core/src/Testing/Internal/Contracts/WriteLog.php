@@ -4,9 +4,12 @@ declare(strict_types=1);
 
 namespace AzGuard\Testing\Internal\Contracts;
 
+use Packman\Attributes\Internal;
+
 /**
  * @internal The statements that change data which a suite saw while it watched.
  */
+#[Internal]
 final class WriteLog
 {
     public bool $active = true;

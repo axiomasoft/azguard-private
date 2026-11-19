@@ -4,14 +4,14 @@ declare(strict_types=1);
 
 namespace AzGuard\Testing;
 
-use AzGuard\Attributes\Api;
-use AzGuard\Events\AccessDecided;
+use AzGuard\Events\Access\AccessDecided;
 use AzGuard\Kernel\Decision\DecisionReason;
 use AzGuard\Kernel\Decision\Effect;
 use AzGuard\Kernel\Identity\AssignmentScopeRef;
 use AzGuard\Kernel\Identity\PermissionKey;
 use AzGuard\Kernel\Identity\SubjectRef;
 use AzGuard\Kernel\Identity\TenantRef;
+use Packman\Attributes\Api;
 
 /**
  * One check the fake saw: who asked for which permission in which scope and what the real engine decided.

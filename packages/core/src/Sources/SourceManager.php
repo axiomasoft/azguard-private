@@ -4,16 +4,17 @@ declare(strict_types=1);
 
 namespace AzGuard\Sources;
 
-use AzGuard\Attributes\Api;
 use AzGuard\Attributes\AsSource;
 use AzGuard\Configuration\Internal\AzGuardConfig;
 use AzGuard\Contracts\Sources\Source;
-use AzGuard\Exceptions\DefinitionException;
-use AzGuard\Exceptions\UnknownSourceException;
+use AzGuard\Exceptions\Definitions\DefinitionException;
+use AzGuard\Exceptions\Definitions\UnknownSourceException;
 use AzGuard\Sources\Database\DatabaseSource;
 use Closure;
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Support\Manager;
+use Packman\Attributes\Api;
+use Packman\Attributes\Internal;
 use ReflectionAttribute;
 use ReflectionClass;
 
@@ -72,10 +73,9 @@ final class SourceManager extends Manager
      * Every registered name with the class declared by `#[AsSource]`, or null for a creator registered with `extend()`,
      * ordered by name.
      *
-     * @internal read by `azguard:sources:list`
-     *
      * @return array<string, class-string<Source>|null>
      */
+    #[Internal('read by `azguard:sources:list`')]
     public function names(): array
     {
         $names = array_map(static fn (): null => null, $this->customCreators) + $this->attributes;
@@ -96,7 +96,7 @@ final class SourceManager extends Manager
 
         $created = match (true) {
             isset($this->customCreators[$name]) => ($this->customCreators[$name])($this->application(), $config),
-            isset($this->attributes[$name]) => $this->container->makeWith($this->attributes[$name], ['config' => $config]),
+            isset($this->attributes[$name]) => $this->container->make($this->attributes[$name], ['config' => $config]),
             default => throw new UnknownSourceException(
                 'No source is registered under the name "'.$name.'": add #[AsSource(\''.$name.'\')] or sources()->extend().',
             ),
@@ -124,7 +124,7 @@ final class SourceManager extends Manager
             throw new DefinitionException($class.' is not a source class: it must implement '.Source::class.'.');
         }
 
-        $attributes = (new ReflectionClass($class))->getAttributes(AsSource::class, ReflectionAttribute::IS_INSTANCEOF);
+        $attributes = new ReflectionClass($class)->getAttributes(AsSource::class, ReflectionAttribute::IS_INSTANCEOF);
 
         if ($attributes === []) {
             throw new DefinitionException($class.' has no #[AsSource] attribute: the name of the source is declared on the class.');

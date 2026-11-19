@@ -4,12 +4,14 @@ declare(strict_types=1);
 
 namespace AzGuard\Kernel\Internal;
 
+use Packman\Attributes\Internal;
 use UnexpectedValueException;
 
 /**
  * @internal Runtime narrowing of values whose static type is `mixed`: database rows, decoded JSON, Livewire state and
  * container results. A value of another type is a broken invariant and throws; nothing is cast silently.
  */
+#[Internal]
 final class Narrow
 {
     /** A string, or an integer as its decimal string (drivers return integer columns either way). */

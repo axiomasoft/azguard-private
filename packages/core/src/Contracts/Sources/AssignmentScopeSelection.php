@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace AzGuard\Contracts\Sources;
 
-use AzGuard\Attributes\Spi;
-use AzGuard\Attributes\SpiKind;
-use AzGuard\Exceptions\InvalidSourceContributionException;
+use AzGuard\Exceptions\Authorization\InvalidSourceContributionException;
 use AzGuard\Kernel\Decision\Grant;
 use AzGuard\Kernel\Decision\RoleContribution;
 use AzGuard\Kernel\Identity\AssignmentScopeRef;
+use Packman\Attributes\Spi;
+use Packman\Attributes\SpiKind;
 
 /**
  * Candidate prefilter with raw witnesses. It never represents an Allow.

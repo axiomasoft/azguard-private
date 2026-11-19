@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace AzGuard\Permissions;
 
 use Attribute;
-use AzGuard\Attributes\Api;
+use Packman\Attributes\Api;
 
 /**
  * The permission is decided by its policy alone; assignments are not read and the case must be bound.

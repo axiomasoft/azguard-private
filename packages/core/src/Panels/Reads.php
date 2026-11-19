@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace AzGuard\Panels;
 
-use AzGuard\Attributes\Api;
+use Packman\Attributes\Api;
 
 /**
  * Which database connection decisions read grants from.

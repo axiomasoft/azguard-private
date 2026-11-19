@@ -4,13 +4,15 @@ declare(strict_types=1);
 
 namespace AzGuard\Storage\Internal;
 
-use AzGuard\Exceptions\InvalidConfigurationException;
+use AzGuard\Exceptions\Configuration\InvalidConfigurationException;
 use Fiber;
 use Illuminate\Database\DatabaseTransactionRecord;
 use Illuminate\Database\DatabaseTransactionsManager;
+use Packman\Attributes\Internal;
 use PDO;
 
 /** @internal A capability bound to one registered root attempt, handle and execution context. */
+#[Internal]
 final class AuthorityTransaction
 {
     private bool $active = true;

@@ -1,0 +1,52 @@
+<?php
+
+declare(strict_types=1);
+
+namespace AzGuard\DevTools\Internal\Console\Make;
+
+use AzGuard\DevTools\Internal\Scaffold\Layout;
+use AzGuard\DevTools\Internal\Scaffold\StubStore;
+use AzGuard\Kernel\Grammar\PermissionGrammar;
+use AzGuard\Laravel\Console\InvalidCommandInput;
+use AzGuard\Roles\Attributes\Role;
+use AzGuard\Roles\BaseRole;
+use Illuminate\Support\Str;
+use Packman\Attributes\Internal;
+use UnitEnum;
+
+/**
+ * A role of a panel, `Roles/{Name}Role.php`, with its key in `#[Role]`: the key is stored with every grant of the
+ * role, so it is written down and never taken from the class name.
+ */
+#[Internal]
+final class MakeRoleCommand extends MakeCommand
+{
+    /** @var string */
+    protected $signature = 'azguard:make:role
+        {panel : The panel directory, such as Admin}
+        {name : The role, such as Manager}
+        {--force : Overwrite the file when it exists}';
+
+    /** @var string */
+    protected $description = 'Create a role of a panel with an explicit key';
+
+    protected function plan(Layout $layout, StubStore $stubs): array
+    {
+        $place = $layout->existingPanel($layout->panelName($this->stringArgument('panel')))->in($layout->folder('roles'));
+        $class = $layout->className($this->stringArgument('name'), 'Role');
+        $base = substr($class, 0, -4);
+        $key = Str::kebab($base);
+
+        if (! PermissionGrammar::isRoleKey($key)) {
+            throw new InvalidCommandInput('The role key "'.$key.'" of '.$class.' is not valid: it is lowercase letters, digits and hyphens, at most 64 characters.');
+        }
+
+        return [$this->generated($layout, $place->file($class), $stubs->render('role', [
+            'namespace' => $place->namespace,
+            'imports' => StubStore::imports([BaseRole::class, Role::class, UnitEnum::class]),
+            'key' => $key,
+            'label' => Str::headline($base),
+            'class' => $class,
+        ]))];
+    }
+}

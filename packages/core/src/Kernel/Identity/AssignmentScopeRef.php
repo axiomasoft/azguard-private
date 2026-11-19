@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace AzGuard\Kernel\Identity;
 
-use AzGuard\Attributes\Api;
-use AzGuard\Exceptions\InvalidAssignmentScopeException;
+use AzGuard\Exceptions\Identity\InvalidAssignmentScopeException;
+use Packman\Attributes\Api;
 
 /**
  * An assignment scope (context) a role is granted in, or the global scope that means tenant-wide.

@@ -4,13 +4,11 @@ declare(strict_types=1);
 
 namespace AzGuard\Changes;
 
-use AzGuard\Attributes\Spi;
-use AzGuard\Attributes\SpiKind;
 use AzGuard\Changes\Internal\ChangeFrame;
-use AzGuard\Exceptions\ChangeCancelledException;
-use AzGuard\Exceptions\InvalidChangeFieldsException;
-use AzGuard\Exceptions\InvalidConfigurationException;
-use AzGuard\Exceptions\InvalidIdentityException;
+use AzGuard\Exceptions\Changes\ChangeCancelledException;
+use AzGuard\Exceptions\Changes\InvalidChangeFieldsException;
+use AzGuard\Exceptions\Configuration\InvalidConfigurationException;
+use AzGuard\Exceptions\Identity\InvalidIdentityException;
 use AzGuard\Kernel\Grammar\PermissionGrammar;
 use AzGuard\Kernel\Identity\AccessScope;
 use AzGuard\Kernel\Identity\ActorRef;
@@ -19,6 +17,10 @@ use AzGuard\Kernel\Identity\RoleKey;
 use AzGuard\Kernel\Identity\SubjectRef;
 use AzGuard\Kernel\Identity\TenantRef;
 use DateTimeImmutable;
+use InvalidArgumentException;
+use Packman\Attributes\Internal;
+use Packman\Attributes\Spi;
+use Packman\Attributes\SpiKind;
 
 /**
  * One planned change of one stored grant or one dynamic permission, as `changing` pipes see it.
@@ -121,10 +123,9 @@ final readonly class Change
     }
 
     /**
-     * @internal planned by the change pipeline
-     *
      * @param  array<string, mixed>  $fields
      */
+    #[Internal('planned by the change pipeline')]
     public static function grant(string $panel, AccessScope $scope, SubjectRef $subject, RoleKey|PermissionPattern $key, string $origin,
         ?ActorRef $actor, ?DateTimeImmutable $until = null, array $fields = []): self
     {
@@ -133,7 +134,7 @@ final readonly class Change
             : new self(ChangeType::GrantPermission, $panel, $scope, $subject, null, $key, $origin, $actor, $until, $fields, null, null);
     }
 
-    /** @internal planned by the change pipeline */
+    #[Internal('planned by the change pipeline')]
     public static function revoke(string $panel, AccessScope $scope, SubjectRef $subject, RoleKey|PermissionPattern $key, string $origin,
         ?ActorRef $actor, ?string $grantId = null): self
     {
@@ -142,35 +143,35 @@ final readonly class Change
             : new self(ChangeType::RevokePermission, $panel, $scope, $subject, null, $key, $origin, $actor, null, [], $grantId, null);
     }
 
-    /** @internal planned by the change pipeline from the stored grant read under the lock */
+    #[Internal('planned by the change pipeline from the stored grant read under the lock')]
     public static function update(GrantRecord $stored, ?ActorRef $actor, GrantDetails $details, ?string $expectedFingerprint): self
     {
         return new self(ChangeType::UpdateGrant, $stored->panel, $stored->scope, $stored->subject, $stored->role, $stored->permission,
             $stored->origin, $actor, $details->until, $details->fields, $stored->id, $expectedFingerprint);
     }
 
-    /** @internal planned by the change pipeline */
+    #[Internal('planned by the change pipeline')]
     public static function createPermission(string $panel, TenantRef $tenant, string $name, PermissionDetails $details, ?ActorRef $actor): self
     {
         return new self(ChangeType::CreatePermission, $panel, AccessScope::in($tenant), null, null, null, self::ACTION_ORIGIN, $actor, null,
             $details->fields, null, null, $name, $details);
     }
 
-    /** @internal planned by the change pipeline from the stored dynamic permission read under the lock */
+    #[Internal('planned by the change pipeline from the stored dynamic permission read under the lock')]
     public static function updatePermission(string $panel, TenantRef $tenant, string $name, PermissionDetails $details, ?ActorRef $actor): self
     {
         return new self(ChangeType::UpdatePermission, $panel, AccessScope::in($tenant), null, null, null, self::ACTION_ORIGIN, $actor, null,
             $details->fields, null, null, $name, $details);
     }
 
-    /** @internal planned by the change pipeline after the revocations of the grants of this name */
+    #[Internal('planned by the change pipeline after the revocations of the grants of this name')]
     public static function deletePermission(string $panel, TenantRef $tenant, string $name, ?ActorRef $actor): self
     {
         return new self(ChangeType::DeletePermission, $panel, AccessScope::in($tenant), null, null, null, self::ACTION_ORIGIN, $actor, null,
             [], null, null, $name);
     }
 
-    /** @internal planned by the change pipeline: a stored grant whose expiry has passed is removed */
+    #[Internal('planned by the change pipeline: a stored grant whose expiry has passed is removed')]
     public static function expire(GrantRecord $stored, ?ActorRef $actor): self
     {
         $key = $stored->role ?? $stored->permission ?? throw new InvalidIdentityException('A stored grant has no key.');
@@ -180,10 +181,7 @@ final readonly class Change
             : new self(ChangeType::RevokePermission, $stored->panel, $stored->scope, $stored->subject, null, $key, $stored->origin, $actor, null, [], $stored->id, $stored->fingerprint, expired: true);
     }
 
-    /**
-     * @internal planned by the change pipeline from a stored grant of a former key read under the lock: the grant moves
-     * to `$to` with its scope, subject, origin, expiry and fields; the fingerprint pins the row that was read
-     */
+    #[Internal('planned by the change pipeline from a stored grant of a former key read under the lock: the grant moves to `$to` with its scope, subject, origin, expiry and fields; the fingerprint pins the row that was read')]
     public static function migrate(GrantRecord $stored, RoleKey $to, ?ActorRef $actor): self
     {
         return new self(ChangeType::MigrateRoleGrant, $stored->panel, $stored->scope, $stored->subject, $to, null, $stored->origin, $actor,
@@ -191,7 +189,7 @@ final readonly class Change
                 ?? throw new InvalidIdentityException('Only a stored role grant is migrated to another role key.'));
     }
 
-    /** @internal planned by the change pipeline: the state version of the whole panel is raised for `$reason` */
+    #[Internal('planned by the change pipeline: the state version of the whole panel is raised for `$reason`')]
     public static function touchPanel(string $panel, string $reason, ?ActorRef $actor): self
     {
         return new self(ChangeType::TouchPanel, $panel, AccessScope::in(TenantRef::global()), null, null, null, self::TOUCH_ORIGIN, $actor,
@@ -255,15 +253,19 @@ final readonly class Change
         return $this->type->isAction();
     }
 
-    /** @internal */
-    public function bind(ChangeFrame $frame): self
+    #[Internal]
+    public function bind(object $frame): self
     {
+        if (! $frame instanceof ChangeFrame) {
+            throw new InvalidArgumentException('Change frame must be an internal ChangeFrame instance.');
+        }
+
         return new self($this->type, $this->panel, $this->scope, $this->subject, $this->role, $this->permission, $this->origin,
             $this->actor, $this->until, $this->fields, $this->grantId, $this->expectedFingerprint, $this->name, $this->details, $this->reason, $this->expired,
             $this->previousRole, $frame);
     }
 
-    /** @internal the change after final validation; only such a change is applied by the writer */
+    #[Internal('the change after final validation; only such a change is applied by the writer')]
     public function finalized(): self
     {
         return new self($this->type, $this->panel, $this->scope, $this->subject, $this->role, $this->permission, $this->origin,
@@ -271,41 +273,41 @@ final readonly class Change
             $this->previousRole, $this->frame, true);
     }
 
-    /** @internal */
+    #[Internal]
     public function isFinal(): bool
     {
         return $this->final && $this->frame !== null;
     }
 
-    /** @internal */
-    public function belongsTo(ChangeFrame $frame): bool
+    /** @param ChangeFrame $frame */
+    #[Internal]
+    public function belongsTo(object $frame): bool
     {
         return $this->frame === $frame;
     }
 
-    /** @internal one correlation id per operation */
+    #[Internal('one correlation id per operation')]
     public function correlationId(): ?string
     {
         return $this->frame?->correlationId;
     }
 
     /**
-     * @internal the grants removed by the changes of this operation that already ran, in order
-     *
      * @return list<string>
      */
+    #[Internal('the grants removed by the changes of this operation that already ran, in order')]
     public function removedGrantIds(): array
     {
         return $this->frame?->removed() ?? [];
     }
 
-    /** @internal the clock of the operation under the panel lock */
+    #[Internal('the clock of the operation under the panel lock')]
     public function occurredAt(): DateTimeImmutable
     {
         return ($this->frame ?? throw InvalidConfigurationException::failing('changing', 'A change has a clock only inside the change pipeline.'))->now;
     }
 
-    /** @internal everything except `until` and `fields`, including the attempt frame */
+    #[Internal('everything except `until` and `fields`, including the attempt frame')]
     public function sameIdentity(self $other): bool
     {
         return $this->type === $other->type && $this->panel === $other->panel && $this->scope->equals($other->scope)
@@ -319,12 +321,11 @@ final readonly class Change
     }
 
     /**
-     * @internal shape only: fields are keyed by name
-     *
      * @param  array<mixed>  $fields
      *
      * @throws InvalidChangeFieldsException
      */
+    #[Internal('shape only: fields are keyed by name')]
     public static function assertFieldShape(array $fields): void
     {
         foreach (array_keys($fields) as $name) {

@@ -16,12 +16,14 @@ use Filament\Tables\Concerns\InteractsWithTable;
 use Filament\Tables\Contracts\HasTable;
 use Filament\Tables\Filters\Filter;
 use Filament\Tables\Table;
+use Packman\Attributes\Internal;
 
 /**
  * The code roles of one managed panel, chosen in the filter; a row opens the role. The table has no action.
  *
  * @internal
  */
+#[Internal('Filament list page for panel roles.')]
 final class ListRoles extends Page implements HasTable
 {
     use InteractsWithTable;

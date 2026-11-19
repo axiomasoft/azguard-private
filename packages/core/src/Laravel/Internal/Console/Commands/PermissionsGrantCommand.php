@@ -7,11 +7,13 @@ namespace AzGuard\Laravel\Internal\Console\Commands;
 use AzGuard\Changes\ChangeResult;
 use AzGuard\Laravel\Internal\Console\GrantCommandSupport;
 use Illuminate\Console\Command;
+use Packman\Attributes\Internal;
 
 /**
  * Grants a permission or a pattern directly to a subject through the change pipeline, as the system actor
  * `azguard:permissions:grant`.
  */
+#[Internal]
 final class PermissionsGrantCommand extends Command
 {
     use GrantCommandSupport;

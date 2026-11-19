@@ -26,7 +26,11 @@
         "source": "https://github.com/axiomasoft/azguard"
     },
     "require": {
-        "php": "^8.3",
+        "php": "^8.4",
+        "axiomasoft/packman": "^0.1",
+        "axiomasoft/packman-panels": "^0.1",
+        "axiomasoft/packman-plugins": "^0.1.1",
+        "axiomasoft/packman-schema": "^0.1",
         "illuminate/auth": "^13.0",
         "illuminate/console": "^13.0",
         "illuminate/contracts": "^13.0",
@@ -43,10 +47,7 @@
     },
     "autoload": {
         "psr-4": {
-            "AzGuard\\": "src/",
-            "AzGuard\\Scopes\\": "modules/scopes/src/",
-            "AzGuard\\Audit\\": "modules/audit/src/",
-            "AzGuard\\DevTools\\": "modules/devtools/src/"
+            "AzGuard\\": "src/"
         }
     },
     "extra": {
@@ -55,9 +56,44 @@
         },
         "laravel": {
             "providers": [
-                "AzGuard\\AzGuardServiceProvider",
-                "AzGuard\\Audit\\AuditServiceProvider",
-                "AzGuard\\DevTools\\DevToolsServiceProvider"
+                "AzGuard\\AzGuardServiceProvider"
+            ]
+        },
+        "packman": {
+            "schema-version": 1,
+            "package-type": "capability",
+            "stability": "stable",
+            "error-prefix": "azguard",
+            "owns": [
+                "Attributes",
+                "Authorization",
+                "Catalog",
+                "Changes",
+                "Concerns",
+                "Configuration",
+                "Context",
+                "Contracts",
+                "Diagnostics",
+                "Directories",
+                "Errors",
+                "Events",
+                "Exceptions",
+                "Extensions",
+                "Facades",
+                "Kernel",
+                "Laravel",
+                "Panels",
+                "Permissions",
+                "Plugins",
+                "Policies",
+                "Registrars",
+                "Roles",
+                "Schema",
+                "Sources",
+                "Storage",
+                "Support",
+                "Tenancy",
+                "Testing"
             ]
         }
     }

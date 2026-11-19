@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 use AzGuard\Authorization\Internal\Authorizer;
-use AzGuard\Exceptions\InvalidConfigurationException;
+use AzGuard\Exceptions\Configuration\InvalidConfigurationException;
 use AzGuard\Kernel\Decision\DecisionReason;
 use AzGuard\Kernel\Decision\StateToken;
 use AzGuard\Kernel\Identity\SubjectRef;

@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace AzGuard\Contracts\Sources;
 
-use AzGuard\Attributes\Spi;
-use AzGuard\Attributes\SpiKind;
 use AzGuard\Contracts\Diagnostics\DoctorCheck;
+use Packman\Attributes\Spi;
+use Packman\Attributes\SpiKind;
 
 /**
  * A source that brings its own health checks to `azguard:doctor`; they run for each panel the source is attached to.

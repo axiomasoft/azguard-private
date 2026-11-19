@@ -7,12 +7,14 @@ namespace AzGuard\Laravel\Internal\Http;
 use AzGuard\Panels\Panel;
 use Illuminate\Contracts\Auth\Factory as Auth;
 use Illuminate\Database\Eloquent\Model;
+use Packman\Attributes\Internal;
 
 /**
  * The authenticated user of a request for a panel: the first user of the panel guards, otherwise of the default guard.
  *
  * @internal
  */
+#[Internal]
 final readonly class PanelUser
 {
     public function __construct(private Auth $auth) {}
@@ -22,12 +24,13 @@ final readonly class PanelUser
      */
     public function of(?Panel $panel): ?Model
     {
-        foreach ($panel?->guards() ?: [null] as $guard) {
+        $guards = $panel?->guards() ?? [];
+
+        foreach ($guards !== [] ? $guards : [null] as $guard) {
             $user = $this->auth->guard($guard)->user();
 
-            if ($user !== null) {
-                // Larastan types user() as the model of the configured provider; a custom guard returns any Authenticatable.
-                return $user instanceof Model ? $user : null; // @phpstan-ignore instanceof.alwaysTrue
+            if ($user instanceof Model) {
+                return $user;
             }
         }
 

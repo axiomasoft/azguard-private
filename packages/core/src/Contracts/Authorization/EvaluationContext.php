@@ -4,9 +4,7 @@ declare(strict_types=1);
 
 namespace AzGuard\Contracts\Authorization;
 
-use AzGuard\Attributes\Spi;
-use AzGuard\Attributes\SpiKind;
-use AzGuard\Exceptions\VisibilityNotSupportedException;
+use AzGuard\Exceptions\Authorization\VisibilityNotSupportedException;
 use AzGuard\Kernel\Decision\CodeStateToken;
 use AzGuard\Kernel\Decision\Grant;
 use AzGuard\Kernel\Decision\RoleContribution;
@@ -18,6 +16,8 @@ use AzGuard\Panels\Panel;
 use AzGuard\Roles\BaseRole;
 use DateTimeImmutable;
 use Illuminate\Database\Eloquent\Model;
+use Packman\Attributes\Spi;
+use Packman\Attributes\SpiKind;
 
 /**
  * What the engine shows a source, a hook or a restriction during one check.

@@ -416,7 +416,7 @@ build_relocated_archives() {
     rm -rf "${core}/.github"
     rm -rf "${core}/modules/audit"
     mkdir -p "${audit}"
-    cp -a "${root}/packages/core/modules/audit/." "${audit}/"
+    cp -a "${root}/packages/audit/." "${audit}/"
     cp "${root}/packages/core/LICENSE" "${audit}/LICENSE"
 
     php -r '

@@ -89,8 +89,8 @@ final class CacheChurn extends BaseProfile
     private function observeBounds(): void
     {
         $memo = app(PermissionSetCache::class);
-        $sets = (new ReflectionProperty($memo, 'sets'))->getValue($memo);
-        $states = (new ReflectionProperty($memo, 'states'))->getValue($memo);
+        $sets = new ReflectionProperty($memo, 'sets')->getValue($memo);
+        $states = new ReflectionProperty($memo, 'states')->getValue($memo);
 
         if (! is_array($sets) || ! is_array($states)) {
             throw new RuntimeException('Unexpected request memo state.');
@@ -129,7 +129,7 @@ final class CacheChurn extends BaseProfile
         [$client] = RedisCache::clientAndPrefix();
         $finite = $new !== [];
         foreach ($new as $key) {
-            $ttl = $client->rawCommand('TTL', $key);
+            $ttl = $client->rawcommand('TTL', $key);
             $finite = $finite && is_int($ttl) && self::finiteTtl($ttl);
         }
         $memoryAfter = $this->redisMemory();

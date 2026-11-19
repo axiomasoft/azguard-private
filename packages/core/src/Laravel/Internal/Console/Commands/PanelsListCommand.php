@@ -7,6 +7,7 @@ namespace AzGuard\Laravel\Internal\Console\Commands;
 use AzGuard\Diagnostics\PanelOverview;
 use AzGuard\Laravel\Internal\Console\GrantCommandSupport;
 use Illuminate\Console\Command;
+use Packman\Attributes\Internal;
 
 /**
  * Lists the registered panels; with options also their effective settings and where each value came from, their
@@ -14,6 +15,7 @@ use Illuminate\Console\Command;
  *
  * @phpstan-import-type Entry from PanelOverview
  */
+#[Internal]
 final class PanelsListCommand extends Command
 {
     use GrantCommandSupport;

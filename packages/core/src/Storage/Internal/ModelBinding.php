@@ -4,11 +4,12 @@ declare(strict_types=1);
 
 namespace AzGuard\Storage\Internal;
 
-use AzGuard\Exceptions\StorageMismatchException;
+use AzGuard\Exceptions\Storage\StorageMismatchException;
 use AzGuard\Storage\Models\Permission;
 use AzGuard\Storage\Models\PermissionGrant;
 use AzGuard\Storage\Models\RoleGrant;
 use Illuminate\Database\Eloquent\Model;
+use Packman\Attributes\Internal;
 use ReflectionProperty;
 
 /**
@@ -16,6 +17,7 @@ use ReflectionProperty;
  * member: the binding lives in a private slot that only this class reaches, and it follows `newInstance()` (hydration,
  * replication) and `clone` with the instance.
  */
+#[Internal]
 final class ModelBinding
 {
     /** The classes that declare the private slot, one per model kind. */

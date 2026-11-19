@@ -2,8 +2,8 @@
 
 declare(strict_types=1);
 
-use AzGuard\Exceptions\InvalidConfigurationException;
-use AzGuard\Exceptions\UnknownRoleException;
+use AzGuard\Exceptions\Changes\UnknownRoleException;
+use AzGuard\Exceptions\Configuration\InvalidConfigurationException;
 use AzGuard\Facades\AzGuard;
 use AzGuard\Kernel\Decision\DecisionReason;
 use AzGuard\Kernel\Decision\Effect;
@@ -143,7 +143,7 @@ it('is not signed in before the call and survives the application events being f
 
     $fake->assertPermissionGranted($user, 'seller:orders.cancel');
     $fake->assertChecked('seller:orders.cancel');
-    Event::assertNotDispatched(AzGuard\Events\AccessDecided::class);
+    Event::assertNotDispatched(AzGuard\Events\Access\AccessDecided::class);
 });
 
 it('keeps the check a deny with source_error inside another transaction above the test baseline', function (): void {

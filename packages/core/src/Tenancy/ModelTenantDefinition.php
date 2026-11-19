@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace AzGuard\Tenancy;
 
-use AzGuard\Attributes\Api;
-use AzGuard\Exceptions\DefinitionException;
+use AzGuard\Exceptions\Definitions\DefinitionException;
 use AzGuard\Kernel\Identity\IdentityCodec;
 use AzGuard\Kernel\Identity\TenantRef;
 use AzGuard\Support\ModelKey;
 use Illuminate\Database\Eloquent\Model;
+use Packman\Attributes\Api;
 use Throwable;
 
 /**

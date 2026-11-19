@@ -11,12 +11,12 @@ use AzGuard\Changes\GrantDetails;
 use AzGuard\Changes\GrantRecord;
 use AzGuard\Changes\PermissionDetails;
 use AzGuard\Contracts\Changes\ChangeParticipant;
-use AzGuard\Exceptions\DefinitionException;
-use AzGuard\Exceptions\InvalidConfigurationException;
-use AzGuard\Exceptions\PanelNotWritableException;
-use AzGuard\Exceptions\StaleSelectionException;
-use AzGuard\Exceptions\UnknownPermissionException;
-use AzGuard\Exceptions\UnknownRoleException;
+use AzGuard\Exceptions\Changes\PanelNotWritableException;
+use AzGuard\Exceptions\Changes\StaleSelectionException;
+use AzGuard\Exceptions\Changes\UnknownPermissionException;
+use AzGuard\Exceptions\Changes\UnknownRoleException;
+use AzGuard\Exceptions\Configuration\InvalidConfigurationException;
+use AzGuard\Exceptions\Definitions\DefinitionException;
 use AzGuard\Kernel\Decision\StateToken;
 use AzGuard\Kernel\Identity\AccessScope;
 use AzGuard\Kernel\Identity\ActorRef;
@@ -39,6 +39,7 @@ use Closure;
 use DateTimeImmutable;
 use Illuminate\Contracts\Container\Container;
 use Illuminate\Support\Str;
+use Packman\Attributes\Internal;
 use UnitEnum;
 
 /**
@@ -55,6 +56,7 @@ use UnitEnum;
  * dispatches the same event objects: a rollback, a retry or an operation without effects writes and delivers nothing,
  * and a listener's failure changes nothing.
  */
+#[Internal]
 final readonly class ChangePipeline
 {
     public function __construct(private Container $container, private ActingActor $actors, private ChangeEventPublisher $events) {}

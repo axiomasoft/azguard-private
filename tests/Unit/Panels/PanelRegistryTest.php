@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 use AzGuard\Configuration\Internal\AzGuardConfig;
 use AzGuard\Contracts\Panels\PanelRegistry as PanelRegistryContract;
-use AzGuard\Exceptions\DefaultPanelConflictException;
-use AzGuard\Exceptions\DefinitionException;
-use AzGuard\Exceptions\DuplicatePanelException;
-use AzGuard\Exceptions\InvalidPanelIdException;
-use AzGuard\Exceptions\RegistryFrozenException;
-use AzGuard\Exceptions\UnknownPanelException;
+use AzGuard\Exceptions\Definitions\DefaultPanelConflictException;
+use AzGuard\Exceptions\Definitions\DefinitionException;
+use AzGuard\Exceptions\Definitions\DuplicatePanelException;
+use AzGuard\Exceptions\Definitions\RegistryFrozenException;
+use AzGuard\Exceptions\Definitions\UnknownPanelException;
+use AzGuard\Exceptions\Identity\InvalidPanelIdException;
 use AzGuard\Panels\Internal\PanelRecipe;
 use AzGuard\Panels\Internal\PanelRegistry;
 use AzGuard\Panels\PanelBuilder;

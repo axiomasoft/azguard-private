@@ -4,17 +4,20 @@ declare(strict_types=1);
 
 namespace AzGuard\Storage\Internal\Concerns;
 
-use AzGuard\Exceptions\UnsupportedDirectWriteException;
+use AzGuard\Exceptions\Storage\UnsupportedDirectWriteException;
 use AzGuard\Storage\Internal\WriteGuardedBuilder;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Query\Builder as QueryBuilder;
-use Illuminate\Support\Collection;
+use Packman\Attributes\Internal;
 
 /** Direct Eloquent writes are forbidden; raw SQL via toBase()/getQuery() is outside this contract. */
+#[Internal]
 trait GuardsDirectWrites
 {
-    /** Reject destruction before Eloquent performs its preliminary read.
-     * @param  Collection<array-key, mixed>|array<mixed>|int|string  $ids
+    /**
+     * Reject destruction before Eloquent performs its preliminary read.
+     *
+     * @param  array<mixed>|object|int|string|null  $ids
      */
     final public static function destroy(mixed $ids): never
     {

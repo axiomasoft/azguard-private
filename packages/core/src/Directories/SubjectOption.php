@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace AzGuard\Directories;
 
-use AzGuard\Attributes\Api;
 use AzGuard\Kernel\Identity\SubjectRef;
+use Packman\Attributes\Api;
 
 /**
  * One subject a directory offers to the interface.

@@ -2,14 +2,15 @@
 
 declare(strict_types=1);
 
-use AzGuard\Attributes\Api;
-use AzGuard\Attributes\Spi;
-use AzGuard\Diagnostics\DoctorContext;
-use AzGuard\Sources\Internal\EvaluatesAutomaticRoles;
+use AzGuard\Filament\AzGuardPlugin;
 use AzGuard\Testing\AzGuardFake;
+use AzGuard\Testing\FakeSubject;
 use AzGuard\Tests\Arch\ApiUsage;
 use AzGuard\Tests\Arch\Ownership;
 use AzGuard\Tests\Arch\SourceScan;
+use Packman\Attributes\Api;
+use Packman\Attributes\Internal;
+use Packman\Attributes\Spi;
 
 /*
  * The supported surface: publication is the #[Api]/#[Spi] attribute, the attributed types equal the markers of the
@@ -40,9 +41,9 @@ function apiAttributedTypes(): array
             continue;
         }
         $class = new ReflectionClass($fqcn);
-        $spi = $class->getAttributes(Spi::class);
+        $spi = $class->getAttributes(Spi::class, ReflectionAttribute::IS_INSTANCEOF);
 
-        if ($class->getAttributes(Api::class) !== []) {
+        if ($class->getAttributes(Api::class, ReflectionAttribute::IS_INSTANCEOF) !== []) {
             $types[$fqcn] = 'Api';
         } elseif ($spi !== []) {
             $types[$fqcn] = 'Spi('.ucfirst($spi[0]->newInstance()->kind->value).')';
@@ -136,7 +137,7 @@ function apiOracleRow(string $fqcn, string $marker, array $overrides = []): arra
         'enum' => null, 'action' => 'keep', 'phase' => '—', ...$overrides];
 }
 
-it('keeps both api manifests current', function (): void {
+it('keeps all package api manifests current', function (): void {
     $process = proc_open(
         [PHP_BINARY, apiManifestRoot().'/bin/api-manifest.php', '--check'],
         [1 => ['pipe', 'w'], 2 => ['pipe', 'w']],
@@ -257,8 +258,8 @@ it('lets modules, Filament and stubs use only supported core types and members',
     $ownership = Ownership::fromOracle();
     $found = ApiUsage::surfaceViolations($ownership, ApiUsage::surfaceFiles($ownership), ApiUsage::supported());
 
-    expect(ApiUsage::surfaceFiles($ownership))->toContain(apiManifestRoot().'/packages/core/modules/devtools/stubs/policy.stub', apiManifestRoot().'/packages/core/modules/audit/stubs/audit-migration.stub',
-        apiManifestRoot().'/packages/core/modules/scopes/src/Internal/ScopeConfiguration.php')
+    expect(ApiUsage::surfaceFiles($ownership))->toContain(apiManifestRoot().'/packages/devtools/stubs/policy.stub', apiManifestRoot().'/packages/audit/stubs/audit-migration.stub',
+        apiManifestRoot().'/packages/scopes/src/Internal/ScopeConfiguration.php')
         ->and($found)->toBe([], 'use a supported type or member; there is no allowlist');
 });
 
@@ -449,28 +450,70 @@ function apiInternalLeaks(array $types, array $allowed = []): array
 it('closes the supported surface: no supported member or type names an unsupported class', function (): void {
     $leaks = [];
 
-    foreach (['packages/core/api-manifest.json', 'packages/filament/api-manifest.json'] as $path) {
+    foreach ([
+        'packages/core/api-manifest.json',
+        'packages/scopes/api-manifest.json',
+        'packages/audit/api-manifest.json',
+        'packages/devtools/api-manifest.json',
+        'packages/filament/api-manifest.json',
+    ] as $path) {
         $manifest = json_decode((string) file_get_contents(apiManifestRoot().'/'.$path), true, flags: JSON_THROW_ON_ERROR);
-        // The marker FolderSource carries is empty and unimplementable outside core: it names no member a consumer could use.
-        array_push($leaks, ...apiInternalLeaks($manifest['classes'], ['AzGuard\\Sources\\Internal\\EvaluatesAutomaticRoles']));
+        array_push($leaks, ...apiInternalLeaks($manifest['classes']));
     }
 
     expect($leaks)->toBe([]);
 });
 
 it('reports a native type, a parent and a PHPDoc contract that leak an unsupported class', function (): void {
-    $type = ['name' => DoctorContext::class, 'contracts' => [], 'interfaces' => [EvaluatesAutomaticRoles::class], 'parent' => null,
-        'properties' => [['name' => 'storage', 'type' => '?AzGuard\\Storage\\Internal\\Storage', 'contracts' => []]],
-        'methods' => [
-            ['name' => 'storages', 'return' => 'array', 'parameters' => [], 'contracts' => ['@return list<Storage> the selected storages']],
-            ['name' => 'config', 'return' => 'AzGuard\\Configuration\\Internal\\AzGuardConfig', 'parameters' => [['type' => 'int']], 'contracts' => []],
-            ['name' => 'panels', 'return' => 'array', 'parameters' => [], 'contracts' => ['@return list<Panel>']],
-        ]];
+    $dir = sys_get_temp_dir().'/azguard-leak-'.bin2hex(random_bytes(4));
+    mkdir($dir, 0777, true);
+    $file = $dir.'/LeakProbe.php';
+    $suffix = bin2hex(random_bytes(4));
+    $probeClass = 'AzGuard\\Diagnostics\\LeakProbe'.$suffix;
+    file_put_contents($file, "<?php\nnamespace AzGuard\\Diagnostics;\nuse AzGuard\\Storage\\Internal\\Storage;\nfinal class LeakProbe{$suffix} {}\n");
+    require_once $file;
 
-    expect(apiInternalLeaks([$type]))->toBe([
-        'AzGuard\\Diagnostics\\DoctorContext extends or implements AzGuard\\Sources\\Internal\\EvaluatesAutomaticRoles',
-        'AzGuard\\Diagnostics\\DoctorContext::$storage is typed AzGuard\\Storage\\Internal\\Storage',
-        'AzGuard\\Diagnostics\\DoctorContext::storages() contract names AzGuard\\Storage\\Internal\\Storage',
-        'AzGuard\\Diagnostics\\DoctorContext::config() is typed AzGuard\\Configuration\\Internal\\AzGuardConfig',
-    ])->and(apiInternalLeaks([$type], [EvaluatesAutomaticRoles::class]))->toHaveCount(3);
+    try {
+        $internalContract = 'AzGuard\\Sources\\Internal\\InternalContract';
+        $type = ['name' => $probeClass, 'contracts' => [], 'interfaces' => [$internalContract], 'parent' => null,
+            'properties' => [['name' => 'storage', 'type' => '?AzGuard\\Storage\\Internal\\Storage', 'contracts' => []]],
+            'methods' => [
+                ['name' => 'storages', 'return' => 'array', 'parameters' => [], 'contracts' => ['@return list<Storage> the selected storages']],
+                ['name' => 'config', 'return' => 'AzGuard\\Configuration\\Internal\\AzGuardConfig', 'parameters' => [['type' => 'int']], 'contracts' => []],
+                ['name' => 'panels', 'return' => 'array', 'parameters' => [], 'contracts' => ['@return list<Panel>']],
+            ]];
+
+        expect(apiInternalLeaks([$type]))->toBe([
+            $probeClass.' extends or implements '.$internalContract,
+            $probeClass.'::$storage is typed AzGuard\\Storage\\Internal\\Storage',
+            $probeClass.'::storages() contract names AzGuard\\Storage\\Internal\\Storage',
+            $probeClass.'::config() is typed AzGuard\\Configuration\\Internal\\AzGuardConfig',
+        ])->and(apiInternalLeaks([$type], [$internalContract]))->toHaveCount(3);
+    } finally {
+        @unlink($file);
+        @rmdir($dir);
+    }
+});
+
+it('marks every Internal namespace type with #[Internal] and exposes zero Internal native signatures on public APIs', function (): void {
+    $missingAttribute = [];
+
+    foreach (SourceScan::files() as $file) {
+        $fqcn = Ownership::declaredType((string) file_get_contents($file));
+
+        if ($fqcn === null || ! str_contains($fqcn, '\\Internal\\')) {
+            continue;
+        }
+
+        if ((new ReflectionClass($fqcn))->getAttributes(Internal::class, ReflectionAttribute::IS_INSTANCEOF) === []) {
+            $missingAttribute[] = $fqcn;
+        }
+    }
+
+    $fakeReturn = (new ReflectionMethod(FakeSubject::class, 'newEloquentBuilder'))->getReturnType();
+    $keysReturn = (new ReflectionMethod(AzGuardPlugin::class, 'keys'))->getReturnType();
+
+    expect($missingAttribute)->toBe([])
+        ->and((string) $fakeReturn)->not->toContain('\\Internal\\')
+        ->and((string) $keysReturn)->not->toContain('\\Internal\\');
 });

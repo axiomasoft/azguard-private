@@ -4,11 +4,14 @@ declare(strict_types=1);
 
 namespace AzGuard\Catalog\Internal;
 
+use Packman\Attributes\Internal;
+
 /**
  * How the catalog cache file `azguard:catalog:cache` writes relates to the code that is running.
  *
  * @internal read by the doctor and `php artisan about`
  */
+#[Internal]
 enum CacheState: string
 {
     /** There is no readable file: every boot builds the catalogs from the sources. */

@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace AzGuard\Filament;
 
-use AzGuard\Attributes\Api;
 use AzGuard\Contracts\Tenancy\TenantResolver;
 use AzGuard\Facades\AzGuard;
 use AzGuard\Kernel\Identity\TenantRef;
 use AzGuard\Support\ModelKey;
 use Filament\Facades\Filament;
 use Illuminate\Http\Request;
+use Packman\Attributes\Api;
 
 /**
  * The tenant of the current Filament panel as the tenant of the guard panel.

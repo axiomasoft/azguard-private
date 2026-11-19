@@ -89,7 +89,7 @@ def migrate_primary_and_wait_for_replica(primary_port: str, replica_port: str) -
     }
     $files = [
         '2026_10_01_000000_create_azguard_storage' => $root.'/packages/core/database/migrations/2026_10_01_000000_create_azguard_storage.php',
-        '2026_10_20_000000_create_azguard_audit_log' => $root.'/packages/core/modules/audit/database/migrations/2026_10_20_000000_create_azguard_audit_log.php',
+        '2026_10_20_000000_create_azguard_audit_log' => $root.'/packages/audit/database/migrations/2026_10_20_000000_create_azguard_audit_log.php',
     ];
     foreach ($files as $name => $path) {
         $migration = require $path;

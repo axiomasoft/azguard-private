@@ -3,9 +3,9 @@
 declare(strict_types=1);
 
 use AzGuard\Configuration\Internal\AzGuardConfig;
-use AzGuard\Exceptions\DefinitionException;
-use AzGuard\Exceptions\InvalidConfigurationException;
-use AzGuard\Exceptions\UnknownSourceException;
+use AzGuard\Exceptions\Configuration\InvalidConfigurationException;
+use AzGuard\Exceptions\Definitions\DefinitionException;
+use AzGuard\Exceptions\Definitions\UnknownSourceException;
 use AzGuard\Sources\SourceManager;
 use AzGuard\Tests\Fixtures\Sources\LdapSource;
 use AzGuard\Tests\Fixtures\Sources\OtherLdapSource;

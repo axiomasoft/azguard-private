@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace AzGuard\Contracts\Changes;
 
-use AzGuard\Attributes\Api;
 use AzGuard\Changes\ChangeResult;
 use AzGuard\Changes\GrantDetails;
 use AzGuard\Changes\GrantFilter;
 use AzGuard\Changes\GrantPage;
 use AzGuard\Changes\GrantRecord;
-use AzGuard\Exceptions\StaleSelectionException;
+use AzGuard\Exceptions\Changes\StaleSelectionException;
+use Packman\Attributes\Api;
 
 /**
  * The stored grants of one panel, tenant and origin, for an editor. The partition is fixed when the manager is made:

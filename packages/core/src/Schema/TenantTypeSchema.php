@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace AzGuard\Schema;
 
-use AzGuard\Attributes\Api;
 use AzGuard\Contracts\Tenancy\TenantDirectory;
 use Illuminate\Database\Eloquent\Model;
 use JsonSerializable;
+use Packman\Attributes\Api;
 
 /**
  * The tenant type of a panel and the directory that looks its tenants up.

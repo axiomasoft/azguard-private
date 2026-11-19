@@ -3,15 +3,15 @@
 declare(strict_types=1);
 
 use AzGuard\Context\Internal\CurrentContext;
-use AzGuard\Exceptions\AmbiguousPanelException;
-use AzGuard\Exceptions\AssignmentScopeNotAcceptedException;
-use AzGuard\Exceptions\ConflictingPanelException;
-use AzGuard\Exceptions\InvalidAssignmentScopeException;
-use AzGuard\Exceptions\InvalidConfigurationException;
-use AzGuard\Exceptions\InvalidIdentityException;
-use AzGuard\Exceptions\PanelNotResolvedException;
-use AzGuard\Exceptions\SubjectNotAcceptedException;
-use AzGuard\Exceptions\UnknownPermissionException;
+use AzGuard\Exceptions\Changes\AssignmentScopeNotAcceptedException;
+use AzGuard\Exceptions\Changes\UnknownPermissionException;
+use AzGuard\Exceptions\Configuration\InvalidConfigurationException;
+use AzGuard\Exceptions\Definitions\AmbiguousPanelException;
+use AzGuard\Exceptions\Definitions\ConflictingPanelException;
+use AzGuard\Exceptions\Definitions\PanelNotResolvedException;
+use AzGuard\Exceptions\Definitions\SubjectNotAcceptedException;
+use AzGuard\Exceptions\Identity\InvalidAssignmentScopeException;
+use AzGuard\Exceptions\Identity\InvalidIdentityException;
 use AzGuard\Facades\AzGuard;
 use AzGuard\Kernel\Identity\ActorRef;
 use AzGuard\Kernel\Identity\AssignmentScopeRef;

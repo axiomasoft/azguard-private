@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use AzGuard\Exceptions\ConfigurationException;
+use AzGuard\Exceptions\Configuration\ConfigurationException;
 use AzGuard\Filament\AzGuardPlugin;
 use AzGuard\Filament\Internal\Authorization\FilamentKey;
 use AzGuard\Tests\Fixtures\Filament\FilamentFixture;

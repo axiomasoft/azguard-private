@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace AzGuard\Kernel\Identity;
 
-use AzGuard\Attributes\Api;
+use Packman\Attributes\Api;
 
 /**
  * "In every assignment scope": a revocation target only, never a place to grant.

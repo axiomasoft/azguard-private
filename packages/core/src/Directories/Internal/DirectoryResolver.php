@@ -13,12 +13,12 @@ use AzGuard\Contracts\Tenancy\TenantDirectory;
 use AzGuard\Contracts\Tenancy\TenantMembership;
 use AzGuard\Directories\AssignmentScopeOption;
 use AzGuard\Directories\LookupContext;
-use AzGuard\Exceptions\AssignmentScopeNotAcceptedException;
-use AzGuard\Exceptions\AssignmentScopeRequiredException;
 use AzGuard\Exceptions\AzGuardException;
-use AzGuard\Exceptions\DefinitionException;
-use AzGuard\Exceptions\TenantMismatchException;
-use AzGuard\Exceptions\TenantRequiredException;
+use AzGuard\Exceptions\Changes\AssignmentScopeNotAcceptedException;
+use AzGuard\Exceptions\Changes\AssignmentScopeRequiredException;
+use AzGuard\Exceptions\Changes\TenantMismatchException;
+use AzGuard\Exceptions\Changes\TenantRequiredException;
+use AzGuard\Exceptions\Definitions\DefinitionException;
 use AzGuard\Kernel\Identity\AssignmentScopeRef;
 use AzGuard\Kernel\Identity\SubjectRef;
 use AzGuard\Kernel\Identity\TenantRef;
@@ -27,6 +27,7 @@ use AzGuard\Roles\BaseRole;
 use AzGuard\Support\ModelKey;
 use AzGuard\Tenancy\TenantMode;
 use Illuminate\Contracts\Container\Container;
+use Packman\Attributes\Internal;
 use PDOException;
 use Throwable;
 
@@ -37,6 +38,7 @@ use Throwable;
  *
  * @internal
  */
+#[Internal]
 final readonly class DirectoryResolver
 {
     private function __construct(private Panel $panel, private Container $container) {}

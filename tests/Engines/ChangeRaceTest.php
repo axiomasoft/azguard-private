@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 use AzGuard\Changes\Change;
 use AzGuard\Changes\ChangeResult;
-use AzGuard\Exceptions\ChangeCancelledException;
-use AzGuard\Exceptions\StaleSelectionException;
+use AzGuard\Exceptions\Changes\ChangeCancelledException;
+use AzGuard\Exceptions\Changes\StaleSelectionException;
 use AzGuard\Panels\Internal\PanelRegistry;
 use AzGuard\Storage\Schema\StorageSchema;
 use AzGuard\Tests\Engines\Support\CacheEngineWorld;

@@ -7,14 +7,16 @@ namespace AzGuard\Diagnostics\Internal\Checks;
 use AzGuard\Contracts\Diagnostics\DoctorCheck;
 use AzGuard\Diagnostics\DoctorContext;
 use AzGuard\Diagnostics\DoctorFinding;
-use AzGuard\Exceptions\InvalidIdentityException;
+use AzGuard\Exceptions\Identity\InvalidIdentityException;
 use AzGuard\Kernel\Identity\IdentityCodec;
 use Illuminate\Contracts\Config\Repository;
 use Illuminate\Database\ClassMorphViolationException;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\Relation;
+use Packman\Attributes\Internal;
 
 /** @internal */
+#[Internal]
 final readonly class MorphIdentity implements DoctorCheck
 {
     public function __construct(private Repository $config) {}

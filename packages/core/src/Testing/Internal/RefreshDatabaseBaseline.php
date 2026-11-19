@@ -9,6 +9,7 @@ use AzGuard\Storage\Internal\Storage;
 use Fiber;
 use Illuminate\Database\DatabaseTransactionRecord;
 use Illuminate\Foundation\Testing\DatabaseTransactionsManager;
+use Packman\Attributes\Internal;
 use PDO;
 
 /**
@@ -16,6 +17,7 @@ use PDO;
  *
  * @internal
  */
+#[Internal]
 final class RefreshDatabaseBaseline implements AuthorityReadBaseline
 {
     /** @var array<string, array{record: DatabaseTransactionRecord, pdo: PDO, identity: string}> */

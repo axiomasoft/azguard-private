@@ -7,10 +7,11 @@ namespace AzGuard\Changes\Internal;
 use AzGuard\Changes\Change;
 use AzGuard\Changes\ChangeResult;
 use AzGuard\Contracts\Changes\ChangePipe;
-use AzGuard\Exceptions\InvalidConfigurationException;
+use AzGuard\Exceptions\Configuration\InvalidConfigurationException;
 use Closure;
 use Illuminate\Contracts\Container\Container;
 use Illuminate\Pipeline\Pipeline;
+use Packman\Attributes\Internal;
 
 /**
  * @internal Runs one planned change through the `changing` pipes with guarded continuations.
@@ -20,6 +21,7 @@ use Illuminate\Pipeline\Pipeline;
  * other than the change passed on fails with `InvalidConfigurationException` (check `changing`) and the whole mutation
  * rolls back. A pipe cancels by throwing.
  */
+#[Internal]
 final class OnceTerminal
 {
     private ?ChangeResult $result = null;
@@ -30,13 +32,13 @@ final class OnceTerminal
     private function __construct(private readonly Closure $terminal) {}
 
     /**
-     * @param  list<ChangePipe|class-string<ChangePipe>|Closure>  $pipes
+     * @param  list<ChangePipe|class-string<ChangePipe>|Closure(mixed...): mixed>  $pipes
      * @param  Closure(mixed): ChangeResult  $terminal
      */
     public static function run(Container $container, Change $planned, array $pipes, Closure $terminal): ChangeResult
     {
         $guard = new self($terminal);
-        $returned = (new Pipeline($container))->send($planned)
+        $returned = new Pipeline($container)->send($planned)
             ->through(array_map(fn (ChangePipe|Closure|string $pipe): Closure => $guard->guarded($container, $pipe), $pipes))
             ->then($guard->terminal(...));
 
@@ -57,7 +59,10 @@ final class OnceTerminal
         return $this->result = ($this->terminal)($final);
     }
 
-    /** @param ChangePipe|class-string<ChangePipe>|Closure $pipe */
+    /**
+     * @param  ChangePipe|class-string<ChangePipe>|Closure(mixed...): mixed  $pipe
+     * @return Closure(mixed, Closure(mixed): ChangeResult): ChangeResult
+     */
     private function guarded(Container $container, ChangePipe|Closure|string $pipe): Closure
     {
         return static function (mixed $change, Closure $next) use ($container, $pipe): ChangeResult {

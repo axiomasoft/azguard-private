@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace AzGuard\Diagnostics;
 
-use AzGuard\Attributes\Api;
+use AzGuard\Configuration\AzGuardOptions;
 use AzGuard\Configuration\Internal\AzGuardConfig;
 use AzGuard\Contracts\Diagnostics\DoctorCheck;
 use AzGuard\Contracts\Sources\ChecksHealth;
@@ -29,16 +29,22 @@ use AzGuard\Diagnostics\Internal\Checks\StorageMigrated;
 use AzGuard\Diagnostics\Internal\Checks\StorageSchema;
 use AzGuard\Diagnostics\Internal\Checks\StorageSqlite;
 use AzGuard\Diagnostics\Internal\Checks\TenantMembershipConfigured;
-use AzGuard\Exceptions\ConfigurationException;
-use AzGuard\Exceptions\InvalidConfigurationException;
-use AzGuard\Exceptions\UnknownPanelException;
+use AzGuard\Diagnostics\Internal\DoctorStorages;
+use AzGuard\Exceptions\Configuration\ConfigurationException;
+use AzGuard\Exceptions\Configuration\InvalidConfigurationException;
+use AzGuard\Exceptions\Definitions\UnknownPanelException;
 use AzGuard\Panels\Internal\PanelRegistry;
 use AzGuard\Panels\Panel;
 use AzGuard\Sources\Database\DatabaseSource;
 use AzGuard\Storage\Internal\Storage;
 use AzGuard\Storage\Internal\StorageRegistry;
+use AzGuard\Storage\StorageDescriptor;
 use Illuminate\Contracts\Config\Repository;
 use Illuminate\Contracts\Container\Container;
+use Packman\Attributes\Api;
+use Packman\Doctor\Contracts\DoctorCheck as PackmanDoctorCheck;
+use Packman\Doctor\Data\DoctorContext as PackmanDoctorContext;
+use Packman\Doctor\Enums\CheckStatus;
 use Throwable;
 
 /**
@@ -98,7 +104,20 @@ final readonly class Doctor
             $chosen = array_values($panels === [] ? $known : $this->storages($selected, false));
         }
 
-        return new DoctorContext($selected, $chosen, $production, $this->config());
+        $descriptors = array_map(
+            static fn (Storage $storage): StorageDescriptor => new StorageDescriptor(
+                $storage->id(),
+                $storage->connectionName(),
+                $storage->prefix(),
+                $storage->hostKeys(),
+            ),
+            $chosen,
+        );
+
+        return DoctorStorages::attach(
+            new DoctorContext($selected, $descriptors, $production, $this->config()),
+            $chosen,
+        );
     }
 
     /**
@@ -159,6 +178,23 @@ final readonly class Doctor
 
         try {
             $check = is_string($check) ? $this->container->make($check) : $check;
+
+            if ($check instanceof PackmanDoctorCheck) {
+                $key = $check->key();
+                $packmanContext = new PackmanDoctorContext(production: $context->isProduction());
+
+                foreach ($check->run($packmanContext) as $finding) {
+                    if ($finding->status === CheckStatus::Ok || $finding->status === CheckStatus::Skipped) {
+                        continue;
+                    }
+                    $mapped = $finding->status === CheckStatus::Warning
+                        ? DoctorFinding::warning($key, $finding->message, $finding->slice ?? 'core')
+                        : DoctorFinding::error($key, $finding->message, $finding->slice ?? 'core');
+                    $findings[] = self::attribute($mapped, $panel, $origin);
+                }
+
+                return $findings;
+            }
 
             if (! $check instanceof DoctorCheck) {
                 throw new InvalidConfigurationException('A doctor check is '.get_debug_type($check).', not a '.DoctorCheck::class.'.');
@@ -241,12 +277,12 @@ final readonly class Doctor
     /**
      * The configuration as it is now; the booted one when the current one does not load (`config.valid` reports it).
      */
-    private function config(): AzGuardConfig
+    private function config(): AzGuardOptions
     {
         try {
-            return AzGuardConfig::fromRepository($this->container->make(Repository::class));
+            return AzGuardOptions::fromRepository($this->container->make(Repository::class));
         } catch (ConfigurationException) {
-            return $this->container->make(AzGuardConfig::class);
+            return $this->container->make(AzGuardConfig::class)->options();
         }
     }
 

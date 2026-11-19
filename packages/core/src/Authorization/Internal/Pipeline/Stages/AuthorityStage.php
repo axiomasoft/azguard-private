@@ -14,8 +14,8 @@ use AzGuard\Catalog\PermissionDefinition;
 use AzGuard\Context\Internal\ContextIdentity;
 use AzGuard\Contracts\Authorization\GrantCondition;
 use AzGuard\Contracts\Sources\Source;
-use AzGuard\Exceptions\ConsistencyException;
-use AzGuard\Exceptions\InvalidSourceContributionException;
+use AzGuard\Exceptions\Authorization\ConsistencyException;
+use AzGuard\Exceptions\Authorization\InvalidSourceContributionException;
 use AzGuard\Kernel\Decision\AccessRequest;
 use AzGuard\Kernel\Decision\Decision;
 use AzGuard\Kernel\Decision\DecisionReason;
@@ -31,10 +31,12 @@ use AzGuard\Sources\Internal\PanelSources;
 use AzGuard\Tenancy\Internal\TenantMembershipRestriction;
 use Closure;
 use Illuminate\Contracts\Container\Container;
+use Packman\Attributes\Internal;
 use RuntimeException;
 use Throwable;
 
 /** @phpstan-import-type CompiledRole from RoleCompiler */
+#[Internal]
 final readonly class AuthorityStage
 {
     public function __construct(private Container $container, private PanelRegistry $registry, private PolicyDecider $policies, private TenantMembershipRestriction $membership) {}

@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace AzGuard\Context;
 
-use AzGuard\Attributes\Spi;
-use AzGuard\Attributes\SpiKind;
 use AzGuard\Kernel\Decision\Grant;
 use AzGuard\Kernel\Decision\RoleContribution;
 use AzGuard\Kernel\Identity\AccessScope;
@@ -15,6 +13,8 @@ use AzGuard\Panels\Panel;
 use AzGuard\Roles\BaseRole;
 use DateTimeImmutable;
 use Illuminate\Database\Eloquent\Model;
+use Packman\Attributes\Spi;
+use Packman\Attributes\SpiKind;
 
 /**
  * Immutable inputs of one assignment-scope operation. The frame does not read Auth or the container.

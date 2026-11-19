@@ -4,8 +4,9 @@ declare(strict_types=1);
 
 namespace AzGuard\Changes;
 
-use AzGuard\Attributes\Api;
 use AzGuard\Kernel\Decision\StateToken;
+use Packman\Attributes\Api;
+use Packman\Attributes\Internal;
 
 /**
  * The outcome of one change operation.
@@ -33,10 +34,9 @@ final readonly class ChangeResult
     ) {}
 
     /**
-     * @internal the writer's result of one change
-     *
      * @param  list<ChangeEffect>  $effects
      */
+    #[Internal('the writer\'s result of one change')]
     public static function written(GrantRecord|PermissionRecord|null $record, array $effects, StateToken $state, string $correlationId): self
     {
         return new self($effects === [] ? ChangeStatus::Unchanged : ChangeStatus::Applied, $record,
@@ -44,10 +44,9 @@ final readonly class ChangeResult
     }
 
     /**
-     * @internal the operation result over the writer results of its changes, in order
-     *
      * @param  list<self>  $results
      */
+    #[Internal('the operation result over the writer results of its changes, in order')]
     public static function combine(array $results, StateToken $state, bool $committed, string $correlationId): self
     {
         $records = $effects = [];

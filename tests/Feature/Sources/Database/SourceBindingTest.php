@@ -5,7 +5,7 @@ declare(strict_types=1);
 use AzGuard\Authorization\Internal\EvaluationFrame;
 use AzGuard\Configuration\Internal\AzGuardConfig;
 use AzGuard\Contracts\Sources\Source;
-use AzGuard\Exceptions\DefinitionException;
+use AzGuard\Exceptions\Definitions\DefinitionException;
 use AzGuard\Kernel\Identity\SubjectRef;
 use AzGuard\Panels\Internal\PanelRegistry;
 use AzGuard\Panels\Panel;

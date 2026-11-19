@@ -8,6 +8,7 @@ use AzGuard\Audit\AuditServiceProvider;
 use AzGuard\AzGuardServiceProvider;
 use AzGuard\DevTools\DevToolsServiceProvider;
 use AzGuard\Filament\AzGuardFilamentServiceProvider;
+use AzGuard\Scopes\ScopesServiceProvider;
 use AzGuard\Tests\Support\TestDatabase;
 use Closure;
 use Illuminate\Database\Connection;
@@ -83,6 +84,7 @@ class TestCase extends Orchestra
     {
         return [
             AzGuardServiceProvider::class,
+            ScopesServiceProvider::class,
             AuditServiceProvider::class,
             DevToolsServiceProvider::class,
             AzGuardFilamentServiceProvider::class,

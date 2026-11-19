@@ -2,8 +2,8 @@
 
 declare(strict_types=1);
 
-use AzGuard\Exceptions\InvalidIdentityException;
-use AzGuard\Exceptions\StaleSelectionException;
+use AzGuard\Exceptions\Changes\StaleSelectionException;
+use AzGuard\Exceptions\Identity\InvalidIdentityException;
 use AzGuard\Laravel\Console\CommandSupport;
 use AzGuard\Laravel\Console\InvalidCommandInput;
 use AzGuard\Tests\Fixtures\Changes\ChangeWorld as W;

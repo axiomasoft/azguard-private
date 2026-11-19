@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace AzGuard\Changes;
 
-use AzGuard\Attributes\Spi;
-use AzGuard\Attributes\SpiKind;
 use AzGuard\Context\AssignmentScopePhase;
 use AzGuard\Kernel\Decision\StateToken;
 use AzGuard\Kernel\Identity\AccessScope;
@@ -15,6 +13,9 @@ use AzGuard\Panels\Panel;
 use AzGuard\Roles\BaseRole;
 use DateTimeImmutable;
 use Illuminate\Database\Eloquent\Model;
+use Packman\Attributes\Internal;
+use Packman\Attributes\Spi;
+use Packman\Attributes\SpiKind;
 
 /**
  * Checked inputs of one change, derived again for every change value and every attempt.
@@ -27,10 +28,9 @@ use Illuminate\Database\Eloquent\Model;
 final readonly class ChangeContext
 {
     /**
-     * @internal built by the change pipeline
-     *
      * @param  array<string, mixed>  $proposed
      */
+    #[Internal('built by the change pipeline')]
     public function __construct(
         public Panel $panel,
         public AccessScope $scope,

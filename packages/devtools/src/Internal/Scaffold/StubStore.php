@@ -1,0 +1,102 @@
+<?php
+
+declare(strict_types=1);
+
+namespace AzGuard\DevTools\Internal\Scaffold;
+
+use AzGuard\Laravel\Console\InvalidCommandInput;
+use Illuminate\Filesystem\Filesystem;
+use Packman\Attributes\Internal;
+use Packman\DevTools\Scaffold\StubStore as PackmanStubStore;
+use RuntimeException;
+
+/**
+ * @internal The stubs of the generators: the ones published to `stubs/azguard/` win over the ones of the package.
+ *
+ * A stub holds `{{ name }}` placeholders and is plain PHP otherwise. A placeholder nothing fills is an error: a
+ * published stub from an older release would otherwise reach the application with the placeholder in its code.
+ */
+#[Internal]
+final readonly class StubStore
+{
+    public const string PUBLISHED = 'stubs/azguard';
+
+    public function __construct(private string $basePath, private Filesystem $files) {}
+
+    public static function packaged(): string
+    {
+        return dirname(__DIR__, 3).'/stubs';
+    }
+
+    public function published(): string
+    {
+        return rtrim($this->basePath, '/').'/'.self::PUBLISHED;
+    }
+
+    /** The file of a stub: the published one when the application has it. */
+    public function path(string $name): string
+    {
+        $published = $this->published().'/'.$name.'.stub';
+
+        return $this->files->isFile($published) ? $published : self::packaged().'/'.$name.'.stub';
+    }
+
+    /**
+     * @param  array<string, string>  $values
+     */
+    public function render(string $name, array $values): string
+    {
+        $path = $this->path($name);
+
+        if (! $this->files->isFile($path)) {
+            throw new InvalidCommandInput('The stub '.$name.' does not exist: '.$path.'.');
+        }
+
+        try {
+            return new PackmanStubStore(dirname($path))->render(basename($path), $values);
+        } catch (RuntimeException $error) {
+            if (preg_match('/\{\{\s*([A-Za-z]\w*)\s*\}\}/', $error->getMessage(), $match) === 1) {
+                throw new InvalidCommandInput('The stub '.$path.' has the placeholder {{ '.$match[1].' }}, which this release does not fill: publish the stubs again with azguard:stubs --force.', previous: $error);
+            }
+
+            throw new InvalidCommandInput($error->getMessage(), previous: $error);
+        }
+    }
+
+    /**
+     * Copies the stubs of the package to `stubs/azguard/`; one that is already there stays unless `$force`.
+     *
+     * @return array{written: list<string>, kept: list<string>}
+     */
+    public function publish(bool $force): array
+    {
+        $written = $kept = [];
+        $this->files->ensureDirectoryExists($this->published());
+
+        foreach (array_filter($this->files->glob(self::packaged().'/*.stub'), is_string(...)) as $stub) {
+            $target = $this->published().'/'.basename($stub);
+
+            if ($this->files->exists($target) && ! $force) {
+                $kept[] = basename($stub);
+
+                continue;
+            }
+            $this->files->copy($stub, $target);
+            $written[] = basename($stub);
+        }
+        sort($written);
+        sort($kept);
+
+        return ['written' => $written, 'kept' => $kept];
+    }
+
+    /**
+     * `use` lines of the classes, in the order Pint keeps them: by name, a namespace separator before any letter.
+     *
+     * @param  list<string>  $classes
+     */
+    public static function imports(array $classes): string
+    {
+        return PackmanStubStore::imports($classes);
+    }
+}

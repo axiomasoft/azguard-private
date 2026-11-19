@@ -9,7 +9,9 @@ use AzGuard\Kernel\Identity\SubjectRef;
 use AzGuard\Panels\Panel;
 use AzGuard\Support\ModelKey;
 use Illuminate\Database\Eloquent\Model;
+use Packman\Attributes\Internal;
 
+#[Internal]
 final class ModelSubjectResolver
 {
     /** The model the caller passed with the request, or a fresh read for a bare reference. */

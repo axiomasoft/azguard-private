@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace AzGuard\Contracts\Scopes;
 
-use AzGuard\Attributes\Spi;
-use AzGuard\Attributes\SpiKind;
 use AzGuard\Context\AssignmentScopeDescription;
+use Packman\Attributes\Spi;
+use Packman\Attributes\SpiKind;
 
 /**
  * An assignment-scope definition that tells core its configuration facts: the components only the panel's evaluator

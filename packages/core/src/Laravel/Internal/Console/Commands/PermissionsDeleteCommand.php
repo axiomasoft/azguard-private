@@ -8,11 +8,13 @@ use AzGuard\Changes\ChangeResult;
 use AzGuard\Laravel\Internal\Console\GrantCommandSupport;
 use AzGuard\Panels\Internal\PanelResolver;
 use Illuminate\Console\Command;
+use Packman\Attributes\Internal;
 
 /**
  * Deletes a dynamic permission of one tenant with every stored grant of exactly that name, in one mutation of the
  * change pipeline as the system actor `azguard:permissions:delete`. Irreversible: production needs `--force`.
  */
+#[Internal]
 final class PermissionsDeleteCommand extends Command
 {
     use GrantCommandSupport;

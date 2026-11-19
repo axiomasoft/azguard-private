@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace AzGuard\Filament\Contracts;
 
-use AzGuard\Attributes\Spi;
-use AzGuard\Attributes\SpiKind;
 use AzGuard\Schema\FieldTarget;
 use AzGuard\Schema\PanelSchema;
 use Filament\Schemas\Components\Component;
+use Packman\Attributes\Spi;
+use Packman\Attributes\SpiKind;
 
 /**
  * A Filament component of its own for a grant field that the schema of a panel declares, such as a tree of departments

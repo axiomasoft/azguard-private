@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace AzGuard\Filament\Pages;
 
-use AzGuard\Attributes\Api;
 use AzGuard\Diagnostics\PanelOverview;
 use AzGuard\Filament\Concerns\AuthorizesPage;
 use Filament\Pages\Page;
 use Livewire\Attributes\Locked;
+use Packman\Attributes\Api;
 use UnitEnum;
 
 /**

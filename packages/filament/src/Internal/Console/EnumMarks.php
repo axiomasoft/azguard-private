@@ -4,12 +4,14 @@ declare(strict_types=1);
 
 namespace AzGuard\Filament\Internal\Console;
 
+use Packman\Attributes\Internal;
 use ParseError;
 
 /**
  * @internal Puts attributes on the permission enum the core generator wrote, as text: the file is not loaded and its
  * `use` lines stay in the order Pint keeps.
  */
+#[Internal]
 final class EnumMarks
 {
     /**
@@ -63,7 +65,11 @@ final class EnumMarks
     private static function import(string $class, array &$taken, array &$uses): string
     {
         if (isset($uses[$class])) {
-            return str_contains($uses[$class], ' as ') ? substr($uses[$class], strrpos($uses[$class], ' ') + 1) : class_basename($class);
+            $pos = strrpos($uses[$class], ' ');
+
+            return str_contains($uses[$class], ' as ') && $pos !== false
+                ? substr($uses[$class], $pos + 1)
+                : class_basename($class);
         }
         $short = class_basename($class);
         $segments = explode('\\', $class);

@@ -5,11 +5,13 @@ declare(strict_types=1);
 namespace AzGuard\Sources\Database\Internal;
 
 use AzGuard\Storage\Internal\Storage;
+use Packman\Attributes\Internal;
 
 /**
  * @internal What the doctor reads about the tables of a storage: which are missing and whether the host key columns
  * have the type the storage declares. Only reads the schema.
  */
+#[Internal]
 final class StorageHealth
 {
     /** @var array<string, list<string>> table => columns that hold a host key */

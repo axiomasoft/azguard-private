@@ -125,7 +125,7 @@ run_case() {
 # Break 1: a method added to an spi-implement interface (and implemented by the package's own plugins so that they load).
 edit packages/core/src/Contracts/Plugins/Plugin.php '
     return preg_replace("/\n}\s*$/", "\n\n    public function boot(): void;\n}\n", $s, 1);'
-for implementer in $(cd "$clone" && grep -rlE '^final class \w+ implements Plugin$' packages/core/src packages/core/modules); do
+for implementer in $(cd "$clone" && grep -rlE '^final class \w+ implements Plugin$' packages/core/src packages/scopes/src packages/audit/src packages/devtools/src); do
     edit "$implementer" '
         return preg_replace("/\n}\s*$/", "\n\n    public function boot(): void {}\n}\n", $s, 1);'
 done

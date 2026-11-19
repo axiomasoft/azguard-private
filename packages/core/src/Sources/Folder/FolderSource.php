@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace AzGuard\Sources\Folder;
 
-use AzGuard\Attributes\Api;
 use AzGuard\Catalog\Internal\PanelCatalog;
 use AzGuard\Catalog\PermissionDefinition;
 use AzGuard\Contracts\Authorization\EvaluationContext;
 use AzGuard\Contracts\Sources\AssignmentScopeSelection;
 use AzGuard\Contracts\Sources\ChecksHealth;
 use AzGuard\Contracts\Sources\DescribesSchema;
+use AzGuard\Contracts\Sources\EvaluatesAutomaticRoles;
 use AzGuard\Contracts\Sources\FiltersQueries;
 use AzGuard\Contracts\Sources\ProvidesGrants;
 use AzGuard\Contracts\Sources\ProvidesPermissions;
@@ -20,12 +20,12 @@ use AzGuard\Contracts\Sources\ProvidesRoles;
 use AzGuard\Contracts\Sources\SourceDescription;
 use AzGuard\Contracts\Sources\Volatility;
 use AzGuard\Diagnostics\Internal\Checks\DiscoveryCached;
-use AzGuard\Exceptions\DefinitionException;
-use AzGuard\Exceptions\DuplicatePermissionException;
-use AzGuard\Exceptions\DuplicatePolicyBindingException;
-use AzGuard\Exceptions\InvalidPolicyStructureException;
-use AzGuard\Exceptions\InvalidSourceContributionException;
-use AzGuard\Exceptions\VisibilityNotSupportedException;
+use AzGuard\Exceptions\Authorization\InvalidSourceContributionException;
+use AzGuard\Exceptions\Authorization\VisibilityNotSupportedException;
+use AzGuard\Exceptions\Definitions\DefinitionException;
+use AzGuard\Exceptions\Definitions\DuplicatePermissionException;
+use AzGuard\Exceptions\Definitions\DuplicatePolicyBindingException;
+use AzGuard\Exceptions\Definitions\InvalidPolicyStructureException;
 use AzGuard\Kernel\Decision\Grant;
 use AzGuard\Kernel\Decision\PermissionAuthority;
 use AzGuard\Kernel\Decision\RoleContribution;
@@ -45,10 +45,12 @@ use AzGuard\Roles\GrantedAutomatically;
 use AzGuard\Roles\SelectsAutomaticRoleScopes;
 use AzGuard\Sources\Folder\Internal\AttributeReader;
 use AzGuard\Sources\Folder\Internal\DiscoverySnapshot;
-use AzGuard\Sources\Internal\EvaluatesAutomaticRoles;
 use AzGuard\Sources\Internal\PanelSources;
 use BackedEnum;
 use Illuminate\Contracts\Container\Container;
+use InvalidArgumentException;
+use Packman\Attributes\Api;
+use Packman\Attributes\Internal;
 use ReflectionClass;
 use ReflectionEnum;
 use ReflectionMethod;
@@ -138,14 +140,17 @@ final class FolderSource implements ChecksHealth, DescribesSchema, EvaluatesAuto
     /**
      * The one folder source written into the recipe, with the layer that wrote it.
      *
-     * @internal compiler wiring
-     *
      * @return array{source: self, origin: string, plugin: ?string}|null
      *
      * @throws DefinitionException when the recipe names more than one folder source
      */
-    public static function configured(PanelRecipe $recipe): ?array
+    #[Internal('compiler wiring')]
+    public static function configured(object $recipe): ?array
     {
+        if (! $recipe instanceof PanelRecipe) {
+            throw new InvalidArgumentException('FolderSource requires an internal PanelRecipe instance.');
+        }
+
         $found = null;
 
         foreach ($recipe->layered(PanelRecipe::PERMISSIONS) as $record) {
@@ -173,9 +178,12 @@ final class FolderSource implements ChecksHealth, DescribesSchema, EvaluatesAuto
         return $found;
     }
 
-    /** @internal compiler wiring */
-    public function bind(DiscoverySnapshot $discovery, PanelRecipe $recipe, Container $container): void
+    #[Internal('compiler wiring')]
+    public function bind(object $discovery, object $recipe, Container $container): void
     {
+        if (! $discovery instanceof DiscoverySnapshot || ! $recipe instanceof PanelRecipe) {
+            throw new InvalidArgumentException('FolderSource binding requires internal discovery and recipe instances.');
+        }
         $this->discovery = $discovery;
         $this->recipe = $recipe;
         $this->container = $container;
@@ -311,10 +319,9 @@ final class FolderSource implements ChecksHealth, DescribesSchema, EvaluatesAuto
     }
 
     /**
-     * @internal Separate selections retain the distinct every-context semantics of granted-to-all permissions.
-     *
      * @return list<AssignmentScopeSelection>|null
      */
+    #[Internal('Separate selections retain the distinct every-context semantics of granted-to-all permissions.')]
     public function exactSelections(SubjectRef $subject, ?string $contextType, EvaluationContext $context): ?array
     {
         $items = iterator_to_array($this->grants($subject, [AccessScope::in($context->scope()->tenant)], $context), false);
@@ -511,7 +518,7 @@ final class FolderSource implements ChecksHealth, DescribesSchema, EvaluatesAuto
         $enum = $this->pairedEnum($declared, $panel);
         $bindings = [];
 
-        foreach ((new ReflectionClass($declared))->getMethods(ReflectionMethod::IS_PUBLIC) as $method) {
+        foreach (new ReflectionClass($declared)->getMethods(ReflectionMethod::IS_PUBLIC) as $method) {
             if ($method->isStatic() || $method->getDeclaringClass()->getName() !== $declared || str_starts_with($method->getName(), '__')) {
                 continue;
             }
@@ -534,7 +541,7 @@ final class FolderSource implements ChecksHealth, DescribesSchema, EvaluatesAuto
      */
     private function pairedEnum(string $class, Panel $panel): ?string
     {
-        $attributes = (new ReflectionClass($class))->getAttributes(PolicyFor::class);
+        $attributes = new ReflectionClass($class)->getAttributes(PolicyFor::class);
 
         if ($attributes === []) {
             return null;
@@ -575,7 +582,7 @@ final class FolderSource implements ChecksHealth, DescribesSchema, EvaluatesAuto
             return;
         }
 
-        foreach ((new ReflectionEnum($enum))->getCases() as $case) {
+        foreach (new ReflectionEnum($enum)->getCases() as $case) {
             if ($case->getBackingValue() === $permission) {
                 return;
             }

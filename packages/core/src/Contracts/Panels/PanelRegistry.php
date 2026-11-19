@@ -4,17 +4,17 @@ declare(strict_types=1);
 
 namespace AzGuard\Contracts\Panels;
 
-use AzGuard\Attributes\Api;
-use AzGuard\Exceptions\DefinitionException;
-use AzGuard\Exceptions\DuplicatePanelException;
-use AzGuard\Exceptions\InvalidPanelIdException;
-use AzGuard\Exceptions\RegistryFrozenException;
-use AzGuard\Exceptions\UnknownPanelException;
+use AzGuard\Exceptions\Definitions\DefinitionException;
+use AzGuard\Exceptions\Definitions\DuplicatePanelException;
+use AzGuard\Exceptions\Definitions\RegistryFrozenException;
+use AzGuard\Exceptions\Definitions\UnknownPanelException;
+use AzGuard\Exceptions\Identity\InvalidPanelIdException;
 use AzGuard\Panels\Panel;
 use AzGuard\Panels\PanelBuilder;
 use AzGuard\Panels\PanelProvider;
 use Closure;
 use Illuminate\Database\Eloquent\Model;
+use Packman\Attributes\Api;
 
 /**
  * The panels of the application: registered and adjusted while the application boots, read-only afterwards.

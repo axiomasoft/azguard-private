@@ -1,0 +1,19 @@
+<?php
+
+declare(strict_types=1);
+
+namespace AzGuard\Exceptions\Definitions;
+
+use Packman\Attributes\Api;
+
+/**
+ * A policy-only permission has no policy binding, or a binding does not fit the permission.
+ */
+#[Api(since: '1.0')]
+final class InvalidPolicyStructureException extends DefinitionException
+{
+    public function code(): string
+    {
+        return 'invalid_policy_structure';
+    }
+}

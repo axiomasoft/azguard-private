@@ -12,12 +12,14 @@ use AzGuard\Diagnostics\DoctorFinding;
 use AzGuard\Exceptions\AzGuardException;
 use AzGuard\Panels\Internal\PanelRegistry;
 use AzGuard\Sources\Relation\RelationSource;
+use Packman\Attributes\Internal;
 
 /**
  * `panels.relations`: the static role every relation source of a panel names is a role of that panel.
  *
  * @internal
  */
+#[Internal]
 final readonly class PanelsRelations implements DoctorCheck
 {
     public function __construct(private PanelRegistry $registry) {}

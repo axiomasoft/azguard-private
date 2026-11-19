@@ -1,0 +1,19 @@
+<?php
+
+declare(strict_types=1);
+
+namespace AzGuard\Exceptions\Definitions;
+
+use Packman\Attributes\Api;
+
+/**
+ * A panel id is registered twice; an intended replacement uses `replace()`.
+ */
+#[Api(since: '1.0')]
+final class DuplicatePanelException extends DefinitionException
+{
+    public function code(): string
+    {
+        return 'duplicate_panel';
+    }
+}

@@ -5,15 +5,17 @@ declare(strict_types=1);
 namespace AzGuard\Changes\Internal;
 
 use AzGuard\Contracts\Changes\OwnedRowsWriter;
-use AzGuard\Exceptions\UnsupportedDirectWriteException;
+use AzGuard\Exceptions\Storage\UnsupportedDirectWriteException;
 use AzGuard\Storage\Internal\StorageMutation;
 use AzGuard\Storage\StorageDescriptor;
+use Packman\Attributes\Internal;
 
 /**
  * @internal The `OwnedRowsWriter` of one participant in one operation: it appends to the tables that participant
  * declared, through the active mutation of the operation, while its call window is open. It never hands out a
  * builder, a connection or the mutation.
  */
+#[Internal]
 final class OperationRows implements OwnedRowsWriter
 {
     private bool $open = true;

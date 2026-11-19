@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-use AzGuard\Concerns\HasAzGuard;
-use AzGuard\Concerns\SubjectAccess;
-use AzGuard\Exceptions\UnknownPanelException;
+use AzGuard\Concerns\Subjects\HasAzGuard;
+use AzGuard\Concerns\Subjects\SubjectAccess;
+use AzGuard\Exceptions\Definitions\UnknownPanelException;
 use AzGuard\Panels\Internal\CurrentPanel;
 use AzGuard\Tests\Fixtures\Concerns\CustomGuardMember;
 use AzGuard\Tests\Fixtures\Concerns\Member;

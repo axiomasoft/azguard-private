@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace AzGuard\Contracts\Diagnostics;
 
-use AzGuard\Attributes\Spi;
-use AzGuard\Attributes\SpiKind;
 use AzGuard\Diagnostics\DoctorContext;
 use AzGuard\Diagnostics\DoctorFinding;
+use Packman\Attributes\Spi;
+use Packman\Attributes\SpiKind;
 
 /**
  * One health check of `azguard:doctor`. A check only reads: it writes nothing to a storage and changes no cache.

@@ -3,8 +3,8 @@
 declare(strict_types=1);
 
 use AzGuard\Configuration\Internal\AzGuardConfig;
-use AzGuard\Exceptions\InvalidConfigurationException;
-use AzGuard\Exceptions\PluginConflictException;
+use AzGuard\Exceptions\Configuration\InvalidConfigurationException;
+use AzGuard\Exceptions\Plugins\PluginConflictException;
 use AzGuard\Panels\Internal\PanelCompiler;
 use AzGuard\Panels\Internal\PanelRecipe;
 use AzGuard\Panels\Internal\PanelRegistry;

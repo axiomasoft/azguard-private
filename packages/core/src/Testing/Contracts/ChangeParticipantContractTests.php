@@ -4,11 +4,9 @@ declare(strict_types=1);
 
 namespace AzGuard\Testing\Contracts;
 
-use AzGuard\Attributes\Spi;
-use AzGuard\Attributes\SpiKind;
 use AzGuard\Contracts\Changes\ChangeParticipant;
 use AzGuard\Contracts\Changes\OwnedRowsWriter;
-use AzGuard\Exceptions\UnsupportedDirectWriteException;
+use AzGuard\Exceptions\Storage\UnsupportedDirectWriteException;
 use AzGuard\Facades\AzGuard;
 use AzGuard\Panels\Panel;
 use AzGuard\Panels\PanelBuilder;
@@ -21,7 +19,10 @@ use Closure;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Events\QueryExecuted;
 use Illuminate\Database\QueryException;
+use Packman\Attributes\Spi;
+use Packman\Attributes\SpiKind;
 use PDOException;
+use PHPUnit\Framework\Assert;
 use PHPUnit\Framework\Attributes\Test;
 use RuntimeException;
 use Throwable;
@@ -58,20 +59,20 @@ trait ChangeParticipantContractTests
     {
         $tables = $this->azguardDeclaredTables();
 
-        $this->assertTrue(array_is_list($tables), 'tables() is not a list.');
+        Assert::assertTrue(array_is_list($tables), 'tables() is not a list.');
 
         $names = [];
 
         foreach ($tables as $table) {
             if (! is_string($table) || $table === '') {
-                $this->fail('tables() lists '.get_debug_type($table).' where a table name belongs.');
+                Assert::fail('tables() lists '.get_debug_type($table).' where a table name belongs.');
             }
-            $this->assertNotContains($table, ['permissions', 'role_grants', 'permission_grants', 'panel_state', 'subject_revisions', 'storage_state'],
+            Assert::assertNotContains($table, ['permissions', 'role_grants', 'permission_grants', 'panel_state', 'subject_revisions', 'storage_state'],
                 'tables() names the authority table '.$table.' of the core.');
             $names[] = $table;
         }
-        $this->assertSame(array_values(array_unique($names)), $names, 'tables() lists a table twice.');
-        $this->assertCount(1, $this->azguardParticipantPanel([$this->azguardParticipant()])->participants(), 'The panel does not take the participant.');
+        Assert::assertSame(array_values(array_unique($names)), $names, 'tables() lists a table twice.');
+        Assert::assertCount(1, $this->azguardParticipantPanel([$this->azguardParticipant()])->participants(), 'The panel does not take the participant.');
     }
 
     #[Test]
@@ -88,20 +89,20 @@ trait ChangeParticipantContractTests
         try {
             $this->azguardParticipantGrant($this->azguardParticipantPanel([$probe]));
         } catch (Throwable $error) {
-            $this->fail('An effective change failed with the participant: '.$error::class.': '.$error->getMessage());
+            Assert::fail('An effective change failed with the participant: '.$error::class.': '.$error->getMessage());
         }
 
-        $this->assertSame(1, $probe->calls, 'The participant was not called once for an effective change.');
-        $this->assertSame([], $outside, 'The participant wrote around its writer: '.implode('; ', $outside));
+        Assert::assertSame(1, $probe->calls, 'The participant was not called once for an effective change.');
+        Assert::assertSame([], $outside, 'The participant wrote around its writer: '.implode('; ', $outside));
         $writer = $probe->writer;
 
         if ($writer === null) {
-            $this->fail('The participant did not receive a writer.');
+            Assert::fail('The participant did not receive a writer.');
         }
 
         try {
             $writer->insert($this->azguardParticipant()->tables()[0] ?? 'contract_none', [['probe' => 1]]);
-            $this->fail('The writer of the participant still writes after record() returned.');
+            Assert::fail('The writer of the participant still writes after record() returned.');
         } catch (UnsupportedDirectWriteException) {
             // The window closed when record() returned.
         }
@@ -132,9 +133,9 @@ trait ChangeParticipantContractTests
             $failure = $error->getMessage();
         }
 
-        $this->assertSame('contract: the operation fails after the participant', $failure, 'The operation did not end with the failure after the participant.');
+        Assert::assertSame('contract: the operation fails after the participant', $failure, 'The operation did not end with the failure after the participant.');
 
-        $this->assertSame($before, ContractWorld::rowCounts(), 'A failed operation left rows of the participant behind.');
+        Assert::assertSame($before, ContractWorld::rowCounts(), 'A failed operation left rows of the participant behind.');
     }
 
     #[Test]
@@ -164,15 +165,15 @@ trait ChangeParticipantContractTests
         $this->azguardParticipantGrant($panel);
         $after = ContractWorld::rowCounts();
 
-        $this->assertSame(2, $probe->calls, 'The participant was not called again for the retried operation.');
-        $this->assertSame($probe->attempts[0], $probe->attempts[1], 'The participant wrote differently for the retried attempt: it keeps state between attempts.');
+        Assert::assertSame(2, $probe->calls, 'The participant was not called again for the retried operation.');
+        Assert::assertSame($probe->attempts[0], $probe->attempts[1], 'The participant wrote differently for the retried attempt: it keeps state between attempts.');
         $prefix = $probe->writer?->storage()->prefix ?? '';
         $connection = app('db')->connection()->getName() ?? 'default';
-        $last = end($probe->attempts) ?: [];
+        $last = end($probe->attempts);
 
         foreach ($this->azguardParticipant()->tables() as $table) {
             $key = $connection.'.'.$prefix.$table;
-            $this->assertSame(($before[$key] ?? 0) + ($last[$table] ?? 0), $after[$key] ?? 0,
+            Assert::assertSame(($before[$key] ?? 0) + ($last[$table] ?? 0), $after[$key] ?? 0,
                 'Table '.$prefix.$table.' does not hold exactly the rows of the attempt that committed.');
         }
     }
@@ -186,8 +187,8 @@ trait ChangeParticipantContractTests
         $before = ContractWorld::rowCounts();
         $this->azguardParticipantGrant($panel);
 
-        $this->assertSame(1, $probe->calls, 'The participant was called for a repeat that changed nothing.');
-        $this->assertSame($before, ContractWorld::rowCounts(), 'A repeat that changed nothing wrote rows.');
+        Assert::assertSame(1, $probe->calls, 'The participant was called for a repeat that changed nothing.');
+        Assert::assertSame($before, ContractWorld::rowCounts(), 'A repeat that changed nothing wrote rows.');
     }
 
     /**

@@ -5,11 +5,11 @@ declare(strict_types=1);
 namespace AzGuard\Filament\Internal\Editors;
 
 use AzGuard\Context\AssignmentScopePhase;
-use AzGuard\Contracts\PanelAccess;
+use AzGuard\Contracts\Panels\PanelAccess;
 use AzGuard\Directories\LookupContext;
-use AzGuard\Exceptions\InvalidConfigurationException;
-use AzGuard\Exceptions\InvalidIdentityException;
-use AzGuard\Exceptions\TenantRequiredException;
+use AzGuard\Exceptions\Changes\TenantRequiredException;
+use AzGuard\Exceptions\Configuration\InvalidConfigurationException;
+use AzGuard\Exceptions\Identity\InvalidIdentityException;
 use AzGuard\Facades\AzGuard;
 use AzGuard\Filament\Internal\Authorization\FilamentContext;
 use AzGuard\Kernel\Identity\AccessScope;
@@ -21,6 +21,7 @@ use Closure;
 use DateTimeImmutable;
 use Filament\Facades\Filament;
 use Illuminate\Database\Eloquent\Model;
+use Packman\Attributes\Internal;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 
 /**
@@ -33,6 +34,7 @@ use Symfony\Component\HttpKernel\Exception\HttpException;
  *
  * @internal
  */
+#[Internal]
 final readonly class TargetSelector
 {
     /** How many tenants a search offers. */

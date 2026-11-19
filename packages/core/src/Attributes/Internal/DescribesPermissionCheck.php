@@ -4,11 +4,14 @@ declare(strict_types=1);
 
 namespace AzGuard\Attributes\Internal;
 
+use Packman\Attributes\Internal;
+
 /**
  * Whether `#[CheckPermission]` applies to an action of the controller.
  *
  * @internal
  */
+#[Internal]
 trait DescribesPermissionCheck
 {
     /**

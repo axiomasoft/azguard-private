@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace AzGuardBench\Load\Profiles;
 
-use AzGuard\Concerns\SubjectAccess;
+use AzGuard\Concerns\Subjects\SubjectAccess;
 use AzGuard\Facades\AzGuard;
 use AzGuardBench\Load\Catalog;
 use AzGuardBench\Load\Dataset;

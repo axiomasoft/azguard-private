@@ -4,12 +4,14 @@ declare(strict_types=1);
 
 namespace AzGuard\Testing;
 
-use AzGuard\Attributes\Api;
 use AzGuard\Testing\Internal\FakeSubjectBuilder;
 use Illuminate\Auth\Authenticatable;
 use Illuminate\Contracts\Auth\Authenticatable as AuthenticatableContract;
+use Illuminate\Database\Eloquent\Builder as EloquentBuilder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Query\Builder;
+use Packman\Attributes\Api;
+use Packman\Attributes\Internal;
 
 /**
  * The smallest subject model: it has a key and no table, so a test of a panel, a source or a plugin needs no schema
@@ -24,7 +26,7 @@ final class FakeSubject extends Model implements AuthenticatableContract
 
     protected $table = 'azguard_fake_subjects';
 
-    /** @var list<string> */
+    /** @var array<string> */
     protected $guarded = [];
 
     public static function of(int|string $id = 1): self
@@ -42,11 +44,11 @@ final class FakeSubject extends Model implements AuthenticatableContract
     }
 
     /**
-     * @internal Eloquent hook
-     *
      * @param  Builder  $query
+     * @return FakeSubjectBuilder
      */
-    public function newEloquentBuilder($query): FakeSubjectBuilder
+    #[Internal('Eloquent hook')]
+    public function newEloquentBuilder($query): EloquentBuilder
     {
         return new FakeSubjectBuilder($query);
     }

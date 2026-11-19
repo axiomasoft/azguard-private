@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 use AzGuard\AzGuard as AzGuardEntry;
-use AzGuard\Exceptions\RegistryFrozenException;
+use AzGuard\Exceptions\Definitions\RegistryFrozenException;
 use AzGuard\Facades\AzGuard;
 use AzGuard\Panels\Internal\CurrentPanel;
 use AzGuard\Panels\Internal\PanelRecipe;

@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace AzGuardBench\Load\Profiles;
 
 use AzGuard\Changes\ChangeResult;
-use AzGuard\Exceptions\DecisionSetTooLargeException;
+use AzGuard\Exceptions\Authorization\DecisionSetTooLargeException;
 use AzGuard\Facades\AzGuard;
 use AzGuard\Kernel\Decision\AccessRequest;
 use AzGuard\Kernel\Identity\PermissionKey;

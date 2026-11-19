@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace AzGuard\Filament;
 
-use AzGuard\Attributes\Api;
+use Packman\Attributes\Api;
 
 /**
  * Where the permissions of the resources, pages and widgets of a Filament panel are described.

@@ -130,12 +130,11 @@ A reader of these formats must ignore keys it does not know.
 
 ## Supported platforms
 
-Composer's requirements permit PHP `^8.3` and Illuminate `^13.0`. The tested support promise is the following
-three pairs, matching `.github/workflows/tests.yml` and `bin/consumer-matrix.sh`:
+Composer's requirements permit PHP `^8.4` and Illuminate `^13.0`. The tested support promise is the following
+pairs, matching `.github/workflows/tests.yml` and `bin/consumer-matrix.sh`:
 
 | PHP | Laravel | Dependency resolution |
 |---|---|---|
-| 8.3 | 13 | lowest and latest |
 | 8.4 | 13 | lowest and latest |
 | 8.5 | 13 | lowest and latest |
 

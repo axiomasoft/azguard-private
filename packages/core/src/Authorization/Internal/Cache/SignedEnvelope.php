@@ -8,8 +8,10 @@ use AzGuard\Configuration\Internal\CacheSigningConfig;
 use DateTimeImmutable;
 use DateTimeZone;
 use Illuminate\Contracts\Config\Repository;
+use Packman\Attributes\Internal;
 
 /** @internal Authenticates bounded, versioned raw contribution payloads before object construction. */
+#[Internal]
 final readonly class SignedEnvelope
 {
     public const int MAX_BYTES = 1048576;

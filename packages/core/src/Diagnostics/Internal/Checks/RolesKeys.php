@@ -11,6 +11,7 @@ use AzGuard\Diagnostics\DoctorFinding;
 use AzGuard\Panels\Internal\PanelRegistry;
 use AzGuard\Roles\BaseRole;
 use Illuminate\Contracts\Container\Container;
+use Packman\Attributes\Internal;
 use Throwable;
 
 /**
@@ -19,6 +20,7 @@ use Throwable;
  *
  * @internal
  */
+#[Internal]
 final readonly class RolesKeys implements DoctorCheck
 {
     public function __construct(private PanelRegistry $registry, private Container $container) {}
@@ -52,10 +54,10 @@ final readonly class RolesKeys implements DoctorCheck
                 continue;
             }
 
-            if ($declared !== (string) $key) {
+            if ($declared !== $key) {
                 $findings[] = DoctorFinding::error('roles.keys', 'Role '.$role['class'].' of panel '.$catalog->panel().' declares the key '.json_encode($declared)
                     .', but the catalog stores it as "'.$key.'": rebuild the catalog cache or keep the former key in #[FormerKeys].', $scope,
-                    ['role' => $role['class'], 'key' => (string) $key]);
+                    ['role' => $role['class'], 'key' => $key]);
             }
         }
 

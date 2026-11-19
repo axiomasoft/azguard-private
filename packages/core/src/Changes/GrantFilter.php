@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace AzGuard\Changes;
 
-use AzGuard\Attributes\Api;
 use AzGuard\Kernel\Identity\ActorRef;
 use AzGuard\Kernel\Identity\AnyAssignmentScope;
 use AzGuard\Kernel\Identity\AssignmentScopeRef;
@@ -15,6 +14,8 @@ use DateTimeImmutable;
 use DateTimeInterface;
 use DateTimeZone;
 use InvalidArgumentException;
+use Packman\Attributes\Api;
+use Packman\Attributes\Internal;
 
 /**
  * Which stored grants of a grant manager a page lists. Panel, tenant and origin are the manager's own and never part of
@@ -107,10 +108,9 @@ final readonly class GrantFilter
     }
 
     /**
-     * @internal the conditions of the filter without limit and cursor, to bind a cursor to them
-     *
      * @return list<string>
      */
+    #[Internal('the conditions of the filter without limit and cursor, to bind a cursor to them')]
     public function conditions(): array
     {
         return [
@@ -121,9 +121,7 @@ final readonly class GrantFilter
         ];
     }
 
-    /**
-     * @internal the moment of `expiresBefore` in UTC as storage keeps an expiry, or null without one
-     */
+    #[Internal('the moment of `expiresBefore` in UTC as storage keeps an expiry, or null without one')]
     public function expiresBeforeUtc(): ?string
     {
         return $this->expiresBefore === null ? null

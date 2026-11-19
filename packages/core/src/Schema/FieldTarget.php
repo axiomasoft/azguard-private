@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace AzGuard\Schema;
 
-use AzGuard\Attributes\Api;
+use Packman\Attributes\Api;
 
 /**
  * @closed

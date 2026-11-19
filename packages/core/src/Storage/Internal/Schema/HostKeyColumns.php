@@ -4,11 +4,13 @@ declare(strict_types=1);
 
 namespace AzGuard\Storage\Internal\Schema;
 
-use AzGuard\Exceptions\InvalidIdentityException;
+use AzGuard\Exceptions\Identity\InvalidIdentityException;
 use AzGuard\Kernel\Identity\IdentityCodec;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Schema\ColumnDefinition;
+use Packman\Attributes\Internal;
 
+#[Internal]
 final class HostKeyColumns
 {
     public static function identifier(Blueprint $table, string $name, int $length, string $driver): ColumnDefinition

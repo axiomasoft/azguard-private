@@ -4,8 +4,9 @@ declare(strict_types=1);
 
 namespace AzGuard\Panels;
 
-use AzGuard\Attributes\Api;
 use Illuminate\Database\Eloquent\Model;
+use Packman\Attributes\Api;
+use Packman\Attributes\Internal;
 
 /**
  * A compiled subject of a panel as `PanelBuilder::for()` declared it: the model, the Laravel auth guard its current
@@ -15,10 +16,9 @@ use Illuminate\Database\Eloquent\Model;
 final readonly class SubjectDescriptor
 {
     /**
-     * @internal built by the panel compiler
-     *
      * @param  class-string<Model>  $model
      */
+    #[Internal('built by the panel compiler')]
     public function __construct(
         public string $model,
         public ?string $guard = null,

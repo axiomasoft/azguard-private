@@ -12,6 +12,7 @@ use AzGuard\Panels\Panel;
 use AzGuard\Sources\Database\DatabaseSource;
 use AzGuard\Sources\SourceManager;
 use Composer\InstalledVersions;
+use Packman\Attributes\Internal;
 use Throwable;
 
 /**
@@ -23,6 +24,7 @@ use Throwable;
  *
  * @internal
  */
+#[Internal]
 final readonly class AboutSection
 {
     public const string TITLE = 'AzGuard';

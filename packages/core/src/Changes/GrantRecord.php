@@ -4,13 +4,14 @@ declare(strict_types=1);
 
 namespace AzGuard\Changes;
 
-use AzGuard\Attributes\Api;
 use AzGuard\Kernel\Identity\AccessScope;
 use AzGuard\Kernel\Identity\ActorRef;
 use AzGuard\Kernel\Identity\PermissionPattern;
 use AzGuard\Kernel\Identity\RoleKey;
 use AzGuard\Kernel\Identity\SubjectRef;
 use DateTimeImmutable;
+use Packman\Attributes\Api;
+use Packman\Attributes\Internal;
 
 /**
  * One stored grant as the writer read it under the panel lock.
@@ -22,10 +23,9 @@ use DateTimeImmutable;
 final readonly class GrantRecord
 {
     /**
-     * @internal built by the writer
-     *
      * @param  array<string, mixed>  $fields
      */
+    #[Internal('built by the writer')]
     public function __construct(
         public string $id,
         public string $panel,

@@ -75,10 +75,10 @@ final class CacheColdWarm extends BaseProfile
                     }
                 } while ($cursor !== '0');
                 foreach ($pending as $key) {
-                    $client->rawCommand('DEL', $key);
+                    $client->rawcommand('DEL', $key);
                 }
             } elseif ($stand->cache !== 'none') {
-                Cache::store($stand->cache)->flush();
+                Cache::store($stand->cache)->clear();
             }
         }
 

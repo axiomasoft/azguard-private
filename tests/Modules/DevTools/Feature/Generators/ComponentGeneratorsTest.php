@@ -149,7 +149,7 @@ it('publishes the stubs, keeps the published ones and replaces them with --force
 
     Artisan::call('azguard:stubs', ['--force' => true]);
 
-    expect($this->generated->read('stubs/azguard/role.stub'))->toBe(file_get_contents(__DIR__.'/../../../../../packages/core/modules/devtools/stubs/role.stub'));
+    expect($this->generated->read('stubs/azguard/role.stub'))->toBe(file_get_contents(__DIR__.'/../../../../../packages/devtools/stubs/role.stub'));
 });
 
 it('prefers a published stub to the stub of the package', function (): void {
@@ -179,3 +179,12 @@ it('does not write outside the scaffold path for a hostile name', function (stri
     ['azguard:make:role', ['panel' => 'Admin', 'name' => '../Evil']],
     ['azguard:make:pipe', ['name' => 'a/b', '--panel' => 'Admin']],
 ]);
+
+it('leaves no staged temp files and aborts cleanly when AtomicFileWriter encounters an existing non-overwritable file', function (): void {
+    Artisan::call('azguard:make:panel', ['panel' => 'Admin']);
+    $before = $this->generated->read('app/Guards/Admin/AdminGuardPanelProvider.php');
+
+    expect(Artisan::call('azguard:make:panel', ['panel' => 'Admin']))->toBe(1)
+        ->and($this->generated->read('app/Guards/Admin/AdminGuardPanelProvider.php'))->toBe($before)
+        ->and(glob($this->generated->path('app/Guards/Admin/.azguard-scaffold-*')) ?: [])->toBe([]);
+});

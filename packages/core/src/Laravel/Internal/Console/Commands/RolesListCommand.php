@@ -9,11 +9,13 @@ use AzGuard\Schema\RoleSchema;
 use AzGuard\Sources\Database\DatabaseSource;
 use Carbon\CarbonImmutable;
 use Illuminate\Console\Command;
+use Packman\Attributes\Internal;
 
 /**
  * Lists the code roles of one panel, read-only: how a role is assigned, whether it is a super-admin role, the scope
  * types it is granted in and how many subjects hold a stored grant of it in the tenant. Reads only.
  */
+#[Internal]
 final class RolesListCommand extends Command
 {
     use GrantCommandSupport;

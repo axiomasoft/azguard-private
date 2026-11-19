@@ -11,7 +11,7 @@ use AzGuard\Changes\GrantRecord;
 use AzGuard\Context\AssignmentScopeDeclaration;
 use AzGuard\Context\AssignmentScopeMode;
 use AzGuard\Contracts\Changes\GrantManager;
-use AzGuard\Exceptions\StaleSelectionException;
+use AzGuard\Exceptions\Changes\StaleSelectionException;
 use AzGuard\Kernel\Decision\DecisionReason;
 use AzGuard\Panels\PanelBuilder;
 use AzGuard\Scopes\Internal\ScopeEvaluator;

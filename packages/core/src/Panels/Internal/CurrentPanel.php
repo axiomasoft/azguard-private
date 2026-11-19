@@ -7,6 +7,7 @@ namespace AzGuard\Panels\Internal;
 use AzGuard\Panels\Panel;
 use Closure;
 use Fiber;
+use Packman\Attributes\Internal;
 use WeakMap;
 
 /**
@@ -16,6 +17,7 @@ use WeakMap;
  * it, which no registered panel has any more. The resolver does not fall back to the default panel for a rejected
  * hint, it refuses the short names that would have used it.
  */
+#[Internal]
 final class CurrentPanel
 {
     private Panel|string|null $panel = null;

@@ -4,10 +4,9 @@ declare(strict_types=1);
 
 namespace AzGuard\Laravel\Gate;
 
-use AzGuard\Attributes\Api;
 use AzGuard\Authorization\Internal\Authorizer;
 use AzGuard\Contracts\Scopes\ProvidesAssignmentScope;
-use AzGuard\Exceptions\UnknownPermissionException;
+use AzGuard\Exceptions\Changes\UnknownPermissionException;
 use AzGuard\Kernel\Decision\AccessRequest;
 use AzGuard\Kernel\Decision\Decision;
 use AzGuard\Kernel\Identity\AccessScope;
@@ -17,18 +16,22 @@ use AzGuard\Panels\Internal\PanelRegistry;
 use AzGuard\Panels\Internal\PanelResolver;
 use AzGuard\Support\ModelKey;
 use Illuminate\Auth\Access\Response;
+use Illuminate\Contracts\Container\Container;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Log;
 use InvalidArgumentException;
+use Packman\Attributes\Api;
+use Packman\Attributes\Internal;
 use Throwable;
 
-/** Authoritative Laravel Gate adapter; null is reserved for foreign abilities.
+/**
+ * Authoritative Laravel Gate adapter; null is reserved for foreign abilities.
  */
 #[Api(since: '1.0')]
 final readonly class GateBridge
 {
-    /** @internal built by the container */
-    public function __construct(private Authorizer $authorizer, private PanelResolver $resolver, private PanelRegistry $registry) {}
+    #[Internal('built by the container')]
+    public function __construct(private Container $container) {}
 
     /** @param array<mixed> $arguments */
     public function __invoke(?object $user, string $ability, array $arguments = []): ?Response
@@ -36,11 +39,14 @@ final readonly class GateBridge
         $owned = false;
 
         try {
+            $resolver = $this->container->make(PanelResolver::class);
+            $registry = $this->container->make(PanelRegistry::class);
+            $authorizer = $this->container->make(Authorizer::class);
             $subject = $user instanceof Model || $user instanceof SubjectRef ? $user : null;
             $resource = $arguments[0] ?? null;
             $model = $resource instanceof Model ? $resource::class
                 : (is_string($resource) && is_subclass_of($resource, Model::class) ? $resource : null);
-            $owner = $this->resolver->owner($ability, $subject, $model);
+            $owner = $resolver->owner($ability, $subject, $model);
 
             if ($owner === null) {
                 return null;
@@ -50,7 +56,7 @@ final readonly class GateBridge
             if ($subject === null) {
                 throw new InvalidArgumentException('Owned abilities require an accepted subject.');
             }
-            $catalog = $this->registry->catalog($owner->id());
+            $catalog = $registry->catalog($owner->id());
             $qualified = str_contains($ability, ':') || ($owner->prefix() !== null && str_starts_with($ability, $owner->prefix().'.'));
             $dynamicLocal = ! $qualified && str_contains($ability, '.') && ! $catalog->has($ability) && $catalog->isDynamic();
             $permission = $ability;
@@ -62,7 +68,7 @@ final readonly class GateBridge
                 $permission = $catalog->permissionForAbility($model, $ability)
                     ?? throw new InvalidArgumentException('Model permission is unavailable.');
             }
-            [$panel, $key] = $this->authorizer->resolve($subject, $permission);
+            [$panel, $key] = $authorizer->resolve($subject, $permission);
             $definition = $catalog->find($key);
 
             if ($model !== null && $definition?->resourceModel !== null && ! is_a($model, $definition->resourceModel, true)) {
@@ -88,7 +94,7 @@ final readonly class GateBridge
             }
 
             try {
-                return self::toGateResult($this->authorizer->decide($panel, $request));
+                return self::toGateResult($authorizer->decide($panel, $request));
             } catch (UnknownPermissionException $error) {
                 if ($dynamicLocal) {
                     return null;

@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace AzGuard\Directories;
 
-use AzGuard\Attributes\Api;
 use AzGuard\Context\AssignmentScopePhase;
 use AzGuard\Context\AssignmentScopeRuntime;
 use AzGuard\Contracts\Scopes\AssignmentScopeDirectory;
@@ -12,14 +11,16 @@ use AzGuard\Contracts\Subjects\SubjectDirectory;
 use AzGuard\Contracts\Tenancy\TenantDirectory;
 use AzGuard\Directories\Internal\DirectoryResolver;
 use AzGuard\Exceptions\AzGuardException;
-use AzGuard\Exceptions\DefinitionException;
-use AzGuard\Exceptions\SubjectNotAcceptedException;
+use AzGuard\Exceptions\Definitions\DefinitionException;
+use AzGuard\Exceptions\Definitions\SubjectNotAcceptedException;
 use AzGuard\Kernel\Identity\AccessScope;
 use AzGuard\Kernel\Identity\AssignmentScopeRef;
 use AzGuard\Panels\Internal\PanelRegistry;
 use AzGuard\Panels\Panel;
 use AzGuard\Roles\BaseRole;
 use Illuminate\Contracts\Container\Container;
+use Packman\Attributes\Api;
+use Packman\Attributes\Internal;
 
 /**
  * The directories of one panel for an interface: who can be chosen as a subject, a tenant or an assignment scope.
@@ -34,9 +35,7 @@ final readonly class PanelDirectories
 {
     private DirectoryResolver $resolver;
 
-    /**
-     * @internal made by the panel access
-     */
+    #[Internal('made by the panel access')]
     public function __construct(Panel $panel, private Container $container)
     {
         $this->resolver = DirectoryResolver::for($panel, $container);

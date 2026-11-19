@@ -7,14 +7,16 @@ namespace AzGuard\Authorization\Internal\Pipeline\Stages;
 use AzGuard\Authorization\Internal\EvaluationFrame;
 use AzGuard\Authorization\Internal\Pipeline\Trace;
 use AzGuard\Contracts\Authorization\Restriction;
-use AzGuard\Exceptions\DefinitionException;
+use AzGuard\Exceptions\Definitions\DefinitionException;
 use AzGuard\Kernel\Decision\AccessRequest;
 use AzGuard\Kernel\Decision\Decision;
 use AzGuard\Kernel\Decision\DecisionReason;
 use Illuminate\Contracts\Container\Container;
+use Packman\Attributes\Internal;
 use RuntimeException;
 use Throwable;
 
+#[Internal]
 final readonly class RestrictionStage
 {
     public function __construct(private Container $container) {}

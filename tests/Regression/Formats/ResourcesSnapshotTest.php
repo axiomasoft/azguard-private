@@ -9,7 +9,7 @@ use AzGuard\AzGuardServiceProvider;
 use AzGuard\Configuration\Internal\AzGuardConfig;
 use AzGuard\Contracts\Plugins\Plugin;
 use AzGuard\DevTools\Internal\Scaffold\StubStore;
-use AzGuard\Exceptions\PluginConflictException;
+use AzGuard\Exceptions\Plugins\PluginConflictException;
 use AzGuard\Filament\AzGuardFilamentServiceProvider;
 use AzGuard\Kernel\Identity\ActorRef;
 use AzGuard\Laravel\Internal\Queue\PanelContext;
@@ -82,15 +82,15 @@ it('keeps the publish tags, migrations, aliases, namespaces and reserved identit
     ksort($state, SORT_STRING);
     $named = baselineNamedStorageMigrations();
     $namedAudit = '<date>_create_azguard_<storage>_audit_log.php';
-    $auditMigrations = array_map(static fn (string $file): string => basename($file, '.php'), glob($root.'/core/modules/audit/database/migrations/*.php') ?: []);
-    $auditLoaded = array_values(array_filter(app('migrator')->paths(), static fn (string $path): bool => realpath($path) === realpath($root.'/core/modules/audit/database/migrations')));
+    $auditMigrations = array_map(static fn (string $file): string => basename($file, '.php'), glob($root.'/audit/database/migrations/*.php') ?: []);
+    $auditLoaded = array_values(array_filter(app('migrator')->paths(), static fn (string $path): bool => realpath($path) === realpath($root.'/audit/database/migrations')));
     $namedAuditFiles = baselineNamedStorageMigrations('azguard:audit:migration', 'storage');
 
     $snapshot = [
         'publish_tags' => [
             'core' => baselinePublishTags(AzGuardServiceProvider::class, $root.'/core'),
             'filament' => baselinePublishTags(AzGuardFilamentServiceProvider::class, $root.'/filament'),
-            'audit' => baselinePublishTags(AuditServiceProvider::class, $root.'/core'),
+            'audit' => baselinePublishTags(AuditServiceProvider::class, $root.'/audit'),
         ],
         'stub_publish_path' => StubStore::PUBLISHED,
         'core_migrations' => ['basenames' => $migrations, 'loaded_by_provider' => count($loaded) === 1],

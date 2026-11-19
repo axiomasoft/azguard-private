@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 use AzGuard\Authorization\Internal\Authorizer;
 use AzGuard\Changes\ChangeType;
-use AzGuard\Exceptions\PanelNotWritableException;
-use AzGuard\Exceptions\UnknownPermissionException;
+use AzGuard\Exceptions\Changes\PanelNotWritableException;
+use AzGuard\Exceptions\Changes\UnknownPermissionException;
 use AzGuard\Kernel\Decision\AccessRequest;
 use AzGuard\Kernel\Decision\Decision;
 use AzGuard\Kernel\Decision\DecisionReason;

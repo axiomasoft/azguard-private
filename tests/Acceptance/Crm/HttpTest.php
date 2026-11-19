@@ -5,7 +5,7 @@ declare(strict_types=1);
 use AzGuard\Authorization\Internal\Authorizer;
 use AzGuard\Context\Internal\CurrentContext;
 use AzGuard\Contracts\Authorization\EvaluationContext;
-use AzGuard\Exceptions\PermissionNotGrantableException;
+use AzGuard\Exceptions\Changes\PermissionNotGrantableException;
 use AzGuard\Facades\AzGuard;
 use AzGuard\Kernel\Decision\AccessRequest;
 use AzGuard\Kernel\Decision\BeforeResult;

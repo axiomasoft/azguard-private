@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace AzGuard\Context;
 
-use AzGuard\Attributes\Api;
+use Packman\Attributes\Api;
 
 /**
  * Why an assignment scope is evaluated: checking access, assigning, revoking or inspecting assignments.

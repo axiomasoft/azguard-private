@@ -19,6 +19,7 @@ use AzGuard\Roles\GrantedAutomatically;
 use AzGuard\Roles\SelectsAutomaticRoleScopes;
 use AzGuard\Sources\Database\DatabaseSource;
 use AzGuard\Sources\Folder\FolderSource;
+use Packman\Attributes\Internal;
 
 /**
  * `panels.sources`: the sources of each panel exist, their ids do not repeat and at most one stores grants. The
@@ -28,6 +29,7 @@ use AzGuard\Sources\Folder\FolderSource;
  *
  * @internal
  */
+#[Internal]
 final readonly class PanelsSources implements DoctorCheck
 {
     public function __construct(private PanelRegistry $registry) {}
@@ -132,7 +134,7 @@ final readonly class PanelsSources implements DoctorCheck
 
         foreach ($ids as $id => $count) {
             if ($count > 1) {
-                $findings[] = DoctorFinding::error('panels.sources', 'Panel '.$panel.' has '.$count.' sources with the id "'.$id.'".', $scope, ['source' => (string) $id]);
+                $findings[] = DoctorFinding::error('panels.sources', 'Panel '.$panel.' has '.$count.' sources with the id "'.$id.'".', $scope, ['source' => $id]);
             }
         }
 

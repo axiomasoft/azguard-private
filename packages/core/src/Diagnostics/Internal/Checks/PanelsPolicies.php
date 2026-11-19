@@ -9,6 +9,7 @@ use AzGuard\Contracts\Diagnostics\DoctorCheck;
 use AzGuard\Diagnostics\DoctorContext;
 use AzGuard\Diagnostics\DoctorFinding;
 use AzGuard\Panels\Internal\PanelRegistry;
+use Packman\Attributes\Internal;
 use ReflectionMethod;
 
 /**
@@ -18,6 +19,7 @@ use ReflectionMethod;
  *
  * @internal
  */
+#[Internal]
 final readonly class PanelsPolicies implements DoctorCheck
 {
     public function __construct(private PanelRegistry $registry) {}
@@ -43,13 +45,13 @@ final readonly class PanelsPolicies implements DoctorCheck
             if ($binding->kind !== 'php') {
                 continue;
             }
-            $method = $binding->method ?? $catalog->bindingMethod((string) $local);
+            $method = $binding->method ?? $catalog->bindingMethod($local);
 
             if ($binding->policy === null || ! class_exists($binding->policy) || $method === null || ! method_exists($binding->policy, $method)
-                || ! (new ReflectionMethod($binding->policy, $method))->isPublic() || (new ReflectionMethod($binding->policy, $method))->isStatic()) {
+                || ! new ReflectionMethod($binding->policy, $method)->isPublic() || new ReflectionMethod($binding->policy, $method)->isStatic()) {
                 $findings[] = DoctorFinding::error('panels.policies', 'Permission "'.$local.'" of panel '.$catalog->panel().' is bound to '
                     .($binding->policy ?? 'no policy').'::'.($method ?? '?').', which is not a public instance method.', 'panel:'.$catalog->panel(),
-                    ['permission' => (string) $local]);
+                    ['permission' => $local]);
             }
         }
 

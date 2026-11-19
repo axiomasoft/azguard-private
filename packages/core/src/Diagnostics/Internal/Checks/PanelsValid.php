@@ -8,8 +8,8 @@ use AzGuard\Contracts\Diagnostics\DoctorCheck;
 use AzGuard\Diagnostics\DoctorContext;
 use AzGuard\Diagnostics\DoctorFinding;
 use AzGuard\Exceptions\AzGuardException;
-use AzGuard\Exceptions\DefaultPanelConflictException;
-use AzGuard\Exceptions\InvalidIdentityException;
+use AzGuard\Exceptions\Definitions\DefaultPanelConflictException;
+use AzGuard\Exceptions\Identity\InvalidIdentityException;
 use AzGuard\Kernel\Grammar\PermissionGrammar;
 use AzGuard\Kernel\Identity\IdentityCodec;
 use AzGuard\Panels\Internal\PanelCompiler;
@@ -18,6 +18,7 @@ use AzGuard\Panels\Panel;
 use AzGuard\Panels\PanelProvider;
 use AzGuard\Sources\Database\DatabaseSource;
 use Illuminate\Database\Eloquent\Model;
+use Packman\Attributes\Internal;
 
 /**
  * `panels.valid`: the id and the provider of each panel, its subject models and their morph aliases, the storage and models of its database
@@ -25,6 +26,7 @@ use Illuminate\Database\Eloquent\Model;
  *
  * @internal
  */
+#[Internal]
 final readonly class PanelsValid implements DoctorCheck
 {
     public function __construct(private PanelRegistry $registry) {}

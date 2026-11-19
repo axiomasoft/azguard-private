@@ -4,14 +4,14 @@ declare(strict_types=1);
 
 namespace AzGuard\Storage\Models;
 
-use AzGuard\Attributes\Spi;
-use AzGuard\Attributes\SpiKind;
 use AzGuard\Kernel\Identity\RoleKey;
 use AzGuard\Schema\Field;
 use AzGuard\Storage\Internal\Concerns\BelongsToStorage;
 use AzGuard\Storage\Internal\Concerns\GrantIdentity;
 use AzGuard\Storage\Internal\Concerns\GuardsDirectWrites;
 use Illuminate\Database\Eloquent\Model;
+use Packman\Attributes\Spi;
+use Packman\Attributes\SpiKind;
 
 #[Spi(kind: SpiKind::Implement, since: '1.0')]
 class RoleGrant extends Model

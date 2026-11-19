@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace AzGuard\Contracts\Plugins;
 
-use AzGuard\Attributes\Spi;
-use AzGuard\Attributes\SpiKind;
 use AzGuard\Panels\PanelBuilder;
 use AzGuard\Plugins\PluginContext;
+use Packman\Attributes\Spi;
+use Packman\Attributes\SpiKind;
 
 /**
  * A ready set of additions to a panel: sources, permissions, roles, restrictions, pipes and health checks attached

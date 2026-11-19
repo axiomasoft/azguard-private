@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace AzGuard\Panels;
 
-use AzGuard\Attributes\Api;
 use AzGuard\Context\AssignmentScopeDeclaration;
 use AzGuard\Contracts\Authorization\AfterHook;
 use AzGuard\Contracts\Authorization\BeforeHook;
@@ -16,8 +15,8 @@ use AzGuard\Contracts\Scopes\AssignmentScopeResolver;
 use AzGuard\Contracts\Scopes\ResourceScopeResolver;
 use AzGuard\Contracts\Sources\Source;
 use AzGuard\Contracts\Tenancy\TenantResolver;
-use AzGuard\Exceptions\DefinitionException;
-use AzGuard\Exceptions\RegistryFrozenException;
+use AzGuard\Exceptions\Definitions\DefinitionException;
+use AzGuard\Exceptions\Definitions\RegistryFrozenException;
 use AzGuard\Kernel\Decision\AccessRequest;
 use AzGuard\Kernel\Decision\BeforeResult;
 use AzGuard\Kernel\Decision\Decision;
@@ -32,6 +31,9 @@ use AzGuard\Tenancy\TenantPolicy;
 use BackedEnum;
 use Closure;
 use Illuminate\Database\Eloquent\Model;
+use InvalidArgumentException;
+use Packman\Attributes\Api;
+use Packman\Attributes\Internal;
 use ReflectionClass;
 use ReflectionEnum;
 use UnitEnum;
@@ -47,10 +49,16 @@ use UnitEnum;
 #[Api(since: '1.0')]
 final class PanelBuilder
 {
-    /**
-     * @internal built by the panel registry
-     */
-    public function __construct(private readonly PanelRecipe $recipe) {}
+    private readonly PanelRecipe $recipe;
+
+    #[Internal('built by the panel registry')]
+    public function __construct(object $recipe)
+    {
+        if (! $recipe instanceof PanelRecipe) {
+            throw new InvalidArgumentException('PanelBuilder requires an internal PanelRecipe instance.');
+        }
+        $this->recipe = $recipe;
+    }
 
     /**
      * Optional: the id always comes from `PanelProvider::getId()` and a different value is rejected.
@@ -181,6 +189,8 @@ final class PanelBuilder
 
     /**
      * Response to a denied entry: a closure or a redirect target; `null` keeps the 403 response.
+     *
+     * @param  (Closure(mixed...): mixed)|string|null  $response
      *
      * @throws RegistryFrozenException
      */
@@ -432,7 +442,7 @@ final class PanelBuilder
      */
     public function options(object $options): static
     {
-        if (! (new ReflectionClass($options))->isReadOnly()) {
+        if (! new ReflectionClass($options)->isReadOnly()) {
             throw $this->invalid('options() expects a readonly object, got '.$options::class);
         }
         $origin = $this->recipe->origin();
@@ -640,7 +650,7 @@ final class PanelBuilder
         $name = ltrim($definition, '\\');
 
         if (enum_exists($name)) {
-            if ((new ReflectionEnum($name))->getBackingType()?->getName() !== 'string') {
+            if (new ReflectionEnum($name)->getBackingType()?->getName() !== 'string') {
                 throw $this->invalid('permissions() expects a string-backed enum, '.$name.' is not one');
             }
 

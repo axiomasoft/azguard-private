@@ -9,12 +9,14 @@ use AzGuard\Panels\Reads;
 use AzGuard\Sources\Database\DatabaseSource;
 use AzGuard\Storage\Internal\StorageReadSession;
 use Closure;
+use Packman\Attributes\Internal;
 
 /**
  * @internal The read sessions of one batch: every attempt of a DecisionSet reads a database source through the same
  * pinned handle, so the storage schema is checked once per handle and not once per subject, and the grouped snapshot
  * of {@see ReadAttempt::readMany()} spans one session.
  */
+#[Internal]
 final class ReadSessions
 {
     /** @var array<string, StorageReadSession> */

@@ -4,9 +4,10 @@ declare(strict_types=1);
 
 namespace AzGuard\Storage;
 
-use AzGuard\Attributes\Api;
-use AzGuard\Exceptions\InvalidIdentityException;
+use AzGuard\Exceptions\Identity\InvalidIdentityException;
 use AzGuard\Storage\Internal\Schema\HostKeyColumns;
+use Packman\Attributes\Api;
+use Packman\Attributes\Internal;
 
 /**
  * What identifies one AzGuard storage: its id, the name of the database connection it resolved to when it was created (a later change of the default
@@ -16,7 +17,9 @@ use AzGuard\Storage\Internal\Schema\HostKeyColumns;
 #[Api(since: '1.0')]
 final readonly class StorageDescriptor
 {
-    /** @internal built by core */
+    /*
+ */
+    #[Internal('built by core')]
     public function __construct(
         public string $id,
         public string $connection,

@@ -41,11 +41,12 @@ final class VisibleAtScale extends BaseProfile
         $query = $this->visible($this->viewer($tier));
 
         if ($i % 2 === 0) {
-            $query->limit(25)->get();
+            $query->getQuery()->limit(25);
+            $query->get();
 
             return 'page';
         }
-        $query->count();
+        $query->toBase()->count();
 
         return 'count';
     }
@@ -54,7 +55,7 @@ final class VisibleAtScale extends BaseProfile
     {
         $stand->newRequest();
         $expected = intdiv($tier->posts, $tier->users) + ($tier->posts % $tier->users >= 10 ? 1 : 0);
-        $count = $this->visible(10)->count();
+        $count = $this->visible(10)->toBase()->count();
 
         return [['name' => 'user 10 sees exactly its own posts', 'ok' => $count === $expected, 'detail' => "{$count} of {$expected}"]];
     }

@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 use AzGuard\AzGuard;
-use AzGuard\Exceptions\InvalidPolicyStructureException;
+use AzGuard\Exceptions\Definitions\InvalidPolicyStructureException;
 use AzGuard\Panels\Internal\PanelRegistry;
 use AzGuard\Sources\SourceManager;
 use AzGuard\Storage\Schema\StorageSchema;

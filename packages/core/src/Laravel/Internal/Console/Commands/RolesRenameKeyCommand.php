@@ -9,12 +9,14 @@ use AzGuard\Laravel\Internal\Console\GrantCommandSupport;
 use Carbon\CarbonImmutable;
 use DateTimeZone;
 use Illuminate\Console\Command;
+use Packman\Attributes\Internal;
 
 /**
  * Moves the stored grants of a former role key to the code role that lists it in `#[FormerKeys]`, in one tenant and
  * one mutation, through the change pipeline as the system actor `azguard:roles:rename-key`. `--dry-run` reads the
  * same plan under the panel lock and writes nothing. Production needs `--force`.
  */
+#[Internal]
 final class RolesRenameKeyCommand extends Command
 {
     use GrantCommandSupport;

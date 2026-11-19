@@ -6,7 +6,7 @@ use AzGuard\Changes\Change;
 use AzGuard\Changes\ChangeResult;
 use AzGuard\Changes\ChangeType;
 use AzGuard\Changes\EffectKind;
-use AzGuard\Exceptions\ChangeCancelledException;
+use AzGuard\Exceptions\Changes\ChangeCancelledException;
 use AzGuard\Tests\Fixtures\Changes\ChangeWorld as W;
 use AzGuard\Tests\Fixtures\Crm\CrmWorld;
 use Illuminate\Database\Events\QueryExecuted;

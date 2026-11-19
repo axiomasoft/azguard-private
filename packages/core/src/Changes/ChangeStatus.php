@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace AzGuard\Changes;
 
-use AzGuard\Attributes\Api;
+use Packman\Attributes\Api;
 
 /**
  * `Applied` when the operation changed at least one grant; `Unchanged` for a repeat without a difference.

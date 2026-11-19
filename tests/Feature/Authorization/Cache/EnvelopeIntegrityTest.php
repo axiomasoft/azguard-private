@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 use AzGuard\Authorization\Internal\Cache\PermissionSetCache;
 use AzGuard\Authorization\Internal\Cache\SignedEnvelope;
-use AzGuard\Configuration\Internal\AzGuardConfig;
+use AzGuard\Configuration\AzGuardOptions;
 use AzGuard\Contracts\Sources\Volatility;
 use AzGuard\Diagnostics\DoctorContext;
 use AzGuard\Diagnostics\Internal\Checks\CacheIntegrity;
@@ -96,7 +96,7 @@ it('bypasses the shared store when signing configuration is missing', function (
         ->and(EnvelopeWakeupSentinel::$woken)->toBeFalse();
     // Array storage is local; the signing diagnostic applies to a configured shared Redis transport.
     [, $sharedPanel] = AuthorizationWorld::compile(new CacheSource, fn (PanelBuilder $panel) => $panel->cache('redis', 60));
-    $context = new DoctorContext([$sharedPanel], [], true, AzGuardConfig::fromRepository(app('config')));
+    $context = new DoctorContext([$sharedPanel], [], true, AzGuardOptions::fromRepository(app('config')));
     expect(array_map(static fn ($finding) => $finding->key, iterator_to_array((new CacheIntegrity(app('config')))->run($context))))->toContain('cache.signing');
 })->with([
     [['azguard.cache.namespace' => null]],

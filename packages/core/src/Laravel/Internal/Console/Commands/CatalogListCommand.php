@@ -7,11 +7,13 @@ namespace AzGuard\Laravel\Internal\Console\Commands;
 use AzGuard\Laravel\Internal\Console\GrantCommandSupport;
 use AzGuard\Schema\PermissionSchema;
 use Illuminate\Console\Command;
+use Packman\Attributes\Internal;
 
 /**
  * Lists the permissions of one panel: static ones and the dynamic ones of the tenant, with their group, the sources
  * that can give them and the policy that decides them. Reads only.
  */
+#[Internal]
 final class CatalogListCommand extends Command
 {
     use GrantCommandSupport;

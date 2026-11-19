@@ -4,9 +4,8 @@ declare(strict_types=1);
 
 namespace AzGuard\Testing;
 
-use AzGuard\Attributes\Api;
 use AzGuard\AzGuard;
-use AzGuard\Exceptions\UnknownRoleException;
+use AzGuard\Exceptions\Changes\UnknownRoleException;
 use AzGuard\Kernel\Identity\AssignmentScopeRef;
 use AzGuard\Panels\Internal\PanelResolver;
 use AzGuard\Storage\Internal\AuthorityReadBaseline;
@@ -14,6 +13,8 @@ use AzGuard\Testing\Internal\RefreshDatabaseBaseline;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Foundation\Testing\DatabaseTransactionsManager;
+use Packman\Attributes\Api;
+use Packman\Attributes\Internal;
 use UnitEnum;
 
 /**
@@ -26,7 +27,9 @@ use UnitEnum;
 #[Api(since: '1.0')]
 trait InteractsWithAzGuard
 {
-    /** @internal Laravel invokes this after starting RefreshDatabase's wrapping transaction. */
+    /*
+ */
+    #[Internal('Laravel invokes this after starting RefreshDatabase\'s wrapping transaction.')]
     protected function setUpInteractsWithAzGuard(): void
     {
         $manager = app('db.transactions');

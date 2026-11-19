@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace AzGuard\Kernel\Permissions;
 
-use AzGuard\Attributes\Api;
 use AzGuard\Kernel\Identity\PermissionKey;
 use AzGuard\Kernel\Identity\PermissionPattern;
 use DateTimeImmutable;
+use Packman\Attributes\Api;
 
 /**
  * The patterns a subject holds, deduplicated, with an optional absolute deadline of the set.
@@ -47,13 +47,7 @@ final readonly class PermissionSet
 
     public function covers(PermissionKey $key): bool
     {
-        foreach ($this->patterns as $pattern) {
-            if ($pattern->covers($key)) {
-                return true;
-            }
-        }
-
-        return false;
+        return array_any($this->patterns, fn (PermissionPattern $pattern): bool => $pattern->covers($key));
     }
 
     public function validUntil(): ?DateTimeImmutable

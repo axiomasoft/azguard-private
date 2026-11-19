@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace AzGuard\Storage\Internal;
 
-use AzGuard\Exceptions\DefinitionException;
-use AzGuard\Exceptions\InvalidChangeFieldsException;
-use AzGuard\Exceptions\InvalidSourceContributionException;
+use AzGuard\Exceptions\Authorization\InvalidSourceContributionException;
+use AzGuard\Exceptions\Changes\InvalidChangeFieldsException;
+use AzGuard\Exceptions\Definitions\DefinitionException;
 use AzGuard\Kernel\Internal\Narrow;
 use AzGuard\Schema\Field;
 use AzGuard\Schema\FieldTarget;
@@ -18,9 +18,11 @@ use DateTimeInterface;
 use Illuminate\Contracts\Validation\Factory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Validation\Rule;
+use Packman\Attributes\Internal;
 use Traversable;
 
 /** Collects and validates the fields of one model in one panel. */
+#[Internal]
 final readonly class GrantFields
 {
     /**

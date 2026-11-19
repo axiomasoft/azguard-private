@@ -37,7 +37,7 @@ try {
         }
     }
 
-    if (! is_array($base['dataset'] ?? null) || empty($base['dataset']['digest']) || $base['dataset'] !== ($head['dataset'] ?? null)) {
+    if (! is_array($base['dataset'] ?? null) || ! isset($base['dataset']['digest']) || $base['dataset']['digest'] === '' || $base['dataset'] !== ($head['dataset'] ?? null)) {
         throw new RuntimeException('Not comparable: dataset');
     }
     /** @param array<mixed> $result
@@ -62,7 +62,7 @@ try {
                 $key = $profile['id'].'/'.$stage['name'];
 
                 if (isset($out[$key]) || count($stage['reps']) < 3 || count($stage['reps']) > 5
-                    || empty($stage['summary'])) {
+                    || $stage['summary'] === []) {
                     throw new RuntimeException("Incomplete stage {$key}");
                 }
                 foreach ($stage['checks'] as $check) {

@@ -6,16 +6,18 @@ namespace AzGuard\Laravel\Internal\Console\Commands;
 
 use AzGuard\Diagnostics\Doctor;
 use AzGuard\Diagnostics\DoctorFinding;
-use AzGuard\Exceptions\InvalidConfigurationException;
+use AzGuard\Exceptions\Configuration\InvalidConfigurationException;
 use AzGuard\Laravel\Console\CommandSupport;
 use AzGuard\Laravel\Console\InvalidCommandInput;
 use Illuminate\Console\Command;
 use Illuminate\Contracts\Foundation\Application;
+use Packman\Attributes\Internal;
 
 /**
  * Checks the configuration, the panels, the storages, the sources and the plugins of AzGuard. Fails with exit code 1
  * when it finds at least one error, so it can guard a deployment.
  */
+#[Internal]
 final class DoctorCommand extends Command
 {
     use CommandSupport;

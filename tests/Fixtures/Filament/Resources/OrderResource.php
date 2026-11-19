@@ -30,15 +30,15 @@ class OrderResource extends Resource
 
     public static function table(Table $table): Table
     {
-        return $table->columns(FilamentFixture::$tableColumns ?: [TextColumn::make('number')->searchable()])
+        return $table->columns(FilamentFixture::$tableColumns !== [] ? FilamentFixture::$tableColumns : [TextColumn::make('number')->searchable()])
             ->recordActions(FilamentFixture::$recordActions)
             ->headerActions([ExportAction::make()->exporter(OrderExporter::class)])
-            ->toolbarActions(FilamentFixture::$toolbarActions ?: [DeleteBulkAction::make(), ExportBulkAction::make()->exporter(OrderExporter::class)]);
+            ->toolbarActions(FilamentFixture::$toolbarActions !== [] ? FilamentFixture::$toolbarActions : [DeleteBulkAction::make(), ExportBulkAction::make()->exporter(OrderExporter::class)]);
     }
 
     public static function getRelations(): array
     {
-        return FilamentFixture::$relations ?: [ProductsRelationManager::class];
+        return FilamentFixture::$relations !== [] ? FilamentFixture::$relations : [ProductsRelationManager::class];
     }
 
     public static function getPages(): array

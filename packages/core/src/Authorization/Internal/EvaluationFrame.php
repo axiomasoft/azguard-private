@@ -9,7 +9,7 @@ use AzGuard\Context\AssignmentScopePhase;
 use AzGuard\Context\AssignmentScopeRuntime;
 use AzGuard\Contracts\Authorization\EvaluationContext;
 use AzGuard\Contracts\Scopes\ResolvedAssignmentScope;
-use AzGuard\Exceptions\VisibilityNotSupportedException;
+use AzGuard\Exceptions\Authorization\VisibilityNotSupportedException;
 use AzGuard\Kernel\Decision\CodeStateToken;
 use AzGuard\Kernel\Decision\Grant;
 use AzGuard\Kernel\Decision\RoleContribution;
@@ -26,8 +26,10 @@ use AzGuard\Roles\BaseRole;
 use AzGuard\Storage\Internal\AuthorityTransaction;
 use DateTimeImmutable;
 use Illuminate\Database\Eloquent\Model;
+use Packman\Attributes\Internal;
 
 /** Immutable operation inputs; a contribution receives its own frame. */
+#[Internal]
 final readonly class EvaluationFrame implements EvaluationContext, PrimaryReadContext
 {
     /** @param ?list<Grant> $matching `null` while a query is compiled: the set depends on the row, so it is not available
@@ -127,13 +129,7 @@ final readonly class EvaluationFrame implements EvaluationContext, PrimaryReadCo
 
     public function acceptsContributionScope(AccessScope $scope): bool
     {
-        foreach ($this->sourceScopes() as $accepted) {
-            if ($accepted->equals($scope)) {
-                return true;
-            }
-        }
-
-        return false;
+        return array_any($this->sourceScopes(), fn (AccessScope $accepted): bool => $accepted->equals($scope));
     }
 
     public function withScope(AccessScope $scope): self

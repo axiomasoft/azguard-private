@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace AzGuard\Policies;
 
-use AzGuard\Attributes\Api;
-use AzGuard\Exceptions\DefinitionException;
+use AzGuard\Exceptions\Definitions\DefinitionException;
 use AzGuard\Kernel\Grammar\PermissionGrammar;
 use BackedEnum;
 use Illuminate\Database\Eloquent\Model;
+use Packman\Attributes\Api;
 use UnitEnum;
 
 /**

@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 use AzGuard\Configuration\Internal\AzGuardConfig;
-use AzGuard\Exceptions\InvalidConfigurationException;
+use AzGuard\Exceptions\Configuration\InvalidConfigurationException;
 use Illuminate\Config\Repository;
 
 it('resolves host keys and default storage parameters', function (): void {

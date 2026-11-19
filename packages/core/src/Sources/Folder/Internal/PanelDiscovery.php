@@ -7,10 +7,10 @@ namespace AzGuard\Sources\Folder\Internal;
 use AzGuard\Attributes\AsSource;
 use AzGuard\Configuration\Internal\AzGuardConfig;
 use AzGuard\Contracts\Scopes\AssignmentScopeDefinition;
-use AzGuard\Exceptions\DefinitionException;
-use AzGuard\Exceptions\DuplicatePolicyBindingException;
-use AzGuard\Exceptions\InvalidConfigurationException;
-use AzGuard\Exceptions\InvalidPolicyStructureException;
+use AzGuard\Exceptions\Configuration\InvalidConfigurationException;
+use AzGuard\Exceptions\Definitions\DefinitionException;
+use AzGuard\Exceptions\Definitions\DuplicatePolicyBindingException;
+use AzGuard\Exceptions\Definitions\InvalidPolicyStructureException;
 use AzGuard\Panels\Internal\PanelRecipe;
 use AzGuard\Policies\Decides;
 use AzGuard\Policies\PolicyFor;
@@ -19,6 +19,7 @@ use AzGuard\Sources\Folder\FolderSource;
 use BackedEnum;
 use FilesystemIterator;
 use Illuminate\Contracts\Container\Container;
+use Packman\Attributes\Internal;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
 use ReflectionClass;
@@ -34,6 +35,7 @@ use UnitEnum;
  * the layer that added them. The same relative group in two roots is not one group. When the recorded
  * file hashes still match, the classes are taken from the catalog cache and the folders are not parsed.
  */
+#[Internal]
 final class PanelDiscovery
 {
     /** How many times folders were parsed, rather than restored from a matching cache entry. */
@@ -93,13 +95,13 @@ final class PanelDiscovery
         $provider = $recipe->providerClass();
 
         if (is_string($provider) && class_exists($provider)) {
-            $file = (new ReflectionClass($provider))->getFileName();
+            $file = new ReflectionClass($provider)->getFileName();
 
             if (is_string($file)) {
                 $path = realpath(dirname($file));
                 $roots[] = [
                     'path' => $path === false ? dirname($file) : $path,
-                    'namespace' => (new ReflectionClass($provider))->getNamespaceName(),
+                    'namespace' => new ReflectionClass($provider)->getNamespaceName(),
                     'origin' => PanelRecipe::PROVIDER,
                 ];
             }
@@ -204,7 +206,7 @@ final class PanelDiscovery
             if ($kind === 'permissions' && $resolved['kind'] === 'enum') {
                 $enum = $resolved['class'];
 
-                if (! is_subclass_of($enum, BackedEnum::class) || (new ReflectionEnum($enum))->getBackingType()?->getName() !== 'string') {
+                if (! is_subclass_of($enum, BackedEnum::class) || new ReflectionEnum($enum)->getBackingType()?->getName() !== 'string') {
                     continue;
                 }
 
@@ -246,7 +248,7 @@ final class PanelDiscovery
                 continue;
             }
 
-            if ((new ReflectionClass($resolved['class']))->getAttributes(AsSource::class) !== []) {
+            if (new ReflectionClass($resolved['class'])->getAttributes(AsSource::class) !== []) {
                 $sourceClasses[] = $resolved['class'];
             }
         }
@@ -342,7 +344,7 @@ final class PanelDiscovery
         $class = $policy['class'];
         $seen = [];
 
-        foreach ((new ReflectionClass($class))->getMethods(ReflectionMethod::IS_PUBLIC) as $method) {
+        foreach (new ReflectionClass($class)->getMethods(ReflectionMethod::IS_PUBLIC) as $method) {
             if ($method->isStatic() || $method->getDeclaringClass()->getName() !== $class || str_starts_with($method->getName(), '__')) {
                 continue;
             }
@@ -417,7 +419,7 @@ final class PanelDiscovery
             );
         }
 
-        foreach ((new ReflectionEnum($enum))->getCases() as $case) {
+        foreach (new ReflectionEnum($enum)->getCases() as $case) {
             if ($case->getBackingValue() === $permission) {
                 return ['local' => $permission, 'stored' => ['enum' => $enum, 'name' => $case->getName()]];
             }
@@ -435,7 +437,7 @@ final class PanelDiscovery
      */
     private static function policyFor(string $class, string $panel): ?string
     {
-        $attributes = (new ReflectionClass($class))->getAttributes(PolicyFor::class);
+        $attributes = new ReflectionClass($class)->getAttributes(PolicyFor::class);
 
         if ($attributes === []) {
             return null;
@@ -443,7 +445,7 @@ final class PanelDiscovery
 
         $enum = $attributes[0]->newInstance()->permissions;
 
-        if (! enum_exists($enum) || ! is_subclass_of($enum, BackedEnum::class) || (new ReflectionEnum($enum))->getBackingType()?->getName() !== 'string') {
+        if (! enum_exists($enum) || ! is_subclass_of($enum, BackedEnum::class) || new ReflectionEnum($enum)->getBackingType()?->getName() !== 'string') {
             throw new DefinitionException(
                 'Panel "'.$panel.'": '.$class.' declares #[PolicyFor] for '.json_encode($enum).', which is not a string-backed permission enum.',
             );
@@ -638,7 +640,8 @@ final class PanelDiscovery
         $files = [];
 
         if (! $recursive) {
-            foreach (glob(rtrim($directory, '/').'/*.php') ?: [] as $file) {
+            $matched = glob(rtrim($directory, '/').'/*.php');
+            foreach ($matched === false ? [] : $matched as $file) {
                 if (is_file($file)) {
                     $files[] = $file;
                 }

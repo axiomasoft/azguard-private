@@ -8,10 +8,12 @@ use AzGuard\Panels\PanelBuilder;
 use AzGuard\Panels\PanelProvider;
 use AzGuard\Testing\FakeSubject;
 use Closure;
+use Packman\Attributes\Internal;
 
 /**
  * @internal The panel `other` of the contract suites, for the guarantees that need a second panel.
  */
+#[Internal]
 final class ContractOtherPanel extends PanelProvider
 {
     /** @var (Closure(PanelBuilder): mixed)|null */

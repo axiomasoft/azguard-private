@@ -9,6 +9,7 @@ use AzGuard\Contracts\Diagnostics\DoctorCheck;
 use AzGuard\Diagnostics\DoctorContext;
 use AzGuard\Diagnostics\DoctorFinding;
 use AzGuard\Panels\Internal\PanelRegistry;
+use Packman\Attributes\Internal;
 
 /**
  * `catalog.cached`, for a production deployment: the catalog cache exists and holds the current catalog of every
@@ -16,6 +17,7 @@ use AzGuard\Panels\Internal\PanelRegistry;
  *
  * @internal
  */
+#[Internal]
 final readonly class CatalogCached implements DoctorCheck
 {
     public function __construct(private PanelRegistry $registry) {}

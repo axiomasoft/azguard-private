@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use AzGuard\Exceptions\StorageMismatchException;
+use AzGuard\Exceptions\Storage\StorageMismatchException;
 use AzGuard\Storage\Internal\ModelBinding;
 use AzGuard\Storage\Internal\Storage;
 use AzGuard\Storage\Internal\StorageRegistry;

@@ -7,6 +7,7 @@ namespace AzGuard\Policies\Internal;
 use Closure;
 use Illuminate\Contracts\Container\Container;
 use Illuminate\Database\Eloquent\Model;
+use Packman\Attributes\Internal;
 use ReflectionFunction;
 use ReflectionIntersectionType;
 use ReflectionMethod;
@@ -17,11 +18,15 @@ use ReflectionUnionType;
 use RuntimeException;
 
 /** Binds operation inputs by name before service DI; never asks DI to invent a reserved model. */
+#[Internal]
 final readonly class RuntimeInvoker
 {
     public function __construct(private Container $container) {}
 
-    /** @param array<string,mixed> $inputs */
+    /**
+     * @param  callable(mixed...): mixed  $callback
+     * @param  array<string,mixed>  $inputs
+     */
     public function invoke(callable $callback, array $inputs): mixed
     {
         $closure = Closure::fromCallable($callback);
@@ -95,6 +100,8 @@ final readonly class RuntimeInvoker
      * Cache unbound declaration metadata only. Reflecting a bound closure would retain its policy instance across
      * requests in a long-lived worker. Closures and magic methods are reflected only for this invocation.
      *
+     * @param  callable(mixed...): mixed  $callback
+     * @param  Closure(mixed...): mixed  $closure
      * @return list<ReflectionParameter>
      */
     private static function parameters(callable $callback, Closure $closure): array
@@ -129,10 +136,10 @@ final readonly class RuntimeInvoker
         }
 
         if (is_string($callback) && ! str_contains($callback, '::')) {
-            return $parameters[$callback] ??= (new ReflectionFunction($callback))->getParameters();
+            return $parameters[$callback] ??= new ReflectionFunction($callback)->getParameters();
         }
 
-        return (new ReflectionFunction($closure))->getParameters();
+        return new ReflectionFunction($closure)->getParameters();
     }
 
     private function accepts(?ReflectionType $type, mixed $value): bool
@@ -146,23 +153,11 @@ final readonly class RuntimeInvoker
         }
 
         if ($type instanceof ReflectionUnionType) {
-            foreach ($type->getTypes() as $part) {
-                if ($this->accepts($part, $value)) {
-                    return true;
-                }
-            }
-
-            return false;
+            return array_any($type->getTypes(), fn (ReflectionNamedType|ReflectionIntersectionType $part): bool => $this->accepts($part, $value));
         }
 
         if ($type instanceof ReflectionIntersectionType) {
-            foreach ($type->getTypes() as $part) {
-                if (! $this->accepts($part, $value)) {
-                    return false;
-                }
-            }
-
-            return true;
+            return array_all($type->getTypes(), fn (ReflectionType $part): bool => $this->accepts($part, $value));
         }
 
         if (! $type instanceof ReflectionNamedType) {

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 use AzGuard\Audit\AuditPlugin;
 use AzGuard\Configuration\Internal\AzGuardConfig;
-use AzGuard\Exceptions\DefinitionException;
+use AzGuard\Exceptions\Definitions\DefinitionException;
 use AzGuard\Panels\PanelBuilder;
 use AzGuard\Sources\Database\DatabaseSource;
 use AzGuard\Storage\Internal\StorageRegistry;

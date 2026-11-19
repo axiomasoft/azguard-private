@@ -4,21 +4,20 @@ declare(strict_types=1);
 
 namespace AzGuard;
 
-use AzGuard\Attributes\Api;
 use AzGuard\Changes\Internal\ActingActor;
 use AzGuard\Concerns\Internal\ScopedPanelAccess;
-use AzGuard\Concerns\SubjectAccess;
+use AzGuard\Concerns\Subjects\SubjectAccess;
 use AzGuard\Context\Internal\ContextIdentity;
 use AzGuard\Context\Internal\CurrentContext;
 use AzGuard\Context\Internal\WithinContext;
-use AzGuard\Contracts\PanelAccess;
+use AzGuard\Contracts\Panels\PanelAccess;
 use AzGuard\Contracts\Panels\PanelRegistry;
-use AzGuard\Exceptions\AssignmentScopeNotAcceptedException;
-use AzGuard\Exceptions\InvalidConfigurationException;
-use AzGuard\Exceptions\InvalidIdentityException;
-use AzGuard\Exceptions\PanelNotResolvedException;
-use AzGuard\Exceptions\SubjectNotAcceptedException;
-use AzGuard\Exceptions\UnknownPanelException;
+use AzGuard\Exceptions\Changes\AssignmentScopeNotAcceptedException;
+use AzGuard\Exceptions\Configuration\InvalidConfigurationException;
+use AzGuard\Exceptions\Definitions\PanelNotResolvedException;
+use AzGuard\Exceptions\Definitions\SubjectNotAcceptedException;
+use AzGuard\Exceptions\Definitions\UnknownPanelException;
+use AzGuard\Exceptions\Identity\InvalidIdentityException;
 use AzGuard\Kernel\Identity\AccessScope;
 use AzGuard\Kernel\Identity\ActorRef;
 use AzGuard\Kernel\Identity\AssignmentScopeRef;
@@ -42,6 +41,8 @@ use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Database\Eloquent\Model;
 use InvalidArgumentException;
+use Packman\Attributes\Api;
+use Packman\Attributes\Internal;
 use UnitEnum;
 
 /**
@@ -55,7 +56,7 @@ final class AzGuard
 {
     private ?AzGuardFake $fake = null;
 
-    /** @internal built by the container */
+    #[Internal('built by the container')]
     public function __construct(private readonly Application $app) {}
 
     /**

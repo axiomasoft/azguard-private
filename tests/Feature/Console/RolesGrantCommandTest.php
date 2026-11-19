@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use AzGuard\Events\RoleGranted;
+use AzGuard\Events\Changes\RoleGranted;
 use AzGuard\Kernel\Identity\ActorRef;
 use AzGuard\Tests\Fixtures\Changes\ChangeWorld as W;
 use AzGuard\Tests\Fixtures\Changes\Roles\AuditorRole;

@@ -38,7 +38,7 @@ final class RedisCache
     /** @return array{string, list<string>} */
     public static function scan(Redis $client, string $cursor, string $prefix): array
     {
-        $result = $client->rawCommand('SCAN', $cursor, 'MATCH', $prefix.'*', 'COUNT', '1000');
+        $result = $client->rawcommand('SCAN', $cursor, 'MATCH', $prefix.'*', 'COUNT', '1000');
 
         if (! is_array($result) || ! isset($result[0], $result[1])
             || (! is_string($result[0]) && ! is_int($result[0])) || ! is_array($result[1])) {

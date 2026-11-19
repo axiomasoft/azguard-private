@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 use AzGuard\Directories\Internal\ModelSubjectDirectory;
 use AzGuard\Directories\Internal\ModelTenantDirectory;
-use AzGuard\Exceptions\TenantMismatchException;
+use AzGuard\Exceptions\Changes\TenantMismatchException;
 use AzGuard\Kernel\Decision\PermissionAuthority;
 use AzGuard\Kernel\Identity\TenantRef;
 use AzGuard\Panels\Internal\PanelRegistry;

@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace AzGuard\Contracts\Catalog;
 
-use AzGuard\Attributes\Api;
 use AzGuard\Catalog\PermissionDefinition;
-use AzGuard\Exceptions\UnknownPermissionException;
+use AzGuard\Exceptions\Changes\UnknownPermissionException;
 use AzGuard\Kernel\Identity\PermissionKey;
+use Packman\Attributes\Api;
 use UnitEnum;
 
 /**

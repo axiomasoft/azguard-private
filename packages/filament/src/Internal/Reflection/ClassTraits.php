@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace AzGuard\Filament\Internal\Reflection;
 
+use Packman\Attributes\Internal;
 use ReflectionClass;
 use ReflectionMethod;
 
@@ -12,6 +13,7 @@ use ReflectionMethod;
  *
  * @internal
  */
+#[Internal]
 final class ClassTraits
 {
     /** @var array<class-string, array<string, string>> */
@@ -39,9 +41,16 @@ final class ClassTraits
             return false;
         }
         $name = is_object($class) ? $class::class : $class;
+        $allowedFiles = [];
+
+        foreach ([$trait, ...array_values(class_uses_recursive($trait))] as $source) {
+            if (trait_exists($source) || class_exists($source)) {
+                $allowedFiles[] = new ReflectionClass($source)->getFileName();
+            }
+        }
 
         foreach ($methods as $method) {
-            if (! (self::$methods[$name][$trait][$method] ??= (new ReflectionMethod($name, $method))->getFileName() === (new ReflectionClass($trait))->getFileName())) {
+            if (! (self::$methods[$name][$trait][$method] ??= in_array(new ReflectionMethod($name, $method)->getFileName(), $allowedFiles, true))) {
                 return false;
             }
         }

@@ -4,11 +4,12 @@ declare(strict_types=1);
 
 namespace AzGuard\Kernel\Decision;
 
-use AzGuard\Attributes\Api;
-use AzGuard\Exceptions\InvalidIdentityException;
-use AzGuard\Exceptions\InvalidPanelIdException;
+use AzGuard\Exceptions\Identity\InvalidIdentityException;
+use AzGuard\Exceptions\Identity\InvalidPanelIdException;
 use AzGuard\Kernel\Grammar\PermissionGrammar;
 use JsonException;
+use Packman\Attributes\Api;
+use Packman\Attributes\Internal;
 
 /**
  * State evidence of a decision read from storage (its observed state). The token is opaque: compare two with
@@ -110,60 +111,59 @@ final readonly class StateToken
         ], JSON_THROW_ON_ERROR | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE)), '+/', '-_'), '=');
     }
 
-    /** @internal The state of the panel this token was read at, without the revision of one subject. */
+    #[Internal('The state of the panel this token was read at, without the revision of one subject.')]
     public function panelState(): self
     {
         return $this->subjectRevision === null ? $this
             : new self($this->storageId, $this->panel, $this->incarnation, $this->version, $this->generation, $this->fingerprint, $this->epoch);
     }
 
-    /** @internal */
+    #[Internal]
     public function storageId(): string
     {
         return $this->storageId;
     }
 
-    /** @internal */
+    #[Internal]
     public function incarnation(): string
     {
         return $this->incarnation;
     }
 
-    /** @internal */
+    #[Internal]
     public function version(): int
     {
         return $this->version;
     }
 
-    /** @internal */
+    #[Internal]
     public function generation(): int
     {
         return $this->generation;
     }
 
-    /** @internal */
+    #[Internal]
     public function fingerprint(): string
     {
         return $this->fingerprint;
     }
 
-    /** @internal */
+    #[Internal]
     public function epoch(): int
     {
         return $this->epoch;
     }
 
-    /** @internal */
+    #[Internal]
     public function subjectRevision(): ?int
     {
         return $this->subjectRevision;
     }
 
     /**
-     * @internal The `state` object of an event payload: exactly the keys journal rows have always carried.
-     *
      * @return array{kind: 'state', storage: string, panel: string, incarnation: string, version: int, generation: int, fingerprint: string}
      */
+    #[Internal('The `state` object of an event payload: exactly the keys journal rows have always carried.')]
     public function payload(): array
     {
         return ['kind' => 'state', 'storage' => $this->storageId, 'panel' => $this->panel, 'incarnation' => $this->incarnation,
@@ -171,10 +171,9 @@ final readonly class StateToken
     }
 
     /**
-     * @internal Every recorded value by name, for explanations and traces.
-     *
      * @return array{storageId: string, panel: string, incarnation: string, version: int, generation: int, fingerprint: string, epoch: int, subjectRevision: ?int}
      */
+    #[Internal('Every recorded value by name, for explanations and traces.')]
     public function fields(): array
     {
         return ['storageId' => $this->storageId, 'panel' => $this->panel, 'incarnation' => $this->incarnation, 'version' => $this->version,

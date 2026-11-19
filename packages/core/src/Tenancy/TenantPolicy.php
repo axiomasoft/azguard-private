@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace AzGuard\Tenancy;
 
-use AzGuard\Attributes\Api;
 use AzGuard\Contracts\Tenancy\TenantMembership;
-use AzGuard\Exceptions\DefinitionException;
+use AzGuard\Exceptions\Definitions\DefinitionException;
 use AzGuard\Roles\BaseRole;
 use Illuminate\Database\Eloquent\Model;
+use Packman\Attributes\Api;
 
 /**
  * The tenant boundary of a panel. Required tenants also require active membership by default.

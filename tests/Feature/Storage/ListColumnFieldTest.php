@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 use AzGuard\Changes\ChangeStatus;
-use AzGuard\Exceptions\InvalidChangeFieldsException;
+use AzGuard\Exceptions\Changes\InvalidChangeFieldsException;
 use AzGuard\Panels\Panel;
 use AzGuard\Panels\PanelBuilder;
 use AzGuard\Schema\Field;

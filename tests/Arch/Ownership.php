@@ -81,7 +81,7 @@ final class Ownership
             $path === null => 'split',
             str_starts_with($path, 'packages/core/src/') => 'core',
             str_starts_with($path, 'packages/filament/src/') => 'filament',
-            default => in_array($module = explode('/', $path)[3] ?? '', self::MODULES, true) && str_starts_with($path, 'packages/core/modules/'.$module.'/')
+            default => in_array($module = explode('/', $path)[1] ?? '', self::MODULES, true) && str_starts_with($path, 'packages/'.$module.'/src/')
                 ? $module : 'split',
         };
 

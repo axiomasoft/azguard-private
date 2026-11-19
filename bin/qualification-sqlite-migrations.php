@@ -11,7 +11,7 @@ use Illuminate\Database\Migrations\Migration;
 $root = dirname(__DIR__);
 $expected = [
     $root.'/packages/core/database/migrations/2026_10_01_000000_create_azguard_storage.php',
-    $root.'/packages/core/modules/audit/database/migrations/2026_10_20_000000_create_azguard_audit_log.php',
+    $root.'/packages/audit/database/migrations/2026_10_20_000000_create_azguard_audit_log.php',
 ];
 
 try {

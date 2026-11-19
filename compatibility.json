@@ -1,7 +1,7 @@
 {
     "schema": "urn:azguard:compatibility:1",
     "major": 2,
-    "candidate": "d363abfdb53ff03ada92e8229ea012da12791cf7",
+    "candidate": "82b5429c3223b64007c1765603073818354e5f29",
     "artifacts": [
         {
             "id": "source-capabilities",
@@ -16,6 +16,21 @@
         {
             "id": "api.core",
             "path": "packages/core/api-manifest.json",
+            "kind": "api"
+        },
+        {
+            "id": "api.scopes",
+            "path": "packages/scopes/api-manifest.json",
+            "kind": "api"
+        },
+        {
+            "id": "api.audit",
+            "path": "packages/audit/api-manifest.json",
+            "kind": "api"
+        },
+        {
+            "id": "api.devtools",
+            "path": "packages/devtools/api-manifest.json",
             "kind": "api"
         },
         {

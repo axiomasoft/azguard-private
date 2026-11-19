@@ -12,6 +12,7 @@ use Illuminate\Contracts\Auth\Factory as AuthFactory;
 use Illuminate\Contracts\Container\Container;
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Database\Eloquent\Model;
+use Packman\Attributes\Internal;
 use WeakMap;
 
 /**
@@ -21,6 +22,7 @@ use WeakMap;
  * auth guard of the panel's subjects, then `ActorRef::system('console')` in the console, then null. The actor never
  * replaces the target of a change.
  */
+#[Internal]
 final class ActingActor
 {
     /** @var list<array{actor: ?ActorRef}> */

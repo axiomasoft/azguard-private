@@ -8,6 +8,7 @@ use AzGuard\Contracts\Roles\RoleCatalog;
 use AzGuard\Panels\Panel;
 use AzGuard\Schema\Internal\SchemaBuilder;
 use AzGuard\Schema\RoleSchema;
+use Packman\Attributes\Internal;
 
 /**
  * The code roles of one panel as the schema shows them, taken once from the build the panel was compiled in. Nothing
@@ -15,6 +16,7 @@ use AzGuard\Schema\RoleSchema;
  *
  * @internal made by the panel managers
  */
+#[Internal]
 final readonly class CodeRoleCatalog implements RoleCatalog
 {
     /** @var array<string, RoleSchema> */

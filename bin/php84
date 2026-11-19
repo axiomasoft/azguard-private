@@ -1,0 +1,60 @@
+#!/usr/bin/env bash
+# Runs a command with PHP 8.4 as `php` on PATH, so Composer scripts and
+# `#!/usr/bin/env php` binaries use 8.4 even when the host default is older.
+# Usage: bin/php84 --check | bin/php84 <command> [args...]
+set -euo pipefail
+
+root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+bin="${PHP84_BIN:-$(command -v php8.4 || true)}"
+
+if [[ -z "$bin" || ! -x "$bin" ]]; then
+    echo "php84: php8.4 binary not found (set PHP84_BIN)" >&2
+    exit 1
+fi
+
+shim="$root/build/php84/bin"
+resolved_bin="$(readlink -f "$bin" 2>/dev/null || printf '%s' "$bin")"
+resolved_shim="$(readlink -f "$shim/php" 2>/dev/null || true)"
+
+if [[ -x "$shim/php" && "$resolved_shim" == "$resolved_bin" ]]; then
+    export PATH="$shim:$PATH"
+else
+    if [[ ! -w "$root" ]] || { [[ -e "$root/build" ]] && [[ ! -w "$root/build" ]]; }; then
+        shim="${TMPDIR:-/tmp}/packman-php84-shim-$(id -u)/bin"
+    fi
+
+    mkdir -p "$shim"
+    ln -sf "$bin" "$shim/php"
+    export PATH="$shim:$PATH"
+fi
+
+if [[ "${1:-}" == "--check" ]]; then
+    version="$(php -r 'echo PHP_VERSION;')"
+    if [[ "$version" != 8.4.* ]]; then
+        echo "php84: expected PHP 8.4.x, got $version" >&2
+        exit 1
+    fi
+    required=(ctype curl dom fileinfo gd gmp intl bcmath mbstring openssl pcntl pcov pdo_pgsql pdo_sqlite sqlite3 tokenizer xml zip)
+    missing=()
+    for ext in "${required[@]}"; do
+        php -r "exit(extension_loaded('$ext') ? 0 : 1);" || missing+=("$ext")
+    done
+    if (( ${#missing[@]} )); then
+        echo "php84: MISSING: ${missing[*]}" >&2
+        declare -A packages=()
+        for ext in "${missing[@]}"; do
+            case "$ext" in
+                dom) packages[xml]=1 ;;
+                pdo_pgsql) packages[pgsql]=1 ;;
+                pdo_sqlite) packages[sqlite3]=1 ;;
+                *) packages[$ext]=1 ;;
+            esac
+        done
+        echo "php84: owner action: sudo apt install $(printf 'php8.4-%s ' $(printf '%s\n' "${!packages[@]}" | sort))" >&2
+        exit 1
+    fi
+    echo "php84 OK: $version, extensions complete"
+    exit 0
+fi
+
+exec "$@"

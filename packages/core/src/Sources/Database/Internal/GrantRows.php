@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace AzGuard\Sources\Database\Internal;
 
 use AzGuard\Changes\GrantRecord;
-use AzGuard\Exceptions\InvalidSourceContributionException;
+use AzGuard\Exceptions\Authorization\InvalidSourceContributionException;
 use AzGuard\Kernel\Identity\AccessScope;
 use AzGuard\Kernel\Identity\IdentityCodec;
 use AzGuard\Kernel\Identity\PermissionPattern;
@@ -22,12 +22,14 @@ use AzGuard\Storage\Models\PermissionGrant;
 use AzGuard\Storage\Models\RoleGrant;
 use DateTimeImmutable;
 use DateTimeZone;
+use Packman\Attributes\Internal;
 use stdClass;
 
 /**
  * @internal One stored grant row as a `GrantRecord`, the same on the write handle of a mutation and on a read session:
  * a fingerprint read for a form equals the one the writer checks under the lock.
  */
+#[Internal]
 final class GrantRows
 {
     /** @var array<string, GrantFields> */

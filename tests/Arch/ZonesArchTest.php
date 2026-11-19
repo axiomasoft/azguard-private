@@ -54,13 +54,18 @@ const AZGUARD_KERNEL_FORBIDDEN = ['Illuminate', 'Carbon', 'Laravel', 'AzGuard\Fi
  * The publication markers: every zone, the kernel included, names them to publish its supported types. They are
  * leaves that depend on nothing but PHP, so naming them adds no dependency on zone code.
  */
-const AZGUARD_PUBLICATION_MARKERS = ['AzGuard\Attributes\Api', 'AzGuard\Attributes\Spi', 'AzGuard\Attributes\SpiKind'];
+const AZGUARD_PUBLICATION_MARKERS = [
+    'Packman\Attributes\Api',
+    'Packman\Attributes\Spi',
+    'Packman\Attributes\SpiKind',
+    'Packman\Attributes\Internal',
+];
 
 it('keeps the publication markers leaves that name nothing but PHP and each other', function (): void {
     $names = [];
 
-    foreach (AZGUARD_PUBLICATION_MARKERS as $marker) {
-        $file = dirname(__DIR__, 2).'/packages/core/src/Attributes/'.substr($marker, strrpos($marker, '\\') + 1).'.php';
+    foreach (['Api', 'Spi', 'SpiKind', 'Internal'] as $short) {
+        $file = dirname(__DIR__, 2).'/vendor/axiomasoft/packman/src/Attributes/'.$short.'.php';
 
         foreach (SourceScan::ownershipReferences((string) file_get_contents($file)) as $reference) {
             $names[] = $reference['value'];
@@ -99,7 +104,7 @@ it('keeps the kernel free of framework helper calls', function (): void {
 /*
  * The kernel names no framework, zone or module code. Pest arch sees imports and class names of the
  * autoloaded namespaces only; this scan also reads grouped imports, `::class` constants, `class-string<…>` types and
- * qualified class-name strings, and covers the module roots (`packages/core/modules/<module>/src`) by their namespaces.
+ * qualified class-name strings, and covers the subpackage roots (`packages/<name>/src`) by their namespaces.
  */
 /**
  * @param  list<string>  $files
@@ -132,7 +137,7 @@ it('finds a kernel file that names framework, zone or module code in any form', 
         use AzGuard\Audit\{AuditPlugin};
         use AzGuard\Filament\AzGuardPlugin;
         use AzGuard\Tenancy\TenantMode;
-        use AzGuard\Attributes\Api;
+        use Packman\Attributes\Api;
         use AzGuard\Attributes\AsSource;
         /** @var class-string<\AzGuard\DevTools\DevToolsServiceProvider> $provider */
         #[Api(since: '1.0')]
@@ -165,9 +170,9 @@ it('keeps the kernel free of framework, zone and module references', function ()
     expect(azguardKernelLeaks(SourceScan::files('packages/core/src/Kernel')))->toBe([]);
 });
 
-it('reads every production root, the module roots included', function (): void {
+it('reads every production root, the subpackage roots included', function (): void {
     $root = sys_get_temp_dir().'/azguard-roots-'.bin2hex(random_bytes(4));
-    $paths = ['packages/core/src/Kernel/A.php', 'packages/filament/src/B.php', 'packages/core/modules/audit/src/AuditPlugin.php', 'packages/core/modules/audit/database/C.php'];
+    $paths = ['packages/core/src/Kernel/A.php', 'packages/filament/src/B.php', 'packages/audit/src/AuditPlugin.php', 'packages/audit/database/C.php'];
 
     foreach ($paths as $path) {
         mkdir(dirname($root.'/'.$path), 0777, true);
@@ -176,13 +181,13 @@ it('reads every production root, the module roots included', function (): void {
 
     try {
         expect(array_map(static fn (string $file): string => str_replace($root.'/', '', $file), SourceScan::files(root: $root)))->toBe([
-            'packages/core/modules/audit/src/AuditPlugin.php', 'packages/core/src/Kernel/A.php', 'packages/filament/src/B.php',
+            'packages/audit/src/AuditPlugin.php', 'packages/core/src/Kernel/A.php', 'packages/filament/src/B.php',
         ]);
     } finally {
         foreach ($paths as $path) {
             unlink($root.'/'.$path);
         }
-        foreach (['packages/core/src/Kernel', 'packages/core/src', 'packages/filament/src', 'packages/core/modules/audit/src', 'packages/core/modules/audit/database', 'packages/core/modules/audit', 'packages/core/modules', 'packages/core', 'packages/filament', 'packages'] as $directory) {
+        foreach (['packages/core/src/Kernel', 'packages/core/src', 'packages/filament/src', 'packages/audit/src', 'packages/audit/database', 'packages/audit', 'packages/core', 'packages/filament', 'packages'] as $directory) {
             rmdir($root.'/'.$directory);
         }
         rmdir($root);
@@ -314,10 +319,10 @@ it('keeps one predicate engine and one role-binding resolver for directories and
     }
 
     expect(azguardPrivateEligibilityCopies(SourceScan::files('packages/core/src/Directories')))->toBe([])
-        ->and(azguardPrivateEligibilityCopies([dirname(__DIR__, 2).'/packages/core/modules/scopes/src/Internal/ScopeEligibility.php']))->toBe([])
-        ->and((string) file_get_contents(dirname(__DIR__, 2).'/packages/core/modules/scopes/src/Internal/QueryScopeDirectory.php'))
+        ->and(azguardPrivateEligibilityCopies([dirname(__DIR__, 2).'/packages/scopes/src/Internal/ScopeEligibility.php']))->toBe([])
+        ->and((string) file_get_contents(dirname(__DIR__, 2).'/packages/scopes/src/Internal/QueryScopeDirectory.php'))
         ->toContain('EligibilityBuilder::structural(', 'EligibilityBuilder::apply(', 'RoleBindings::of(')
-        ->and((string) file_get_contents(dirname(__DIR__, 2).'/packages/core/modules/scopes/src/Internal/ScopeEligibility.php'))
+        ->and((string) file_get_contents(dirname(__DIR__, 2).'/packages/scopes/src/Internal/ScopeEligibility.php'))
         ->toContain('RoleBindings::of(', 'EligibilityBuilder::matches(');
 });
 
@@ -425,8 +430,8 @@ arch('code roles do not use storage, changes or authorization')
 arch('only storage, the database source and the Audit module touch the database layer')
     ->expect(AZGUARD_DATABASE_ACCESS)
     ->toOnlyBeUsedIn(['AzGuard\Storage', 'AzGuard\Sources\Database', 'AzGuard\Audit'])
-    // The tests and the load bench are applications of the package: they seed and query their own tables.
-    ->ignoring(['AzGuard\Tests', 'AzGuardBench']);
+    // The tests, the load bench, and Packman testkit are outside the core runtime boundary.
+    ->ignoring(['AzGuard\Tests', 'AzGuardBench', 'Packman']);
 
 it('only storage and database sources call storage models statically', function (): void {
     expect(SourceScan::modelStaticCallsIn(SourceScan::files()))->toBe([]);

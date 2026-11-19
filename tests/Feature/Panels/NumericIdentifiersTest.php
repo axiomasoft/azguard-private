@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 use AzGuard\Catalog\Internal\CacheState;
 use AzGuard\Catalog\Internal\CatalogCache;
-use AzGuard\Exceptions\UnknownPanelException;
+use AzGuard\Exceptions\Definitions\UnknownPanelException;
 use AzGuard\Panels\Internal\CurrentPanel;
 use AzGuard\Panels\Internal\PanelRegistry;
 use AzGuard\Panels\Internal\PanelResolver;

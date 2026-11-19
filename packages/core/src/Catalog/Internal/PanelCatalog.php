@@ -8,14 +8,14 @@ use AzGuard\Catalog\PermissionDefinition;
 use AzGuard\Contracts\Catalog\PermissionCatalog;
 use AzGuard\Contracts\Sources\ProvidesPermissions;
 use AzGuard\Contracts\Sources\ProvidesPolicies;
-use AzGuard\Exceptions\DefinitionException;
-use AzGuard\Exceptions\DuplicatePermissionException;
-use AzGuard\Exceptions\DuplicatePolicyBindingException;
-use AzGuard\Exceptions\DuplicateRoleException;
-use AzGuard\Exceptions\InvalidPolicyStructureException;
-use AzGuard\Exceptions\InvalidSourceContributionException;
-use AzGuard\Exceptions\PrefixConflictException;
-use AzGuard\Exceptions\UnknownPermissionException;
+use AzGuard\Exceptions\Authorization\InvalidSourceContributionException;
+use AzGuard\Exceptions\Changes\UnknownPermissionException;
+use AzGuard\Exceptions\Definitions\DefinitionException;
+use AzGuard\Exceptions\Definitions\DuplicatePermissionException;
+use AzGuard\Exceptions\Definitions\DuplicatePolicyBindingException;
+use AzGuard\Exceptions\Definitions\DuplicateRoleException;
+use AzGuard\Exceptions\Definitions\InvalidPolicyStructureException;
+use AzGuard\Exceptions\Definitions\PrefixConflictException;
 use AzGuard\Kernel\Decision\PermissionAuthority;
 use AzGuard\Kernel\Identity\PermissionKey;
 use AzGuard\Panels\Panel;
@@ -27,6 +27,7 @@ use BackedEnum;
 use Illuminate\Contracts\Container\Container;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
+use Packman\Attributes\Internal;
 use ReflectionClass;
 use ReflectionMethod;
 use Throwable;
@@ -47,6 +48,7 @@ use UnitEnum;
  * @phpstan-type BindingEntry array{permission: string|array{enum: string, name: string}, kind: string, policy: class-string|null, method: ?string, ability: ?string, resource_model: class-string<Model>|null}
  * @phpstan-type Snapshot array{panel: string, prefix: ?string, dynamic: bool, sources: list<SourceEntry>, permissions: list<DefinitionEntry>, bindings: array<string, class-string>, binding_methods: array<string, string>, policy_bindings: array<string, BindingEntry>, ability_index: array<class-string<Model>, array<string, ?string>>, roles: array<string, CompiledRole>}
  */
+#[Internal]
 final class PanelCatalog implements PermissionCatalog
 {
     /** @var array<string, PermissionDefinition> static and dynamic definitions by local name */
@@ -134,7 +136,7 @@ final class PanelCatalog implements PermissionCatalog
         $catalog->static = $catalog->definitions;
         $catalog->buildAbilityIndex();
         $catalog->bind($panel, $sources, $container);
-        $catalog->roles = (new RoleCompiler($container))->compile($panel, $catalog, $sources);
+        $catalog->roles = new RoleCompiler($container)->compile($panel, $catalog, $sources);
 
         return $catalog;
     }
@@ -556,7 +558,7 @@ final class PanelCatalog implements PermissionCatalog
         $methods = [];
         $policy = $binding->policy ?? throw new DefinitionException('PHP binding has no policy class.');
 
-        foreach ((new ReflectionClass($policy))->getMethods(ReflectionMethod::IS_PUBLIC) as $method) {
+        foreach (new ReflectionClass($policy)->getMethods(ReflectionMethod::IS_PUBLIC) as $method) {
             if ($method->isStatic()) {
                 continue;
             }

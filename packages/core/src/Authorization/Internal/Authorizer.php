@@ -12,13 +12,13 @@ use AzGuard\Authorization\Visibility;
 use AzGuard\Catalog\Internal\PanelCatalog;
 use AzGuard\Catalog\Internal\RoleCompiler;
 use AzGuard\Configuration\Internal\AzGuardConfig;
-use AzGuard\Events\AccessDecided;
+use AzGuard\Events\Access\AccessDecided;
 use AzGuard\Events\Internal\EventObservers;
-use AzGuard\Exceptions\ConflictingPanelException;
-use AzGuard\Exceptions\ConsistencyException;
-use AzGuard\Exceptions\DecisionSetTooLargeException;
-use AzGuard\Exceptions\InvalidConfigurationException;
-use AzGuard\Exceptions\RecursionDetectedException;
+use AzGuard\Exceptions\Authorization\ConsistencyException;
+use AzGuard\Exceptions\Authorization\DecisionSetTooLargeException;
+use AzGuard\Exceptions\Authorization\RecursionDetectedException;
+use AzGuard\Exceptions\Configuration\InvalidConfigurationException;
+use AzGuard\Exceptions\Definitions\ConflictingPanelException;
 use AzGuard\Kernel\Decision\AccessRequest;
 use AzGuard\Kernel\Decision\Decision;
 use AzGuard\Kernel\Decision\DecisionSet;
@@ -49,10 +49,12 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
+use Packman\Attributes\Internal;
 use Throwable;
 use UnitEnum;
 
 /** @phpstan-import-type CompiledRole from RoleCompiler */
+#[Internal]
 final class Authorizer
 {
     /** @var array<string,true> */
@@ -140,7 +142,7 @@ final class Authorizer
         $grants = [];
         foreach ($catalog->all() as $local => $definition) {
             if ($definition->authority === PermissionAuthority::Grants) {
-                $grants[] = (string) $local;
+                $grants[] = $local;
             }
         }
         $assignable = array_fill_keys($grants, true);

@@ -17,7 +17,7 @@ final class FormatSnapshot
     public const string ULID = '<ulid>';
 
     /**
-     * The PSR-4 roots of the core package (module roots included) and of Filament, relative to `packages/`.
+     * The PSR-4 roots of the AzGuard packages (core, extracted modules, and Filament), relative to `packages/`.
      *
      * @return array<string, string> directory => namespace
      */
@@ -25,7 +25,7 @@ final class FormatSnapshot
     {
         $roots = [];
 
-        foreach (['core', 'filament'] as $package) {
+        foreach (['core', 'scopes', 'audit', 'devtools', 'filament'] as $package) {
             /** @var array{autoload: array{psr-4: array<string, string>}} $composer */
             $composer = json_decode((string) file_get_contents("{$packages}/{$package}/composer.json"), true, flags: JSON_THROW_ON_ERROR);
 

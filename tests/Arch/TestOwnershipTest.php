@@ -12,14 +12,15 @@ declare(strict_types=1);
  * case, a world fixture) may name several modules.
  */
 
-/** @return list<string> module namespace names from the core PSR-4 map, e.g. Scopes, Audit, DevTools */
+/** @return list<string> module namespace names from the extracted module package manifests, e.g. Scopes, Audit, DevTools */
 function azguardTestModules(): array
 {
-    $composer = json_decode((string) file_get_contents(dirname(__DIR__, 2).'/packages/core/composer.json'), true, flags: JSON_THROW_ON_ERROR);
     $modules = [];
 
-    foreach ($composer['autoload']['psr-4'] as $namespace => $path) {
-        if (str_starts_with((string) $path, 'modules/')) {
+    foreach (['scopes', 'audit', 'devtools'] as $package) {
+        $composer = json_decode((string) file_get_contents(dirname(__DIR__, 2).'/packages/'.$package.'/composer.json'), true, flags: JSON_THROW_ON_ERROR);
+
+        foreach ($composer['autoload']['psr-4'] as $namespace => $path) {
             $modules[] = trim(substr((string) $namespace, strlen('AzGuard\\')), '\\');
         }
     }

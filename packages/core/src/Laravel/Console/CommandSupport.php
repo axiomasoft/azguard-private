@@ -4,18 +4,16 @@ declare(strict_types=1);
 
 namespace AzGuard\Laravel\Console;
 
-use AzGuard\Attributes\Spi;
-use AzGuard\Attributes\SpiKind;
-use AzGuard\Exceptions\AmbiguousPanelException;
 use AzGuard\Exceptions\AzGuardException;
-use AzGuard\Exceptions\ConflictingPanelException;
-use AzGuard\Exceptions\InvalidIdentityException;
-use AzGuard\Exceptions\InvalidPanelIdException;
-use AzGuard\Exceptions\PanelNotResolvedException;
-use AzGuard\Exceptions\SubjectNotAcceptedException;
-use AzGuard\Exceptions\TenantMismatchException;
-use AzGuard\Exceptions\TenantRequiredException;
-use AzGuard\Exceptions\UnknownPanelException;
+use AzGuard\Exceptions\Changes\TenantMismatchException;
+use AzGuard\Exceptions\Changes\TenantRequiredException;
+use AzGuard\Exceptions\Definitions\AmbiguousPanelException;
+use AzGuard\Exceptions\Definitions\ConflictingPanelException;
+use AzGuard\Exceptions\Definitions\PanelNotResolvedException;
+use AzGuard\Exceptions\Definitions\SubjectNotAcceptedException;
+use AzGuard\Exceptions\Definitions\UnknownPanelException;
+use AzGuard\Exceptions\Identity\InvalidIdentityException;
+use AzGuard\Exceptions\Identity\InvalidPanelIdException;
 use AzGuard\Panels\Internal\PanelResolver;
 use AzGuard\Panels\Panel;
 use Closure;
@@ -23,6 +21,8 @@ use DateTimeImmutable;
 use DateTimeZone;
 use Exception;
 use Illuminate\Console\Command;
+use Packman\Attributes\Spi;
+use Packman\Attributes\SpiKind;
 use Throwable;
 
 /**

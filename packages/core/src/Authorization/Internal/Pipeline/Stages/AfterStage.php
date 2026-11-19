@@ -11,9 +11,11 @@ use AzGuard\Kernel\Decision\AccessRequest;
 use AzGuard\Kernel\Decision\Decision;
 use Closure;
 use Illuminate\Contracts\Container\Container;
+use Packman\Attributes\Internal;
 use RuntimeException;
 use Throwable;
 
+#[Internal]
 final readonly class AfterStage
 {
     public function __construct(private Container $container) {}

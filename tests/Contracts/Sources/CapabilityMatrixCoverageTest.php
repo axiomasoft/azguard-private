@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 use AzGuard\Contracts\Authorization\EvaluationContext;
-use AzGuard\Exceptions\VisibilityNotSupportedException;
+use AzGuard\Exceptions\Authorization\VisibilityNotSupportedException;
 use AzGuard\Filament\FilamentDefinitions;
 use AzGuard\Filament\Sources\FilamentSource;
 use AzGuard\Kernel\Decision\AccessRequest;
@@ -38,6 +38,7 @@ use Filament\Panel as FilamentPanel;
 use Filament\PanelRegistry as FilamentPanelRegistry;
 use Illuminate\Database\Eloquent\Model;
 use Livewire\LivewireServiceProvider;
+use PHPUnit\Event\Facade;
 use PHPUnit\Logging\TestDox\NamePrettifier;
 use Symfony\Component\Process\Process;
 
@@ -331,7 +332,7 @@ function capabilityProcesses(array $running): array
                 $actual[] = str_starts_with($name, 'it ') ? substr($name, 3) : $name;
             }
             $actual = array_values(array_unique($actual));
-            $prettifier = new NamePrettifier;
+            $prettifier = new NamePrettifier(Facade::emitter());
             $expected = array_map(static fn (string $name): string => str_starts_with($name, 'test_') ? $prettifier->prettifyTestMethodName($name) : $name, $expected);
             sort($actual);
             sort($expected);

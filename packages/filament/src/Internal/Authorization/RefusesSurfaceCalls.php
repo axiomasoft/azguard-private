@@ -12,8 +12,10 @@ use AzGuard\Filament\Internal\Reflection\ClassTraits;
 use Filament\Pages\Page;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Widgets\Widget;
+use Packman\Attributes\Internal;
 
 /** @internal */
+#[Internal]
 final class RefusesSurfaceCalls
 {
     public static function refuseRelationManager(RelationManager $component): void

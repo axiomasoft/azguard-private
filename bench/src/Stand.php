@@ -21,10 +21,10 @@ use Filament\Support\SupportServiceProvider;
 use Filament\Tables\TablesServiceProvider;
 use Filament\Widgets\WidgetsServiceProvider;
 use Illuminate\Contracts\Console\Kernel;
-use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Database\Connection;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use InvalidArgumentException;
@@ -55,11 +55,13 @@ final class Stand
         }
 
         if ($cache === 'redis') {
-            $host = getenv('REDIS_HOST') ?: '127.0.0.1';
-            $port = getenv('REDIS_PORT') ?: '6379';
+            $rawHost = getenv('REDIS_HOST');
+            $host = is_string($rawHost) && $rawHost !== '' ? $rawHost : '127.0.0.1';
+            $rawPort = getenv('REDIS_PORT');
+            $port = is_string($rawPort) && $rawPort !== '' ? $rawPort : '6379';
 
             if (! in_array($host, ['127.0.0.1', 'localhost', '::1'], true)
-                || ! ctype_digit((string) $port) || (int) $port < 1 || (int) $port > 65535) {
+                || ! ctype_digit($port) || (int) $port < 1 || (int) $port > 65535) {
                 throw new InvalidArgumentException('The bench requires a local Redis host and valid port.');
             }
         }
@@ -130,7 +132,13 @@ final class Stand
                 $app['config']->set('bench.cache_store', self::$store);
                 $app['config']->set('app.debug', false);
                 $app['config']->set('database.redis.client', 'phpredis');
-                $app['config']->set('database.redis.default', ['host' => getenv('REDIS_HOST') ?: '127.0.0.1', 'port' => getenv('REDIS_PORT') ?: '6379', 'database' => 15]);
+                $rawRedisHost = getenv('REDIS_HOST');
+                $rawRedisPort = getenv('REDIS_PORT');
+                $app['config']->set('database.redis.default', [
+                    'host' => is_string($rawRedisHost) && $rawRedisHost !== '' ? $rawRedisHost : '127.0.0.1',
+                    'port' => is_string($rawRedisPort) && $rawRedisPort !== '' ? $rawRedisPort : '6379',
+                    'database' => 15,
+                ]);
                 $app['config']->set('cache.stores.redis', ['driver' => 'redis', 'connection' => 'default']);
                 $app['config']->set('cache.prefix', 'azguard_bench_'.getmypid().'_');
             }

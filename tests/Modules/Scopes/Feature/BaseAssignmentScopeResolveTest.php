@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use AzGuard\Exceptions\InvalidAssignmentScopeException;
+use AzGuard\Exceptions\Identity\InvalidAssignmentScopeException;
 use AzGuard\Kernel\Identity\AssignmentScopeRef;
 use AzGuard\Tests\Modules\Scopes\Fixtures\ConfiguredProjectScope;
 use AzGuard\Tests\Modules\Scopes\Fixtures\Project;

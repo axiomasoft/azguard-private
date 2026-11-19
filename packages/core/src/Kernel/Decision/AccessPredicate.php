@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace AzGuard\Kernel\Decision;
 
-use AzGuard\Attributes\Spi;
-use AzGuard\Attributes\SpiKind;
-use AzGuard\Exceptions\InvalidSourceContributionException;
+use AzGuard\Exceptions\Authorization\InvalidSourceContributionException;
+use Packman\Attributes\Spi;
+use Packman\Attributes\SpiKind;
 
 /**
  * Pure, immutable exact-query descriptor. Comparisons are two-valued: NULL equals
@@ -176,13 +176,8 @@ final readonly class AccessPredicate
         if ($this->operation === 'unsupported') {
             return false;
         }
-        foreach ($this->operands as $operand) {
-            if (! $operand->isSupported()) {
-                return false;
-            }
-        }
 
-        return true;
+        return array_all($this->operands, fn (AccessPredicate $operand): bool => $operand->isSupported());
     }
 
     public function assertBoolean(): void

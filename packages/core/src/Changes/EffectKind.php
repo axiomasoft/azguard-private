@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace AzGuard\Changes;
 
-use AzGuard\Attributes\Api;
+use Packman\Attributes\Api;
 
 /**
  * What the writer did to one stored grant or dynamic permission.

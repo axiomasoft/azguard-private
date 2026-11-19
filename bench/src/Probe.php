@@ -42,8 +42,9 @@ final class Probe
     {
         self::$samples = [];
         Event::listen(QueryExecuted::class, static function (QueryExecuted $event): void {
+            $timeMs = $event->time ?? 0.0;
             $end = hrtime(true) / 1e3;
-            $start = $end - $event->time * 1e3;
+            $start = $end - $timeMs * 1e3;
             $pdo = $event->connection->getRawPdo();
             $inSnapshot = $pdo instanceof PDO && StorageReadSession::transactionOpen($pdo) && $event->connection->transactionLevel() === 0;
 
@@ -55,7 +56,7 @@ final class Probe
             }
 
             if (self::$locked === null && $event->connection->transactionLevel() > 0 && self::takesPanelLock($event->connection, $event->sql)) {
-                self::$samples[] = ['probe.lock_wait', $event->time * 1e3];
+                self::$samples[] = ['probe.lock_wait', $timeMs * 1e3];
                 self::$locked = $end;
             }
         });

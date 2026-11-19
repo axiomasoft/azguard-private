@@ -6,7 +6,7 @@ namespace AzGuard\Tests\Fixtures\Parity;
 
 use AzGuard\Authorization\Internal\Authorizer;
 use AzGuard\Changes\ChangeResult;
-use AzGuard\Concerns\SubjectAccess;
+use AzGuard\Concerns\Subjects\SubjectAccess;
 use AzGuard\Exceptions\AzGuardException;
 use AzGuard\Facades\AzGuard;
 use AzGuard\Kernel\Decision\AccessRequest;

@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 use AzGuard\Audit\AuditPlugin;
 use AzGuard\Configuration\Internal\AzGuardConfig;
-use AzGuard\Exceptions\DefinitionException;
-use AzGuard\Exceptions\PluginConflictException;
+use AzGuard\Exceptions\Definitions\DefinitionException;
+use AzGuard\Exceptions\Plugins\PluginConflictException;
 use AzGuard\Panels\Internal\PanelRecipe;
 use AzGuard\Panels\Internal\PanelRegistry;
 use AzGuard\Panels\PanelBuilder;

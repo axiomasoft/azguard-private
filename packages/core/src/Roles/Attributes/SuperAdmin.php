@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace AzGuard\Roles\Attributes;
 
 use Attribute;
-use AzGuard\Attributes\Api;
+use Packman\Attributes\Api;
 
 /**
  * The holder of this role is a super admin.

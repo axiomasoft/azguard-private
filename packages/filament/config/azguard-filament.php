@@ -20,6 +20,7 @@ return [
 
     // AzGuard panels whose roles and grants this admin edits; null means every
     // panel with a writable schema.
+    /** @var list<string>|null */
     'manages' => null,
 
     // Resources, pages and widgets without a permission are closed.

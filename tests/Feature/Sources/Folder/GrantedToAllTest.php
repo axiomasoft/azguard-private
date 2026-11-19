@@ -5,7 +5,7 @@ declare(strict_types=1);
 use AzGuard\Authorization\Internal\Authorizer;
 use AzGuard\Authorization\Internal\EvaluationFrame;
 use AzGuard\Contracts\Sources\Volatility;
-use AzGuard\Exceptions\DefinitionException;
+use AzGuard\Exceptions\Definitions\DefinitionException;
 use AzGuard\Kernel\Decision\CodeStateToken;
 use AzGuard\Kernel\Decision\DecisionReason;
 use AzGuard\Kernel\Decision\Grant;

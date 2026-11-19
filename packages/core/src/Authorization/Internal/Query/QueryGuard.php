@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 namespace AzGuard\Authorization\Internal\Query;
 
+use Packman\Attributes\Internal;
 use RuntimeException;
 
 /** Shared across cloned and nested predicate builders, including caught terminal attempts. */
+#[Internal]
 final class QueryGuard
 {
     private bool $rejected = false;

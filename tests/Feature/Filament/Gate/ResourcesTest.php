@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use AzGuard\Exceptions\ConfigurationException;
+use AzGuard\Exceptions\Configuration\ConfigurationException;
 use AzGuard\Filament\Authorization\FilamentGate;
 use AzGuard\Filament\FilamentDefinitions;
 use AzGuard\Filament\Sources\FilamentSource;

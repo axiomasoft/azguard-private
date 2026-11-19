@@ -13,6 +13,7 @@ use Filament\Forms\Components\Select;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Components\Utilities\Set;
+use Packman\Attributes\Internal;
 
 /**
  * «Why?»: a subject, a permission and a context of the target panel go to `explain()` of the panel, and the answer is
@@ -24,6 +25,7 @@ use Filament\Schemas\Components\Utilities\Set;
  *
  * @internal
  */
+#[Internal]
 final class ExplainAction
 {
     public const string NAME = 'why';

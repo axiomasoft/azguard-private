@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace AzGuard\Storage\Internal;
 
-use AzGuard\Exceptions\InvalidConfigurationException;
+use AzGuard\Exceptions\Configuration\InvalidConfigurationException;
 use AzGuard\Kernel\Grammar\PermissionGrammar;
 use AzGuard\Kernel\Identity\IdentityCodec;
 use AzGuard\Kernel\Internal\Narrow;
@@ -17,11 +17,13 @@ use Illuminate\Database\Query\Builder;
 use Illuminate\Database\Query\JoinClause;
 use Illuminate\Database\QueryException;
 use JsonException;
+use Packman\Attributes\Internal;
 use PDO;
 use PDOException;
 use Throwable;
 
 /** @internal One consumed authority fence, including schema validation, on one pinned PDO. */
+#[Internal]
 final class StorageReadSession
 {
     private readonly Connection $connection;

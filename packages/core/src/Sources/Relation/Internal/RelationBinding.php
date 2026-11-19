@@ -6,8 +6,8 @@ namespace AzGuard\Sources\Relation\Internal;
 
 use AzGuard\Contracts\Scopes\AssignmentScopeDefinition;
 use AzGuard\Contracts\Scopes\QueryableAssignmentScopeDefinition;
-use AzGuard\Exceptions\DefinitionException;
-use AzGuard\Exceptions\InvalidIdentityException;
+use AzGuard\Exceptions\Definitions\DefinitionException;
+use AzGuard\Exceptions\Identity\InvalidIdentityException;
 use AzGuard\Kernel\Identity\IdentityCodec;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -16,11 +16,13 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Illuminate\Database\Eloquent\Relations\Relation;
+use Packman\Attributes\Internal;
 use ReflectionClass;
 use ReflectionMethod;
 use Throwable;
 
 /** Normalized related-root configuration; never resolves a subject's loaded relations. */
+#[Internal]
 final readonly class RelationBinding
 {
     /** @param class-string<Model> $model */
@@ -40,7 +42,7 @@ final readonly class RelationBinding
             throw new DefinitionException('RelationSource needs a QueryableAssignmentScopeDefinition with a non-null Eloquent model; use a queryable descriptor for '.$definition::class.'.');
         }
 
-        if (! is_subclass_of($model, Model::class) || ! (new ReflectionClass($model))->isInstantiable()) {
+        if (! is_subclass_of($model, Model::class) || ! new ReflectionClass($model)->isInstantiable()) {
             throw new DefinitionException('RelationSource model '.$model.' must be a concrete Eloquent model.');
         }
 
@@ -61,7 +63,7 @@ final readonly class RelationBinding
                 throw new DefinitionException('RelationSource '.$model.'::'.$via.'() must be a public instance relation without required arguments.');
             }
 
-            $relation = (new $model)->{$via}();
+            $relation = $method->invoke(new $model);
         } catch (DefinitionException $error) {
             throw $error;
         } catch (Throwable $error) {
@@ -102,7 +104,7 @@ final readonly class RelationBinding
     public function relation(): Relation
     {
         $model = new $this->model;
-        $relation = $model->{$this->via}();
+        $relation = new ReflectionMethod($model, $this->via)->invoke($model);
 
         if (! $relation instanceof Relation) {
             throw new DefinitionException('RelationSource related-root relation no longer returns an Eloquent relation.');

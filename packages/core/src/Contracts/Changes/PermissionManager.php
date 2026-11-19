@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace AzGuard\Contracts\Changes;
 
-use AzGuard\Attributes\Api;
 use AzGuard\Changes\ChangeResult;
 use AzGuard\Changes\PermissionDetails;
-use AzGuard\Exceptions\DuplicatePermissionException;
-use AzGuard\Exceptions\PanelNotWritableException;
-use AzGuard\Exceptions\UnknownPermissionException;
+use AzGuard\Exceptions\Changes\PanelNotWritableException;
+use AzGuard\Exceptions\Changes\UnknownPermissionException;
+use AzGuard\Exceptions\Definitions\DuplicatePermissionException;
 use AzGuard\Schema\PermissionSchema;
+use Packman\Attributes\Api;
 
 /**
  * The permissions of one panel and tenant. Permissions of enums live in code and are only listed; dynamic permissions

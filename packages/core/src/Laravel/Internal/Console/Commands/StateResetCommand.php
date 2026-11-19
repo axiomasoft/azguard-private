@@ -9,12 +9,14 @@ use AzGuard\Kernel\Decision\StateToken;
 use AzGuard\Laravel\Internal\Console\GrantCommandSupport;
 use AzGuard\Panels\Internal\PanelResolver;
 use Illuminate\Console\Command;
+use Packman\Attributes\Internal;
 
 /**
  * Gives a panel state a new incarnation and version after a manual change of the tables or a restore of the database:
  * every token, cached decision and permission set of the old state stops passing the fence. Runs under the same lock
  * as every write of the panel, as the system actor `azguard:state:reset`. Production needs `--force`.
  */
+#[Internal]
 final class StateResetCommand extends Command
 {
     use GrantCommandSupport;

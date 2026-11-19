@@ -8,17 +8,19 @@ use AzGuard\Catalog\Internal\CodeRoleCatalog;
 use AzGuard\Contracts\Changes\GrantManager;
 use AzGuard\Contracts\Changes\PermissionManager;
 use AzGuard\Contracts\Roles\RoleCatalog;
-use AzGuard\Exceptions\TenantMismatchException;
+use AzGuard\Exceptions\Changes\TenantMismatchException;
 use AzGuard\Kernel\Identity\IdentityCodec;
 use AzGuard\Kernel\Identity\TenantRef;
 use AzGuard\Panels\Panel;
 use AzGuard\Schema\Internal\SchemaBuilder;
 use Illuminate\Contracts\Container\Container;
+use Packman\Attributes\Internal;
 
 /**
  * @internal The managers of one panel, tenant and origin. The partition is fixed here and nowhere else: the managers
  * it makes take ids, filters and details, never a panel, a tenant or an origin.
  */
+#[Internal]
 final readonly class PanelManagers
 {
     private function __construct(private Container $container, private Panel $panel, private TenantRef $tenant, private string $origin) {}

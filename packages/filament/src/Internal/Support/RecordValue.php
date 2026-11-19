@@ -4,11 +4,13 @@ declare(strict_types=1);
 
 namespace AzGuard\Filament\Internal\Support;
 
+use Packman\Attributes\Internal;
 use UnexpectedValueException;
 
 /**
  * @internal Narrows a value of a table record or a form state; Filament passes both as untyped arrays.
  */
+#[Internal]
 final class RecordValue
 {
     public static function string(mixed $value, string $what): string

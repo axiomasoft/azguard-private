@@ -5,16 +5,19 @@ declare(strict_types=1);
 namespace AzGuard\Authorization\Internal\Query;
 
 use Illuminate\Database\Query\Builder;
+use Packman\Attributes\Internal;
+use ReflectionProperty;
 use RuntimeException;
 
 /** Query construction only; the unguarded core query executes after validation. */
+#[Internal]
 final class PredicateQuery extends Builder
 {
     public function __construct(Builder $source, private QueryGuard $guard)
     {
         parent::__construct($source->getConnection(), $source->getGrammar(), $source->getProcessor());
         foreach (get_object_vars($source) as $name => $value) {
-            $this->{$name} = $value;
+            new ReflectionProperty($this, $name)->setValue($this, $value);
         }
     }
 

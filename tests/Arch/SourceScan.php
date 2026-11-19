@@ -25,16 +25,13 @@ final class SourceScan
 
     /**
      * @param  string|null  $root  repository root; this repository when null
-     * @return list<string> the production source roots: every packages/<name>/src and packages/core/modules/<module>/src
+     * @return list<string> the production source roots: every packages/<name>/src
      */
     public static function productionRoots(?string $root = null): array
     {
         $root ??= dirname(__DIR__, 2);
 
-        return array_values(array_merge(
-            glob($root.'/packages/*/src', GLOB_ONLYDIR) ?: [],
-            glob($root.'/packages/core/modules/*/src', GLOB_ONLYDIR) ?: [],
-        ));
+        return array_values(glob($root.'/packages/*/src', GLOB_ONLYDIR) ?: []);
     }
 
     /**

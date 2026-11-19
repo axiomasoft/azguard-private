@@ -8,8 +8,8 @@ use AzGuard\Authorization\Internal\Authorizer;
 use AzGuard\Configuration\ConfigSections;
 use AzGuard\Configuration\Internal\AzGuardConfig;
 use AzGuard\Context\AssignmentScopeMode;
-use AzGuard\Exceptions\InvalidConfigurationException;
-use AzGuard\Exceptions\VisibilityNotSupportedException;
+use AzGuard\Exceptions\Authorization\VisibilityNotSupportedException;
+use AzGuard\Exceptions\Configuration\InvalidConfigurationException;
 use AzGuard\Kernel\Decision\DecisionReason;
 use AzGuard\Kernel\Identity\AccessScope;
 use AzGuard\Kernel\Identity\SubjectRef;
@@ -236,7 +236,13 @@ it('row 6: DevTools outside the console registers no command but still owns the 
         ->and($scaffold)->toThrow(InvalidConfigurationException::class, 'Unknown key in azguard.scaffold: folder');
 });
 
-it('row 6 control: with no DevTools to own it the scaffold section is an unknown root', function (): void {
-    expect(fn () => AzGuardConfig::fromRepository(new Repository(['azguard' => ['scaffold' => ['folder' => 'x']]]), new ConfigSections))
-        ->toThrow(InvalidConfigurationException::class, 'Unknown key in azguard: scaffold');
+it('row 6 control: without DevTools, scaffold is not owned yet valid scaffold config is tolerated and unowned roots reject', function (): void {
+    $sections = new ConfigSections;
+
+    expect(array_keys($sections->owned()))->not->toContain('scaffold')
+        ->and(AzGuardConfig::fromRepository(new Repository(['azguard' => ['scaffold' => ['namespace' => 'App\\Access', 'path' => 'app/Access']]]), $sections))->toBeInstanceOf(AzGuardConfig::class)
+        ->and(fn () => AzGuardConfig::fromRepository(new Repository(['azguard' => ['scaffold' => ['folder' => 'x']]]), $sections))
+        ->toThrow(InvalidConfigurationException::class, 'Unknown key in azguard.scaffold: folder')
+        ->and(fn () => AzGuardConfig::fromRepository(new Repository(['azguard' => ['reports' => []]]), $sections))
+        ->toThrow(InvalidConfigurationException::class, 'Unknown key in azguard: reports');
 });

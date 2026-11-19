@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace AzGuard\Schema;
 
-use AzGuard\Attributes\Api;
+use Packman\Attributes\Api;
 
 /**
  * What the writer of a panel can do, for interfaces that must not know the source class behind it: the id of the

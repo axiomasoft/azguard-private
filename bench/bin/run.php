@@ -30,7 +30,8 @@ $tier = Tier::named($option('tier', 'mini'));
 $driver = $option('driver', 'sqlite');
 $cache = $option('cache', 'none');
 $reps = (int) $option('reps', (string) $tier->reps);
-$outputDirectory = getenv('AZGUARD_BENCH_OUTPUT_DIR') ?: $root.'/bench/results';
+$rawOutDir = getenv('AZGUARD_BENCH_OUTPUT_DIR');
+$outputDirectory = is_string($rawOutDir) && $rawOutDir !== '' ? $rawOutDir : $root.'/bench/results';
 $out = $option('out', rtrim($outputDirectory, '/').'/'.gmdate('Y-m-d').'-'.$driver.'-'.$cache.'-'.$tier->name);
 $work = $root.'/bench/.runs/'.getmypid();
 $profiles = ProfileCatalog::select($option('profile', 'all'));
@@ -125,7 +126,8 @@ $result = [
 ];
 ResultFile::write($result, $out);
 $log("written {$out}.json and {$out}.md");
-array_map(static fn (string $f): bool => @unlink($f), glob($work.'/azguard_bench.sqlite*') ?: []);
+$rawWorkFiles = glob($work.'/azguard_bench.sqlite*');
+array_map(static fn (string $f): bool => @unlink($f), $rawWorkFiles === false ? [] : $rawWorkFiles);
 
 // Raw samples and worker logs stay only when something failed: the checks point there.
 if (! $failed) {

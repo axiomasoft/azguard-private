@@ -11,11 +11,11 @@ use AzGuard\Changes\GrantFilter;
 use AzGuard\Changes\GrantPage;
 use AzGuard\Changes\GrantRecord;
 use AzGuard\Context\AssignmentScopePhase;
-use AzGuard\Contracts\PanelAccess;
+use AzGuard\Contracts\Panels\PanelAccess;
 use AzGuard\Contracts\Scopes\AssignmentScopeDirectory;
 use AzGuard\Contracts\Subjects\SubjectDirectory;
 use AzGuard\Directories\LookupContext;
-use AzGuard\Exceptions\InvalidIdentityException;
+use AzGuard\Exceptions\Identity\InvalidIdentityException;
 use AzGuard\Facades\AzGuard;
 use AzGuard\Filament\Forms\SchemaFields;
 use AzGuard\Kernel\Decision\AccessRequest;
@@ -35,6 +35,7 @@ use DateTimeImmutable;
 use Filament\Facades\Filament;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Validation\ValidationException;
+use Packman\Attributes\Internal;
 use Throwable;
 use UnexpectedValueException;
 
@@ -51,6 +52,7 @@ use UnexpectedValueException;
  *
  * @internal
  */
+#[Internal]
 final readonly class GrantEditor
 {
     /** How many subjects or contexts a search offers. */

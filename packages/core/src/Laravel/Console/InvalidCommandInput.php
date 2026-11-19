@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace AzGuard\Laravel\Console;
 
-use AzGuard\Attributes\Spi;
-use AzGuard\Attributes\SpiKind;
+use Packman\Attributes\Spi;
+use Packman\Attributes\SpiKind;
 use RuntimeException;
 
 /**

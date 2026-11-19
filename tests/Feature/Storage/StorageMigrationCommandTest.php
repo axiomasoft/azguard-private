@@ -7,6 +7,9 @@ use AzGuard\Configuration\Internal\AzGuardConfig;
 use AzGuard\Storage\Internal\StorageRegistry;
 use AzGuard\Storage\Schema\StorageSchema;
 use Illuminate\Support\ServiceProvider;
+use Orchestra\Testbench\TestCase as OrchestraTestCase;
+use Packman\Schema\Contracts\Migration\SchemaSets;
+use Packman\Schema\Laravel\PackmanMigration;
 
 it('uses the same template for default and host migrations', function (): void {
     $root = dirname(__DIR__, 3).'/packages/core/';
@@ -58,10 +61,40 @@ it('loads the default migration and publishes azguard-migrations', function (): 
 
     try {
         $migration->up();
-        expect($storage->state('admin'))->toBeNull();
+        expect($migration)->toBeInstanceOf(PackmanMigration::class)
+            ->and($storage->state('admin'))->toBeNull();
         expect(ServiceProvider::pathsToPublish(AzGuardServiceProvider::class, 'azguard-migrations'))->toHaveCount(1);
-        expect(app('migrator')->paths())->toContain(dirname(__DIR__, 3).'/packages/core/src/../database/migrations');
+        $registeredPaths = array_map(static fn (string $path): string => realpath($path) ?: $path, app('migrator')->paths());
+        expect($registeredPaths)->toContain(realpath(dirname(__DIR__, 3).'/packages/core/database/migrations'))
+            ->and(app(SchemaSets::class)->get('axiomasoft/azguard:azguard-storage')->path)
+            ->toBe(realpath(dirname(__DIR__, 3).'/packages/core/database/migrations'));
     } finally {
         $migration->down();
     }
+});
+
+it('governs automatic migration loading via packman.schema.auto_load_migrations while keeping SchemaSets registered', function (): void {
+    $case = new class('governed-migrations') extends OrchestraTestCase
+    {
+        protected function getPackageProviders($app): array
+        {
+            return [AzGuardServiceProvider::class];
+        }
+
+        protected function getEnvironmentSetUp($app): void
+        {
+            $app['config']->set('packman.schema.auto_load_migrations', false);
+        }
+    };
+
+    $app = $case->createApplication();
+    $coreMigrationDir = realpath(dirname(__DIR__, 3).'/packages/core/database/migrations');
+    $registeredPaths = array_map(
+        static fn (string $path): string => realpath($path) ?: $path,
+        $app->make('migrator')->paths(),
+    );
+
+    expect($coreMigrationDir)->not->toBeFalse()
+        ->and($registeredPaths)->not->toContain($coreMigrationDir)
+        ->and($app->make(SchemaSets::class)->get('axiomasoft/azguard:azguard-storage')->path)->toBe($coreMigrationDir);
 });

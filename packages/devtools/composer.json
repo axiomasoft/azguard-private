@@ -1,0 +1,63 @@
+{
+    "name": "axiomasoft/azguard-devtools",
+    "description": "Scaffolding, installation, and stub generators for AzGuard panels (dev-only)",
+    "type": "library",
+    "license": "MIT",
+    "keywords": [
+        "laravel",
+        "authorization",
+        "azguard",
+        "devtools",
+        "scaffolding",
+        "generators"
+    ],
+    "homepage": "https://github.com/axiomasoft/azguard",
+    "authors": [
+        {
+            "name": "Dmitry Vostrikov",
+            "email": "dv.vostrikov@gmail.com"
+        }
+    ],
+    "support": {
+        "email": "dv.vostrikov@gmail.com",
+        "issues": "https://github.com/axiomasoft/azguard/issues",
+        "security": "https://github.com/axiomasoft/azguard-private/blob/main/SECURITY.md",
+        "source": "https://github.com/axiomasoft/azguard"
+    },
+    "require": {
+        "php": "^8.4",
+        "axiomasoft/azguard": "^2.0",
+        "axiomasoft/packman": "^0.1",
+        "axiomasoft/packman-devtools": "^0.1",
+        "axiomasoft/packman-plugins": "^0.1.1",
+        "illuminate/console": "^13.0",
+        "illuminate/contracts": "^13.0",
+        "illuminate/filesystem": "^13.0",
+        "illuminate/support": "^13.0",
+        "symfony/process": "^7.0|^8.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "AzGuard\\DevTools\\": "src/"
+        }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-main": "2.0.x-dev"
+        },
+        "laravel": {
+            "providers": [
+                "AzGuard\\DevTools\\DevToolsServiceProvider"
+            ]
+        },
+        "packman": {
+            "schema-version": 1,
+            "package-type": "tooling",
+            "stability": "stable",
+            "dev-only": true,
+            "owns": [
+                "Extensions"
+            ]
+        }
+    }
+}

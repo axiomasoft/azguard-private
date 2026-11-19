@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use AzGuard\Exceptions\InvalidPermissionKeyException;
+use AzGuard\Exceptions\Identity\InvalidPermissionKeyException;
 use AzGuard\Kernel\Internal\PatternMatcher;
 
 it('covers a local key by a pattern segment-wise', function (string $pattern, string $local, bool $covered): void {

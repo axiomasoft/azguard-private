@@ -6,18 +6,20 @@ namespace AzGuard\Authorization\Internal;
 
 use AzGuard\Catalog\Internal\PanelCatalog;
 use AzGuard\Catalog\Internal\RoleCompiler;
+use AzGuard\Contracts\Sources\EvaluatesAutomaticRoles;
 use AzGuard\Contracts\Sources\Source;
 use AzGuard\Kernel\Decision\Grant;
 use AzGuard\Kernel\Decision\RoleContribution;
 use AzGuard\Kernel\Identity\TenantRef;
 use AzGuard\Panels\Panel;
 use AzGuard\Roles\GrantedAutomatically;
-use AzGuard\Sources\Internal\EvaluatesAutomaticRoles;
 use DateTimeImmutable;
 use Illuminate\Support\Facades\Log;
+use Packman\Attributes\Internal;
 use Throwable;
 
 /** @phpstan-import-type CompiledRole from RoleCompiler */
+#[Internal]
 final class ContributionQualifier
 {
     /** @return array{CompiledRole|null, ?string} */
