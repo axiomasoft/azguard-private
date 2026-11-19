@@ -113,7 +113,7 @@ final class MakePermissionCommand extends MakeCommand
      */
     private function customCases(): ?array
     {
-        $given = array_values(array_filter((array) $this->option('case'), is_string(...)));
+        $given = array_values(array_filter((array) $this->input->getOption('case'), is_string(...)));
 
         if ($given === []) {
             return null;

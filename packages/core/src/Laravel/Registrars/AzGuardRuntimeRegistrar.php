@@ -19,7 +19,6 @@ use AzGuard\Panels\Internal\CurrentPanel;
 use AzGuard\Panels\Internal\PanelCompiler;
 use AzGuard\Panels\Internal\PanelRegistry;
 use AzGuard\Sources\SourceManager;
-use AzGuard\Storage\Internal\StorageTouched;
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Queue\Events\JobProcessing;
 use Packman\Attributes\Internal;
@@ -46,11 +45,6 @@ final class AzGuardRuntimeRegistrar implements PackageRegistrar
         // Its stage graph reads the scoped CurrentContext and CurrentPanel, so it lives exactly as long as they do.
         $app->scoped(Authorizer::class);
         $app->scoped(PermissionSetCache::class);
-        $app->make('events')->listen(StorageTouched::class, static function (StorageTouched $event) use ($app): void {
-            foreach ($event->panels as $panel) {
-                $app->make(PermissionSetCache::class)->forgetPanel($panel);
-            }
-        });
 
         $app->scoped(ActingActor::class);
         $app->scoped(CurrentPanel::class);

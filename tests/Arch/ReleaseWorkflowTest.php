@@ -145,7 +145,8 @@ function releaseViolations(array $workflows): array
     }
 
     foreach (['validate', 'validate-consumers', 'artifacts', 'release'] as $job) {
-        $checkouts = array_values(array_filter(releaseSteps($jobs[$job] ?? []), static fn (array $step): bool => str_starts_with((string) ($step['uses'] ?? ''), 'actions/checkout@')));
+        $checkouts = array_values(array_filter(releaseSteps($jobs[$job] ?? []), static fn (array $step): bool => str_starts_with((string) ($step['uses'] ?? ''), 'actions/checkout@')
+            && ! (($step['with']['repository'] ?? null) === 'axiomasoft/packman' && ($step['with']['path'] ?? null) === 'build/ci/packman')));
 
         if (count($checkouts) !== 1 || ($checkouts[0]['with']['ref'] ?? null) !== '${{ github.sha }}') {
             $violations[] = "release.yml: {$job} checkout must use the candidate SHA";
@@ -583,6 +584,15 @@ it('reports a broken release graph', function (Closure $break, string $violation
 
         return $w;
     }, 'tests.yml: test must audit its resolved lock before recording success'],
+    'dependency checkout overwrites the release candidate' => [static function (array $w): array {
+        foreach ($w['release.yml']['jobs']['validate-consumers']['steps'] as &$step) {
+            if (($step['with']['repository'] ?? null) === 'axiomasoft/packman') {
+                unset($step['with']['path']);
+            }
+        }
+
+        return $w;
+    }, 'release.yml: validate-consumers checkout must use the candidate SHA'],
     'release checkout follows a moved tag' => [static function (array $w): array {
         unset($w['release.yml']['jobs']['release']['steps'][0]['with']['ref']);
 

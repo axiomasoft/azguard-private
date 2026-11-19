@@ -39,15 +39,15 @@ REVIEWED_WORKFLOWS = {
     'docs-deploy.yml': '15efe0198116c95ea5205fc336f8eef90139efc68e157b00d1259c1dece6d5bf',
     'docs.yml': '4ae6826bdb0d02c9df13a82b4865c85bc21811b0f296412c8f02018422ba22d6',
     'pr-check.yml': '23625feba2ba1d75d5f2babd9fde39ca0d275f126ce68ada9ce26ad2d6c5c463',
-    'release.yml': '556c3406798b4f1424769a09def3e421065bb0e208467213e0b8fe94451e5c29',
+    'release.yml': 'f5ab3afaef6f0df9a1a02a408462a9a241b96f2870f29d951a0b49129e4fa599',
     'release-setup-probe.yml': '8786c2fc34a1e241e6f053e65361dfb5d4019d9769aa795d3adb8216dad6b6c2',
     'secret-scan.yml': '405d61d500751cb018bdb433d19fda6ef804ebce4f01e4052c1975646fd0c2b3',
     'security.yml': 'b7e05c407d855a2f56c9c3915dfed25f090abd84e87a58b8ad605f303de54700',
     'split.yml': '726b6360ba6304b23b31c15cd0267288ee3ec4cee02de4a7f91cccc29ff55ea5',
     'static-analysis.yml': '0bff4437df4d28e6106dbaebc0ea036da7ddd6de01e9ffe16368b52b657fd63c',
     'tests-nightly.yml': '65b012c799f680d2acdfc533b8b12878787f579d1640ce085429e6e7aabfc03f',
-    'tests.yml': '2e4a427a9752a40e1baf953520ff13a2e9a1255ed8ac453bc1510f5d7f9c1c05',
-    'workers.yml': '634ddc2c89a314f7843468b795965adc671640d0555acde3dce52ea9be82d3fc',
+    'tests.yml': 'b564e41f3de9a4aff0ac8e7e101d8650d7d71122e69e64ced51d1a1e71a11206',
+    'workers.yml': 'ee5ecbb37bfa6351a4107a4b233983bc084ae57cd879ccc3d1894b0daf7480f1',
     'zizmor.yml': '8ff0493fa73450bedaf12224a0824143f9e1efcc308bd19d10d11f8f98ec0d57',
 }
 # Set each digest only after independent review of the exact package workflow.

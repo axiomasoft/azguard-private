@@ -258,7 +258,7 @@ final class PermissionSetCache
                 return $connection->command('eval', [$script, 1, $redisKey, $maxBytes]);
             }
 
-            return $connection->command('get', [$redisKey]);
+            return $connection instanceof PhpRedisConnection ? $connection->get($redisKey) : null;
         }
 
         return null;

@@ -151,6 +151,8 @@ export_database_env
 
 composer config minimum-stability dev
 composer config prefer-stable true
+bash "$root/bin/packman-consumer-archives.sh" "$work/packman-dist"
+composer config repositories.packman artifact "$work/packman-dist"
 composer config repositories.azguard artifact "${dist_from}"
 log "installing the older archive"
 composer require "axiomasoft/azguard:*" --no-interaction --no-progress >/dev/null

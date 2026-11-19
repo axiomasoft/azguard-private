@@ -30,7 +30,7 @@ final class MakePluginCommand extends MakeCommand
 
     protected function plan(Layout $layout, StubStore $stubs): array
     {
-        $place = $this->panelOrShared($layout, 'Plugins', $this->stringOption('panel'), (bool) $this->option('shared'));
+        $place = $this->panelOrShared($layout, 'Plugins', $this->stringOption('panel'), (bool) $this->input->getOption('shared'));
         $class = $layout->className($this->stringArgument('name'), 'Plugin');
 
         return [$this->generated($layout, $place->file($class), $stubs->render('plugin', [

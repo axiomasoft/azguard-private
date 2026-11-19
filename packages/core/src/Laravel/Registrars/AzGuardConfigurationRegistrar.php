@@ -8,14 +8,12 @@ use AzGuard\Catalog\Internal\CatalogCache;
 use AzGuard\Configuration\AzGuardOptions;
 use AzGuard\Configuration\ConfigSections;
 use AzGuard\Configuration\Internal\AzGuardConfig;
-use AzGuard\Storage\Internal\StorageRegistry;
 use Illuminate\Contracts\Foundation\Application;
-use Illuminate\Database\DatabaseManager;
 use Packman\Attributes\Internal;
 use Packman\Foundation\Contracts\PackageRegistrar;
 use Packman\PackmanServiceProvider;
 
-#[Internal('Package configuration, storage registry, and catalog cache registrar.')]
+#[Internal('Package configuration and catalog cache registrar.')]
 final class AzGuardConfigurationRegistrar implements PackageRegistrar
 {
     public function register(Application $app): void
@@ -40,14 +38,6 @@ final class AzGuardConfigurationRegistrar implements PackageRegistrar
             static fn (Application $app): AzGuardConfig => AzGuardConfig::fromRepository(
                 $app->make('config'),
                 $app->make(ConfigSections::class),
-            ),
-        );
-
-        $app->singleton(
-            StorageRegistry::class,
-            static fn (Application $app): StorageRegistry => new StorageRegistry(
-                $app->make(AzGuardConfig::class),
-                $app->make(DatabaseManager::class),
             ),
         );
 

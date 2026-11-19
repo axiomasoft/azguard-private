@@ -4,11 +4,10 @@ declare(strict_types=1);
 
 namespace AzGuard\Laravel\Internal\Console\Commands;
 
+use AzGuard\AzGuard;
 use AzGuard\Exceptions\Configuration\InvalidConfigurationException;
 use AzGuard\Laravel\Console\CommandSupport;
 use AzGuard\Laravel\Console\InvalidCommandInput;
-use AzGuard\Storage\Internal\StorageRegistry;
-// nosemgrep: azguard.grant-table-outside-storage -- the migration command only asks the registry for table descriptors; it never reads or writes grant rows
 use Illuminate\Console\Command;
 use Illuminate\Filesystem\Filesystem;
 use Packman\Attributes\Internal;
@@ -22,9 +21,9 @@ final class StorageMigrationCommand extends Command
 
     protected $description = 'Generate a migration for a configured AzGuard storage';
 
-    public function handle(StorageRegistry $storages, Filesystem $files): int
+    public function handle(AzGuard $azguard, Filesystem $files): int
     {
-        return $this->attempt(function () use ($storages, $files): int {
+        return $this->attempt(function () use ($azguard, $files): int {
             $name = $this->stringArgument('name');
 
             if ($name === 'default') {
@@ -32,7 +31,7 @@ final class StorageMigrationCommand extends Command
             }
 
             try {
-                $storages->get($name);
+                $azguard->storage($name);
             } catch (InvalidConfigurationException $error) {
                 throw new InvalidCommandInput($error->getMessage(), previous: $error);
             }

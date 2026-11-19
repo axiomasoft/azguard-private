@@ -7,9 +7,9 @@ autoload, undiscovered providers) that the monorepo test suite cannot see.
 ## Run
 
 ```bash
-bash bin/consumer-fixture.sh                      # core archive, Laravel 13
+bash bin/consumer-fixture.sh                      # core, Scopes, Audit and DevTools archives, Laravel 13
 bash bin/consumer-fixture.sh --with-filament      # core and Filament archives
-bash bin/consumer-fixture.sh core-only            # the core archive without modules/ (no Scopes, Audit, DevTools)
+bash bin/consumer-fixture.sh core-only            # the core archive alone
 bash bin/consumer-fixture.sh relocated-audit      # Audit moved to its own archive in an application with journal rows
 bash bin/consumer-fixture.sh --laravel=13 --version=2.0.0-rc.1 --keep
 ```
@@ -17,19 +17,19 @@ bash bin/consumer-fixture.sh --laravel=13 --version=2.0.0-rc.1 --keep
 | Option | Meaning |
 |:--|:--|
 | `--laravel=N` | Laravel major version of the fixture application (default `13`) |
-| `--version=V` | Version stamped into the **copies** of the package manifests (default `2.0.0-rc.1`) |
+| `--version=V` | Version stamped into the **copies** of the package manifests (default `2.0.0`) |
 | `--with-filament` | Also install `axiomasoft/azguard-filament` |
 | `--keep` | Keep the temporary directory and print its path |
-| `core-only` | Build the core archive without `modules/` (module providers and PSR-4 roots removed), install it and run `fixtures/consumer/core-only`: migrate, `azguard:doctor`, one grant, one check, no module command registered. Does not combine with `--with-filament` |
+| `core-only` | Install the standalone core archive and run `fixtures/consumer/core-only`: migrate, `azguard:doctor`, one grant, one check, no module command registered. Does not combine with `--with-filament` |
 | `relocated-audit` | Module relocation rehearsal, below. Does not combine with `--with-filament` |
 | `--report=FILE` | With `relocated-audit`: write the before/after record (archives with sha256, facts, exit codes) as Markdown |
 
 What the script does:
 
-1. Copies `packages/core` and `packages/filament` to a temporary directory, sets `version` in the copies only, and
+1. Copies the AzGuard packages selected by the scenario to a temporary directory, sets `version` in the copies and
    runs `composer archive --format=zip` into `build/dist/` (ignored by git).
 2. Runs `composer create-project laravel/laravel` for the requested major version.
-3. Adds `build/dist` as an `artifact` repository and requires the packages from it.
+3. Requires the AzGuard archives from `build/dist` and the locked Packman dependencies from archives built from the matching tag in the sibling `../packman` checkout.
 4. Checks that the packages are installed archives, that `php artisan package:discover` registers
    `AzGuard\AzGuardServiceProvider` (and the Filament provider with `--with-filament`), and that `php artisan about` runs.
 
@@ -39,15 +39,14 @@ result is `unavailable`, never green.
 
 ## Relocation rehearsal (`relocated-audit`)
 
-A future extraction of a module must not migrate API, schema or data. The rehearsal moves the most demanding slice,
-Audit (table, migration basename, publish tag, two commands, plugin id, doctor check, journal rows):
+The rehearsal verifies that the journal and public API survive the upgrade from embedded Audit to the standalone package.
 
-1. **Before.** The full core archive is installed with `fixtures/consumer/relocated-audit`: the panel `audited` with
+1. **Before.** A fixture core archive with the Audit sources embedded under `modules/audit` is installed with `fixtures/consumer/relocated-audit`: the panel `audited` with
    `AuditPlugin`, `vendor:publish --tag=azguard-audit-migrations`, `migrate` and two audited grants
    (`php journal.php grant`). The script records `migrate:status`, the journal rows (count and a sha256 of event id and
    payload per row), the synopses of `azguard:audit:*`, the published migrations and `azguard:doctor --json`.
 2. **Relocate.** `build/dist-relocated/` gets a core archive without `modules/audit` (no `AzGuard\Audit\` root, no
-   `AuditServiceProvider`) and a synthetic `axiomasoft/azguard-audit` archive whose root is `modules/audit` with the same
+   `AuditServiceProvider`) and the real `axiomasoft/azguard-audit` archive from `packages/audit` with the same
    PSR-4 prefix and provider. Both carry the next patch version (a relocation is a release; Composer replaces a package
    only for another version) and are required in the same application.
 3. **After.** `AzGuard\Audit\` has one PSR-4 and classmap owner (`vendor/axiomasoft/azguard-audit`); the Audit migration
@@ -59,7 +58,7 @@ Nothing of this is a package in the repository: no `packages/audit`, no split co
 
 ## CI
 
-The `consumer-fixture` job in `.github/workflows/tests.yml` runs `bin/consumer-matrix.sh` across the supported PHP/Laravel pairs (`8.3`/`12`, `8.3`/`13`, `8.4`/`12`, `8.4`/`13`, `8.5`/`13`) and smokes the local Filament archive for both `lowest` and `latest` dependency policies.
+The `consumer-fixture` job in `.github/workflows/tests.yml` runs `bin/consumer-matrix.sh` across the supported PHP/Laravel pairs (`8.4`/`13`, `8.5`/`13`) and smokes the local Filament archive for both `lowest` and `latest` dependency policies.
 
 ## Fixtures
 

@@ -30,7 +30,7 @@ final class StubsCommand extends Command
     {
         return $this->attempt(function () use ($files): int {
             $stubs = new StubStore($this->laravel->basePath(), $files);
-            $result = $stubs->publish((bool) $this->option('force'));
+            $result = $stubs->publish((bool) $this->input->getOption('force'));
 
             foreach ($result['written'] as $name) {
                 $this->components->info('Published '.StubStore::PUBLISHED.'/'.$name);

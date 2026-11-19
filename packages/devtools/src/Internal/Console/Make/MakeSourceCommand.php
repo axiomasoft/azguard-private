@@ -47,14 +47,14 @@ final class MakeSourceCommand extends MakeCommand
 
     protected function plan(Layout $layout, StubStore $stubs): array
     {
-        $place = $this->panelOrShared($layout, 'Sources', $this->stringOption('panel'), (bool) $this->option('shared'));
+        $place = $this->panelOrShared($layout, 'Sources', $this->stringOption('panel'), (bool) $this->input->getOption('shared'));
         $class = $layout->className($this->stringArgument('name'), 'Source');
         $capabilities = array_filter([
             'grants' => [ProvidesGrants::class, [Grant::class, AccessScope::class, SubjectRef::class, EvaluationContext::class, Volatility::class]],
             'permissions' => [ProvidesPermissions::class, [PermissionDefinition::class, Panel::class, TenantRef::class]],
             'roles' => [ProvidesRoles::class, [BaseRole::class, Panel::class]],
             'policies' => [ProvidesPolicies::class, [PolicyBinding::class, Panel::class]],
-        ], fn (string $option): bool => (bool) $this->option($option), ARRAY_FILTER_USE_KEY);
+        ], fn (string $option): bool => (bool) $this->input->getOption($option), ARRAY_FILTER_USE_KEY);
 
         $imports = [AsSource::class];
         $interfaces = [];

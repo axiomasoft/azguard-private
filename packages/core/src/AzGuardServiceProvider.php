@@ -44,6 +44,7 @@ final class AzGuardServiceProvider extends ServiceProvider
     protected const array REGISTRARS = [
         AzGuardConfigurationRegistrar::class,
         AzGuardRuntimeRegistrar::class,
+        AzGuardStorageRegistrar::class,
         AzGuardExtensionRegistrar::class,
         AzGuardLaravelRegistrar::class,
     ];
