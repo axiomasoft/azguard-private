@@ -65,6 +65,7 @@ if ($engines) {
 } else {
     // `server-skip` marks the SQLite-only tests and the ones that need a stand of their own (engines, replica, Redis).
     $flags[] = '--exclude-group=server-skip';
+
     if ($driver !== 'pgsql') {
         $flags[] = '--exclude-group=pg';
     }
