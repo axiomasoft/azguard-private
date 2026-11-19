@@ -97,7 +97,7 @@
         }
     },
     "database": [
-        "Feature/Storage", "Feature/Sources/Database", "Feature/Changes", "Feature/Visibility", "Feature/Directories",
+        "Feature/Extensions/PostgresIntegrationTest.php", "Feature/Storage", "Feature/Sources/Database", "Feature/Changes", "Feature/Visibility", "Feature/Directories",
         "Feature/Parity", "Feature/Activation", "Contracts", "Modules/Scopes/Contracts", "Modules/Audit/Contracts", "Engines"
     ],
     "global": ["composer.json", "composer.lock", "phpunit.xml", "tests/Pest.php", "tests/TestCase.php", "tests/zones.json", "bin/test-changed.php", "tests/Support", "tests/Fixtures", "packages/core/composer.json", "packages/scopes/composer.json", "packages/audit/composer.json", "packages/devtools/composer.json", "packages/filament/composer.json"]

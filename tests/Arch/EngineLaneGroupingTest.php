@@ -40,26 +40,23 @@ it('excludes MySQL-only regressions from the standard SQLite lane without exclud
         ->toContain('__pest_evaluable_it_refuses_an_export_action_invoked_without_view_any_and_creates_no_export');
 });
 
-it('excludes MySQL-only regressions in every serial SQLite entry point', function (): void {
+it('uses the driver exclusions in the SQLite entry points', function (): void {
     $root = dirname(__DIR__, 2);
-    foreach (['bin/test-changed.php', 'bin/coverage-gate.sh'] as $path) {
-        expect((string) file_get_contents($root.'/'.$path))->toContain('--exclude-group=mysql-engines');
+    $composer = json_decode((string) file_get_contents($root.'/composer.json'), true, flags: JSON_THROW_ON_ERROR);
+    foreach ([$composer['scripts']['test:parallel'], file_get_contents($root.'/bin/test-changed.php'), file_get_contents($root.'/bin/coverage-gate.sh')] as $entryPoint) {
+        expect($entryPoint)->toContain('--exclude-group=mysql-engines')->toContain('--exclude-group=pg');
     }
 
     $workflow = Yaml::parseFile($root.'/.github/workflows/tests.yml');
-    $runs = [];
-    foreach ($workflow['jobs'] as $job) {
-        foreach ($job['steps'] ?? [] as $step) {
-            $run = $step['run'] ?? '';
-
-            if (is_string($run) && str_contains($run, '--exclude-group=engines')) {
-                $runs[] = $run;
-            }
-        }
-    }
-
-    expect($runs)->not->toBeEmpty();
-    foreach ($runs as $run) {
-        expect($run)->toContain('--exclude-group=mysql-engines');
-    }
+    expect(array_column($workflow['jobs']['test']['steps'], 'run'))->toContain('composer test:parallel -- --ci')
+        ->and(array_column($workflow['jobs']['coverage']['steps'], 'run'))->toContain('bash bin/coverage-gate.sh --ci --exclude-group=extended --coverage-clover=coverage.xml');
 });
+
+it('runs the PostgreSQL integration in the matching server lane', function (string $driver, int $expected): void {
+    $process = new Process([
+        PHP_BINARY, 'bin/test-db.php', $driver, 'tests/Feature/Extensions/PostgresIntegrationTest.php', '--list-tests',
+    ], dirname(__DIR__, 2));
+    $process->mustRun();
+
+    expect(substr_count($process->getOutput(), '__pest_evaluable_it_runs_AzGuard_core_migrations'))->toBe($expected);
+})->with(['pgsql' => ['pgsql', 1], 'mysql' => ['mysql', 0], 'mariadb' => ['mariadb', 0]]);
