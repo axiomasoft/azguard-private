@@ -1,9 +1,10 @@
 #!/usr/bin/env bash
-# Build the locked Packman runtime packages from the tagged monorepo for an isolated Composer host.
+# Build the locked Packman packages from the tagged monorepo for an isolated Composer host.
 set -Eeuo pipefail
 root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 target="${1:?Expected the artifact directory}"
 mkdir -p "$target"
+target="$(cd "$target" && pwd)"
 php -r '
     $lock = json_decode(file_get_contents($argv[1]), true, flags: JSON_THROW_ON_ERROR);
     foreach (array_merge($lock["packages"], $lock["packages-dev"]) as $package) {

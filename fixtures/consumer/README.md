@@ -26,7 +26,7 @@ bash bin/consumer-fixture.sh --laravel=13 --version=2.0.0-rc.1 --keep
 
 What the script does:
 
-1. Copies the AzGuard packages selected by the scenario to a temporary directory, sets `version` in the copies only, and
+1. Copies the AzGuard packages selected by the scenario to a temporary directory, sets `version` in the copies and
    runs `composer archive --format=zip` into `build/dist/` (ignored by git).
 2. Runs `composer create-project laravel/laravel` for the requested major version.
 3. Requires the AzGuard archives from `build/dist` and the locked Packman dependencies from archives built from the matching tag in the sibling `../packman` checkout.
@@ -39,8 +39,7 @@ result is `unavailable`, never green.
 
 ## Relocation rehearsal (`relocated-audit`)
 
-The rehearsal verifies the migration from embedded Audit to the standalone package. It exercises
-Audit (table, migration basename, publish tag, two commands, plugin id, doctor check, journal rows):
+The rehearsal verifies that the journal and public API survive the upgrade from embedded Audit to the standalone package.
 
 1. **Before.** A fixture core archive with the Audit sources embedded under `modules/audit` is installed with `fixtures/consumer/relocated-audit`: the panel `audited` with
    `AuditPlugin`, `vendor:publish --tag=azguard-audit-migrations`, `migrate` and two audited grants

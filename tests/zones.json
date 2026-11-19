@@ -57,7 +57,7 @@
             "uses": ["kernel", "catalog", "storage", "sources", "changes", "testing-kit"]
         },
         "console": {
-            "src": ["packages/core/src/Laravel", "packages/core/src/Diagnostics", "packages/core/src/Extensions", "packages/core/src/AzGuard.php", "packages/core/src/AzGuardServiceProvider.php"],
+            "src": ["packages/core/src/Laravel", "packages/core/src/Diagnostics", "packages/core/src/Extensions", "packages/core/src/AzGuard.php", "packages/core/src/AzGuardServiceProvider.php", "packages/core/src/AzGuardStorageRegistrar.php"],
             "tests": ["Feature/Console", "Feature/Diagnostics", "Feature/Extensions", "Feature/Laravel", "Feature/Activation", "Feature/ServiceProviderTest.php", "Unit/ServiceProviderContractTest.php"],
             "uses": ["kernel", "catalog", "storage", "sources", "changes", "authorization", "visibility", "testing-kit", "scopes", "audit", "devtools"]
         },

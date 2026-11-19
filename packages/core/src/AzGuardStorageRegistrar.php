@@ -2,10 +2,12 @@
 
 declare(strict_types=1);
 
-namespace AzGuard\Storage\Internal;
+namespace AzGuard;
 
 use AzGuard\Authorization\Internal\Cache\PermissionSetCache;
 use AzGuard\Configuration\Internal\AzGuardConfig;
+use AzGuard\Storage\Internal\StorageRegistry;
+use AzGuard\Storage\Internal\StorageTouched;
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Database\DatabaseManager;
 use Packman\Attributes\Internal;
@@ -13,7 +15,7 @@ use Packman\Foundation\Concerns\RegistersNothingOnBoot;
 use Packman\Foundation\Contracts\PackageRegistrar;
 
 #[Internal]
-final class StorageRegistrar implements PackageRegistrar
+final class AzGuardStorageRegistrar implements PackageRegistrar
 {
     use RegistersNothingOnBoot;
 

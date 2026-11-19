@@ -9167,19 +9167,19 @@
             }
         },
         {
-            "current": "AzGuard\\Storage\\Internal\\StorageRegistrar",
-            "current_path": "packages/core/src/Storage/Internal/StorageRegistrar.php",
+            "current": "AzGuard\\AzGuardStorageRegistrar",
+            "current_path": "packages/core/src/AzGuardStorageRegistrar.php",
             "kind": "class",
-            "lines": 36,
+            "lines": 38,
             "current_marker": "internal",
             "owner": "core",
-            "target": "AzGuard\\Storage\\Internal\\StorageRegistrar",
-            "target_path": "packages/core/src/Storage/Internal/StorageRegistrar.php",
+            "target": "AzGuard\\AzGuardStorageRegistrar",
+            "target_path": "packages/core/src/AzGuardStorageRegistrar.php",
             "marker": "internal",
             "enum": null,
             "action": "keep",
             "phase": "\u2014",
-            "reason": "Storage registry and committed cache invalidation are wired inside the storage layer."
+            "reason": "Package composition connects committed storage writes to scoped authorization cache invalidation."
         },
         {
             "current": "AzGuard\\Storage\\StorageRegistry",
