@@ -1,5 +1,7 @@
 # AzGuard — Development
 
+The monorepo uses a sibling Packman checkout for its Composer path repository. Before running Composer, clone Packman beside AzGuard with `git clone --branch v0.1.1 https://github.com/axiomasoft/packman.git ../packman`.
+
 ## Layout
 
 This monorepo develops AzGuard 2.0, with `2.0.0-rc.1` planned before `2.0.0`. Nothing is published yet; see

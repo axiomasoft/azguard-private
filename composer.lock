@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "9210a639211cd4e0ee16c9339975f795",
+    "content-hash": "2cb82c229c5b0bfd5637b880f753df67",
     "packages": [
         {
             "name": "anourvalar/eloquent-serialize",
@@ -77,12 +77,12 @@
             "dist": {
                 "type": "path",
                 "url": "packages/core",
-                "reference": "d508eb8e41474e7beecdd276bc08defa4c45dfc2"
+                "reference": "fbf752731bbc335ac739e3e95c34133c77525e9e"
             },
             "require": {
                 "axiomasoft/packman": "^0.1",
                 "axiomasoft/packman-panels": "^0.1",
-                "axiomasoft/packman-plugins": "^0.1",
+                "axiomasoft/packman-plugins": "^0.1.1",
                 "axiomasoft/packman-schema": "^0.1",
                 "illuminate/auth": "^13.0",
                 "illuminate/console": "^13.0",
@@ -189,12 +189,12 @@
             "dist": {
                 "type": "path",
                 "url": "packages/audit",
-                "reference": "d851909ab8d0cb996e979a5412052ba2a025ea75"
+                "reference": "374bbef823178d82e6218d58205a2051217f4294"
             },
             "require": {
                 "axiomasoft/azguard": "^2.0",
                 "axiomasoft/packman": "^0.1",
-                "axiomasoft/packman-plugins": "^0.1",
+                "axiomasoft/packman-plugins": "^0.1.1",
                 "axiomasoft/packman-schema": "^0.1",
                 "illuminate/console": "^13.0",
                 "illuminate/contracts": "^13.0",
@@ -263,13 +263,13 @@
             "dist": {
                 "type": "path",
                 "url": "packages/filament",
-                "reference": "976490da91c16f4522d1ee83f9d0a4bcfa34dcaa"
+                "reference": "360065d40e8269d0da4b42a70a2abf1afb522ae4"
             },
             "require": {
                 "axiomasoft/azguard": "^2.0",
                 "axiomasoft/packman": "^0.1",
                 "axiomasoft/packman-filament": "^0.1",
-                "axiomasoft/packman-plugins": "^0.1",
+                "axiomasoft/packman-plugins": "^0.1.1",
                 "filament/filament": "^5.8.4",
                 "php": "^8.4"
             },
@@ -338,12 +338,12 @@
             "dist": {
                 "type": "path",
                 "url": "packages/scopes",
-                "reference": "7165cbb92088ec5de9b8cf2bb102bf36853195a0"
+                "reference": "28cda4b8924a4d2719819a7dd268be0928efa0c4"
             },
             "require": {
                 "axiomasoft/azguard": "^2.0",
                 "axiomasoft/packman": "^0.1",
-                "axiomasoft/packman-plugins": "^0.1",
+                "axiomasoft/packman-plugins": "^0.1.1",
                 "illuminate/contracts": "^13.0",
                 "illuminate/database": "^13.0",
                 "php": "^8.4"
@@ -404,11 +404,11 @@
         },
         {
             "name": "axiomasoft/packman",
-            "version": "0.1.0",
+            "version": "0.1.1",
             "dist": {
                 "type": "path",
                 "url": "../packman/packages/core",
-                "reference": "427c64d95b07b2586b49a45462267c47a7f8d898"
+                "reference": "2fef24d75767d0584aec3c6c13034d22338a1e4c"
             },
             "require": {
                 "php": "^8.4",
@@ -486,11 +486,11 @@
         },
         {
             "name": "axiomasoft/packman-filament",
-            "version": "0.1.0",
+            "version": "0.1.1",
             "dist": {
                 "type": "path",
                 "url": "../packman/packages/filament",
-                "reference": "92b3f37059c4aa132dea44df5a7aa65f1178f2ec"
+                "reference": "d0898ca50b78d540fa40faec9c03e8c5f0195073"
             },
             "require": {
                 "axiomasoft/packman": "^0.1",
@@ -537,11 +537,11 @@
         },
         {
             "name": "axiomasoft/packman-panels",
-            "version": "0.1.0",
+            "version": "0.1.1",
             "dist": {
                 "type": "path",
                 "url": "../packman/packages/panels",
-                "reference": "a0f0731a11fa590aa38da58fcc5449c328fd034a"
+                "reference": "e1d92e0a3aa7e9bed71a7a1072891141b76ca6d1"
             },
             "require": {
                 "axiomasoft/packman": "^0.1",
@@ -591,11 +591,11 @@
         },
         {
             "name": "axiomasoft/packman-plugins",
-            "version": "0.1.0",
+            "version": "0.1.1",
             "dist": {
                 "type": "path",
                 "url": "../packman/packages/plugins",
-                "reference": "80980ae9f8b10f8930297ce89d6612179b6e0ec1"
+                "reference": "1bc3cf161cefb63865189d016b6599666bc83f3e"
             },
             "require": {
                 "axiomasoft/packman": "^0.1",
@@ -643,11 +643,11 @@
         },
         {
             "name": "axiomasoft/packman-schema",
-            "version": "0.1.0",
+            "version": "0.1.1",
             "dist": {
                 "type": "path",
                 "url": "../packman/packages/schema",
-                "reference": "12e44e5e44dc348923fc6b9a72de335f1dca9c66"
+                "reference": "ed78b1e10371bc2ecf50951a50913634da22dc8b"
             },
             "require": {
                 "axiomasoft/packman": "^0.1",
@@ -8846,13 +8846,13 @@
             "dist": {
                 "type": "path",
                 "url": "packages/devtools",
-                "reference": "bfcf066530e7314b330ffb3198ab36060ccbdbae"
+                "reference": "98a835a8d04a5e7da9cdce8b676bacb27907fc51"
             },
             "require": {
                 "axiomasoft/azguard": "^2.0",
                 "axiomasoft/packman": "^0.1",
                 "axiomasoft/packman-devtools": "^0.1",
-                "axiomasoft/packman-plugins": "^0.1",
+                "axiomasoft/packman-plugins": "^0.1.1",
                 "illuminate/console": "^13.0",
                 "illuminate/contracts": "^13.0",
                 "illuminate/filesystem": "^13.0",
@@ -8917,11 +8917,11 @@
         },
         {
             "name": "axiomasoft/packman-devtools",
-            "version": "0.1.0",
+            "version": "0.1.1",
             "dist": {
                 "type": "path",
                 "url": "../packman/packages/devtools",
-                "reference": "404c9eacd745dff4af4f7bbaf9a396c9f1c4ddf6"
+                "reference": "8c6ed624837ac92195f35bdeaa06a17f9207e8bd"
             },
             "require": {
                 "axiomasoft/packman": "^0.1",
@@ -8974,11 +8974,11 @@
         },
         {
             "name": "axiomasoft/packman-testkit",
-            "version": "0.1.0",
+            "version": "0.1.1",
             "dist": {
                 "type": "path",
                 "url": "../packman/packages/testkit",
-                "reference": "7370007c3edaaa798127709fb79086430589d8c4"
+                "reference": "341b108aaa9c146d45a6ded6b322cd94a9402120"
             },
             "require": {
                 "axiomasoft/packman": "^0.1",
@@ -9315,6 +9315,57 @@
                 "source": "https://github.com/driftingly/rector-laravel/tree/2.7.3"
             },
             "time": "2026-10-27T12:37:16+00:00"
+        },
+        {
+            "name": "entropy/entropy",
+            "version": "0.4.37",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/TomasVotruba/entropy.git",
+                "reference": "57bd06e1652f3c38148944b4880ee3b6e6284da3"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/TomasVotruba/entropy/zipball/57bd06e1652f3c38148944b4880ee3b6e6284da3",
+                "reference": "57bd06e1652f3c38148944b4880ee3b6e6284da3",
+                "shasum": ""
+            },
+            "require": {
+                "ext-tokenizer": "*",
+                "php": ">=7.4",
+                "symfony/polyfill-php80": "^1.31"
+            },
+            "require-dev": {
+                "php-parallel-lint/php-parallel-lint": "^1.4",
+                "phpstan/extension-installer": "^1.4",
+                "phpstan/phpstan": "^2.1",
+                "phpunit/phpunit": "^9.6",
+                "rector/jack": "^1.0",
+                "rector/rector": "^2.4",
+                "rector/swiss-knife": "^2.4",
+                "shipmonk/composer-dependency-analyser": "^1.8",
+                "shipmonk/dead-code-detector": "^1.4",
+                "symplify/easy-coding-standard": "^13.1",
+                "symplify/phpstan-rules": "^14.10",
+                "tomasvotruba/type-coverage": "^2.2",
+                "tracy/tracy": "^2.12"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Entropy\\": "src"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "proprietary"
+            ],
+            "description": "Entropy framework",
+            "support": {
+                "issues": "https://github.com/TomasVotruba/entropy/issues",
+                "source": "https://github.com/TomasVotruba/entropy/tree/0.4.37"
+            },
+            "time": "2026-11-14T16:57:42+00:00"
         },
         {
             "name": "fakerphp/faker",
@@ -10487,6 +10538,85 @@
             "time": "2026-11-10T17:06:52+00:00"
         },
         {
+            "name": "nunomaduro/pokio",
+            "version": "v1.0.1",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/nunomaduro/pokio.git",
+                "reference": "fc7884ebc5b0fabd6e267c0b4e6f750ba69cee5b"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/nunomaduro/pokio/zipball/fc7884ebc5b0fabd6e267c0b4e6f750ba69cee5b",
+                "reference": "fc7884ebc5b0fabd6e267c0b4e6f750ba69cee5b",
+                "shasum": ""
+            },
+            "require": {
+                "php": "^8.3.0"
+            },
+            "conflict": {
+                "symplify/easy-parallel": "<11.2.2"
+            },
+            "require-dev": {
+                "laravel/pint": "^1.29.0",
+                "peckphp/peck": "^0.1.3",
+                "pestphp/pest": "^4.5.0",
+                "pestphp/pest-plugin-type-coverage": "^4.0.3",
+                "phpstan/phpstan": "^2.1.46",
+                "symfony/var-dumper": "^7.4.8 || ^8.0.8"
+            },
+            "type": "library",
+            "extra": {
+                "branch-alias": {
+                    "dev-main": "0.1.x-dev"
+                }
+            },
+            "autoload": {
+                "files": [
+                    "src/Functions.php"
+                ],
+                "psr-4": {
+                    "Pokio\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Nuno Maduro",
+                    "email": "enunomaduro@gmail.com"
+                }
+            ],
+            "description": "Pokio is a dead simple asynchronous API for PHP that just works",
+            "keywords": [
+                "asynchronous",
+                "library",
+                "php",
+                "pokio"
+            ],
+            "support": {
+                "issues": "https://github.com/nunomaduro/pokio/issues",
+                "source": "https://github.com/nunomaduro/pokio/tree/v1.0.1"
+            },
+            "funding": [
+                {
+                    "url": "https://www.paypal.com/paypalme/enunomaduro",
+                    "type": "custom"
+                },
+                {
+                    "url": "https://github.com/nunomaduro",
+                    "type": "github"
+                },
+                {
+                    "url": "https://www.patreon.com/nunomaduro",
+                    "type": "patreon"
+                }
+            ],
+            "time": "2026-04-12T12:06:31+00:00"
+        },
+        {
             "name": "opis/json-schema",
             "version": "2.6.2",
             "source": {
@@ -11490,6 +11620,80 @@
                 "source": "https://github.com/pestphp/pest-plugin-profanity/tree/v5.0.1"
             },
             "time": "2026-10-07T19:41:52+00:00"
+        },
+        {
+            "name": "pestphp/pest-plugin-type-coverage",
+            "version": "v5.1.1",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/pestphp/pest-plugin-type-coverage.git",
+                "reference": "0c1148106bc31d336606d62cc5930a885d8ad9c4"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/pestphp/pest-plugin-type-coverage/zipball/0c1148106bc31d336606d62cc5930a885d8ad9c4",
+                "reference": "0c1148106bc31d336606d62cc5930a885d8ad9c4",
+                "shasum": ""
+            },
+            "require": {
+                "nunomaduro/pokio": "^1.0.1",
+                "pestphp/pest-plugin": "^5.0.0",
+                "php": "^8.4",
+                "phpstan/phpstan": "^2.3.5",
+                "tomasvotruba/type-coverage": "^2.5.1"
+            },
+            "conflict": {
+                "pestphp/pest": "<5.0.0",
+                "phpstan/phpstan": "<2.2.7",
+                "phpunit/phpunit": "<13.4.1"
+            },
+            "require-dev": {
+                "pestphp/pest": "^5.3.4",
+                "pestphp/pest-dev-tools": "^5.0.0"
+            },
+            "type": "library",
+            "extra": {
+                "pest": {
+                    "plugins": [
+                        "Pest\\TypeCoverage\\Plugin"
+                    ]
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Pest\\TypeCoverage\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "description": "The Type Coverage plugin for Pest PHP.",
+            "keywords": [
+                "coverage",
+                "framework",
+                "pest",
+                "php",
+                "plugin",
+                "test",
+                "testing",
+                "type-coverage",
+                "unit"
+            ],
+            "support": {
+                "source": "https://github.com/pestphp/pest-plugin-type-coverage/tree/v5.1.1"
+            },
+            "funding": [
+                {
+                    "url": "https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=66BYDWAT92N6L",
+                    "type": "custom"
+                },
+                {
+                    "url": "https://github.com/nunomaduro",
+                    "type": "github"
+                }
+            ],
+            "time": "2026-11-16T20:01:45+00:00"
         },
         {
             "name": "phar-io/manifest",
@@ -13995,6 +14199,77 @@
                 "source": "https://github.com/ta-tikoma/phpunit-architecture-test/tree/0.8.7"
             },
             "time": "2026-02-17T17:25:14+00:00"
+        },
+        {
+            "name": "tomasvotruba/type-coverage",
+            "version": "2.5.1",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/TomasVotruba/type-coverage.git",
+                "reference": "2d8e722c1776a17f506f6a66cd325e50fbaa12ee"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/TomasVotruba/type-coverage/zipball/2d8e722c1776a17f506f6a66cd325e50fbaa12ee",
+                "reference": "2d8e722c1776a17f506f6a66cd325e50fbaa12ee",
+                "shasum": ""
+            },
+            "require": {
+                "entropy/entropy": "^0.4.23",
+                "php": ">=7.4",
+                "phpstan/phpstan": "^2.2"
+            },
+            "require-dev": {
+                "doctrine/collections": "^2.3",
+                "phpstan/extension-installer": "^1.4",
+                "phpunit/phpunit": "^13.2",
+                "rector/jack": "^1.1",
+                "rector/rector": "^2.5",
+                "shipmonk/composer-dependency-analyser": "^1.8",
+                "shipmonk/dead-code-detector": "^1.4",
+                "symfony/dom-crawler": "^8.1",
+                "symfony/form": "^8.1",
+                "symplify/easy-coding-standard": "^13.2",
+                "tracy/tracy": "^2.12"
+            },
+            "type": "phpstan-extension",
+            "extra": {
+                "phpstan": {
+                    "includes": [
+                        "config/extension.neon"
+                    ]
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Rector\\TypePerfect\\": "packages/type-perfect/src",
+                    "TomasVotruba\\TypeCoverage\\": "src"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "description": "Measure type coverage of your project",
+            "keywords": [
+                "phpstan-extension",
+                "static analysis"
+            ],
+            "support": {
+                "issues": "https://github.com/TomasVotruba/type-coverage/issues",
+                "source": "https://github.com/TomasVotruba/type-coverage/tree/2.5.1"
+            },
+            "funding": [
+                {
+                    "url": "https://www.paypal.me/rectorphp",
+                    "type": "custom"
+                },
+                {
+                    "url": "https://github.com/tomasvotruba",
+                    "type": "github"
+                }
+            ],
+            "time": "2026-10-09T19:09:05+00:00"
         },
         {
             "name": "webmozart/assert",

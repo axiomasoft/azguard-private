@@ -18,7 +18,7 @@
         "axiomasoft/packman": "^0.1",
         "axiomasoft/packman-filament": "^0.1",
         "axiomasoft/packman-panels": "^0.1",
-        "axiomasoft/packman-plugins": "^0.1",
+        "axiomasoft/packman-plugins": "^0.1.1",
         "axiomasoft/packman-schema": "^0.1"
     },
     "require-dev": {
@@ -34,6 +34,7 @@
         "orchestra/testbench": "^11.3",
         "orchestra/testbench-core": "^11.3",
         "pestphp/pest": "^5.2",
+        "pestphp/pest-plugin-type-coverage": "^5.1",
         "phpstan/phpstan": "^2.2.16 <2.3.6",
         "phpstan/phpstan-strict-rules": "^2.0.12",
         "rector/rector": "^2.6"
@@ -50,6 +51,7 @@
             "url": "packages/*",
             "options": {
                 "symlink": true,
+                "reference": "config",
                 "versions": {
                     "axiomasoft/azguard": "2.0.0",
                     "axiomasoft/azguard-audit": "2.0.0",
@@ -64,14 +66,15 @@
             "url": "../packman/packages/*",
             "options": {
                 "symlink": true,
+                "reference": "config",
                 "versions": {
-                    "axiomasoft/packman": "0.1.0",
-                    "axiomasoft/packman-devtools": "0.1.0",
-                    "axiomasoft/packman-filament": "0.1.0",
-                    "axiomasoft/packman-panels": "0.1.0",
-                    "axiomasoft/packman-plugins": "0.1.0",
-                    "axiomasoft/packman-schema": "0.1.0",
-                    "axiomasoft/packman-testkit": "0.1.0"
+                    "axiomasoft/packman": "0.1.1",
+                    "axiomasoft/packman-devtools": "0.1.1",
+                    "axiomasoft/packman-filament": "0.1.1",
+                    "axiomasoft/packman-panels": "0.1.1",
+                    "axiomasoft/packman-plugins": "0.1.1",
+                    "axiomasoft/packman-schema": "0.1.1",
+                    "axiomasoft/packman-testkit": "0.1.1"
                 }
             }
         }
@@ -139,7 +142,8 @@
         "test:db": [
             "Composer\\Config::disableProcessTimeout",
             "@php bin/test-db.php"
-        ]
+        ],
+        "test:types": "FORK_MEM_PER_PROC=9223372036854775807 php -d memory_limit=1G vendor/bin/pest --type-coverage --min=98"
     },
     "scripts-descriptions": {
         "check": "Run required local gates: style, static analysis, Rector, Packman gates/contracts and tests.",

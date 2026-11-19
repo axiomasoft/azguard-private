@@ -27,7 +27,7 @@ final class AzGuardFilamentExtensionRegistrar implements PackageRegistrar
         );
 
         if (! $app->resolved(PluginInspector::class)) {
-            ExtensionRegistrar::builtIn(AzGuardFilamentPlugin::class);
+            ExtensionRegistrar::builtInFor($app, AzGuardFilamentPlugin::class);
         }
     }
 

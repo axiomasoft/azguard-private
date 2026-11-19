@@ -29,7 +29,7 @@
         "axiomasoft/azguard": "^2.0",
         "axiomasoft/packman": "^0.1",
         "axiomasoft/packman-devtools": "^0.1",
-        "axiomasoft/packman-plugins": "^0.1",
+        "axiomasoft/packman-plugins": "^0.1.1",
         "illuminate/console": "^13.0",
         "illuminate/contracts": "^13.0",
         "illuminate/filesystem": "^13.0",

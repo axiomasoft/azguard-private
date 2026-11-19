@@ -29,7 +29,7 @@
         "php": "^8.4",
         "axiomasoft/packman": "^0.1",
         "axiomasoft/packman-panels": "^0.1",
-        "axiomasoft/packman-plugins": "^0.1",
+        "axiomasoft/packman-plugins": "^0.1.1",
         "axiomasoft/packman-schema": "^0.1",
         "illuminate/auth": "^13.0",
         "illuminate/console": "^13.0",

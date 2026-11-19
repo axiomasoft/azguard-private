@@ -39,7 +39,7 @@ final class AzGuardExtensionRegistrar implements PackageRegistrar
         PanelExtensionBridge::registerExtension($app, $plugin);
 
         if (! $app->resolved(PluginInspector::class)) {
-            ExtensionRegistrar::builtIn(AzGuardCorePlugin::class);
+            ExtensionRegistrar::builtInFor($app, AzGuardCorePlugin::class);
         }
     }
 

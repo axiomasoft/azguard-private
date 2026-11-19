@@ -28,7 +28,7 @@ final class AuditExtensionRegistrar implements PackageRegistrar
         SchemaExtensions::register($app, $plugin, $plugin->manifest()->id);
 
         if (! $app->resolved(PluginInspector::class)) {
-            ExtensionRegistrar::builtIn(AuditExtensionPlugin::class);
+            ExtensionRegistrar::builtInFor($app, AuditExtensionPlugin::class);
         }
     }
 

@@ -39,6 +39,17 @@ jobs:
           fetch-tags: true
           persist-credentials: false
 
+      - name: Checkout Packman
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+        with:
+          repository: axiomasoft/packman
+          ref: v0.1.1
+          path: build/ci/packman
+          persist-credentials: false
+
+      - name: Expose the sibling Composer repository
+        run: ln -sT "$GITHUB_WORKSPACE/build/ci/packman" "$GITHUB_WORKSPACE/../packman"
+
       - name: Setup PHP
         uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # 2.40.0
         with:

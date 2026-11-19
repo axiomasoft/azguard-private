@@ -32,7 +32,7 @@ final class DevToolsExtensionRegistrar implements PackageRegistrar
         );
 
         if (! $app->resolved(PluginInspector::class)) {
-            ExtensionRegistrar::builtIn(DevToolsExtensionPlugin::class);
+            ExtensionRegistrar::builtInFor($app, DevToolsExtensionPlugin::class);
         }
     }
 

@@ -24,7 +24,7 @@ final class ScopesExtensionRegistrar implements PackageRegistrar
         );
 
         if (! $app->resolved(PluginInspector::class)) {
-            ExtensionRegistrar::builtIn(ScopesExtensionPlugin::class);
+            ExtensionRegistrar::builtInFor($app, ScopesExtensionPlugin::class);
         }
     }
 
